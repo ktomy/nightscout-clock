@@ -1,0 +1,15 @@
+{
+    "ssid":"",
+    "password": "",
+    "dhcp": true,
+    "ip": "",
+    "netsmak": "",
+    "gateway": "",
+    "dns1": "",
+    "dns2": "",
+    "nightscout_url": "",
+    "units": "",
+    "low_mgdl": 0,
+    "high_mgdl": 0
+
+}
