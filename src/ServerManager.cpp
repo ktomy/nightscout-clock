@@ -1,6 +1,8 @@
 #include "ServerManager.h"
+#include <AsyncTCP.h>
+#include <ESPAsyncWebServer.h>
+#include <AsyncJson.h>
 #include "Globals.h"
-#include <WebServer.h>
 #include "SettingsManager.h"
 #include <WiFi.h>
 #include <LittleFS.h>
@@ -90,12 +92,64 @@ IPAddress ServerManager_::startWifi(String ssid, String password)
 void ServerManager_::setupWebServer(IPAddress ip)
 {
     DEBUG_PRINTLN("Setting up web server 2");
-    ws = new WebServer(ip, 80);
-    ws->serveStatic("/", LittleFS, "/index.html");
-    ws->serveStatic("/config.json", LittleFS, "/config.json");
+    ws = new AsyncWebServer(80);
+    // ws->serveStatic("/index.html", LittleFS, "/index.html");
+    // ws->serveStatic("/favicon.ico", LittleFS, "/favicon.ico");
+    // ws->serveStatic("/script.js", LittleFS, "/script.js");
+    // ws->serveStatic("/bootstrap.min.css", LittleFS, "/bootstrap.min.css");
+    // ws->serveStatic("/config.json", LittleFS, "/config.json");
+
+
+ws->addHandler(new AsyncCallbackJsonWebHandler(
+  "/api/save",
+  [this](AsyncWebServerRequest* request, JsonVariant& json) {
+    DEBUG_PRINTLN("We are here");
+      if (not json.is<JsonObject>()) {
+        request->send(200, "application/json", "{\"status\": \"json parsing error\"}");
+        return;
+      }
+      auto&& data = json.as<JsonObject>();
+      if (SettingsManager.trySaveJsonAsSettings(data)) {
+        request->send(200, "application/json", "{\"status\": \"ok\"}");
+      } else {
+        request->send(200, "application/json", "{\"status\": \"Settings save error\"}");
+      }
+
+
+    //   if (not data["name"].is<String>()) {
+    //     request->send(400, "text/plain", "name is not a string");
+    //     return;
+    //   }
+    //   String name = data["name"].as<String>();
+
+    //   if (name == "IDLE") {
+    //     set_mode_idle(request, data); // handle data and respond
+    //   } else if (name == "RANDOM") {
+    //     set_mode_random(request, data); // handle data and respond
+    //   } else {
+    //    request->send(400, "text/plain", "Invalid mode");
+    //   }
+}));
+
+    ws->serveStatic("/", LittleFS, "/").setDefaultFile("index.html");;
+
+
+    // Send a POST request to <IP>/post with a form field message set to <message>
+    // ws->on("/saveconfig", HTTP_POST, [](AsyncWebServerRequest *request){
+    //     String message;
+    //     if (SettingsManager.trySaveStringAsSettings(request->arg("plain")))
+    //     {
+    //         request->send(200, "application/json", "{\"status\": \"ok\"}");
+    //     }
+    //     else
+    //     {
+    //         request->send(200, "application/json", "{\"status\": \"error\"}");
+    //     }
+    // });
 
     ws->begin();
 }
+
 
 
 void ServerManager_::setup()
@@ -118,7 +172,7 @@ void ServerManager_::setup()
 
 void ServerManager_::tick()
 {
-    ws->handleClient();
+    //ws->handleClient();
     if (apMode)
         dnsServer.processNextRequest();
 }

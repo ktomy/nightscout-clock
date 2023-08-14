@@ -3,17 +3,20 @@
 
 #include <Arduino.h>
 #include <DNSServer.h>
-#include <WebServer.h>
+#include <AsyncTCP.h>
+#include <ESPAsyncWebServer.h>
 
 class ServerManager_
 {
 private:
+    bool apMode;
+    AsyncWebServer *ws;
     ServerManager_() = default;
+
     IPAddress startWifi(String ssid, String password);
     void setupWebServer(IPAddress ip);
     IPAddress setAPmode(String ssid, String psk);
-    bool apMode;
-    WebServer *ws;
+    void saveConfigHandler();
 
 public:
     void begin();

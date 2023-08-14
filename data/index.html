@@ -1,8 +1,132 @@
-<html>
-    <head>
-
-    </head>
-    <body>
-        <h1>Test</h1>
-    </body>
+<!doctype html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="bootstrap.min.css" rel="stylesheet">
+    <link href="../data_dev/bootstrap.css" rel="stylesheet">
+    <title>Nightscout clock</title>
+</head>
+<body class="bg-body-tertiary">
+    <div class="container-md">
+        <div class="pt-5 pb-2 text-center">
+            <h2>Nightscout clock</h2>
+        </div>
+        <form class="needs-validation" novalidate>
+            <div class="card" id="loading_block">
+                <div class="card-body">
+                    Loading data...
+                </div>
+            </div>
+            <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+                <symbol id="check-circle-fill" fill="currentColor" viewBox="0 0 16 16">
+                  <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/>
+                </symbol>
+              </svg>            
+            <div class="alert alert-success d-flex align-items-center alert-dismissible fade show" role="alert">
+                <svg class="bi flex-shrink-0 me-2" width="24" height="24" role="img" aria-label="Success:"><use xlink:href="#check-circle-fill"/></svg>
+                <strong>Holy guacamole!</strong> You should check in on some of those fields below.
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            <div class="collapse" id="main_block">
+                <div class="card">
+                    <h5 class="card-header" id="headingOne">
+                        Wireless network settings
+                    </h5>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-sm-6">
+                                <label for="ssid" class="form-label">Wireless network name (SSID)</label>
+                                <input type="text" class="form-control" id="ssid" placeholder="" value="" required>
+                                <div class="invalid-feedback">
+                                    Valid network name (SSID) is required
+                                </div>
+                            </div>
+                            
+                            <div class="col-sm-6">
+                                <label for="wifi_password" class="form-label">WiFi password</label>
+                                <input type="password" class="form-control" id="wifi_password" placeholder="" value="" required>
+                                <div class="invalid-feedback">
+                                    Password is required and must be at least 8 characters long
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card">
+                    <h5 class="card-header" id="headingThree">
+                        Nightscout settings
+                    </h5>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-9">
+                                <label for="ns_hostname" class="form-label">Nightscout hostname <span class="text-body-secondary">(Hostname, not URL)</span></label>
+                                <input type="text" class="form-control" id="ns_hostname" placeholder="mybloodsugar.heroku.com" required>
+                                <div class="invalid-feedback">
+                                    Please enter a valid hostname
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                <label for="ns_port" class="form-label">Port <span class="text-body-secondary">(Optional)</span></label>
+                                <input type="text" class="form-control" id="ns_port" placeholder="443">
+                                <div class="invalid-feedback">
+                                    Port must be either empty (default is 443) either a valid TCP port
+                                </div>
+                            </div>
+                        </div>
+                        <br />
+                        <div class="col-12">
+                            <label for="api_secret" class="form-label">API secret <span class="text-body-secondary">(Only needed when viewing Nightscout data is protected)</span></label>
+                            <input type="password" class="form-control" id="api_secret" />
+                            <div class="invalid-feedback">
+                                API secret must be at least 12 characters long
+                            </div>
+                        </div>
+                        <br />
+                        <div class="row">
+                            <div class="col-sm-4">
+                                <label for="bg_units" class="form-label">Blood glucose units</label>
+                                <select class="form-select" id="bg_units" required>
+                                    <option value="">Choose...</option>
+                                    <option value="mgdl">mg/dl</option>
+                                    <option value="mmol">mmol/l</option>
+                                </select>
+                                <div class="invalid-feedback">
+                                    Please select blood glucose units type
+                                </div>
+                            </div>
+                            
+                            <div class="col-sm-4">
+                                <label for="bg_low" class="form-label">BG low value</label>
+                                <input type="text" class="form-control" id="bg_low" placeholder="" required>
+                                <div class="invalid-feedback">
+                                    BG Low value is required
+                                </div>
+                            </div>
+                            
+                            <div class="col-sm-4">
+                                <label for="bg_high" class="form-label">BG High value</label>
+                                <input type="text" class="form-control" id="bg_high" placeholder="" required>
+                                <div class="invalid-feedback">
+                                    BG High value is required
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <br class="my-4">
+                <div class="float-end mb-lg-5">
+                    <button class="btn btn-primary btn-lg" type="button" id="save">Validate, save and restart</button>
+                    
+                </div>
+                <br class="pb-5 my-4" />
+            </div>
+        </form>
+    </div>
+    <script src="bootstrap.bundle.min.js"></script>
+    <script src="../data_dev/bootstrap.bundle.js"></script>
+    <script src="jquery.min.js"></script>
+    <script src="../data_dev/jquery.js"></script>
+    <script src="script.js"></script>
+</body>
 </html>

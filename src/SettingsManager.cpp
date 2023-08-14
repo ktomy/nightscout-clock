@@ -51,3 +51,10 @@ void SettingsManager_::loadSettingsFromFile()
     }
 
 }
+bool SettingsManager_::trySaveJsonAsSettings(JsonObject json)
+{
+    auto doc = DynamicJsonDocument(json);
+    DEBUG_PRINTLN(doc.as<String>());
+    return false;
+
+}

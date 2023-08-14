@@ -3,6 +3,7 @@
 
 #include "enums.h"
 #include <IPAddress.h>
+#include <ArduinoJson.h>
 
 class Settings
 {
@@ -33,6 +34,7 @@ public:
     void begin();
     void loadSettingsFromFile();
     void saveSettingsToFile();
+    bool trySaveJsonAsSettings(JsonObject json);
 
     Settings settings;
 };
