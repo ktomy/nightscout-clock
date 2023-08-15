@@ -55,6 +55,13 @@ bool SettingsManager_::trySaveJsonAsSettings(JsonObject json)
 {
     auto doc = DynamicJsonDocument(json);
     DEBUG_PRINTLN(doc.as<String>());
-    return false;
+    if (json["high_mgdl"].as<int>() > 180)
+    {
+        return false;
+    }
+    else
+    {
+        return true;
+    }
 
 }

@@ -81,7 +81,7 @@
     }
     
     function uploadForm(json) {
-        fetch("/api/save", {
+        fetch("http://192.168.86.24/api/save", {
             method: "POST",
             headers: {
                 'Accept': 'application/json',
@@ -92,16 +92,33 @@
             .then(function(res) {
                 if (res?.ok) {
                     res.json().then(data => {
-                        alert( JSON.stringify( data ) );
+                        if (data.status == "ok") {
+                            $("#success-alert").removeClass("d-none");
+                            sleep(3000).then(() => {
+                                $("#success-alert").addClass("d-none");
+                            });
+                        }
+                        else {
+                            showFailureAlert();
+                        }
                     });
                 }
                 else {
                     console.log(`Response error: ${res?.status}`)
+                    showFailureAlert();
                 }
             })
             .catch(error => {
                 console.log(`Fetching error: ${error}`);
+                showFailureAlert();
             });
+    }
+
+    function showFailureAlert() {
+        $("#failure-alert").removeClass("d-none");
+        sleep(3000).then(() => {
+            $("#failure-alert").addClass("d-none");
+        });
     }
     
     
