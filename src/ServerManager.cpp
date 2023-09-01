@@ -2,7 +2,7 @@
 #include <AsyncTCP.h>
 #include <ESPAsyncWebServer.h>
 #include <AsyncJson.h>
-#include "Globals.h"
+#include "globals.h"
 #include "SettingsManager.h"
 #include <WiFi.h>
 #include <LittleFS.h>
