@@ -22,10 +22,14 @@ void SettingsManager_::begin()
 
 void SettingsManager_::loadSettingsFromFile()
 {
-    if (LittleFS.exists("/config.json"))
+    if (LittleFS.exists(CONFIG_JSON))
     {
         auto settings = Settings();
-        File file = LittleFS.open(CONFIG_JSON, "r");
+        File file = LittleFS.open(CONFIG_JSON);
+        if (!file || file.isDirectory()) {
+            DEBUG_PRINTLN("Failed to open config file for reading");
+            return;
+        }
         DynamicJsonDocument doc(file.size() * 1.33);
         DeserializationError error = deserializeJson(doc, file);
         if (error)
@@ -39,6 +43,7 @@ void SettingsManager_::loadSettingsFromFile()
         ///TODO: Get Network config
 
         settings.nsUrl = doc["nightscout_url"].as<String>();
+        settings.nsApiKey = doc["api_secret"].as<String>();
         settings.bgLow = doc["low_mgdl"].as<int>();
         settings.bgHigh = doc["high_mgdl"].as<int>();
 
@@ -49,19 +54,24 @@ void SettingsManager_::loadSettingsFromFile()
     {
         DEBUG_PRINTLN("Cannot read configuration file");
     }
-
 }
+
 bool SettingsManager_::trySaveJsonAsSettings(JsonObject json)
 {
     auto doc = DynamicJsonDocument(json);
     DEBUG_PRINTLN(doc.as<String>());
-    if (json["high_mgdl"].as<int>() > 180)
-    {
+    auto file = LittleFS.open(CONFIG_JSON, FILE_WRITE);
+    if(!file){
+        DEBUG_PRINTLN("Failed to open config file for writing");
         return false;
     }
-    else
-    {
-        return true;
+
+    auto result = file.print(doc.as<String>());
+
+    file.close();
+    if (!result) {
+        return false;
     }
 
+    return true;
 }

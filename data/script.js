@@ -12,6 +12,7 @@
         bg_mmol: /^(([2-9])|([1-2][0-9]))(\.[1-9])?$/,
         
     };
+    let configJson = {};
 
     addFocusoutValidation('ssid');
     addFocusoutValidation('wifi_password');
@@ -50,15 +51,9 @@
     });
     
     function createJson() {
-        var json = {};
+        var json = configJson;
         json['ssid'] = $('#ssid').val();
         json['password'] = $('#wifi_password').val();
-        json['dhcp'] = true;
-        json['ip'] = '';
-        json['netmask'] = '';
-        json['gateway'] = '';
-        json['dns1'] = '';
-        json['dns2'] = '';
         json['api_secret'] = $('#api_secret').val();
         json['nightscout_host'] = $('#ns_hostname').val();
         json['nightscout_port'] = parseInt($('#ns_port').val()) || 443;
@@ -81,7 +76,12 @@
     }
     
     function uploadForm(json) {
-        fetch("http://192.168.86.24/api/save", {
+        let postUrl = "/api/save";
+        if (window.location.href.indexOf("127.0.0.1") > 0) {
+            console.log("Uploading to local ESP..");
+            postUrl = "http://192.168.86.24/api/save";
+        }
+        fetch(postUrl, {
             method: "POST",
             headers: {
                 'Accept': 'application/json',
@@ -168,14 +168,16 @@
         .then(response => response.json())
         .then(data => {
             console.log(data);
-            loadFormData(data);
+            configJson = data;
+            loadFormData();
             sleep(300).then(x => {
                 $('#main_block').removeClass("collapse");
                 $('#loading_block').addClass("collapse");
             });
         });    
 
-    function loadFormData(json) {
+    function loadFormData() {
+        var json = configJson;
         $('#ssid').val(json['ssid']);
         $('#wifi_password').val(json['password']);
         $('#api_secret').val(json['api_secret']);
