@@ -1,7 +1,7 @@
 
 (() => {
     'use strict'
-    
+
     const patterns = {
         ssid: /^[^!#;+\]\/"\t][^+\]\/"\t]{0,30}[^ +\]\/"\t]$|^[^ !#;+\]\/"\t]$[ \t]+$/,
         wifi_password: /^.{8,}$/,
@@ -10,7 +10,7 @@
         api_secret: /(^$)|(.{12,})/,
         bg_mgdl: /^[3-9][0-9]$|^[1-3][0-9][0-9]$/,
         bg_mmol: /^(([2-9])|([1-2][0-9]))(\.[1-9])?$/,
-        
+
     };
     let configJson = {};
 
@@ -19,7 +19,7 @@
     addFocusoutValidation('ns_hostname');
     addFocusoutValidation('ns_port');
     addFocusoutValidation('api_secret');
-    
+
     $('#bg_units').change( (e) => {
         validateBG();
     });
@@ -29,11 +29,11 @@
     $('#bg_high').on('focusout', (e) => {
         validateBG();
     });
-    
-    
+
+
     const saveButton = $("#save");
     saveButton.on('click', (e) => {
-        
+
         var allValid = true;
         allValid &= validate($('#ssid'), patterns.ssid);
         allValid &= validate($('#wifi_password'), patterns.wifi_password);
@@ -41,15 +41,15 @@
         allValid &= validate($('#ns_port'), patterns.ns_port);
         allValid &= validate($('#api_secret'), patterns.api_secret);
         allValid &= validateBG();
-        
+
         if (!allValid) {
             return;
         }
-        
+
         const jsonString = createJson();
         uploadForm(jsonString);
     });
-    
+
     function createJson() {
         var json = configJson;
         json['ssid'] = $('#ssid').val();
@@ -58,7 +58,7 @@
         json['nightscout_host'] = $('#ns_hostname').val();
         json['nightscout_port'] = parseInt($('#ns_port').val()) || 443;
         json['units'] = $('#bg_units').val();
-        
+
         var bg_low = 0;
         var bg_high = 0;
         if ($('#bg_units').val() == 'mgdl') {
@@ -67,26 +67,28 @@
         } else {
             bg_low = Math.round((parseFloat($('#bg_low').val()) || 0) * 18);
             bg_high = Math.round((parseFloat($('#bg_high').val()) || 0) * 18);
-            
+
         }
         json['low_mgdl'] = bg_low;
         json['high_mgdl'] = bg_high;
-        
+
         return JSON.stringify(json);
     }
-    
+
     function uploadForm(json) {
-        let postUrl = "/api/save";
+        let saveUrl = "/api/save";
+        let resetUrl = "/api/reset";
         if (window.location.href.indexOf("127.0.0.1") > 0) {
             console.log("Uploading to local ESP..");
-            postUrl = "http://192.168.86.24/api/save";
+            saveUrl = "http://192.168.86.24/api/save";
+            resetUrl = "http://192.168.86.24/api/reset";
         }
-        fetch(postUrl, {
+        fetch(saveUrl, {
             method: "POST",
             headers: {
                 'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            },            
+                'Content-Type': 'application/json',
+            },
             body: json,
         })
             .then(function(res) {
@@ -94,6 +96,16 @@
                     res.json().then(data => {
                         if (data.status == "ok") {
                             $("#success-alert").removeClass("d-none");
+
+                            fetch(resetUrl, {
+                                method: "POST",
+                                headers: {
+                                    'Accept': 'application/json',
+                                    'Content-Type': 'application/json',
+                                },
+                                body: "{}",
+                            });
+
                             sleep(3000).then(() => {
                                 $("#success-alert").addClass("d-none");
                             });
@@ -120,8 +132,8 @@
             $("#failure-alert").addClass("d-none");
         });
     }
-    
-    
+
+
     function validateBG() {
         var valid = true;
         if ($('#bg_units').val() == "mgdl") {
@@ -138,7 +150,7 @@
         }
         return valid;
     }
-    
+
     function validate(field, regex) {
         return setElementValidity(field, regex.test(field.val()));
     }
@@ -149,7 +161,7 @@
             validate($(e.target), patterns[fieldName])
         });
     }
-    
+
     function setElementValidity(field, valid) {
         if (valid) {
             field.removeClass("is-invalid");
@@ -158,7 +170,7 @@
             field.removeClass("is-valid");
             field.addClass("is-invalid");
         }
-        
+
         return valid;
     }
     function sleep(ms) {
@@ -174,7 +186,7 @@
                 $('#main_block').removeClass("collapse");
                 $('#loading_block').addClass("collapse");
             });
-        });    
+        });
 
     function loadFormData() {
         var json = configJson;

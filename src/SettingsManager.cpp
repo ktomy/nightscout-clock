@@ -14,13 +14,13 @@ SettingsManager_ &SettingsManager_::getInstance()
 // Initialize the global shared instance
 SettingsManager_ &SettingsManager = SettingsManager.getInstance();
 
-void SettingsManager_::begin()
+void SettingsManager_::setup()
 {
     LittleFS.begin();
 }
 
 
-void SettingsManager_::loadSettingsFromFile()
+bool SettingsManager_::loadSettingsFromFile()
 {
     if (LittleFS.exists(CONFIG_JSON))
     {
@@ -28,31 +28,34 @@ void SettingsManager_::loadSettingsFromFile()
         File file = LittleFS.open(CONFIG_JSON);
         if (!file || file.isDirectory()) {
             DEBUG_PRINTLN("Failed to open config file for reading");
-            return;
+            return false;
         }
-        DynamicJsonDocument doc(file.size() * 1.33);
+        DynamicJsonDocument doc((int)(file.size() * 2));
         DeserializationError error = deserializeJson(doc, file);
         if (error)
         {
-            DEBUG_PRINTLN(error.c_str());
-            return;
+            DEBUG_PRINTF("Deserialization error. File size: %d, requested memory: %d. Error: %s\n", file.size(), (int)(file.size() * 2), error.c_str());
+            file.close();
+            return false;
         }
         settings.ssid = doc["ssid"].as<String>();
         settings.password = doc["password"].as<String>();
 
         ///TODO: Get Network config
 
-        settings.nsUrl = doc["nightscout_url"].as<String>();
+        settings.nsHost = doc["nightscout_host"].as<String>();
+        settings.nsPort = doc["nightscout_port"].as<int>();
         settings.nsApiKey = doc["api_secret"].as<String>();
         settings.bgLow = doc["low_mgdl"].as<int>();
         settings.bgHigh = doc["high_mgdl"].as<int>();
 
         this->settings = settings;
-
+        return true;
     }
     else
     {
         DEBUG_PRINTLN("Cannot read configuration file");
+        return false;
     }
 }
 

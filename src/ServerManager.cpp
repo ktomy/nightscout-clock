@@ -26,11 +26,6 @@ String getID()
     return String(macStr);
 }
 
-void ServerManager_::begin()
-{
-
-}
-
 IPAddress ServerManager_::setAPmode(String ssid, String psk)
 {
     auto ipAP = IPAddress();
@@ -100,7 +95,6 @@ void ServerManager_::setupWebServer(IPAddress ip)
     ws->addHandler(new AsyncCallbackJsonWebHandler(
     "/api/save",
     [this](AsyncWebServerRequest* request, JsonVariant& json) {
-        DEBUG_PRINTLN("We are here");
         if (not json.is<JsonObject>()) {
             request->send(200, "application/json", "{\"status\": \"json parsing error\"}");
             return;
@@ -112,6 +106,14 @@ void ServerManager_::setupWebServer(IPAddress ip)
             request->send(200, "application/json", "{\"status\": \"Settings save error\"}");
         }
     }));
+
+
+    ws->on("/api/reset", HTTP_POST, [](AsyncWebServerRequest *request){
+        request->send(200, "application/json", "{\"status\": \"ok\"}");
+        delay(200);
+        LittleFS.end();
+        ESP.restart();
+    });
 
     ws->serveStatic("/", LittleFS, "/").setDefaultFile("index.html");;
 

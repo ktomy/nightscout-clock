@@ -16,7 +16,8 @@ class Settings
         IPAddress dns1;
         IPAddress dns2;
         String hostname;
-        String nsUrl;
+        String nsHost;
+        int nsPort;
         String nsApiKey;
         BG_UNIT bgUnit;
         int bgLow;
@@ -31,8 +32,8 @@ private:
 
 public:
     static SettingsManager_ &getInstance();
-    void begin();
-    void loadSettingsFromFile();
+    void setup();
+    bool loadSettingsFromFile();
     void saveSettingsToFile();
     bool trySaveJsonAsSettings(JsonObject json);
 

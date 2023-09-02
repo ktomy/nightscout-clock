@@ -19,7 +19,6 @@ private:
     void saveConfigHandler();
 
 public:
-    void begin();
     static ServerManager_ &getInstance();
     void setup();
     void tick();
