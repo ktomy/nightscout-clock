@@ -1,0 +1,10 @@
+{
+    "name": "Nightscout clock",
+    "version": "0.1",
+    "builds": [
+      {
+        "chipFamily": "ESP32",
+        "parts": [{ "path": "firmware.bin", "offset": 0 }]
+      }
+    ]
+  }
