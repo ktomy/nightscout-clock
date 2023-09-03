@@ -59,15 +59,6 @@ void DisplayManager_::setup() {
     matrix->setTextWrap(false);
     matrix->setBrightness(70);
     matrix->setFont(&AwtrixFont);    
-    // if (COLOR_CORRECTION)
-    // {
-    //     FastLED.setCorrection(COLOR_CORRECTION);
-    // }
-    // if (COLOR_TEMPERATURE)
-    // {
-    //     FastLED.setTemperature(COLOR_TEMPERATURE);
-    // }
-
 }
 
 void DisplayManager_::tick() {
@@ -148,6 +139,12 @@ void DisplayManager_::printText(int16_t x, int16_t y, const char *text, bool cen
         matrix->print(text);
     }
 
+    matrix->show();
+}
+
+void DisplayManager_::drawBitmap(int16_t x, int16_t y, const uint8_t bitmap[], int16_t w, int16_t h,uint16_t color) {
+    matrix->setCursor(x, y);
+    matrix->drawBitmap(x, y, bitmap, w, h, color);
     matrix->show();
 }
 

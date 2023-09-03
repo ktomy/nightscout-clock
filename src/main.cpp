@@ -41,7 +41,7 @@ void setup() {
     }
 
     DisplayManager.clearMatrix();
-    // DisplayManager.setTextColor(0x05c0);
+    DisplayManager.setTextColor(0x05c0);
     // DisplayManager.printText(8, 6, "5.6 /", true, 2);
 
 }

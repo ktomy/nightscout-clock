@@ -23,7 +23,6 @@ public:
     void showData(std::list<GlucoseReading> glucoseReadings);
     unsigned long long getLastDisplayedGlucoseEpoch();
     
-
 };
 
 extern BGDisplayManager_ &BGDisplayManager;
