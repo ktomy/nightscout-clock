@@ -3,31 +3,47 @@
 #include "SettingsManager.h"
 #include "ServerManager.h"
 #include "NightscoutManager.h"
+#include "DisplayManager.h"
 #include "globals.h"
 
 void setup() {
 
-  pinMode(15, OUTPUT);
-  digitalWrite(15, LOW);
-  delay(2000);
-  Serial.begin(115200);
+    pinMode(15, OUTPUT);
+    digitalWrite(15, LOW);
+    delay(2000);
+    Serial.begin(115200);
   
-  SettingsManager.setup();
-  if (!SettingsManager.loadSettingsFromFile()) {
-    DEBUG_PRINTLN("Error loading config, please re-flash the filesystem");
+    DisplayManager.setup();
+    SettingsManager.setup();
+    if (!SettingsManager.loadSettingsFromFile()) {
+        DEBUG_PRINTLN("Error loading config, please re-flash the filesystem");
 
-    ///TODO: Load default settings instead
+        ///TODO: Load default settings instead
     
-    delay(3000);
-    ESP.restart();
+        delay(3000);
+        ESP.restart();
 
-  }
-  ServerManager.setup();
-  NightscoutManager.setup();
+    }
+    DisplayManager.HSVtext(9, 6, "0.71", true, 0);
+    ServerManager.setup();
+    NightscoutManager.setup();
 
-  DEBUG_PRINTLN("Setup done");
-  delay(3000);
-  DEBUG_PRINTLN("Delay done");
+    DEBUG_PRINTLN("Setup done");
+    float x = 32;
+    while (x >= -120)
+    {
+        DisplayManager.HSVtext(x, 6, ("Nightscout clock   " + ServerManager.myIP.toString()).c_str(), true, 0);
+        x -= 0.18;
+    }
+
+    delay(1000);
+
+    DisplayManager.clearMatrix();
+    DisplayManager.setTextColor(0x05c0);
+    DisplayManager.printText(8, 6, "5.6 /", true, 2);
+
+
+
 
 
 
@@ -35,9 +51,10 @@ void setup() {
 
 void loop() {
 
-  if (ServerManager.isConnected)
-  {
-    ServerManager.tick();
-    NightscoutManager.tick();
-  }
+    if (ServerManager.isConnected)
+    {
+        ServerManager.tick();
+        NightscoutManager.tick();
+    }
+    DisplayManager.tick();
 }
