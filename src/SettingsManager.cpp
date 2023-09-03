@@ -48,6 +48,7 @@ bool SettingsManager_::loadSettingsFromFile()
         settings.nsApiKey = doc["api_secret"].as<String>();
         settings.bgLow = doc["low_mgdl"].as<int>();
         settings.bgHigh = doc["high_mgdl"].as<int>();
+        settings.bgUnit = doc["units"].as<String>() == "mmol" ? MMOLL : MGDL;
 
         this->settings = settings;
         return true;

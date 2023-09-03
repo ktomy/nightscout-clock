@@ -6,6 +6,8 @@
 #include "SettingsManager.h"
 #include <WiFi.h>
 #include <LittleFS.h>
+#include "time.h"
+
 
 // The getter for the instantiated singleton instance
 ServerManager_ &ServerManager_::getInstance()
@@ -128,6 +130,39 @@ void ServerManager_::setupWebServer(IPAddress ip)
     ws->begin();
 }
 
+bool initTime() {
+
+    struct tm timeinfo;
+
+    Serial.println("Setting up time");
+    configTime(0, 0, "pool.ntp.org");    // Connect to NTP server, with 0 TZ offset
+    if(!getLocalTime(&timeinfo)){
+        DEBUG_PRINTLN("Failed to obtain time");
+        return false;
+    }
+
+    DEBUG_PRINTF("Got the time from NTP: %02d.%02d.%d %02d:%02d:%02d\n"
+        , timeinfo.tm_mday
+        , timeinfo.tm_mon + 1
+        , timeinfo.tm_year + 1900
+        , timeinfo.tm_hour
+        , timeinfo.tm_min
+        , timeinfo.tm_sec
+    );
+    
+    return true;
+}
+
+unsigned long ServerManager_::getTime() {
+    struct tm timeinfo;
+    if(!getLocalTime(&timeinfo)){
+        DEBUG_PRINTLN("Failed to obtain time");
+        return 0;
+    } else {
+        time_t t = mktime(&timeinfo);
+        return t;
+    }
+}
 
 
 void ServerManager_::setup()
@@ -143,6 +178,10 @@ void ServerManager_::setup()
     DEBUG_PRINTF("My IP: %d.%d.%d.%d", myIP[0], myIP[1], myIP[2], myIP[3]);
 
     setupWebServer(myIP);
+
+    if (isConnected) {
+        initTime();
+    }
 
 }
 

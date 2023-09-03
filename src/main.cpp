@@ -4,6 +4,7 @@
 #include "ServerManager.h"
 #include "NightscoutManager.h"
 #include "DisplayManager.h"
+#include "BGDisplayManager.h"
 #include "globals.h"
 
 void setup() {
@@ -24,9 +25,12 @@ void setup() {
         ESP.restart();
 
     }
+
     DisplayManager.HSVtext(9, 6, "0.71", true, 0);
+
     ServerManager.setup();
     NightscoutManager.setup();
+    BGDisplayManager.setup();
 
     DEBUG_PRINTLN("Setup done");
     float x = 32;
@@ -36,16 +40,9 @@ void setup() {
         x -= 0.18;
     }
 
-    delay(1000);
-
     DisplayManager.clearMatrix();
-    DisplayManager.setTextColor(0x05c0);
-    DisplayManager.printText(8, 6, "5.6 /", true, 2);
-
-
-
-
-
+    // DisplayManager.setTextColor(0x05c0);
+    // DisplayManager.printText(8, 6, "5.6 /", true, 2);
 
 }
 
@@ -55,6 +52,11 @@ void loop() {
     {
         ServerManager.tick();
         NightscoutManager.tick();
+        BGDisplayManager.tick();
+        if (NightscoutManager.hasNewData(BGDisplayManager.getLastDisplayedGlucoseEpoch())) {
+            DEBUG_PRINTLN("We have new data");
+            BGDisplayManager.showData(NightscoutManager.getInstance().getGlucoseData());
+        }
     }
     DisplayManager.tick();
 }

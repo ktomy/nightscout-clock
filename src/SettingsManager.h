@@ -10,11 +10,6 @@ class Settings
     public:
         String ssid;
         String password;
-        IPAddress ip;
-        IPAddress subnet;
-        IPAddress gateway;
-        IPAddress dns1;
-        IPAddress dns2;
         String hostname;
         String nsHost;
         int nsPort;

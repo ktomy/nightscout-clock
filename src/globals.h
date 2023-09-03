@@ -34,5 +34,6 @@
 #define AP_IP "192.168.4.1"
 #define AP_NETMASK "255.255.255.0"
 #define AP_GATEWAY "192.168.4.1"
+#define DEFAULT_TIMEZONE "UTC0"
 
 #endif // Globals_H

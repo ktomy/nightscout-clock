@@ -25,6 +25,7 @@ public:
     bool isConnected;
     IPAddress myIP;
     DNSServer dnsServer;
+    unsigned long getTime();
 
 };
 
