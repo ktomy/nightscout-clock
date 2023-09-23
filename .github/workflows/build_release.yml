@@ -1,8 +1,10 @@
 on:
   push:
     tags:
-      - '*'
-    branches: [main]
+      - 'v-*'
+    branches: 
+      - main
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -28,6 +30,7 @@ jobs:
       - name: Collect artifacts
         run: |
             mkdir artifacts
+            cp .pio/build/ulanzi/bootloader.bin artifacts/
             cp .pio/build/ulanzi/partitions.bin artifacts/
             cp ~/.platformio/packages/framework-arduinoespressif32/tools/partitions/boot_app0.bin artifacts/
             cp .pio/build/ulanzi/firmware.bin artifacts/
