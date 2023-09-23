@@ -36,5 +36,5 @@ jobs:
             .pio/build/ulanzi/firmware.bin
             .pio/build/ulanzi/partitions.bin
             .pio/build/ulanzi/littlefs.bin
-            .platformio/packages/framework-arduinoespressif32/tools/partitions/boot_app0.bin
+            ../.platformio/packages/framework-arduinoespressif32/tools/partitions/boot_app0.bin
           retention-days: 1        
