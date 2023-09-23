@@ -1,0 +1,56 @@
+on:
+  push:
+    tags:
+      - '*'
+    branches: [main]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cache/pip
+            ~/.platformio/.cache
+          key: ${{ runner.os }}-pio
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+      - name: Install PlatformIO Core
+        run: pip install --upgrade platformio
+
+      - name: Build PlatformIO Project
+        run: pio run
+      - name: Build Filesystem Image
+        run: pio run --target buildfs --environment ulanzi
+      - name: Archive
+        uses: actions/upload-artifact@v3
+        with:
+          name: firmware
+          path: |
+            .pio/build/ulanzi/firmware.bin
+            .pio/build/ulanzi/partitions.bin
+            .pio/build/ulanzi/littlefs.bin
+            ~/.platformio/packages/framework-arduinoespressif32/tools/partitions/boot_app0.bin
+          retention-days: 1      
+  release:
+    name: Release
+    # if: startsWith(github.event.ref, 'refs/tags/v')
+    needs: build
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo for CHANGELOG
+        uses: actions/checkout@v3
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: firmware
+          path: firmware
+      - name: release
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: ".platformio/packages/framework-arduinoespressif32/tools/partitions/boot_app0.bin,work/nightscout-clock/nightscout-clock/.pio/build/ulanzi/partitions.bin,work/nightscout-clock/nightscout-clock/.pio/build/ulanzi/firmware.bin,work/nightscout-clock/nightscout-clock/.pio/build/ulanzi/littlefs.bin"
