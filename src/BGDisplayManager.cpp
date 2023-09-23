@@ -80,6 +80,15 @@ void BGDisplayManager_::showReading(GlucoseReading reading) {
     }
 
     DisplayManager.clearMatrix();
+
+    if (reading.sgv < SettingsManager.settings.bgLow) {
+        DisplayManager.setTextColor(0xF800);
+    } else if (reading.sgv >= SettingsManager.settings.bgHigh) {
+        DisplayManager.setTextColor(0xFFE0);
+    } else {
+        DisplayManager.setTextColor(0x07E0);
+    }
+
     DisplayManager.printText(0, 6, readingToDisplay.c_str(), true, 2);
     DisplayManager.drawBitmap(32-5, 1, trendSymbol, 5, 5, 0xFFFF);
 }
