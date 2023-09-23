@@ -28,13 +28,16 @@ jobs:
         run: pio run
       - name: Build Filesystem Image
         run: pio run --target buildfs --environment ulanzi
-      - name: Archive
-        uses: actions/upload-artifact@v3
-        with:
-          name: firmware
-          path: |
-            .pio/build/ulanzi/firmware.bin
-            .pio/build/ulanzi/partitions.bin
-            .pio/build/ulanzi/littlefs.bin
-            ~/.platformio/packages/framework-arduinoespressif32/tools/partitions/boot_app0.bin
-          retention-days: 1        
+
+### No reaseon to create artifacts for a regular build
+
+    #   - name: Archive
+    #     uses: actions/upload-artifact@v3
+    #     with:
+    #       name: firmware
+    #       path: |
+    #         .pio/build/ulanzi/firmware.bin
+    #         .pio/build/ulanzi/partitions.bin
+    #         .pio/build/ulanzi/littlefs.bin
+    #         ~/.platformio/packages/framework-arduinoespressif32/tools/partitions/boot_app0.bin
+    #       retention-days: 1        
