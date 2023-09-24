@@ -1,9 +1,22 @@
+name: Build and deploy on Github Pages
+
+# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "release"
+  cancel-in-progress: false
+
 on:
   push:
     tags:
       - 'v-*'
 jobs:
   build:
+    name: Build
     runs-on: ubuntu-latest
 
     steps:
@@ -38,22 +51,50 @@ jobs:
           name: firmware
           path: artifacts/*.bin
           retention-days: 1      
-  release:
-    name: Release
-    # if: startsWith(github.event.ref, 'refs/tags/v')
+
+  deploy:
+    name: Deploy on Github Pages
     needs: build
-    permissions:
-      contents: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repo for CHANGELOG
+      - name: Checkout
         uses: actions/checkout@v3
+      - name: Setup Pages
+        uses: actions/configure-pages@v3
       - name: Download artifacts
         uses: actions/download-artifact@v3
         with:
           name: firmware
-          path: firmware
-      - name: release
-        uses: ncipollo/release-action@v1
+          path: www/artifacts
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v2
         with:
-          artifacts: "firmware/*.bin"
+          # Upload only www directory
+          path: 'www'
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v2
+        
+
+#   release:
+#     name: Release
+#     # if: startsWith(github.event.ref, 'refs/tags/v')
+#     needs: build
+#     permissions:
+#       contents: write
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: Checkout repo for CHANGELOG
+#         uses: actions/checkout@v3
+#       - name: Download artifacts
+#         uses: actions/download-artifact@v3
+#         with:
+#           name: firmware
+#           path: firmware
+#       - name: release
+#         uses: ncipollo/release-action@v1
+#         with:
+#           artifacts: "firmware/*.bin"
