@@ -5,11 +5,11 @@
       {
         "chipFamily": "ESP32",
         "parts": [
-            { "path": "https://github.com/ktomy/nightscout-clock/releases/latest/download/bootloader.bin", "offset": 4096 },
-            { "path": "https://github.com/ktomy/nightscout-clock/releases/latest/download/partitions.bin", "offset": 32768 },
-            { "path": "https://github.com/ktomy/nightscout-clock/releases/latest/download/boot_app0.bin", "offset": 57344 },
-            { "path": "https://github.com/ktomy/nightscout-clock/releases/latest/download/firmware.bin", "offset": 65536 },
-            { "path": "https://github.com/ktomy/nightscout-clock/releases/latest/download/littlefs.bin", "offset": 2162688 }
+            { "path": "artifacts/bootloader.bin", "offset": 4096 },
+            { "path": "artifacts/partitions.bin", "offset": 32768 },
+            { "path": "artifacts/boot_app0.bin", "offset": 57344 },
+            { "path": "artifacts/firmware.bin", "offset": 65536 },
+            { "path": "artifacts/littlefs.bin", "offset": 2162688 }
         ]
       }
     ]
