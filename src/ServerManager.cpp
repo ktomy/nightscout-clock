@@ -21,11 +21,12 @@ ServerManager_ &ServerManager = ServerManager.getInstance();
 
 String getID()
 {
-    uint8_t mac[6];
-    WiFi.macAddress(mac);
-    char *macStr = new char[24];
-    snprintf(macStr, 24, "%s_%02x%02x%02x", HOSTNAME_PREFIX, mac[3], mac[4], mac[5]);
-    return String(macStr);
+    // uint8_t mac[6];
+    // WiFi.macAddress(mac);
+    // char *macStr = new char[24];
+    // snprintf(macStr, 24, "%s_%02x%02x%02x", HOSTNAME_PREFIX, mac[3], mac[4], mac[5]);
+    // return String(macStr);
+    return String(HOSTNAME_PREFIX);
 }
 
 IPAddress ServerManager_::setAPmode(String ssid, String psk)
@@ -45,6 +46,7 @@ IPAddress ServerManager_::setAPmode(String ssid, String psk)
     /* Setup the DNS server redirecting all the domains to the apIP */
     dnsServer.setErrorReplyCode(DNSReplyCode::NoError);
     dnsServer.start(53, "*", WiFi.softAPIP());
+    this->isInAPMode = true;
     return WiFi.softAPIP();
 }
 

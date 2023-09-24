@@ -29,7 +29,7 @@
 
 #define CONFIG_JSON "/config.json"
 #define WIFI_CONNECT_TIMEOUT 15000
-#define AP_MODE_PASSWORD "12345678"
+#define AP_MODE_PASSWORD ""
 #define HOSTNAME_PREFIX "nsclock"
 #define AP_IP "192.168.4.1"
 #define AP_NETMASK "255.255.255.0"

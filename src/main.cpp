@@ -7,6 +7,8 @@
 #include "BGDisplayManager.h"
 #include "globals.h"
 
+float apModeHintPosition = 32;
+
 void setup() {
 
     pinMode(15, OUTPUT);
@@ -45,6 +47,7 @@ void setup() {
     // DisplayManager.printText(8, 6, "5.6 /", true, 2);
 
 }
+unsigned long debug_loop = 0;
 
 void loop() {
 
@@ -58,5 +61,26 @@ void loop() {
             BGDisplayManager.showData(NightscoutManager.getInstance().getGlucoseData());
         }
     }
+    else if (ServerManager.isInAPMode)
+    {
+
+        String hint = "Join " + SettingsManager.settings.hostname + " Wi-fi network and go to http://" + ServerManager.myIP.toString() + "/";
+
+        if (apModeHintPosition < -240)
+        {
+            apModeHintPosition = 32;
+            DisplayManager.clearMatrix();
+        }
+
+        DisplayManager.HSVtext(apModeHintPosition, 6, hint.c_str(), true, 1);
+        apModeHintPosition -= 0.18;
+
+        // if (millis() - debug_loop > 1000)
+        // {
+        //     DEBUG_PRINTLN(hint + " positoin " + String(apModeHintPosition));
+        //     debug_loop = millis();
+        // }
+    }
+
     DisplayManager.tick();
 }

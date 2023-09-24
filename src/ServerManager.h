@@ -23,6 +23,7 @@ public:
     void setup();
     void tick();
     bool isConnected;
+    bool isInAPMode;
     IPAddress myIP;
     DNSServer dnsServer;
     unsigned long getTime();
