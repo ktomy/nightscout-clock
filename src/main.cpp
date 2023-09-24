@@ -26,7 +26,7 @@ void setup() {
 
     }
 
-    DisplayManager.HSVtext(9, 6, "0.71", true, 0);
+    DisplayManager.HSVtext(2, 6, "Loading", true, 0);
 
     ServerManager.setup();
     NightscoutManager.setup();
