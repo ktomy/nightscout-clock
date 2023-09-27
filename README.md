@@ -2,7 +2,7 @@
 
 ## This project is in the MVP state and is actively worked on
 
-Nightscout Clock (or NSClock) is a custom firmware for [Ulanzi TC001](https://www.ulanzi.com?aff=1191) allowing it to connect to Nightscout server, read blood glucose values and show them on the matrix screen
+Nightscout Clock (or NSClock) is a custom firmware for [Ulanzi TC001](https://www.ulanzi.com/products/ulanzi-pixel-smart-clock-2882?aff=1191) allowing it to connect to Nightscout server, read blood glucose values and show them on the matrix screen
 
 <p align=center>
 <img height="400" src="https://ktomy.github.io/nightscout-clock/nightscout_clock_simple_face.jpg" />
