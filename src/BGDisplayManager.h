@@ -5,16 +5,20 @@
 #define BGDisplayManager_h
 
 #include "NightscoutManager.h"
+#include "BGDisplayFace.h"
+#include "BGDisplayFaceSimple.h"
 
 #include <Arduino.h>
 #include <list>
+#include <vector>
 
 class BGDisplayManager_
 {
 private:
     std::list<GlucoseReading> displayedReadings;
-    void showGlucoseGraph(std::list<GlucoseReading> readings);
-    void showReading(GlucoseReading reading);
+    std::vector<BGDisplayFace*> faces;
+    BGDisplayFace *currentFace;
+    int currentFaceIndex;
 
 public:
     static BGDisplayManager_ &getInstance();
