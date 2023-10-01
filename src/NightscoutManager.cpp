@@ -7,6 +7,8 @@
 #include <ArduinoJson.h>
 #include <WiFiClientSecure.h>
 #include <list>
+#include <LCBUrl.h>
+//#include <StreamUtils.h>
 
 // The getter for the instantiated singleton instance
 NightscoutManager_ &NightscoutManager_::getInstance()
@@ -25,36 +27,65 @@ unsigned long lastCallAttemptMills = 0;
 
 void NightscoutManager_::setup() {
     client = new HTTPClient(); 
-    transportClient = new WiFiClientSecure();
-    transportClient->setInsecure();
+    wifiSecureClient = new WiFiClientSecure();
+    wifiSecureClient->setInsecure();
+    wifiClient = new WiFiClient();
 }
 
 void NightscoutManager_::tick() {
     auto currentTime = millis();
     if (lastCallAttemptMills == 0 || currentTime > lastCallAttemptMills + 60*1000UL) {
-        getBG(SettingsManager.settings.nsHost, SettingsManager.settings.nsPort, 10);
+        getBG(SettingsManager.settings.nsUrl, 10);
         lastCallAttemptMills = currentTime;
     }
 
 }
 
-void NightscoutManager_::getBG(String server, int port, int numberOfvalues) {
-    if (port == 0) {
-        port = 443;
-    }
-    DEBUG_PRINTLN("Getting NS values...");
+void NightscoutManager_::getBG(String baseUrl, int numberOfvalues) {
 
-    String urlPath = String("https://" + server + ":" + port + "/api/v1/entries/sgv?count=" + numberOfvalues);
-    DEBUG_PRINTLN("Path: " + urlPath)
-    auto connected = client->begin(*transportClient, server, port, urlPath, true);
+    DEBUG_PRINTLN("Getting NS values...");
+    
+    LCBUrl url;
+
+    String urlString = String(baseUrl + "api/v1/entries/sgv?count=" + numberOfvalues);
+    DEBUG_PRINTLN("URL: " + urlString)
+
+    auto urlIsOk = url.setUrl(urlString);
+    if (!urlIsOk)
+    {
+        DisplayManager.showFatalError("Invalid Nightscout URL: " + urlString);
+    }
+
+    bool ssl = url.getScheme() == "https";
+    DEBUG_PRINTLN(ssl ? "SSL Active" : "No SSL")
+    if (ssl)
+    {
+        client->begin(*wifiSecureClient, url.getHost(), url.getPort(), String("/") + url.getPath() + url.getAfterPath(), true);
+    }
+    else
+    {
+        client->begin(url.getHost(), url.getPort(), String("/") + url.getPath() + url.getAfterPath());
+    }
+    
     client->setFollowRedirects(HTTPC_FORCE_FOLLOW_REDIRECTS);
     client->addHeader("Accept", "application/json");
     auto responseCode = client->GET();
     if (responseCode == HTTP_CODE_OK) {
-        DynamicJsonDocument doc(8192);
+        DynamicJsonDocument doc(23768);
+        //Serial.println("Logging response");
+        //ReadLoggingStream loggingStream(client->getStream(), Serial);
+        //DeserializationError error = deserializeJson(doc, loggingStream);
+        //Serial.println();
+        //Serial.println("Logging end");
         DeserializationError error = deserializeJson(doc, client->getStream());
+
         if (error)
         {
+            if (!firstConnectionSuccess)
+            {
+                DisplayManager.showFatalError(String("Invalid Nightscout response: ") + error.c_str());
+            }
+
             DEBUG_PRINTF("Error deserializing NS response: %s\n", error.c_str());
             return;
         }
@@ -73,6 +104,7 @@ void NightscoutManager_::getBG(String server, int port, int numberOfvalues) {
 
             glucoseReadings = lastReadings;
             lastReadingEpoch = glucoseReadings.back().epoch;
+            firstConnectionSuccess = true;
 
             String debugLog = "Received readings: ";
             for(auto &reading : glucoseReadings) {
@@ -82,6 +114,13 @@ void NightscoutManager_::getBG(String server, int port, int numberOfvalues) {
             debugLog += "\n";
             DEBUG_PRINTLN(debugLog);
         }
+    } else
+    {
+        if (!firstConnectionSuccess)
+        {
+            DisplayManager.showFatalError(String("Error connecting to Nightscout: ") + responseCode);
+        }
+        DEBUG_PRINTF("Error getting readings %d\n", responseCode);
     }
 
     client->end();

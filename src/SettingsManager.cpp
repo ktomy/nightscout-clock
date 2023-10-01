@@ -43,8 +43,7 @@ bool SettingsManager_::loadSettingsFromFile()
 
         ///TODO: Get Network config
 
-        settings.nsHost = doc["nightscout_host"].as<String>();
-        settings.nsPort = doc["nightscout_port"].as<int>();
+        settings.nsUrl = doc["nightscout_url"].as<String>();
         settings.nsApiKey = doc["api_secret"].as<String>();
         settings.bgLow = doc["low_mgdl"].as<int>();
         settings.bgHigh = doc["high_mgdl"].as<int>();

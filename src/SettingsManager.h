@@ -11,8 +11,7 @@ class Settings
         String ssid;
         String password;
         String hostname;
-        String nsHost;
-        int nsPort;
+        String nsUrl;
         String nsApiKey;
         BG_UNIT bgUnit;
         int bgLow;

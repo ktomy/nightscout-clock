@@ -179,3 +179,22 @@ void DisplayManager_::HSVtext(int16_t x, int16_t y, const char *text, bool clear
     if (clear)
         matrix->show();
 }
+
+void DisplayManager_::showFatalError(String errorMessage)
+{
+    DEBUG_PRINTF("Fatal error: %s\n", errorMessage.c_str());
+    setTextColor(0xa514);
+    while (true)
+    {
+        auto finalPosition = -1 * getTextWidth(errorMessage.c_str(), 1);
+        float position = 32;
+        while(position > finalPosition)
+        {
+            matrix->clear();
+            printText(position, 6, errorMessage.c_str(), false, 1);
+            position -= 0.18;   
+        }
+
+        clearMatrix();
+    }
+ }

@@ -49,7 +49,18 @@
                     </h5>
                     <div class="card-body">
                         <div class="row">
-                            <div class="col-9">
+                            <div class="col-3">
+                                <label for="ns_protocol" class="form-label">Protocol</label>
+                                <select class="form-select" id="ns_protocol" required>
+                                    <option value="">Choose...</option>
+                                    <option value="http">HTTP</option>
+                                    <option value="https">HTTPS</option>
+                                </select>
+                                <div class="invalid-feedback">
+                                    Please select communication protocol
+                                </div>
+                            </div>                            
+                            <div class="col-6">
                                 <label for="ns_hostname" class="form-label">Nightscout hostname <span class="text-body-secondary">(Hostname, not URL)</span></label>
                                 <input type="text" class="form-control" id="ns_hostname" placeholder="mybloodsugar.heroku.com" required>
                                 <div class="invalid-feedback">
@@ -58,9 +69,9 @@
                             </div>
                             <div class="col-3">
                                 <label for="ns_port" class="form-label">Port <span class="text-body-secondary">(Optional)</span></label>
-                                <input type="text" class="form-control" id="ns_port" placeholder="443">
+                                <input type="text" class="form-control" id="ns_port">
                                 <div class="invalid-feedback">
-                                    Port must be either empty (default is 443) either a valid TCP port
+                                    Port must be either empty or a valid TCP port
                                 </div>
                             </div>
                         </div>

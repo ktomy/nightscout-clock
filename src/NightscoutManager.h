@@ -7,6 +7,7 @@
 #include <list>
 
 #include "enums.h"
+#include "DisplayManager.h"
 
 struct GlucoseReading {
     public:
@@ -26,10 +27,12 @@ class NightscoutManager_
 {
 private:
     HTTPClient *client;
-    WiFiClientSecure *transportClient;
-    void getBG(String server, int port, int numberOfvalues);
+    WiFiClientSecure *wifiSecureClient;
+    WiFiClient *wifiClient;
+    void getBG(String baseUrl, int numberOfvalues);
     unsigned long lastReadingEpoch;
     std::list<GlucoseReading> glucoseReadings;
+    bool firstConnectionSuccess;
 
 public:
     static NightscoutManager_ &getInstance();

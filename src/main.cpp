@@ -9,23 +9,25 @@
 
 float apModeHintPosition = 32;
 
-void setup() {
+void setup()
+{
 
     pinMode(15, OUTPUT);
     digitalWrite(15, LOW);
     delay(2000);
     Serial.begin(115200);
-  
+    //Serial.setDebugOutput(true);
+
     DisplayManager.setup();
     SettingsManager.setup();
-    if (!SettingsManager.loadSettingsFromFile()) {
+    if (!SettingsManager.loadSettingsFromFile())
+    {
         DEBUG_PRINTLN("Error loading config, please re-flash the filesystem");
 
-        ///TODO: Load default settings instead
-    
+        /// TODO: Load default settings instead
+
         delay(3000);
         ESP.restart();
-
     }
 
     DisplayManager.HSVtext(2, 6, "Loading", true, 0);
@@ -44,26 +46,11 @@ void setup() {
 
     DisplayManager.clearMatrix();
     DisplayManager.setTextColor(0x05c0);
-    // DisplayManager.printText(8, 6, "5.6 /", true, 2);
-
 }
-unsigned long debug_loop = 0;
 
-void loop() {
 
-    if (ServerManager.isConnected)
-    {
-        ServerManager.tick();
-        NightscoutManager.tick();
-        BGDisplayManager.tick();
-        if (NightscoutManager.hasNewData(BGDisplayManager.getLastDisplayedGlucoseEpoch())) {
-            DEBUG_PRINTLN("We have new data");
-            BGDisplayManager.showData(NightscoutManager.getInstance().getGlucoseData());
-        }
-    }
-    else if (ServerManager.isInAPMode)
-    {
-
+void showJoinAP()
+{
         String hint = "Join " + SettingsManager.settings.hostname + " Wi-fi network and go to http://" + ServerManager.myIP.toString() + "/";
 
         if (apModeHintPosition < -240)
@@ -73,13 +60,25 @@ void loop() {
         }
 
         DisplayManager.HSVtext(apModeHintPosition, 6, hint.c_str(), true, 1);
-        apModeHintPosition -= 0.18;
+        apModeHintPosition -= 0.18;    
+}
 
-        // if (millis() - debug_loop > 1000)
-        // {
-        //     DEBUG_PRINTLN(hint + " positoin " + String(apModeHintPosition));
-        //     debug_loop = millis();
-        // }
+void loop()
+{
+    if (ServerManager.isConnected)
+    {
+        ServerManager.tick();
+        NightscoutManager.tick();
+        BGDisplayManager.tick();
+        if (NightscoutManager.hasNewData(BGDisplayManager.getLastDisplayedGlucoseEpoch()))
+        {
+            DEBUG_PRINTLN("We have new data");
+            BGDisplayManager.showData(NightscoutManager.getInstance().getGlucoseData());
+        }
+    }
+    else if (ServerManager.isInAPMode)
+    {
+        showJoinAP();
     }
 
     DisplayManager.tick();
