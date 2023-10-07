@@ -22,6 +22,7 @@ public:
     static ServerManager_ &getInstance();
     void setup();
     void tick();
+    void stop();
     bool isConnected;
     bool isInAPMode;
     IPAddress myIP;

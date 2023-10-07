@@ -1,0 +1,17 @@
+{
+    "ssid":"",
+    "password": "",
+    "dhcp": true,
+    "ip": "",
+    "netmask": "",
+    "gateway": "",
+    "dns1": "",
+    "dns2": "",
+    "data_source": "nightscout",
+    "nightscout_url": "",
+    "api_secret": "",
+    "units": "",
+    "low_mgdl": 0,
+    "high_mgdl": 0
+
+}

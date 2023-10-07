@@ -44,6 +44,11 @@ void NightscoutManager_::tick() {
 void NightscoutManager_::getBG(String baseUrl, int numberOfvalues) {
 
     DEBUG_PRINTLN("Getting NS values...");
+
+    if (baseUrl == "")
+    {
+        DisplayManager.showFatalError("Nightscout clock is not configured, please go to http://" + ServerManager.myIP.toString() + "/ and configure the device");
+    }
     
     LCBUrl url;
 
@@ -72,21 +77,17 @@ void NightscoutManager_::getBG(String baseUrl, int numberOfvalues) {
     auto responseCode = client->GET();
     if (responseCode == HTTP_CODE_OK) {
         DynamicJsonDocument doc(23768);
-        //Serial.println("Logging response");
-        //ReadLoggingStream loggingStream(client->getStream(), Serial);
-        //DeserializationError error = deserializeJson(doc, loggingStream);
-        //Serial.println();
-        //Serial.println("Logging end");
+
         DeserializationError error = deserializeJson(doc, client->getStream());
 
         if (error)
         {
+            DEBUG_PRINTF("Error deserializing NS response: %s\n", error.c_str());
             if (!firstConnectionSuccess)
             {
                 DisplayManager.showFatalError(String("Invalid Nightscout response: ") + error.c_str());
             }
 
-            DEBUG_PRINTF("Error deserializing NS response: %s\n", error.c_str());
             return;
         }
 
@@ -116,11 +117,11 @@ void NightscoutManager_::getBG(String baseUrl, int numberOfvalues) {
         }
     } else
     {
+        DEBUG_PRINTF("Error getting readings %d\n", responseCode);
         if (!firstConnectionSuccess)
         {
             DisplayManager.showFatalError(String("Error connecting to Nightscout: ") + responseCode);
         }
-        DEBUG_PRINTF("Error getting readings %d\n", responseCode);
     }
 
     client->end();

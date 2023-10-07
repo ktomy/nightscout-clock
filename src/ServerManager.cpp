@@ -46,19 +46,20 @@ IPAddress ServerManager_::setAPmode(String ssid, String psk)
     /* Setup the DNS server redirecting all the domains to the apIP */
     dnsServer.setErrorReplyCode(DNSReplyCode::NoError);
     dnsServer.start(53, "*", WiFi.softAPIP());
-    this->isInAPMode = true;
     return WiFi.softAPIP();
 }
 
 IPAddress ServerManager_::startWifi(String ssid, String password)
 {
-    WiFi.mode(WIFI_STA);
+    this->isInAPMode = false;
+
     IPAddress ip;
     int timeout = WIFI_CONNECT_TIMEOUT;
-    WiFi.mode(WIFI_STA);
 
-    if (ssid.length() > 0 && password.length() > 0)
+    if (ssid != "")
     {
+        WiFi.mode(WIFI_STA);
+
         WiFi.begin(ssid, password);
         DEBUG_PRINTF("Connecting to %s\n", ssid);
 
@@ -80,8 +81,9 @@ IPAddress ServerManager_::startWifi(String ssid, String password)
                 break;
         }
     }
-
     ip = setAPmode(SettingsManager.settings.hostname, AP_MODE_PASSWORD);
+
+    this->isInAPMode = true;
 
     WiFi.begin();
     return ip;
@@ -119,6 +121,13 @@ void ServerManager_::setupWebServer(IPAddress ip)
         ESP.restart();
     });
 
+    ws->on("/api/factory-reset", HTTP_POST, [](AsyncWebServerRequest *request){
+        request->send(200, "application/json", "{\"status\": \"ok\"}");
+        delay(200);
+        SettingsManager.factoryReset();
+    });
+
+
     ws->serveStatic("/", LittleFS, "/").setDefaultFile("index.html");;
 
     ws->onNotFound([](AsyncWebServerRequest *request) {
@@ -132,25 +141,27 @@ void ServerManager_::setupWebServer(IPAddress ip)
     ws->begin();
 }
 
-bool initTime() {
+bool initTimeIfNeeded() {
 
     struct tm timeinfo;
 
-    Serial.println("Setting up time");
-    configTime(0, 0, "pool.ntp.org");    // Connect to NTP server, with 0 TZ offset
-    if(!getLocalTime(&timeinfo)){
-        DEBUG_PRINTLN("Failed to obtain time");
-        return false;
-    }
+    if(!getLocalTime(&timeinfo)) {
+        Serial.println("Setting up time");
+        configTime(0, 0, "pool.ntp.org");    // Connect to NTP server, with 0 TZ offset
+        if(!getLocalTime(&timeinfo)){
+            DEBUG_PRINTLN("Failed to obtain time");
+            return false;
+        }
 
-    DEBUG_PRINTF("Got the time from NTP: %02d.%02d.%d %02d:%02d:%02d\n"
-        , timeinfo.tm_mday
-        , timeinfo.tm_mon + 1
-        , timeinfo.tm_year + 1900
-        , timeinfo.tm_hour
-        , timeinfo.tm_min
-        , timeinfo.tm_sec
-    );
+        DEBUG_PRINTF("Got the time from NTP: %02d.%02d.%d %02d:%02d:%02d\n"
+            , timeinfo.tm_mday
+            , timeinfo.tm_mon + 1
+            , timeinfo.tm_year + 1900
+            , timeinfo.tm_hour
+            , timeinfo.tm_min
+            , timeinfo.tm_sec
+        );
+    }
     
     return true;
 }
@@ -167,6 +178,15 @@ unsigned long ServerManager_::getTime() {
 }
 
 
+void ServerManager_::stop()
+{
+    ws->end();
+    delete ws;
+    WiFi.disconnect();
+}
+
+
+
 void ServerManager_::setup()
 {
     auto hostname = SettingsManager.settings.hostname = getID();
@@ -180,15 +200,11 @@ void ServerManager_::setup()
     DEBUG_PRINTF("My IP: %d.%d.%d.%d", myIP[0], myIP[1], myIP[2], myIP[3]);
 
     setupWebServer(myIP);
-
-    if (isConnected) {
-        initTime();
-    }
-
 }
 
 void ServerManager_::tick()
 {
+    initTimeIfNeeded();
     if (apMode)
         dnsServer.processNextRequest();
 }

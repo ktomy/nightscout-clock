@@ -28,8 +28,9 @@ public:
     static SettingsManager_ &getInstance();
     void setup();
     bool loadSettingsFromFile();
-    void saveSettingsToFile();
-    bool trySaveJsonAsSettings(JsonObject json);
+    bool saveSettingsToFile();
+    bool trySaveJsonAsSettings(DynamicJsonDocument doc);
+    void factoryReset();
 
     Settings settings;
 };

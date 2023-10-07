@@ -3,6 +3,7 @@
 #include "AwtrixFont.h"
 #include <FastLED_NeoMatrix.h>
 #include <map>
+#include "improv_consume.h"
 
 
 // The getter for the instantiated singleton instance
@@ -193,6 +194,7 @@ void DisplayManager_::showFatalError(String errorMessage)
             matrix->clear();
             printText(position, 6, errorMessage.c_str(), false, 1);
             position -= 0.18;   
+            checckForImprovWifiConnection();
         }
 
         clearMatrix();

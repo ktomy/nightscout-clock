@@ -7,7 +7,10 @@
 #include "BGDisplayManager.h"
 #include "globals.h"
 
+#include "improv_consume.h"
+
 float apModeHintPosition = 32;
+
 
 void setup()
 {
@@ -22,12 +25,7 @@ void setup()
     SettingsManager.setup();
     if (!SettingsManager.loadSettingsFromFile())
     {
-        DEBUG_PRINTLN("Error loading config, please re-flash the filesystem");
-
-        /// TODO: Load default settings instead
-
-        delay(3000);
-        ESP.restart();
+        DisplayManager.showFatalError("Error loading software, please reinstall");
     }
 
     DisplayManager.HSVtext(2, 6, "Loading", true, 0);
@@ -40,6 +38,7 @@ void setup()
     float x = 32;
     while (x >= -120)
     {
+        checckForImprovWifiConnection();
         DisplayManager.HSVtext(x, 6, ("Nightscout clock   " + ServerManager.myIP.toString()).c_str(), true, 0);
         x -= 0.18;
     }
@@ -80,6 +79,8 @@ void loop()
     {
         showJoinAP();
     }
+
+    checckForImprovWifiConnection();
 
     DisplayManager.tick();
 }
