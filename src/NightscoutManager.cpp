@@ -35,7 +35,7 @@ void NightscoutManager_::setup() {
 void NightscoutManager_::tick() {
     auto currentTime = millis();
     if (lastCallAttemptMills == 0 || currentTime > lastCallAttemptMills + 60*1000UL) {
-        getBG(SettingsManager.settings.nsUrl, 10);
+        getBG(SettingsManager.settings.nsUrl, 36);
         lastCallAttemptMills = currentTime;
     }
 
@@ -52,7 +52,7 @@ void NightscoutManager_::getBG(String baseUrl, int numberOfvalues) {
     
     LCBUrl url;
 
-    String urlString = String(baseUrl + "api/v1/entries/sgv?count=" + numberOfvalues);
+    String urlString = String(baseUrl + "api/v1/entries?count=" + numberOfvalues);
     DEBUG_PRINTLN("URL: " + urlString)
 
     auto urlIsOk = url.setUrl(urlString);
@@ -76,7 +76,7 @@ void NightscoutManager_::getBG(String baseUrl, int numberOfvalues) {
     client->addHeader("Accept", "application/json");
     auto responseCode = client->GET();
     if (responseCode == HTTP_CODE_OK) {
-        DynamicJsonDocument doc(23768);
+        DynamicJsonDocument doc(0xFFFF);
 
         DeserializationError error = deserializeJson(doc, client->getStream());
 
