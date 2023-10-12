@@ -4,6 +4,7 @@
 #include "NightscoutManager.h"
 #include "DisplayManager.h"
 #include "SettingsManager.h"
+#include "enums.h"
 #include <list>
 
 class BGDisplayFace {

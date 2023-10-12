@@ -1,4 +1,5 @@
 #include "BGDisplayFaceSimple.h"
+#include "BGDisplayManager.h"
 
 void BGDisplayFaceSimple::showReadings(const std::list<GlucoseReading>& readings) const {
     showReading(readings.back());
@@ -54,13 +55,23 @@ void BGDisplayFaceSimple::showReading(const GlucoseReading reading) const {
 
     DisplayManager.clearMatrix();
 
-    if (reading.sgv < SettingsManager.settings.bgLow) {
-        DisplayManager.setTextColor(0xF800);
-    } else if (reading.sgv >= SettingsManager.settings.bgHigh) {
-        DisplayManager.setTextColor(0xFFE0);
-    } else {
-        DisplayManager.setTextColor(0x07E0);
+    switch(BGDisplayManager.getGlucoseIntervals().getBGLevel(reading.sgv))
+    {
+        case URGENT_LOW:
+        case URGENT_HIGH:
+            DisplayManager.setTextColor(0xF800);
+            break;
+        case WARNING_LOW:
+        case WARNING_HIGH:
+            DisplayManager.setTextColor(0xFFE0);
+            break;
+        case NORMAL:
+            DisplayManager.setTextColor(0x07E0);
+            break;
+        default:
+            DisplayManager.setTextColor(0xa514);
     }
+
 
     DisplayManager.printText(0, 6, readingToDisplay.c_str(), true, 2);
     DisplayManager.drawBitmap(32-5, 1, trendSymbol, 5, 5, 0xFFFF);

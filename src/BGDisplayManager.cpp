@@ -17,11 +17,27 @@ BGDisplayManager_ &BGDisplayManager_::getInstance()
 BGDisplayManager_ &BGDisplayManager = BGDisplayManager.getInstance();
 
 void BGDisplayManager_::setup() {
+
+    glucoseIntervals = GlucoseIntervals();
+    /// TODO: Add urgent values to settings
+
+    glucoseIntervals.addInterval(1, 55, URGENT_LOW);
+    glucoseIntervals.addInterval(56, SettingsManager.settings.bgLow - 1, WARNING_LOW);
+    glucoseIntervals.addInterval(SettingsManager.settings.bgLow, SettingsManager.settings.bgHigh, NORMAL);
+    glucoseIntervals.addInterval(SettingsManager.settings.bgHigh, 260, WARNING_HIGH);
+    glucoseIntervals.addInterval(260, 401, URGENT_HIGH);
+
     faces.push_back(new BGDisplayFaceSimple());
+    faces.push_back(new BGDisplayFaceGraph());
 
-    currentFace = (faces[0]);
     currentFaceIndex = 0;
+    currentFace = (faces[currentFaceIndex]);
 
+}
+
+GlucoseIntervals BGDisplayManager_::getGlucoseIntervals()
+{
+    return glucoseIntervals;
 }
 
 void BGDisplayManager_::tick() {
