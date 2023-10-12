@@ -38,7 +38,33 @@ void NightscoutManager_::tick() {
         getBG(SettingsManager.settings.nsUrl, 36);
         lastCallAttemptMills = currentTime;
     }
+}
 
+BG_TREND parseDirection(String directionInput) {
+    auto direction = directionInput;
+    direction.toLowerCase();
+    BG_TREND trend = NONE;
+    if (direction == "doubleup") {
+        trend = DoubleUp;
+    } else if (direction == "singleup") {
+        trend = SingleUp;
+    } else if (direction == "fortyfiveup") {
+        trend = FortyFiveUp;
+    } else if (direction == "flat") {
+        trend = Flat;
+    } else if (direction == "fortyfivedown") {
+        trend = FortyFiveDown;
+    } else if (direction == "singledown") {
+        trend = SingleDown;
+    } else if (direction == "doubledown") {
+        trend = DoubleDown;
+    } else if (direction == "not_computable") {
+        trend = NOT_COMPUTABLE;
+    } else if (direction == "rate_out_of_range") {
+        trend = RATE_OUT_OF_RANGE;
+	}
+
+    return trend;
 }
 
 void NightscoutManager_::getBG(String baseUrl, int numberOfvalues) {
@@ -99,7 +125,14 @@ void NightscoutManager_::getBG(String baseUrl, int numberOfvalues) {
                 reading.sgv = v["sgv"].as<int>();
                 reading.epoch = v["date"].as<unsigned long long>() / 1000;
                 // sensor.epoch = v["mills"].as<unsigned long>();
-                reading.trend = (BG_TREND)(v["trend"].as<int>());
+                if (v.containsKey("trend")) {
+                    reading.trend = (BG_TREND)(v["trend"].as<int>());
+                } else if (v.containsKey("direction")) {
+                    reading.trend = parseDirection(v["direction"].as<String>());
+                } else {
+                    reading.trend = NONE;
+                }
+
                 lastReadings.push_front(reading);
             }
 
