@@ -200,3 +200,51 @@ void DisplayManager_::showFatalError(String errorMessage)
         clearMatrix();
     }
  }
+
+ void DisplayManager_::drawPixel(uint8_t x, uint8_t y, uint16_t color)
+ {
+    matrix->drawPixel(x, y, color);
+    matrix->show();
+ }
+
+ void DisplayManager_::setBrightness(int bri)
+{
+    if (MATRIX_OFF)
+    {
+        matrix->setBrightness(0);
+    }
+    else
+    {
+
+        matrix->setBrightness(bri);
+    }
+}
+
+void DisplayManager_::setPower(bool state)
+{
+    if (state)
+    {
+        MATRIX_OFF = false;
+        setBrightness(BRIGHTNESS);
+    }
+    else
+    {
+        MATRIX_OFF = true;
+        //showSleepAnimation();
+        setBrightness(0);
+    }
+}
+
+void DisplayManager_::leftButton() {
+
+}
+void DisplayManager_::rightButton() {
+
+}
+
+void DisplayManager_::selectButton() {
+
+}
+void DisplayManager_::selectButtonLong() {
+
+}
