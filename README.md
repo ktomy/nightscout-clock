@@ -1,5 +1,5 @@
 # Nightscout Clock
-
+![Nihtscout clock logo](https://github.com/ktomy/nightscout-clock/assets/1446257/1198c06d-b017-409d-aca3-2bca63581ecb)
 ## This project is in the MVP state and is actively worked on
 
 Nightscout Clock (or NSClock) is a custom firmware for [Ulanzi TC001](https://www.ulanzi.com/products/ulanzi-pixel-smart-clock-2882?aff=1191) allowing it to connect to Nightscout server, read blood glucose values and show them on the matrix screen
@@ -15,7 +15,8 @@ If you already have an Ulanzi clock, you can try [installing](https://ktomy.gith
 * AP mode and web-based configuration: the clock hosts a website where the user can configure Nightscout hostname, units type and low/high limits
 * Simple glucose value display with trend arrow
 * Changing color based on limits (yellow for high, red for low)
-
+* [Juggluco](https://www.juggluco.nl/) data source (support for HTTP Nightscout endpoints)
+* [Improv WiFi](https://github.com/improv-wifi) compatibility (setting up WiFi during the installation)
 ### My TODO list
 * Add multiple faces and enable navigation between them
     * Glucose graph
@@ -35,8 +36,8 @@ If you already have an Ulanzi clock, you can try [installing](https://ktomy.gith
    * Dexcom
    * Medtronic
    * xDrip
-   * Juggluco
-   * ...mode... (if you are the author of a CGM data collecting app/service nad you want your data to be displayed on the Nightscout Clock, please contact me)
+   * [~~Juggluco~~](https://www.juggluco.nl/)
+   * ...more... (if you are the author of a CGM data collecting app/service nad you want your data to be displayed on the Nightscout Clock, please contact me)
 * Add audible alarms
  
 ---
