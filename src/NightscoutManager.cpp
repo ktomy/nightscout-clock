@@ -35,8 +35,18 @@ void NightscoutManager_::tick()
     auto currentTime = millis();
     if (lastCallAttemptMills == 0 || currentTime > lastCallAttemptMills + 60 * 1000UL)
     {
-        getBG(SettingsManager.settings.nsUrl, 36);
-        lastCallAttemptMills = currentTime;
+        struct tm timeinfo;
+        if (getLocalTime(&timeinfo))
+        {
+            if (!firstConnectionSuccess)
+            {
+                DisplayManager.clearMatrix();
+                DisplayManager.printText(0, 6, "To API", true, 0);
+            }
+
+            getBG(SettingsManager.settings.nsUrl, 36);
+            lastCallAttemptMills = currentTime;
+        }
     }
 }
 

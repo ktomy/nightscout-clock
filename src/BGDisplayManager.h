@@ -9,6 +9,7 @@
 #include <Arduino.h>
 #include <list>
 #include <vector>
+#include <map>
 
 struct GlucoseInterval
 {
@@ -79,6 +80,7 @@ private:
     BGDisplayFace *currentFace;
     int currentFaceIndex;
     GlucoseIntervals glucoseIntervals;
+    std::map<int, String> facesNames;
 
 public:
     static BGDisplayManager_ &getInstance();
@@ -87,6 +89,9 @@ public:
     void showData(std::list<GlucoseReading> glucoseReadings);
     unsigned long long getLastDisplayedGlucoseEpoch();
     GlucoseIntervals getGlucoseIntervals();
+
+    std::map<int, String> getFaces();
+    int getCurrentFaceId();
 
     void setFace(int id);
 };

@@ -52,7 +52,7 @@
                     </h5>
                     <div class="card-body">
                         <div class="row">
-                            <div class="col-3">
+                            <div class="col-lg-3 col-md-6 col-12 mb-3 mb-md-0">
                                 <label for="ns_protocol" class="form-label">Protocol</label>
                                 <select class="form-select" id="ns_protocol" required>
                                     <option value="">Choose...</option>
@@ -63,7 +63,7 @@
                                     Please select communication protocol
                                 </div>
                             </div>
-                            <div class="col-6">
+                            <div class="col-lg-6 col-md-6 col-12 mb-3 mb-md-0">
                                 <label for="ns_hostname" class="form-label">Nightscout hostname <span
                                         class="text-body-secondary">(Hostname, not URL)</span></label>
                                 <input type="text" class="form-control" id="ns_hostname"
@@ -72,7 +72,7 @@
                                     Please enter a valid hostname
                                 </div>
                             </div>
-                            <div class="col-3">
+                            <div class="col-lg-3 col-md-6 col-12">
                                 <label for="ns_port" class="form-label">Port <span
                                         class="text-body-secondary">(Optional)</span></label>
                                 <input type="text" class="form-control" id="ns_port">
@@ -118,6 +118,42 @@
                                 <input type="text" class="form-control" id="bg_high" placeholder="" required>
                                 <div class="invalid-feedback">
                                     BG High value is required
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card">
+                    <h5 class="card-header">Device settings</h5>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 col-lg-4">
+                                <label for="brightness_level" class="form-label">Brightness level</label>
+                                <select class="form-select" id="brightness_level" required>
+                                    <option value="0">Auto</option>
+                                    <option value="1">1</option>
+                                    <option value="2">2</option>
+                                    <option value="3">3</option>
+                                    <option value="4">4</option>
+                                    <option value="5">5</option>
+                                    <option value="6">6</option>
+                                    <option value="7">7</option>
+                                    <option value="8">8</option>
+                                    <option value="9">9</option>
+                                    <option value="10">10</option>
+                                </select>
+                                <div class="invalid-feedback">
+                                    Please select display brightness level
+                                </div>
+                            </div>
+                            <div class="col-md-6 col-lg-4">
+                                <label for="default_clock_face" class="form-label">Default clock face</label>
+                                <select class="form-select" id="default_clock_face" required>
+                                    <option value="0">Simple</option>
+                                    <!-- <option value="1">Glucose graph</option> -->
+                                </select>
+                                <div class="invalid-feedback">
+                                    Please select default clock face
                                 </div>
                             </div>
                         </div>

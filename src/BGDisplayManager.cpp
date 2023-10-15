@@ -29,15 +29,38 @@ void BGDisplayManager_::setup()
     glucoseIntervals.addInterval(260, 401, URGENT_HIGH);
 
     faces.push_back(new BGDisplayFaceSimple());
+    facesNames[0] = "Simple";
     faces.push_back(new BGDisplayFaceGraph());
+    facesNames[1] = "Graph";
 
     currentFaceIndex = 0;
     currentFace = (faces[currentFaceIndex]);
 }
 
+std::map<int, String> BGDisplayManager_::getFaces()
+{
+    return facesNames;
+}
+
+int BGDisplayManager_::getCurrentFaceId()
+{
+    return currentFaceIndex;
+}
+
 GlucoseIntervals BGDisplayManager_::getGlucoseIntervals()
 {
     return glucoseIntervals;
+}
+
+void BGDisplayManager_::setFace(int id)
+{
+    if (id < faces.size())
+    {
+        currentFaceIndex = id;
+        currentFace = (faces[currentFaceIndex]);
+        DisplayManager.clearMatrix();
+        currentFace->showReadings(displayedReadings);
+    }
 }
 
 void BGDisplayManager_::tick()

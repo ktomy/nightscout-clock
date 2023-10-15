@@ -1,5 +1,5 @@
 {
-    "ssid":"",
+    "ssid": "",
     "password": "",
     "dhcp": true,
     "ip": "",
@@ -12,6 +12,8 @@
     "api_secret": "",
     "units": "",
     "low_mgdl": 0,
-    "high_mgdl": 0
-
+    "high_mgdl": 0,
+    "auto_brightness": true,
+    "brightness_level": 10,
+    "default_face": 0
 }

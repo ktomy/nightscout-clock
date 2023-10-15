@@ -101,6 +101,9 @@ bool SettingsManager_::loadSettingsFromFile()
     settings.bgLow = (*doc)["low_mgdl"].as<int>();
     settings.bgHigh = (*doc)["high_mgdl"].as<int>();
     settings.bgUnit = (*doc)["units"].as<String>() == "mmol" ? MMOLL : MGDL;
+    settings.auto_brightness = (*doc)["auto_brightness"].as<bool>();
+    settings.brightness_level = (*doc)["brightness_level"].as<int>() - 1;
+    settings.default_clockface = (*doc)["default_face"].as<int>();
 
     delete doc;
 
@@ -122,6 +125,9 @@ bool SettingsManager_::saveSettingsToFile()
     (*doc)["low_mgdl"] = settings.bgLow;
     (*doc)["high_mgdl"] = settings.bgHigh;
     (*doc)["units"] = settings.bgUnit == MMOLL ? "mmol" : "mgdl";
+    (*doc)["auto_brightness"] = settings.auto_brightness;
+    (*doc)["brightness_level"] = settings.brightness_level + 1;
+    (*doc)["default_face"] = settings.default_clockface;
 
     if (trySaveJsonAsSettings(*doc) == false)
         return false;

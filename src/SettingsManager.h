@@ -16,6 +16,9 @@ public:
     BG_UNIT bgUnit;
     int bgLow;
     int bgHigh;
+    bool auto_brightness;
+    int brightness_level;
+    int default_clockface;
 };
 
 class SettingsManager_

@@ -5,6 +5,7 @@
 #include "NightscoutManager.h"
 #include "DisplayManager.h"
 #include "BGDisplayManager.h"
+#include "PeripheryManager.h"
 #include "globals.h"
 
 #include "improv_consume.h"
@@ -27,23 +28,22 @@ void setup()
         DisplayManager.showFatalError("Error loading software, please reinstall");
     }
 
+    DisplayManager.applySettings();
+
     DisplayManager.HSVtext(2, 6, "Loading", true, 0);
 
     ServerManager.setup();
     NightscoutManager.setup();
     BGDisplayManager.setup();
+    PeripheryManager.setup();
 
     DEBUG_PRINTLN("Setup done");
-    float x = 32;
-    while (x >= -120)
-    {
-        checckForImprovWifiConnection();
-        DisplayManager.HSVtext(x, 6, ("Nightscout clock   " + ServerManager.myIP.toString()).c_str(), true, 0);
-        x -= 0.18;
-    }
+    String welcomeMessage = "Nightscout clock   " + ServerManager.myIP.toString();
+    DisplayManager.scrollColorfulText(welcomeMessage);
 
     DisplayManager.clearMatrix();
-    DisplayManager.setTextColor(0x05c0);
+    DisplayManager.setTextColor(COLOR_WHITE);
+    DisplayManager.printText(0, 6, "Connect", true, 2);
 }
 
 void showJoinAP()
@@ -81,4 +81,5 @@ void loop()
     checckForImprovWifiConnection();
 
     DisplayManager.tick();
+    PeripheryManager.tick();
 }

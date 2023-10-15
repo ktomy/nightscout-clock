@@ -5,6 +5,7 @@
 #include <ArduinoJson.h>
 #include <LittleFS.h>
 #include <LightDependentResistor.h>
+#include "SettingsManager.h"
 
 // Pinouts für das ULANZI-Environment
 #define BATTERY_PIN 34
@@ -59,42 +60,37 @@ PeripheryManager_ &PeripheryManager = PeripheryManager.getInstance();
 
 void left_button_pressed()
 {
+    DEBUG_PRINTLN(F("Left button clicked"));
     if (!BLOCK_NAVIGATION)
     {
         DisplayManager.leftButton();
-        DEBUG_PRINTLN(F("Left button clicked"));
     }
 }
 
 void right_button_pressed()
 {
+    DEBUG_PRINTLN(F("Right button clicked"));
     if (!BLOCK_NAVIGATION)
     {
         DisplayManager.rightButton();
-        // MenuManager.rightButton();
-        DEBUG_PRINTLN(F("Right button clicked"));
     }
 }
 
 void select_button_pressed()
 {
+    DEBUG_PRINTLN(F("Select button clicked"));
     if (!BLOCK_NAVIGATION)
     {
         DisplayManager.selectButton();
-        // MenuManager.selectButton();
-        DEBUG_PRINTLN(F("Select button clicked"));
     }
 }
 
 void select_button_pressed_long()
 {
-
+    DEBUG_PRINTLN(F("Select button pressed long"));
     if (!BLOCK_NAVIGATION)
     {
-
         DisplayManager.selectButtonLong();
-
-        DEBUG_PRINTLN(F("Select button pressed long"));
     }
 }
 
@@ -138,6 +134,10 @@ void PeripheryManager_::setup()
 void PeripheryManager_::tick()
 {
 
+    button_select.read();
+    button_left.read();
+    button_right.read();
+
     unsigned long currentMillis_BatTempHum = millis();
     if (currentMillis_BatTempHum - previousMillis_BatTempHum >= interval_BatTempHum)
     {
@@ -168,7 +168,7 @@ void PeripheryManager_::tick()
         sampleAverage = sampleSum / (float)LDRReadings;
         LDR_RAW = sampleAverage;
         CURRENT_LUX = (roundf(photocell.getSmoothedLux() * 1000) / 1000);
-        if (AUTO_BRIGHTNESS && !MATRIX_OFF)
+        if (SettingsManager.settings.auto_brightness && !MATRIX_OFF)
         {
             brightnessPercent = sampleAverage / 4095.0 * 100.0;
             int brightness = map(brightnessPercent, 0, 100, MIN_BRIGHTNESS, MAX_BRIGHTNESS);

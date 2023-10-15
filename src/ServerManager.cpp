@@ -7,6 +7,7 @@
 #include <WiFi.h>
 #include <LittleFS.h>
 #include "time.h"
+#include "DisplayManager.h"
 
 // The getter for the instantiated singleton instance
 ServerManager_ &ServerManager_::getInstance()
@@ -150,7 +151,6 @@ bool initTimeIfNeeded()
 
     if (!getLocalTime(&timeinfo))
     {
-        Serial.println("Setting up time");
         configTime(0, 0, "pool.ntp.org"); // Connect to NTP server, with 0 TZ offset
         if (!getLocalTime(&timeinfo))
         {

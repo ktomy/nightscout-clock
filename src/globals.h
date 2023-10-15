@@ -35,13 +35,17 @@
 #define AP_NETMASK "255.255.255.0"
 #define AP_GATEWAY "192.168.4.1"
 #define DEFAULT_TIMEZONE "UTC0"
+#define COLOR_RED 0xF800
+#define COLOR_GREEN 0x07E0
+#define COLOR_YELLOW 0xFFE0
+#define COLOR_WHITE 0xFFFF
+#define COLOR_GRAY 0xa514
 
 extern bool BLOCK_NAVIGATION;
 extern float TEMP_OFFSET;
 extern float HUM_OFFSET;
 extern int BRIGHTNESS;
 extern int BRIGHTNESS_PERCENT;
-extern bool AUTO_BRIGHTNESS;
 extern float CURRENT_TEMP;
 extern float CURRENT_HUM;
 extern float CURRENT_LUX;

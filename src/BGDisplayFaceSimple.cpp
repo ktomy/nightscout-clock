@@ -1,5 +1,6 @@
 #include "BGDisplayFaceSimple.h"
 #include "BGDisplayManager.h"
+#include "globals.h"
 
 void BGDisplayFaceSimple::showReadings(const std::list<GlucoseReading> &readings) const
 {
@@ -98,19 +99,24 @@ void BGDisplayFaceSimple::showReading(const GlucoseReading reading) const
     {
     case URGENT_LOW:
     case URGENT_HIGH:
-        DisplayManager.setTextColor(0xF800);
+        DisplayManager.setTextColor(COLOR_RED);
+        // DEBUG_PRINTLN("URGENT: " + String(reading.sgv));
         break;
     case WARNING_LOW:
     case WARNING_HIGH:
-        DisplayManager.setTextColor(0xFFE0);
+        DisplayManager.setTextColor(COLOR_YELLOW);
+        // DEBUG_PRINTLN("WARNING: " + String(reading.sgv));
         break;
     case NORMAL:
-        DisplayManager.setTextColor(0x07E0);
+        DisplayManager.setTextColor(COLOR_GREEN);
+        // DEBUG_PRINTLN("NORMAL: " + String(reading.sgv));
         break;
     default:
-        DisplayManager.setTextColor(0xa514);
+        DisplayManager.setTextColor(COLOR_GRAY);
+        // DEBUG_PRINTLN("GRAY: " + String(reading.sgv));
+        break;
     }
 
     DisplayManager.printText(0, 6, readingToDisplay.c_str(), true, 2);
-    DisplayManager.drawBitmap(32 - 5, 1, trendSymbol, 5, 5, 0xFFFF);
+    DisplayManager.drawBitmap(32 - 5, 1, trendSymbol, 5, 5, COLOR_WHITE);
 }

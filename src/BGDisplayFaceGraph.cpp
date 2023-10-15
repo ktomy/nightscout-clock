@@ -41,26 +41,39 @@ int getAverageValueForPeriod(uint16_t fromSecondsAgo, uint16_t toSecondsAgo, std
         average = sum / count;
     }
 
-    DEBUG_PRINTF("Calculating average between %d (%llu) and %d (%llu). Values found: %d, sum is %ld. Average is %d\n", fromSecondsAgo, fromEpoch, toSecondsAgo, toEpoch, count, sum, average);
+    // DEBUG_PRINTF("Calculating average between %d (%llu) and %d (%llu). Values found: %d, sum is %ld. Average is %d\n", fromSecondsAgo, fromEpoch, toSecondsAgo, toEpoch, count, sum, average);
 
     return average;
 }
 
+int getNormalIntervalYPosition(int value, GlucoseInterval interval)
+{
+    int yForHighestValue = 2;
+    int yForLowestValue = 5;
+
+    int out_max = yForLowestValue + 1 - yForHighestValue;
+    int relative_y_inverted = map(value, interval.low_boundary, interval.high_boundary, 0, out_max);
+    int y = yForLowestValue - relative_y_inverted;
+
+    return y;
+}
+
 void showGraphInternal(uint8_t x_position, uint8_t length, uint16_t forMinutes, const std::list<GlucoseReading> &readings)
 {
+    DisplayManager.clearMatrixPart(x_position, 0, length, 8);
     auto pixelSize = forMinutes / length;
     String pixels = "Graph pixels: ";
-    DEBUG_PRINTF("Pixel size: %d\n", pixelSize);
+    // DEBUG_PRINTF("Pixel size: %d\n", pixelSize);
     String readingsDebug = "Readings: ";
     for (const GlucoseReading &reading : readings)
     {
         readingsDebug += reading.toString() + " | ";
     }
 
-    DEBUG_PRINTLN(readingsDebug);
+    // DEBUG_PRINTLN(readingsDebug);
 
     auto intervals = BGDisplayManager.getGlucoseIntervals();
-    DEBUG_PRINTLN(intervals.toString());
+    // DEBUG_PRINTLN(intervals.toString());
     GlucoseInterval normalInterval = GlucoseInterval();
     ;
     for (const GlucoseInterval &interval : intervals.intervals)
@@ -94,27 +107,27 @@ void showGraphInternal(uint8_t x_position, uint8_t length, uint16_t forMinutes, 
         {
         case URGENT_HIGH:
             y = 0;
-            color = 0xF800;
+            color = COLOR_RED;
             break;
         case WARNING_HIGH:
             y = 1;
-            color = 0xFFE0;
+            color = COLOR_YELLOW;
             break;
         case NORMAL:
-            y = (average - normalInterval.low_boundary) * 4 / (normalInterval.high_boundary - normalInterval.low_boundary);
-            color = 0x07E0;
+            y = getNormalIntervalYPosition(average, normalInterval);
+            color = COLOR_GREEN;
             break;
         case WARNING_LOW:
             y = 6;
-            color = 0xFFE0;
+            color = COLOR_YELLOW;
             break;
         case URGENT_LOW:
             y = 7;
-            color = 0xF800;
+            color = COLOR_RED;
             break;
         default:
             y = 0;
-            color = 0xa514;
+            color = COLOR_GRAY;
             break;
         }
 
@@ -123,7 +136,9 @@ void showGraphInternal(uint8_t x_position, uint8_t length, uint16_t forMinutes, 
         DisplayManager.drawPixel(x_position + length - 1 - i, y, color);
     }
 
-    DEBUG_PRINTLN(pixels);
+    DisplayManager.update();
+
+    // DEBUG_PRINTLN(pixels);
 }
 
 void BGDisplayFaceGraph::showGraph(const std::list<GlucoseReading> &readings) const

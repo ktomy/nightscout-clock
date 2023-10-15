@@ -4,6 +4,7 @@
 #include <FastLED_NeoMatrix.h>
 #include <map>
 #include "improv_consume.h"
+#include "BGDisplayManager.h"
 
 // The getter for the instantiated singleton instance
 DisplayManager_ &DisplayManager_::getInstance()
@@ -57,6 +58,19 @@ void DisplayManager_::setup()
     matrix->setTextWrap(false);
     matrix->setBrightness(70);
     matrix->setFont(&AwtrixFont);
+}
+
+void DisplayManager_::applySettings()
+{
+    int displayBrightness = 70;
+
+    if (!SettingsManager.settings.auto_brightness)
+    {
+        displayBrightness = map(SettingsManager.settings.brightness_level, 0, 10, MIN_BRIGHTNESS, MAX_BRIGHTNESS);
+    }
+
+    DEBUG_PRINTLN("Setting brightness to " + String(displayBrightness) + " auto brightness: " + String(SettingsManager.settings.auto_brightness) + " and brightness level: " + String(SettingsManager.settings.brightness_level));
+    DisplayManager.setBrightness(displayBrightness);
 }
 
 void DisplayManager_::tick()
@@ -147,6 +161,19 @@ void DisplayManager_::drawBitmap(int16_t x, int16_t y, const uint8_t bitmap[], i
     matrix->show();
 }
 
+void DisplayManager_::scrollColorfulText(String message)
+{
+    auto finalPosition = -1 * getTextWidth(message.c_str(), 1);
+
+    float x = 32;
+    while (x >= finalPosition)
+    {
+        checckForImprovWifiConnection();
+        DisplayManager.HSVtext(x, 6, (message).c_str(), true, 0);
+        x -= 0.18;
+    }
+}
+
 void DisplayManager_::HSVtext(int16_t x, int16_t y, const char *text, bool clear, byte textCase)
 {
     if (clear)
@@ -181,7 +208,7 @@ void DisplayManager_::HSVtext(int16_t x, int16_t y, const char *text, bool clear
 void DisplayManager_::showFatalError(String errorMessage)
 {
     DEBUG_PRINTF("Fatal error: %s\n", errorMessage.c_str());
-    setTextColor(0xa514);
+    setTextColor(COLOR_GRAY);
     while (true)
     {
         auto finalPosition = -1 * getTextWidth(errorMessage.c_str(), 1);
@@ -198,10 +225,13 @@ void DisplayManager_::showFatalError(String errorMessage)
     }
 }
 
-void DisplayManager_::drawPixel(uint8_t x, uint8_t y, uint16_t color)
+void DisplayManager_::drawPixel(uint8_t x, uint8_t y, uint16_t color, bool updateMatrix)
 {
     matrix->drawPixel(x, y, color);
-    matrix->show();
+    if (updateMatrix)
+    {
+        matrix->show();
+    }
 }
 
 void DisplayManager_::setBrightness(int bri)
@@ -215,6 +245,8 @@ void DisplayManager_::setBrightness(int bri)
 
         matrix->setBrightness(bri);
     }
+
+    matrix->show();
 }
 
 void DisplayManager_::setPower(bool state)
@@ -232,11 +264,30 @@ void DisplayManager_::setPower(bool state)
     }
 }
 
+// cycle to previous face
 void DisplayManager_::leftButton()
 {
+    if (BGDisplayManager.getCurrentFaceId() == 0)
+    {
+        BGDisplayManager.setFace(BGDisplayManager.getFaces().size() - 1);
+    }
+    else
+    {
+        BGDisplayManager.setFace(BGDisplayManager.getCurrentFaceId() - 1);
+    }
 }
+
+// cycle to next face
 void DisplayManager_::rightButton()
 {
+    if (BGDisplayManager.getCurrentFaceId() == BGDisplayManager.getFaces().size() - 1)
+    {
+        BGDisplayManager.setFace(0);
+    }
+    else
+    {
+        BGDisplayManager.setFace(BGDisplayManager.getCurrentFaceId() + 1);
+    }
 }
 
 void DisplayManager_::selectButton()
@@ -244,4 +295,15 @@ void DisplayManager_::selectButton()
 }
 void DisplayManager_::selectButtonLong()
 {
+}
+
+void DisplayManager_::update()
+{
+    matrix->show();
+}
+
+void DisplayManager_::clearMatrixPart(uint8_t x, uint8_t y, uint8_t width, uint8_t height)
+{
+    matrix->fillRect(x, y, width, height, 0);
+    matrix->show();
 }

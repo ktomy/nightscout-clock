@@ -79,6 +79,11 @@
         json['low_mgdl'] = bg_low;
         json['high_mgdl'] = bg_high;
 
+        var brightness = parseInt($('#brightness_level').val());
+        json['auto_brightness'] = brightness == 0;
+        json['brightness_level'] = brightness;
+        json['default_face'] = parseInt($('#default_clock_face').val());
+
         return JSON.stringify(json);
     }
 
@@ -247,6 +252,9 @@
                 $('#bg_high').val(((Math.round(bg_high / 1.8) / 10) + "").replace(",", "."));
             }
         }
+
+        $('#brightness_level').val(json['brightness_level']);
+        $('#default_clock_face').val(json['default_face']);
     }
 
 
