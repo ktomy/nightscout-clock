@@ -9,4 +9,3 @@
     if errorlevel 1 goto retry
     REM Upload success
     echo "Upload success"
-    goto end
