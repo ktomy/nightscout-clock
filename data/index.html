@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="en" data-bs-theme="dark">
+
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -7,6 +8,7 @@
     <link href="../data_dev/bootstrap.css" rel="stylesheet">
     <title>Nightscout clock</title>
 </head>
+
 <body class="bg-body-tertiary">
     <div class="container-md">
         <div class="pt-5 pb-2 text-center">
@@ -32,10 +34,11 @@
                                     Valid network name (SSID) is required
                                 </div>
                             </div>
-                            
+
                             <div class="col-sm-6">
                                 <label for="wifi_password" class="form-label">WiFi password</label>
-                                <input type="password" class="form-control" id="wifi_password" placeholder="" value="" required>
+                                <input type="password" class="form-control" id="wifi_password" placeholder="" value=""
+                                    required>
                                 <div class="invalid-feedback">
                                     Password is required and must be at least 8 characters long
                                 </div>
@@ -59,16 +62,19 @@
                                 <div class="invalid-feedback">
                                     Please select communication protocol
                                 </div>
-                            </div>                            
+                            </div>
                             <div class="col-6">
-                                <label for="ns_hostname" class="form-label">Nightscout hostname <span class="text-body-secondary">(Hostname, not URL)</span></label>
-                                <input type="text" class="form-control" id="ns_hostname" placeholder="mybloodsugar.heroku.com" required>
+                                <label for="ns_hostname" class="form-label">Nightscout hostname <span
+                                        class="text-body-secondary">(Hostname, not URL)</span></label>
+                                <input type="text" class="form-control" id="ns_hostname"
+                                    placeholder="mybloodsugar.heroku.com" required>
                                 <div class="invalid-feedback">
                                     Please enter a valid hostname
                                 </div>
                             </div>
                             <div class="col-3">
-                                <label for="ns_port" class="form-label">Port <span class="text-body-secondary">(Optional)</span></label>
+                                <label for="ns_port" class="form-label">Port <span
+                                        class="text-body-secondary">(Optional)</span></label>
                                 <input type="text" class="form-control" id="ns_port">
                                 <div class="invalid-feedback">
                                     Port must be either empty or a valid TCP port
@@ -77,7 +83,9 @@
                         </div>
                         <br />
                         <div class="col-12">
-                            <label for="api_secret" class="form-label">API secret <span class="text-body-secondary">(Only needed when viewing Nightscout data is protected)</span></label>
+                            <label for="api_secret" class="form-label">API secret <span
+                                    class="text-body-secondary">(Only needed when viewing Nightscout data is
+                                    protected)</span></label>
                             <input type="password" class="form-control" id="api_secret" />
                             <div class="invalid-feedback">
                                 API secret must be at least 12 characters long
@@ -96,7 +104,7 @@
                                     Please select blood glucose units type
                                 </div>
                             </div>
-                            
+
                             <div class="col-sm-4">
                                 <label for="bg_low" class="form-label">BG low value</label>
                                 <input type="text" class="form-control" id="bg_low" placeholder="" required>
@@ -104,7 +112,7 @@
                                     BG Low value is required
                                 </div>
                             </div>
-                            
+
                             <div class="col-sm-4">
                                 <label for="bg_high" class="form-label">BG High value</label>
                                 <input type="text" class="form-control" id="bg_high" placeholder="" required>
@@ -118,22 +126,33 @@
                 <div class="mt-2"></div>
                 <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
                     <symbol id="check-circle-fill" fill="currentColor" viewBox="0 0 16 16">
-                      <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/>
+                        <path
+                            d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z" />
                     </symbol>
                     <symbol id="exclamation-triangle-fill" viewBox="0 0 16 16">
-                        <path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/>
-                      </symbol>                    
-                  </svg>            
-                <div id="success-alert" class="alert alert-success d-flex align-items-center alert-dismissible d-none" role="alert">
-                    <svg class="bi flex-shrink-0 me-2" width="24" height="24" role="img" aria-label="Success:"><use xlink:href="#check-circle-fill"/></svg>
-                    <strong>Saved! </strong> &nbsp;&nbsp;&nbsp; The configuration was saved. Nightscout clock will restart...
-                    <button type="button" class="btn-close" onclick="$('#success-alert').addClass('d-none')" aria-label="Close"></button>
-                </div>                
-                <div id="failure-alert" class="alert alert-danger d-flex align-items-center alert-dismissible d-none" role="alert">
-                    <svg class="bi flex-shrink-0 me-2" width="24" height="24" role="img" aria-label="Failure:"><use xlink:href="#exclamation-triangle-fill"/></svg>
+                        <path
+                            d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z" />
+                    </symbol>
+                </svg>
+                <div id="success-alert" class="alert alert-success d-flex align-items-center alert-dismissible d-none"
+                    role="alert">
+                    <svg class="bi flex-shrink-0 me-2" width="24" height="24" role="img" aria-label="Success:">
+                        <use xlink:href="#check-circle-fill" />
+                    </svg>
+                    <strong>Saved! </strong> &nbsp;&nbsp;&nbsp; The configuration was saved. Nightscout clock will
+                    restart...
+                    <button type="button" class="btn-close" onclick="$('#success-alert').addClass('d-none')"
+                        aria-label="Close"></button>
+                </div>
+                <div id="failure-alert" class="alert alert-danger d-flex align-items-center alert-dismissible d-none"
+                    role="alert">
+                    <svg class="bi flex-shrink-0 me-2" width="24" height="24" role="img" aria-label="Failure:">
+                        <use xlink:href="#exclamation-triangle-fill" />
+                    </svg>
                     <strong>Error! </strong> &nbsp;&nbsp;&nbsp; Failed saving configuration
-                    <button type="button" class="btn-close" onclick="$('#failure-alert').addClass('d-none')" aria-label="Close"></button>
-                </div>                
+                    <button type="button" class="btn-close" onclick="$('#failure-alert').addClass('d-none')"
+                        aria-label="Close"></button>
+                </div>
 
                 <div class="float-end mb-lg-5">
                     <button class="btn btn-primary btn-lg" type="button" id="save">Validate, save and restart</button>
@@ -148,4 +167,5 @@
     <script src="../data_dev/jquery.js"></script>
     <script src="script.js"></script>
 </body>
+
 </html>

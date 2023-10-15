@@ -6,7 +6,6 @@
 class DisplayManager_
 {
 private:
-
 public:
     static DisplayManager_ &getInstance();
     void setup();
@@ -25,9 +24,8 @@ public:
     void selectButtonLong();
     void setPower(bool power);
     void setBrightness(int bri);
-
 };
 
 extern DisplayManager_ &DisplayManager;
- 
+
 #endif

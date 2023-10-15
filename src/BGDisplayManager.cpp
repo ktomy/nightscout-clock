@@ -16,7 +16,8 @@ BGDisplayManager_ &BGDisplayManager_::getInstance()
 // Initialize the global shared instance
 BGDisplayManager_ &BGDisplayManager = BGDisplayManager.getInstance();
 
-void BGDisplayManager_::setup() {
+void BGDisplayManager_::setup()
+{
 
     glucoseIntervals = GlucoseIntervals();
     /// TODO: Add urgent values to settings
@@ -32,7 +33,6 @@ void BGDisplayManager_::setup() {
 
     currentFaceIndex = 0;
     currentFace = (faces[currentFaceIndex]);
-
 }
 
 GlucoseIntervals BGDisplayManager_::getGlucoseIntervals()
@@ -40,16 +40,17 @@ GlucoseIntervals BGDisplayManager_::getGlucoseIntervals()
     return glucoseIntervals;
 }
 
-void BGDisplayManager_::tick() {
-    ///TODO: Move back the glucose graph
-    ///TODO: Check if the last reading is too old and make it gray
-
+void BGDisplayManager_::tick()
+{
+    /// TODO: Move back the glucose graph
+    /// TODO: Check if the last reading is too old and make it gray
 }
 
+void BGDisplayManager_::showData(std::list<GlucoseReading> glucoseReadings)
+{
 
-void BGDisplayManager_::showData(std::list<GlucoseReading> glucoseReadings) {
-
-    if (glucoseReadings.size() == 0) {
+    if (glucoseReadings.size() == 0)
+    {
         return;
     }
 
@@ -58,10 +59,14 @@ void BGDisplayManager_::showData(std::list<GlucoseReading> glucoseReadings) {
     displayedReadings = glucoseReadings;
 }
 
-unsigned long long BGDisplayManager_::getLastDisplayedGlucoseEpoch() {
-    if (displayedReadings.size() > 0) {
+unsigned long long BGDisplayManager_::getLastDisplayedGlucoseEpoch()
+{
+    if (displayedReadings.size() > 0)
+    {
         return displayedReadings.back().epoch;
-    } else {
+    }
+    else
+    {
         return 0;
     }
 }

@@ -8,7 +8,7 @@
 #include <WiFiClientSecure.h>
 #include <list>
 #include <LCBUrl.h>
-//#include <StreamUtils.h>
+// #include <StreamUtils.h>
 
 // The getter for the instantiated singleton instance
 NightscoutManager_ &NightscoutManager_::getInstance()
@@ -20,54 +20,73 @@ NightscoutManager_ &NightscoutManager_::getInstance()
 // Initialize the global shared instance
 NightscoutManager_ &NightscoutManager = NightscoutManager.getInstance();
 
-
-
 unsigned long lastCallAttemptMills = 0;
 
-
-void NightscoutManager_::setup() {
-    client = new HTTPClient(); 
+void NightscoutManager_::setup()
+{
+    client = new HTTPClient();
     wifiSecureClient = new WiFiClientSecure();
     wifiSecureClient->setInsecure();
     wifiClient = new WiFiClient();
 }
 
-void NightscoutManager_::tick() {
+void NightscoutManager_::tick()
+{
     auto currentTime = millis();
-    if (lastCallAttemptMills == 0 || currentTime > lastCallAttemptMills + 60*1000UL) {
+    if (lastCallAttemptMills == 0 || currentTime > lastCallAttemptMills + 60 * 1000UL)
+    {
         getBG(SettingsManager.settings.nsUrl, 36);
         lastCallAttemptMills = currentTime;
     }
 }
 
-BG_TREND parseDirection(String directionInput) {
+BG_TREND parseDirection(String directionInput)
+{
     auto direction = directionInput;
     direction.toLowerCase();
     BG_TREND trend = NONE;
-    if (direction == "doubleup") {
+    if (direction == "doubleup")
+    {
         trend = DoubleUp;
-    } else if (direction == "singleup") {
+    }
+    else if (direction == "singleup")
+    {
         trend = SingleUp;
-    } else if (direction == "fortyfiveup") {
+    }
+    else if (direction == "fortyfiveup")
+    {
         trend = FortyFiveUp;
-    } else if (direction == "flat") {
+    }
+    else if (direction == "flat")
+    {
         trend = Flat;
-    } else if (direction == "fortyfivedown") {
+    }
+    else if (direction == "fortyfivedown")
+    {
         trend = FortyFiveDown;
-    } else if (direction == "singledown") {
+    }
+    else if (direction == "singledown")
+    {
         trend = SingleDown;
-    } else if (direction == "doubledown") {
+    }
+    else if (direction == "doubledown")
+    {
         trend = DoubleDown;
-    } else if (direction == "not_computable") {
+    }
+    else if (direction == "not_computable")
+    {
         trend = NOT_COMPUTABLE;
-    } else if (direction == "rate_out_of_range") {
+    }
+    else if (direction == "rate_out_of_range")
+    {
         trend = RATE_OUT_OF_RANGE;
-	}
+    }
 
     return trend;
 }
 
-void NightscoutManager_::getBG(String baseUrl, int numberOfvalues) {
+void NightscoutManager_::getBG(String baseUrl, int numberOfvalues)
+{
 
     DEBUG_PRINTLN("Getting NS values...");
 
@@ -75,7 +94,7 @@ void NightscoutManager_::getBG(String baseUrl, int numberOfvalues) {
     {
         DisplayManager.showFatalError("Nightscout clock is not configured, please go to http://" + ServerManager.myIP.toString() + "/ and configure the device");
     }
-    
+
     LCBUrl url;
 
     String urlString = String(baseUrl + "api/v1/entries?count=" + numberOfvalues);
@@ -97,11 +116,12 @@ void NightscoutManager_::getBG(String baseUrl, int numberOfvalues) {
     {
         client->begin(url.getHost(), url.getPort(), String("/") + url.getPath() + url.getAfterPath());
     }
-    
+
     client->setFollowRedirects(HTTPC_FORCE_FOLLOW_REDIRECTS);
     client->addHeader("Accept", "application/json");
     auto responseCode = client->GET();
-    if (responseCode == HTTP_CODE_OK) {
+    if (responseCode == HTTP_CODE_OK)
+    {
         DynamicJsonDocument doc(0xFFFF);
 
         DeserializationError error = deserializeJson(doc, client->getStream());
@@ -118,18 +138,25 @@ void NightscoutManager_::getBG(String baseUrl, int numberOfvalues) {
         }
 
         std::list<GlucoseReading> lastReadings;
-        if (doc.is<JsonArray>()) {
+        if (doc.is<JsonArray>())
+        {
             JsonArray jsonArray = doc.as<JsonArray>();
-            for (JsonVariant v : jsonArray) {
+            for (JsonVariant v : jsonArray)
+            {
                 GlucoseReading reading;
                 reading.sgv = v["sgv"].as<int>();
                 reading.epoch = v["date"].as<unsigned long long>() / 1000;
                 // sensor.epoch = v["mills"].as<unsigned long>();
-                if (v.containsKey("trend")) {
+                if (v.containsKey("trend"))
+                {
                     reading.trend = (BG_TREND)(v["trend"].as<int>());
-                } else if (v.containsKey("direction")) {
+                }
+                else if (v.containsKey("direction"))
+                {
                     reading.trend = parseDirection(v["direction"].as<String>());
-                } else {
+                }
+                else
+                {
                     reading.trend = NONE;
                 }
 
@@ -141,14 +168,16 @@ void NightscoutManager_::getBG(String baseUrl, int numberOfvalues) {
             firstConnectionSuccess = true;
 
             String debugLog = "Received readings: ";
-            for(auto &reading : glucoseReadings) {
+            for (auto &reading : glucoseReadings)
+            {
                 debugLog += " " + String(reading.sgv) + " " + String(reading.getSecondsAgo()) + " " + String(reading.trend) + ", ";
             }
 
             debugLog += "\n";
             DEBUG_PRINTLN(debugLog);
         }
-    } else
+    }
+    else
     {
         DEBUG_PRINTF("Error getting readings %d\n", responseCode);
         if (!firstConnectionSuccess)
@@ -160,10 +189,11 @@ void NightscoutManager_::getBG(String baseUrl, int numberOfvalues) {
     client->end();
 }
 
-    bool NightscoutManager_::hasNewData(unsigned long long epochToCompare) {
-        return lastReadingEpoch > epochToCompare;
-
-    }
-    std::list<GlucoseReading> NightscoutManager_::getGlucoseData() {
-        return glucoseReadings;
-    }
+bool NightscoutManager_::hasNewData(unsigned long long epochToCompare)
+{
+    return lastReadingEpoch > epochToCompare;
+}
+std::list<GlucoseReading> NightscoutManager_::getGlucoseData()
+{
+    return glucoseReadings;
+}

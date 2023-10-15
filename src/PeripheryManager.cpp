@@ -71,7 +71,7 @@ void right_button_pressed()
     if (!BLOCK_NAVIGATION)
     {
         DisplayManager.rightButton();
-        //MenuManager.rightButton();
+        // MenuManager.rightButton();
         DEBUG_PRINTLN(F("Right button clicked"));
     }
 }
@@ -81,7 +81,7 @@ void select_button_pressed()
     if (!BLOCK_NAVIGATION)
     {
         DisplayManager.selectButton();
-        //MenuManager.selectButton();
+        // MenuManager.selectButton();
         DEBUG_PRINTLN(F("Select button clicked"));
     }
 }
@@ -113,8 +113,6 @@ void select_button_double()
         }
     }
 }
-
-
 
 void PeripheryManager_::setup()
 {
@@ -178,7 +176,6 @@ void PeripheryManager_::tick()
         }
     }
 }
-
 
 const char *PeripheryManager_::readUptime()
 {

@@ -1,5 +1,5 @@
 {
-    "ssid":"",
+    "ssid": "",
     "password": "",
     "dhcp": true,
     "ip": "",
@@ -13,5 +13,4 @@
     "units": "",
     "low_mgdl": 0,
     "high_mgdl": 0
-
 }

@@ -11,7 +11,6 @@
 
 float apModeHintPosition = 32;
 
-
 void setup()
 {
 
@@ -19,7 +18,7 @@ void setup()
     digitalWrite(15, LOW);
     delay(2000);
     Serial.begin(115200);
-    //Serial.setDebugOutput(true);
+    // Serial.setDebugOutput(true);
 
     DisplayManager.setup();
     SettingsManager.setup();
@@ -47,19 +46,18 @@ void setup()
     DisplayManager.setTextColor(0x05c0);
 }
 
-
 void showJoinAP()
 {
-        String hint = "Join " + SettingsManager.settings.hostname + " Wi-fi network and go to http://" + ServerManager.myIP.toString() + "/";
+    String hint = "Join " + SettingsManager.settings.hostname + " Wi-fi network and go to http://" + ServerManager.myIP.toString() + "/";
 
-        if (apModeHintPosition < -240)
-        {
-            apModeHintPosition = 32;
-            DisplayManager.clearMatrix();
-        }
+    if (apModeHintPosition < -240)
+    {
+        apModeHintPosition = 32;
+        DisplayManager.clearMatrix();
+    }
 
-        DisplayManager.HSVtext(apModeHintPosition, 6, hint.c_str(), true, 1);
-        apModeHintPosition -= 0.18;    
+    DisplayManager.HSVtext(apModeHintPosition, 6, hint.c_str(), true, 1);
+    apModeHintPosition -= 0.18;
 }
 
 void loop()

@@ -4,12 +4,14 @@
 
 #include <Arduino.h>
 
-enum BG_UNIT : uint8_t {
+enum BG_UNIT : uint8_t
+{
     MGDL = 0,
     MMOLL = 1,
 };
 
-enum BG_TREND : uint8_t {
+enum BG_TREND : uint8_t
+{
     NONE = 0,
     DoubleUp = 1,
     SingleUp = 2,
@@ -22,7 +24,8 @@ enum BG_TREND : uint8_t {
     RATE_OUT_OF_RANGE = 9,
 };
 
-enum BG_LEVEL : uint8_t {
+enum BG_LEVEL : uint8_t
+{
     INVALID = 0,
     URGENT_LOW = 1,
     WARNING_LOW = 2,

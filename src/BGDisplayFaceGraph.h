@@ -4,14 +4,15 @@
 #include "BGDisplayFace.h"
 #include "NightscoutManager.h"
 
-class BGDisplayFaceGraph : public BGDisplayFace {
+class BGDisplayFaceGraph : public BGDisplayFace
+{
 public:
-    void showReadings(const std::list<GlucoseReading>& readings) const override;
+    void showReadings(const std::list<GlucoseReading> &readings) const override;
     void markDataAsOld() const override;
+
 private:
     void showReading(GlucoseReading reading) const;
-    void showGraph(const std::list<GlucoseReading>& readings) const;
-
+    void showGraph(const std::list<GlucoseReading> &readings) const;
 };
 
 #endif

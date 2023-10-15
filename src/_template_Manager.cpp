@@ -11,10 +11,10 @@ _template_Manager_ &_template_Manager_::getInstance()
 // Initialize the global shared instance
 _template_Manager_ &_template_Manager = _template_Manager.getInstance();
 
-void _template_Manager_::setup() {
-
+void _template_Manager_::setup()
+{
 }
 
-void _template_Manager_::tick() {
-
+void _template_Manager_::tick()
+{
 }

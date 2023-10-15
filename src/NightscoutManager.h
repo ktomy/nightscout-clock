@@ -9,18 +9,21 @@
 #include "enums.h"
 #include "DisplayManager.h"
 
-struct GlucoseReading {
-    public:
-        int sgv;
-        BG_TREND trend;
-        // int secondsAgo;
-        unsigned long long epoch;
-        int getSecondsAgo() {
-            return time(NULL) - epoch;
-        }
-        String toString() const {
-            return String(sgv) + "," + String(trend) + "," + String(epoch);
-        }
+struct GlucoseReading
+{
+public:
+    int sgv;
+    BG_TREND trend;
+    // int secondsAgo;
+    unsigned long long epoch;
+    int getSecondsAgo()
+    {
+        return time(NULL) - epoch;
+    }
+    String toString() const
+    {
+        return String(sgv) + "," + String(trend) + "," + String(epoch);
+    }
 };
 
 class NightscoutManager_
@@ -40,10 +43,8 @@ public:
     void tick();
     bool hasNewData(unsigned long long epochToCompare);
     std::list<GlucoseReading> getGlucoseData();
-
-
 };
 
 extern NightscoutManager_ &NightscoutManager;
- 
+
 #endif

@@ -3,7 +3,7 @@
 uint16_t LDR_RAW;
 String TIME_FORMAT = "%H:%M:%S";
 String DATE_FORMAT = "%d.%m.%y";
-int BACKGROUND_EFFECT=-1;
+int BACKGROUND_EFFECT = -1;
 bool START_ON_MONDAY;
 bool BLOCK_NAVIGATION = false;
 float HUM_OFFSET;
@@ -21,4 +21,3 @@ int BRIGHTNESS_PERCENT;
 bool MATRIX_OFF;
 uint8_t MIN_BRIGHTNESS = 2;
 uint8_t MAX_BRIGHTNESS = 180;
-

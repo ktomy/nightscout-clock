@@ -19,30 +19,34 @@ void SettingsManager_::setup()
     LittleFS.begin();
 }
 
-bool copyFile(const char* srcPath, const char* destPath) {
-  File srcFile = LittleFS.open(srcPath, "r");
-  if (!srcFile) {
-    DEBUG_PRINTLN("Failed to open source file");
-    return false;
-  }
+bool copyFile(const char *srcPath, const char *destPath)
+{
+    File srcFile = LittleFS.open(srcPath, "r");
+    if (!srcFile)
+    {
+        DEBUG_PRINTLN("Failed to open source file");
+        return false;
+    }
 
-  File destFile = LittleFS.open(destPath, "w");
-  if (!destFile) {
-    DEBUG_PRINTLN("Failed to open destination file");
+    File destFile = LittleFS.open(destPath, "w");
+    if (!destFile)
+    {
+        DEBUG_PRINTLN("Failed to open destination file");
+        srcFile.close();
+        return false;
+    }
+
+    while (srcFile.available())
+    {
+        char data = srcFile.read();
+        destFile.write(data);
+    }
+
     srcFile.close();
-    return false;
-  }
+    destFile.close();
 
-  while (srcFile.available()) {
-    char data = srcFile.read();
-    destFile.write(data);
-  }
-
-  srcFile.close();
-  destFile.close();
-
-  DEBUG_PRINTLN("File copied successfully");
-  return true;
+    DEBUG_PRINTLN("File copied successfully");
+    return true;
 }
 
 void SettingsManager_::factoryReset()
@@ -52,15 +56,15 @@ void SettingsManager_::factoryReset()
     ESP.restart();
 }
 
-
-DynamicJsonDocument* readConfigJsonFile()
+DynamicJsonDocument *readConfigJsonFile()
 {
     DynamicJsonDocument *doc;
     if (LittleFS.exists(CONFIG_JSON))
     {
         auto settings = Settings();
         File file = LittleFS.open(CONFIG_JSON);
-        if (!file || file.isDirectory()) {
+        if (!file || file.isDirectory())
+        {
             DEBUG_PRINTLN("Failed to open config file for reading");
             return NULL;
         }
@@ -79,7 +83,7 @@ DynamicJsonDocument* readConfigJsonFile()
     {
         DEBUG_PRINTLN("Cannot read configuration file");
         return NULL;
-    } 
+    }
 }
 
 bool SettingsManager_::loadSettingsFromFile()
@@ -90,7 +94,7 @@ bool SettingsManager_::loadSettingsFromFile()
 
     settings.ssid = (*doc)["ssid"].as<String>();
     settings.password = (*doc)["password"].as<String>();
-    ///TODO: Get Network config
+    /// TODO: Get Network config
 
     settings.nsUrl = (*doc)["nightscout_url"].as<String>();
     settings.nsApiKey = (*doc)["api_secret"].as<String>();
@@ -102,7 +106,6 @@ bool SettingsManager_::loadSettingsFromFile()
 
     this->settings = settings;
     return true;
-
 }
 
 bool SettingsManager_::saveSettingsToFile()
@@ -124,7 +127,7 @@ bool SettingsManager_::saveSettingsToFile()
         return false;
 
     delete doc;
-    
+
     return true;
 }
 
@@ -132,7 +135,8 @@ bool SettingsManager_::trySaveJsonAsSettings(DynamicJsonDocument doc)
 {
     DEBUG_PRINTLN(doc.as<String>());
     auto file = LittleFS.open(CONFIG_JSON, FILE_WRITE);
-    if(!file){
+    if (!file)
+    {
         DEBUG_PRINTLN("Failed to open config file for writing");
         return false;
     }
@@ -140,7 +144,8 @@ bool SettingsManager_::trySaveJsonAsSettings(DynamicJsonDocument doc)
     auto result = file.print(doc.as<String>());
 
     file.close();
-    if (!result) {
+    if (!result)
+    {
         return false;
     }
 

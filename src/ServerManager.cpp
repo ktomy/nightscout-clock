@@ -8,7 +8,6 @@
 #include <LittleFS.h>
 #include "time.h"
 
-
 // The getter for the instantiated singleton instance
 ServerManager_ &ServerManager_::getInstance()
 {
@@ -87,96 +86,98 @@ IPAddress ServerManager_::startWifi(String ssid, String password)
 
     WiFi.begin();
     return ip;
-
 }
 
 void ServerManager_::setupWebServer(IPAddress ip)
 {
     ws = new AsyncWebServer(80);
-  
+
     DefaultHeaders::Instance().addHeader("Access-Control-Allow-Origin", "*");
     DefaultHeaders::Instance().addHeader("Access-Control-Allow-Methods", "GET, POST, PUT");
     DefaultHeaders::Instance().addHeader("Access-Control-Allow-Headers", "Content-Type");
 
     ws->addHandler(new AsyncCallbackJsonWebHandler(
-    "/api/save",
-    [this](AsyncWebServerRequest* request, JsonVariant& json) {
-        if (not json.is<JsonObject>()) {
-            request->send(200, "application/json", "{\"status\": \"json parsing error\"}");
-            return;
-        }
-        auto&& data = json.as<JsonObject>();
-        if (SettingsManager.trySaveJsonAsSettings(data)) {
-            request->send(200, "application/json", "{\"status\": \"ok\"}");
-        } else {
-            request->send(200, "application/json", "{\"status\": \"Settings save error\"}");
-        }
-    }));
+        "/api/save",
+        [this](AsyncWebServerRequest *request, JsonVariant &json)
+        {
+            if (not json.is<JsonObject>())
+            {
+                request->send(200, "application/json", "{\"status\": \"json parsing error\"}");
+                return;
+            }
+            auto &&data = json.as<JsonObject>();
+            if (SettingsManager.trySaveJsonAsSettings(data))
+            {
+                request->send(200, "application/json", "{\"status\": \"ok\"}");
+            }
+            else
+            {
+                request->send(200, "application/json", "{\"status\": \"Settings save error\"}");
+            }
+        }));
 
-
-    ws->on("/api/reset", HTTP_POST, [](AsyncWebServerRequest *request){
+    ws->on("/api/reset", HTTP_POST, [](AsyncWebServerRequest *request)
+           {
         request->send(200, "application/json", "{\"status\": \"ok\"}");
         delay(200);
         LittleFS.end();
-        ESP.restart();
-    });
+        ESP.restart(); });
 
-    ws->on("/api/factory-reset", HTTP_POST, [](AsyncWebServerRequest *request){
+    ws->on("/api/factory-reset", HTTP_POST, [](AsyncWebServerRequest *request)
+           {
         request->send(200, "application/json", "{\"status\": \"ok\"}");
         delay(200);
-        SettingsManager.factoryReset();
-    });
+        SettingsManager.factoryReset(); });
 
+    ws->serveStatic("/", LittleFS, "/").setDefaultFile("index.html");
+    ;
 
-    ws->serveStatic("/", LittleFS, "/").setDefaultFile("index.html");;
-
-    ws->onNotFound([](AsyncWebServerRequest *request) {
+    ws->onNotFound([](AsyncWebServerRequest *request)
+                   {
     if (request->method() == HTTP_OPTIONS) {
         request->send(200);
     } else {
         request->send(404);
-    }
-    });
+    } });
 
     ws->begin();
 }
 
-bool initTimeIfNeeded() {
+bool initTimeIfNeeded()
+{
 
     struct tm timeinfo;
 
-    if(!getLocalTime(&timeinfo)) {
+    if (!getLocalTime(&timeinfo))
+    {
         Serial.println("Setting up time");
-        configTime(0, 0, "pool.ntp.org");    // Connect to NTP server, with 0 TZ offset
-        if(!getLocalTime(&timeinfo)){
+        configTime(0, 0, "pool.ntp.org"); // Connect to NTP server, with 0 TZ offset
+        if (!getLocalTime(&timeinfo))
+        {
             DEBUG_PRINTLN("Failed to obtain time");
             return false;
         }
 
-        DEBUG_PRINTF("Got the time from NTP: %02d.%02d.%d %02d:%02d:%02d\n"
-            , timeinfo.tm_mday
-            , timeinfo.tm_mon + 1
-            , timeinfo.tm_year + 1900
-            , timeinfo.tm_hour
-            , timeinfo.tm_min
-            , timeinfo.tm_sec
-        );
+        DEBUG_PRINTF("Got the time from NTP: %02d.%02d.%d %02d:%02d:%02d\n", timeinfo.tm_mday, timeinfo.tm_mon + 1, timeinfo.tm_year + 1900, timeinfo.tm_hour, timeinfo.tm_min, timeinfo.tm_sec);
     }
-    
+
     return true;
 }
 
-unsigned long ServerManager_::getTime() {
+unsigned long ServerManager_::getTime()
+{
     struct tm timeinfo;
-    if(!getLocalTime(&timeinfo)){
+    if (!getLocalTime(&timeinfo))
+    {
         DEBUG_PRINTLN("Failed to obtain time");
         return 0;
-    } else {
+    }
+    else
+    {
         time_t t = mktime(&timeinfo);
         return t;
     }
 }
-
 
 void ServerManager_::stop()
 {
@@ -184,8 +185,6 @@ void ServerManager_::stop()
     delete ws;
     WiFi.disconnect();
 }
-
-
 
 void ServerManager_::setup()
 {
@@ -208,4 +207,3 @@ void ServerManager_::tick()
     if (apMode)
         dnsServer.processNextRequest();
 }
-

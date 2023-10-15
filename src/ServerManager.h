@@ -28,9 +28,8 @@ public:
     IPAddress myIP;
     DNSServer dnsServer;
     unsigned long getTime();
-
 };
 
 extern ServerManager_ &ServerManager;
- 
+
 #endif

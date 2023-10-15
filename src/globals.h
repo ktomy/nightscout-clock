@@ -5,27 +5,26 @@
 #define DEBUG
 
 #ifdef DEBUG
-#define DEBUG_PRINTLN(x)    \
-  {                         \
-    Serial.print("[");      \
-    Serial.print(millis()); \
-    Serial.print("] [");    \
-    Serial.print(__func__); \
-    Serial.print("]: ");    \
-    Serial.println(x);      \
-  }
-#define DEBUG_PRINTF(format, ...)                                                        \
-  {                                                                                      \
-    String formattedMessage = "[" + String(millis()) + "] [" + String(__func__) + "]: "; \
-    Serial.print(formattedMessage);                                                      \
-    Serial.printf(format, ##__VA_ARGS__);                                                \
-    Serial.println();                                                                    \
-  }
+#define DEBUG_PRINTLN(x)        \
+    {                           \
+        Serial.print("[");      \
+        Serial.print(millis()); \
+        Serial.print("] [");    \
+        Serial.print(__func__); \
+        Serial.print("]: ");    \
+        Serial.println(x);      \
+    }
+#define DEBUG_PRINTF(format, ...)                                                            \
+    {                                                                                        \
+        String formattedMessage = "[" + String(millis()) + "] [" + String(__func__) + "]: "; \
+        Serial.print(formattedMessage);                                                      \
+        Serial.printf(format, ##__VA_ARGS__);                                                \
+        Serial.println();                                                                    \
+    }
 #else
 #define DEBUG_PRINTLN(x)
 #define DEBUG_PRINTF(format, ...)
 #endif
-
 
 #define CONFIG_JSON "/config.json"
 #define CONFIG_JSON_FACTORY "/config_initial.json"
@@ -58,7 +57,5 @@ extern uint16_t BATTERY_RAW;
 extern bool MATRIX_OFF;
 extern uint8_t MIN_BRIGHTNESS;
 extern uint8_t MAX_BRIGHTNESS;
-
-
 
 #endif // Globals_H
