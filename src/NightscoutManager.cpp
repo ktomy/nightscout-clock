@@ -44,7 +44,7 @@ void NightscoutManager_::tick()
                 DisplayManager.printText(0, 6, "To API", true, 0);
             }
 
-            getBG(SettingsManager.settings.nsUrl, 36);
+            getBG(SettingsManager.settings.nsUrl, 36, SettingsManager.settings.nsApiKey);
             lastCallAttemptMills = currentTime;
         }
     }
@@ -95,7 +95,7 @@ BG_TREND parseDirection(String directionInput)
     return trend;
 }
 
-void NightscoutManager_::getBG(String baseUrl, int numberOfvalues)
+void NightscoutManager_::getBG(String baseUrl, int numberOfvalues, String apiKey)
 {
 
     DEBUG_PRINTLN("Getting NS values...");
@@ -108,6 +108,11 @@ void NightscoutManager_::getBG(String baseUrl, int numberOfvalues)
     LCBUrl url;
 
     String urlString = String(baseUrl + "api/v1/entries?count=" + numberOfvalues);
+    if (apiKey != "")
+    {
+        urlString += "&token=" + apiKey;
+    }
+
     DEBUG_PRINTLN("URL: " + urlString)
 
     auto urlIsOk = url.setUrl(urlString);

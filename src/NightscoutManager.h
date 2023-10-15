@@ -32,7 +32,7 @@ private:
     HTTPClient *client;
     WiFiClientSecure *wifiSecureClient;
     WiFiClient *wifiClient;
-    void getBG(String baseUrl, int numberOfvalues);
+    void getBG(String baseUrl, int numberOfvalues, String apiKey = "");
     unsigned long lastReadingEpoch;
     std::list<GlucoseReading> glucoseReadings;
     bool firstConnectionSuccess;
