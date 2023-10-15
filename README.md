@@ -21,6 +21,7 @@ If you already have an Ulanzi clock, you can try [installing](https://ktomy.gith
 * Brightness adjustment
    * Brightness can be adjusted within the Web UI
    * Automatic brightness adjustment based on the ambient light
+   * Double-click on the middle button on the clock turns the display on and off
 * Better connection errors handling and display
 * Multiple clock faces support
    * Default clock face can be selected in the Web UI
