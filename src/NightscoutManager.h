@@ -6,38 +6,24 @@
 #include <WiFiClientSecure.h>
 #include <list>
 
-#include "enums.h"
+#include "BGSourceManager.h"
 #include "DisplayManager.h"
+#include "enums.h"
 
-struct GlucoseReading
-{
-public:
-    int sgv;
-    BG_TREND trend;
-    // int secondsAgo;
-    unsigned long long epoch;
-    int getSecondsAgo()
-    {
-        return time(NULL) - epoch;
-    }
-    String toString() const
-    {
-        return String(sgv) + "," + String(trend) + "," + String(epoch);
-    }
-};
-
-class NightscoutManager_
-{
-private:
+class NightscoutManager_ {
+  private:
     HTTPClient *client;
     WiFiClientSecure *wifiSecureClient;
     WiFiClient *wifiClient;
-    void getBG(String baseUrl, int numberOfvalues, String apiKey = "");
-    unsigned long lastReadingEpoch;
+    // unsigned long lastReadingEpoch;
     std::list<GlucoseReading> glucoseReadings;
     bool firstConnectionSuccess;
+    std::list<GlucoseReading> updateReadings(String baseUrl, String apiKey, std::list<GlucoseReading> existingReadings);
+    std::list<GlucoseReading> retrieveReadings(String baseUrl, String apiKey, unsigned long long lastReadingEpoch,
+                                               unsigned long long readingToEpoch, int numberOfvalues);
+    std::list<GlucoseReading> deleteOldReadings(std::list<GlucoseReading> readings, unsigned long long epochToCompare);
 
-public:
+  public:
     static NightscoutManager_ &getInstance();
     void setup();
     void tick();
