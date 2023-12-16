@@ -3,15 +3,13 @@
 #define BGDISPLAYFACEGRAPHANDBG_H
 
 #include "BGDisplayFaceGraphBase.h"
+#include "BGDisplayFaceTextBase.h"
 
-class BGDisplayFaceGraphAndBG : public BGDisplayFaceGraphBase {
+class BGDisplayFaceGraphAndBG : public BGDisplayFaceGraphBase, public BGDisplayFaceTextBase {
   public:
     void showReadings(const std::list<GlucoseReading> &readings) const override;
     void markDataAsOld() const override;
-
-  private:
-    void showLastReading(const GlucoseReading &reading) const;
-    // Add any additional private members or functions here
+    BGDisplayFaceGraphAndBG() {}
 };
 
 #endif // BGDISPLAYFACEGRAPHANDBG_H

@@ -3,10 +3,9 @@
 
 #include <Arduino.h>
 
-class DisplayManager_
-{
-private:
-public:
+class DisplayManager_ {
+  private:
+  public:
     static DisplayManager_ &getInstance();
     void setup();
     void applySettings();
@@ -28,6 +27,7 @@ public:
     void setBrightness(int bri);
     void update();
     void clearMatrixPart(uint8_t x, uint8_t y, uint8_t width, uint8_t height);
+    float getTextWidth(const char *text, byte textCase);
 };
 
 extern DisplayManager_ &DisplayManager;

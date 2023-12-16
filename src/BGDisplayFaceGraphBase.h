@@ -4,7 +4,7 @@
 #include "BGDisplayFace.h"
 #include "NightscoutManager.h"
 
-class BGDisplayFaceGraphBase : public BGDisplayFace {
+class BGDisplayFaceGraphBase : virtual public BGDisplayFace {
   public:
     virtual void showReadings(const std::list<GlucoseReading> &readings) const = 0;
     virtual void markDataAsOld() const = 0;

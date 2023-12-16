@@ -1,14 +1,13 @@
 #include "BGDisplayManager.h"
-#include "globals.h"
-#include "NightscoutManager.h"
 #include "DisplayManager.h"
+#include "NightscoutManager.h"
 #include "SettingsManager.h"
+#include "globals.h"
 
 #include <list>
 
 // The getter for the instantiated singleton instance
-BGDisplayManager_ &BGDisplayManager_::getInstance()
-{
+BGDisplayManager_ &BGDisplayManager_::getInstance() {
     static BGDisplayManager_ instance;
     return instance;
 }
@@ -16,8 +15,7 @@ BGDisplayManager_ &BGDisplayManager_::getInstance()
 // Initialize the global shared instance
 BGDisplayManager_ &BGDisplayManager = BGDisplayManager.getInstance();
 
-void BGDisplayManager_::setup()
-{
+void BGDisplayManager_::setup() {
 
     glucoseIntervals = GlucoseIntervals();
     /// TODO: Add urgent values to settings
@@ -31,31 +29,26 @@ void BGDisplayManager_::setup()
     faces.push_back(new BGDisplayFaceSimple());
     facesNames[0] = "Simple";
     faces.push_back(new BGDisplayFaceGraph());
-    facesNames[1] = "Graph";
+    facesNames[1] = "Full graph";
+    faces.push_back(new BGDisplayFaceGraphAndBG());
+    facesNames[2] = "Graph and BG";
 
-    currentFaceIndex = 0;
+    currentFaceIndex = SettingsManager.settings.default_clockface;
+    if (currentFaceIndex >= faces.size()) {
+        currentFaceIndex = 0;
+    }
+
     currentFace = (faces[currentFaceIndex]);
 }
 
-std::map<int, String> BGDisplayManager_::getFaces()
-{
-    return facesNames;
-}
+std::map<int, String> BGDisplayManager_::getFaces() { return facesNames; }
 
-int BGDisplayManager_::getCurrentFaceId()
-{
-    return currentFaceIndex;
-}
+int BGDisplayManager_::getCurrentFaceId() { return currentFaceIndex; }
 
-GlucoseIntervals BGDisplayManager_::getGlucoseIntervals()
-{
-    return glucoseIntervals;
-}
+GlucoseIntervals BGDisplayManager_::getGlucoseIntervals() { return glucoseIntervals; }
 
-void BGDisplayManager_::setFace(int id)
-{
-    if (id < faces.size())
-    {
+void BGDisplayManager_::setFace(int id) {
+    if (id < faces.size()) {
         currentFaceIndex = id;
         currentFace = (faces[currentFaceIndex]);
         DisplayManager.clearMatrix();
@@ -63,17 +56,13 @@ void BGDisplayManager_::setFace(int id)
     }
 }
 
-void BGDisplayManager_::tick()
-{
-    /// TODO: Move back the glucose graph
+void BGDisplayManager_::tick() {
     /// TODO: Check if the last reading is too old and make it gray
 }
 
-void BGDisplayManager_::showData(std::list<GlucoseReading> glucoseReadings)
-{
+void BGDisplayManager_::showData(std::list<GlucoseReading> glucoseReadings) {
 
-    if (glucoseReadings.size() == 0)
-    {
+    if (glucoseReadings.size() == 0) {
         return;
     }
 
@@ -82,14 +71,10 @@ void BGDisplayManager_::showData(std::list<GlucoseReading> glucoseReadings)
     displayedReadings = glucoseReadings;
 }
 
-unsigned long long BGDisplayManager_::getLastDisplayedGlucoseEpoch()
-{
-    if (displayedReadings.size() > 0)
-    {
+unsigned long long BGDisplayManager_::getLastDisplayedGlucoseEpoch() {
+    if (displayedReadings.size() > 0) {
         return displayedReadings.back().epoch;
-    }
-    else
-    {
+    } else {
         return 0;
     }
 }
