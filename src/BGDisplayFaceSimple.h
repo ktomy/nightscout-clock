@@ -1,17 +1,15 @@
 #ifndef BGDISPLAYFACESIMPLE_H
 #define BGDISPLAYFACESIMPLE_H
 
-#include "BGDisplayFace.h"
+#include "BGDisplayFaceTextBase.h"
 #include "NightscoutManager.h"
 
-class BGDisplayFaceSimple : public BGDisplayFace
-{
-public:
+class BGDisplayFaceSimple : public BGDisplayFaceTextBase {
+  public:
     void showReadings(const std::list<GlucoseReading> &readings) const override;
     void markDataAsOld() const override;
 
-private:
-    void showReading(GlucoseReading reading) const;
+  private:
 };
 
 #endif
