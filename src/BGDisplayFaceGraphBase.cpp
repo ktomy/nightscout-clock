@@ -84,6 +84,10 @@ void BGDisplayFaceGraphBase::showGraph(uint8_t x_position, uint8_t length, uint1
             continue;
         }
 #endif
+        if (average < 0) {
+            continue;
+        }
+
         int y = -1;
         uint16_t color;
 
@@ -109,7 +113,7 @@ void BGDisplayFaceGraphBase::showGraph(uint8_t x_position, uint8_t length, uint1
                 color = COLOR_RED;
                 break;
             default:
-                y = 0;
+                y = 7;
                 color = COLOR_GRAY;
                 break;
         }
