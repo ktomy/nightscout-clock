@@ -1,4 +1,4 @@
-#include "NightscoutManager.h"
+#include "BGSourceNightscout.h"
 #include "ServerManager.h"
 #include "SettingsManager.h"
 #include "globals.h"
@@ -10,25 +10,16 @@
 #include <WiFiClientSecure.h>
 #include <list>
 
-// The getter for the instantiated singleton instance
-NightscoutManager_ &NightscoutManager_::getInstance() {
-    static NightscoutManager_ instance;
-    return instance;
-}
-
-// Initialize the global shared instance
-NightscoutManager_ &NightscoutManager = NightscoutManager.getInstance();
-
 unsigned long lastCallAttemptMills = 0;
 
-void NightscoutManager_::setup() {
+void BGSourceNightscout::setup() {
     client = new HTTPClient();
     wifiSecureClient = new WiFiClientSecure();
     wifiSecureClient->setInsecure();
     wifiClient = new WiFiClient();
 }
 
-void NightscoutManager_::tick() {
+void BGSourceNightscout::tick() {
     auto currentTime = millis();
     if (lastCallAttemptMills == 0 || currentTime > lastCallAttemptMills + 60 * 1000UL) {
         struct tm timeinfo;
@@ -75,7 +66,7 @@ BG_TREND parseDirection(String directionInput) {
     return trend;
 }
 
-std::list<GlucoseReading> NightscoutManager_::deleteOldReadings(std::list<GlucoseReading> readings,
+std::list<GlucoseReading> BGSourceNightscout::deleteOldReadings(std::list<GlucoseReading> readings,
                                                                 unsigned long long epochToCompare) {
     auto it = readings.begin();
     while (it != readings.end()) {
@@ -89,7 +80,7 @@ std::list<GlucoseReading> NightscoutManager_::deleteOldReadings(std::list<Glucos
     return readings;
 }
 
-std::list<GlucoseReading> NightscoutManager_::updateReadings(String baseUrl, String apiKey,
+std::list<GlucoseReading> BGSourceNightscout::updateReadings(String baseUrl, String apiKey,
                                                              std::list<GlucoseReading> existingReadings) {
     // set last epoch to now - 3 hours (we don't want to get too many readings)
     unsigned long long lastReadingEpoch = time(NULL) - 3 * 60 * 60;
@@ -146,7 +137,7 @@ std::list<GlucoseReading> NightscoutManager_::updateReadings(String baseUrl, Str
     return existingReadings;
 }
 
-std::list<GlucoseReading> NightscoutManager_::retrieveReadings(String baseUrl, String apiKey,
+std::list<GlucoseReading> BGSourceNightscout::retrieveReadings(String baseUrl, String apiKey,
                                                                unsigned long long readingSinceEpoch,
                                                                unsigned long long readingToEpoch, int numberOfvalues) {
 
@@ -260,9 +251,9 @@ std::list<GlucoseReading> NightscoutManager_::retrieveReadings(String baseUrl, S
     return lastReadings;
 }
 
-bool NightscoutManager_::hasNewData(unsigned long long epochToCompare) {
+bool BGSourceNightscout::hasNewData(unsigned long long epochToCompare) const {
     auto lastReadingEpoch = glucoseReadings.size() > 0 ? glucoseReadings.back().epoch : 0;
     return lastReadingEpoch > epochToCompare;
 }
 
-std::list<GlucoseReading> NightscoutManager_::getGlucoseData() { return glucoseReadings; }
+std::list<GlucoseReading> BGSourceNightscout::getGlucoseData() const { return glucoseReadings; }

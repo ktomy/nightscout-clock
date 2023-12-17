@@ -37,4 +37,11 @@ enum BG_LEVEL : uint8_t {
     URGENT_HIGH = 5,
 };
 
+enum BG_SOURCE : uint8_t {
+    NO_SOURCE = 0,
+    NIGHTSCOUT = 1,
+    DEXCOM = 2,
+    MEDTRONIC = 3,
+};
+
 #endif

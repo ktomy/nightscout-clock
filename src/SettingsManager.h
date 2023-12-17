@@ -2,12 +2,11 @@
 #define SettingsManager_H
 
 #include "enums.h"
-#include <IPAddress.h>
 #include <ArduinoJson.h>
+#include <IPAddress.h>
 
-class Settings
-{
-public:
+class Settings {
+  public:
     String ssid;
     String password;
     String hostname;
@@ -19,14 +18,17 @@ public:
     bool auto_brightness;
     int brightness_level;
     int default_clockface;
+    BG_SOURCE bg_source;
+    String dexom_username;
+    String dexcom_password;
+    String dexcom_server;
 };
 
-class SettingsManager_
-{
-private:
+class SettingsManager_ {
+  private:
     SettingsManager_() = default;
 
-public:
+  public:
     static SettingsManager_ &getInstance();
     void setup();
     bool loadSettingsFromFile();

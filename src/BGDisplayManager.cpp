@@ -1,6 +1,6 @@
 #include "BGDisplayManager.h"
 #include "DisplayManager.h"
-#include "NightscoutManager.h"
+#include "BGSource.h"
 #include "SettingsManager.h"
 #include "globals.h"
 
@@ -72,7 +72,7 @@ void BGDisplayManager_::showData(std::list<GlucoseReading> glucoseReadings) {
         DisplayManager.printText(0, 6, "No data", CENTER, 0);
         return;
     }
-    
+
     DisplayManager.clearMatrix();
     currentFace->showReadings(glucoseReadings);
 

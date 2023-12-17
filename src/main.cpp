@@ -2,7 +2,7 @@
 
 #include "SettingsManager.h"
 #include "ServerManager.h"
-#include "NightscoutManager.h"
+#include "BGSourceManager.h"
 #include "DisplayManager.h"
 #include "BGDisplayManager.h"
 #include "PeripheryManager.h"
@@ -12,8 +12,7 @@
 
 float apModeHintPosition = 32;
 
-void setup()
-{
+void setup() {
 
     pinMode(15, OUTPUT);
     digitalWrite(15, LOW);
@@ -23,8 +22,7 @@ void setup()
 
     DisplayManager.setup();
     SettingsManager.setup();
-    if (!SettingsManager.loadSettingsFromFile())
-    {
+    if (!SettingsManager.loadSettingsFromFile()) {
         DisplayManager.showFatalError("Error loading software, please reinstall");
     }
 
@@ -33,7 +31,7 @@ void setup()
     DisplayManager.HSVtext(2, 6, "Loading", true, 0);
 
     ServerManager.setup();
-    NightscoutManager.setup();
+    bgSourceManager.setup(SettingsManager.settings.bg_source);
     BGDisplayManager.setup();
     PeripheryManager.setup();
 
@@ -46,12 +44,11 @@ void setup()
     DisplayManager.printText(0, 6, "Connect", CENTER, 2);
 }
 
-void showJoinAP()
-{
-    String hint = "Join " + SettingsManager.settings.hostname + " Wi-fi network and go to http://" + ServerManager.myIP.toString() + "/";
+void showJoinAP() {
+    String hint =
+        "Join " + SettingsManager.settings.hostname + " Wi-fi network and go to http://" + ServerManager.myIP.toString() + "/";
 
-    if (apModeHintPosition < -240)
-    {
+    if (apModeHintPosition < -240) {
         apModeHintPosition = 32;
         DisplayManager.clearMatrix();
     }
@@ -60,21 +57,16 @@ void showJoinAP()
     apModeHintPosition -= 0.18;
 }
 
-void loop()
-{
-    if (ServerManager.isConnected)
-    {
+void loop() {
+    if (ServerManager.isConnected) {
         ServerManager.tick();
-        NightscoutManager.tick();
+        bgSourceManager.tick();
         BGDisplayManager.tick();
-        if (NightscoutManager.hasNewData(BGDisplayManager.getLastDisplayedGlucoseEpoch()))
-        {
+        if (bgSourceManager.hasNewData(BGDisplayManager.getLastDisplayedGlucoseEpoch())) {
             DEBUG_PRINTLN("We have new data");
-            BGDisplayManager.showData(NightscoutManager.getInstance().getGlucoseData());
+            BGDisplayManager.showData(bgSourceManager.getInstance().getGlucoseData());
         }
-    }
-    else if (ServerManager.isInAPMode)
-    {
+    } else if (ServerManager.isInAPMode) {
         showJoinAP();
     }
 

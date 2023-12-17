@@ -2,7 +2,7 @@
 #define BGDISPLAYFACE_H
 
 #include "DisplayManager.h"
-#include "NightscoutManager.h"
+#include "BGSource.h"
 #include "SettingsManager.h"
 #include "enums.h"
 #include <list>

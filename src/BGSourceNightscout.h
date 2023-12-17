@@ -1,16 +1,17 @@
-#ifndef NightscoutManager_h
-#define NightscoutManager_h
+#include "BGSource.h"
 
 #include <Arduino.h>
 #include <HTTPClient.h>
 #include <WiFiClientSecure.h>
 #include <list>
 
-#include "BGSourceManager.h"
-#include "DisplayManager.h"
-#include "enums.h"
+class BGSourceNightscout : public BGSource {
+  public:
+    void setup() override;
+    void tick() override;
+    bool hasNewData(unsigned long long epochToCompare) const override;
+    std::list<GlucoseReading> getGlucoseData() const override;
 
-class NightscoutManager_ {
   private:
     HTTPClient *client;
     WiFiClientSecure *wifiSecureClient;
@@ -22,15 +23,4 @@ class NightscoutManager_ {
     std::list<GlucoseReading> retrieveReadings(String baseUrl, String apiKey, unsigned long long lastReadingEpoch,
                                                unsigned long long readingToEpoch, int numberOfvalues);
     std::list<GlucoseReading> deleteOldReadings(std::list<GlucoseReading> readings, unsigned long long epochToCompare);
-
-  public:
-    static NightscoutManager_ &getInstance();
-    void setup();
-    void tick();
-    bool hasNewData(unsigned long long epochToCompare);
-    std::list<GlucoseReading> getGlucoseData();
 };
-
-extern NightscoutManager_ &NightscoutManager;
-
-#endif

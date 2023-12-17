@@ -1,12 +1,11 @@
 #include "SettingsManager.h"
-#include <Arduino.h>
 #include "globals.h"
-#include <LittleFS.h>
+#include <Arduino.h>
 #include <ArduinoJson.h>
+#include <LittleFS.h>
 
 // The getter for the instantiated singleton instance
-SettingsManager_ &SettingsManager_::getInstance()
-{
+SettingsManager_ &SettingsManager_::getInstance() {
     static SettingsManager_ instance;
     return instance;
 }
@@ -14,30 +13,23 @@ SettingsManager_ &SettingsManager_::getInstance()
 // Initialize the global shared instance
 SettingsManager_ &SettingsManager = SettingsManager.getInstance();
 
-void SettingsManager_::setup()
-{
-    LittleFS.begin();
-}
+void SettingsManager_::setup() { LittleFS.begin(); }
 
-bool copyFile(const char *srcPath, const char *destPath)
-{
+bool copyFile(const char *srcPath, const char *destPath) {
     File srcFile = LittleFS.open(srcPath, "r");
-    if (!srcFile)
-    {
+    if (!srcFile) {
         DEBUG_PRINTLN("Failed to open source file");
         return false;
     }
 
     File destFile = LittleFS.open(destPath, "w");
-    if (!destFile)
-    {
+    if (!destFile) {
         DEBUG_PRINTLN("Failed to open destination file");
         srcFile.close();
         return false;
     }
 
-    while (srcFile.available())
-    {
+    while (srcFile.available()) {
         char data = srcFile.read();
         destFile.write(data);
     }
@@ -49,45 +41,38 @@ bool copyFile(const char *srcPath, const char *destPath)
     return true;
 }
 
-void SettingsManager_::factoryReset()
-{
+void SettingsManager_::factoryReset() {
     copyFile(CONFIG_JSON_FACTORY, CONFIG_JSON);
     LittleFS.end();
     ESP.restart();
 }
 
-DynamicJsonDocument *readConfigJsonFile()
-{
+DynamicJsonDocument *readConfigJsonFile() {
     DynamicJsonDocument *doc;
-    if (LittleFS.exists(CONFIG_JSON))
-    {
+    if (LittleFS.exists(CONFIG_JSON)) {
         auto settings = Settings();
         File file = LittleFS.open(CONFIG_JSON);
-        if (!file || file.isDirectory())
-        {
+        if (!file || file.isDirectory()) {
             DEBUG_PRINTLN("Failed to open config file for reading");
             return NULL;
         }
 
         doc = new DynamicJsonDocument((int)(file.size() * 2));
         DeserializationError error = deserializeJson(*doc, file);
-        if (error)
-        {
-            DEBUG_PRINTF("Deserialization error. File size: %d, requested memory: %d. Error: %s\n", file.size(), (int)(file.size() * 2), error.c_str());
+        if (error) {
+            DEBUG_PRINTF("Deserialization error. File size: %d, requested memory: %d. Error: %s\n", file.size(),
+                         (int)(file.size() * 2), error.c_str());
             file.close();
             return NULL;
         }
         return doc;
-    }
-    else
-    {
+    } else {
         DEBUG_PRINTLN("Cannot read configuration file");
         return NULL;
     }
 }
 
-bool SettingsManager_::loadSettingsFromFile()
-{
+bool SettingsManager_::loadSettingsFromFile() {
     auto doc = readConfigJsonFile();
     if (doc == NULL)
         return false;
@@ -104,6 +89,10 @@ bool SettingsManager_::loadSettingsFromFile()
     settings.auto_brightness = (*doc)["auto_brightness"].as<bool>();
     settings.brightness_level = (*doc)["brightness_level"].as<int>() - 1;
     settings.default_clockface = (*doc)["default_face"].as<int>();
+    settings.bg_source = (*doc)["bg_source"].as<String>() == "nightscout" ? NIGHTSCOUT : DEXCOM;
+    settings.dexom_username = (*doc)["dexcom_username"].as<String>();
+    settings.dexcom_password = (*doc)["dexcom_password"].as<String>();
+    settings.dexcom_server = (*doc)["dexcom_server"].as<String>();
 
     delete doc;
 
@@ -111,8 +100,7 @@ bool SettingsManager_::loadSettingsFromFile()
     return true;
 }
 
-bool SettingsManager_::saveSettingsToFile()
-{
+bool SettingsManager_::saveSettingsToFile() {
     auto doc = readConfigJsonFile();
     if (doc == NULL)
         return false;
@@ -128,6 +116,10 @@ bool SettingsManager_::saveSettingsToFile()
     (*doc)["auto_brightness"] = settings.auto_brightness;
     (*doc)["brightness_level"] = settings.brightness_level + 1;
     (*doc)["default_face"] = settings.default_clockface;
+    (*doc)["bg_source"] = settings.bg_source == NIGHTSCOUT ? "nightscout" : "dexcom";
+    (*doc)["dexcom_username"] = settings.dexom_username;
+    (*doc)["dexcom_password"] = settings.dexcom_password;
+    (*doc)["dexcom_server"] = settings.dexcom_server;
 
     if (trySaveJsonAsSettings(*doc) == false)
         return false;
@@ -137,12 +129,10 @@ bool SettingsManager_::saveSettingsToFile()
     return true;
 }
 
-bool SettingsManager_::trySaveJsonAsSettings(DynamicJsonDocument doc)
-{
+bool SettingsManager_::trySaveJsonAsSettings(DynamicJsonDocument doc) {
     DEBUG_PRINTLN(doc.as<String>());
     auto file = LittleFS.open(CONFIG_JSON, FILE_WRITE);
-    if (!file)
-    {
+    if (!file) {
         DEBUG_PRINTLN("Failed to open config file for writing");
         return false;
     }
@@ -150,8 +140,7 @@ bool SettingsManager_::trySaveJsonAsSettings(DynamicJsonDocument doc)
     auto result = file.print(doc.as<String>());
 
     file.close();
-    if (!result)
-    {
+    if (!result) {
         return false;
     }
 

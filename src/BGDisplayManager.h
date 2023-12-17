@@ -5,7 +5,7 @@
 #include "BGDisplayFaceGraph.h"
 #include "BGDisplayFaceGraphAndBG.h"
 #include "BGDisplayFaceSimple.h"
-#include "NightscoutManager.h"
+#include "BGSource.h"
 
 #include <Arduino.h>
 #include <list>

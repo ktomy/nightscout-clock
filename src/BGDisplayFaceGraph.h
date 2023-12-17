@@ -2,7 +2,6 @@
 #define BGDISPLAYFACEGRAPH_H
 
 #include "BGDisplayFaceGraphBase.h"
-// #include "NightscoutManager.h"
 
 class BGDisplayFaceGraph : public BGDisplayFaceGraphBase {
   public:

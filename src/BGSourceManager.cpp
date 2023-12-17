@@ -1,8 +1,7 @@
 #include "BGSourceManager.h"
 
 // Define the static getInstance method
-BGSourceManager_ &BGSourceManager_::getInstance()
-{
+BGSourceManager_ &BGSourceManager_::getInstance() {
     static BGSourceManager_ instance;
     return instance;
 }
@@ -16,25 +15,16 @@ BGSourceManager_::~BGSourceManager_() {}
 // Define the extern variable
 BGSourceManager_ &bgSourceManager = BGSourceManager_::getInstance();
 
-void BGSourceManager_::setup()
-{
-    // TODO: Implement the setup method
+void BGSourceManager_::setup(BG_SOURCE bgSourceType) {
+    switch (bgSourceType) {
+        case BG_SOURCE::NIGHTSCOUT:
+            bgSource = new BGSourceNightscout();
+            break;
+    }
 }
 
-void BGSourceManager_::tick()
-{
-    // TODO: Implement the tick method
-}
+void BGSourceManager_::tick() { bgSource->tick(); }
 
-bool BGSourceManager_::hasNewData(unsigned long long epochToCompare)
-{
-    // TODO: Implement the hasNewData method
-    return false;
-}
+bool BGSourceManager_::hasNewData(unsigned long long epochToCompare) { return bgSource->hasNewData(epochToCompare); }
 
-std::list<GlucoseReading> BGSourceManager_::getGlucoseData()
-{
-    // TODO: Implement the getGlucoseData method
-    std::list<GlucoseReading> glucoseData;
-    return glucoseData;
-}
+std::list<GlucoseReading> BGSourceManager_::getGlucoseData() { return bgSource->getGlucoseData(); }

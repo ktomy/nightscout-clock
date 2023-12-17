@@ -2,7 +2,7 @@
 #define BGDISPLAYFACEGRAPHBASE_H
 
 #include "BGDisplayFace.h"
-#include "NightscoutManager.h"
+#include "BGSource.h"
 
 class BGDisplayFaceGraphBase : virtual public BGDisplayFace {
   public:
