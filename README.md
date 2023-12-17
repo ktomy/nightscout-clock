@@ -42,6 +42,7 @@ If you already have an Ulanzi clock, you can try [installing](https://ktomy.gith
 * Add smart update timings (calculate 5 minutes since last reading)
 * Get units and value boundaries from Nightscout
 * Change color to gray if the data is too old
+* Support multiple WiFi network configurations (WiFi backup)
 * ~~Configuration during the installation (Improv WiFi)~~ (done)
 * Create installation/configuration video
 * Create a guide for setting up the development environment and code walkthrough for contributions
