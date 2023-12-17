@@ -5,6 +5,7 @@
 #include <list>
 
 #include "enums.h"
+#include "globals.h"
 #include "DisplayManager.h"
 
 struct GlucoseReading {

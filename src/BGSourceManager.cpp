@@ -20,7 +20,11 @@ void BGSourceManager_::setup(BG_SOURCE bgSourceType) {
         case BG_SOURCE::NIGHTSCOUT:
             bgSource = new BGSourceNightscout();
             break;
+        default:
+            DEBUG_PRINTLN("BGSourceManager_::setup: Unknown BG_SOURCE: " + toString(bgSourceType));
+            DisplayManager.showFatalError("Unknown data source: " + toString(bgSourceType));
     }
+    bgSource->setup();
 }
 
 void BGSourceManager_::tick() { bgSource->tick(); }

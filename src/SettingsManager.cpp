@@ -89,7 +89,7 @@ bool SettingsManager_::loadSettingsFromFile() {
     settings.auto_brightness = (*doc)["auto_brightness"].as<bool>();
     settings.brightness_level = (*doc)["brightness_level"].as<int>() - 1;
     settings.default_clockface = (*doc)["default_face"].as<int>();
-    settings.bg_source = (*doc)["bg_source"].as<String>() == "nightscout" ? BG_SOURCE::NIGHTSCOUT : BG_SOURCE::DEXCOM;
+    settings.bg_source = (*doc)["data_source"].as<String>() == "nightscout" ? BG_SOURCE::NIGHTSCOUT : BG_SOURCE::DEXCOM;
     settings.dexom_username = (*doc)["dexcom_username"].as<String>();
     settings.dexcom_password = (*doc)["dexcom_password"].as<String>();
     settings.dexcom_server = (*doc)["dexcom_server"].as<String>();
@@ -116,7 +116,7 @@ bool SettingsManager_::saveSettingsToFile() {
     (*doc)["auto_brightness"] = settings.auto_brightness;
     (*doc)["brightness_level"] = settings.brightness_level + 1;
     (*doc)["default_face"] = settings.default_clockface;
-    (*doc)["bg_source"] = settings.bg_source == BG_SOURCE::NIGHTSCOUT ? "nightscout" : "dexcom";
+    (*doc)["data_source"] = settings.bg_source == BG_SOURCE::NIGHTSCOUT ? "nightscout" : "dexcom";
     (*doc)["dexcom_username"] = settings.dexom_username;
     (*doc)["dexcom_password"] = settings.dexcom_password;
     (*doc)["dexcom_server"] = settings.dexcom_server;

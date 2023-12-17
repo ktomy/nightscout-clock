@@ -21,6 +21,7 @@ enum class BG_TREND : uint8_t {
     NOT_COMPUTABLE = 8,
     RATE_OUT_OF_RANGE = 9,
 };
+
 inline String toString(BG_TREND trend) {
     switch (trend) {
         case BG_TREND::NONE:
@@ -43,7 +44,6 @@ inline String toString(BG_TREND trend) {
             return "NOT_COMPUTABLE";
         case BG_TREND::RATE_OUT_OF_RANGE:
             return "RATE_OUT_OF_RANGE";
-
         default:
             return "unknown";
     }
@@ -70,5 +70,20 @@ enum class BG_SOURCE : uint8_t {
     DEXCOM = 2,
     MEDTRONIC = 3,
 };
+
+inline String toString(BG_SOURCE source) {
+    switch (source) {
+        case BG_SOURCE::NO_SOURCE:
+            return "NO_SOURCE";
+        case BG_SOURCE::NIGHTSCOUT:
+            return "NIGHTSCOUT";
+        case BG_SOURCE::DEXCOM:
+            return "DEXCOM";
+        case BG_SOURCE::MEDTRONIC:
+            return "MEDTRONIC";
+        default:
+            return "unknown";
+    }
+}
 
 #endif

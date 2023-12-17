@@ -234,8 +234,8 @@ std::list<GlucoseReading> BGSourceNightscout::retrieveReadings(String baseUrl, S
 
             String debugLog = "Received readings: ";
             for (auto &reading : lastReadings) {
-                debugLog +=
-                    " " + String(reading.sgv) + " " + String(reading.getSecondsAgo() / 60) + "m " + toString(reading.trend) + ", ";
+                debugLog += " " + String(reading.sgv) + " -" + String(reading.getSecondsAgo() / 60) + "m " +
+                            toString(reading.trend) + ", ";
             }
 
             debugLog += "\n";
