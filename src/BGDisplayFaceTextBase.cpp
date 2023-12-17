@@ -2,7 +2,38 @@
 #include "BGDisplayManager.h"
 #include "globals.h"
 
-void BGDisplayFaceTextBase::showReadingBase(const GlucoseReading reading, int16_t x, int16_t y, bool centered) const {
+void BGDisplayFaceTextBase::showReading(const GlucoseReading reading, int16_t x, int16_t y, TEXT_ALIGNMENT alignment) const {
+
+    String readingToDisplay = getPrintableReading(reading);
+
+    SetDisplayColorByBGValue(reading);
+
+    DisplayManager.printText(x, y, readingToDisplay.c_str(), alignment, 2);
+}
+
+void BGDisplayFaceTextBase::SetDisplayColorByBGValue(const GlucoseReading &reading) const {
+
+    auto bgLevel = BGDisplayManager.getGlucoseIntervals().getBGLevel(reading.sgv);
+    auto textColor = COLOR_GRAY;
+
+    switch (bgLevel) {
+        case URGENT_LOW:
+        case URGENT_HIGH:
+            textColor = COLOR_RED;
+            break;
+        case WARNING_LOW:
+        case WARNING_HIGH:
+            textColor = COLOR_YELLOW;
+            break;
+        case NORMAL:
+            textColor = COLOR_GREEN;
+            break;
+    }
+
+    DisplayManager.setTextColor(textColor);
+}
+
+String BGDisplayFaceTextBase::getPrintableReading(const GlucoseReading &reading) const {
     String readingToDisplay = "";
     if (SettingsManager.settings.bgUnit == MGDL) {
         readingToDisplay += String(reading.sgv);
@@ -11,25 +42,7 @@ void BGDisplayFaceTextBase::showReadingBase(const GlucoseReading reading, int16_
         sprintf(buffer, "%.1f", round((float)reading.sgv / 1.8) / 10);
         readingToDisplay += String(buffer);
     }
-
-    switch (BGDisplayManager.getGlucoseIntervals().getBGLevel(reading.sgv)) {
-        case URGENT_LOW:
-        case URGENT_HIGH:
-            DisplayManager.setTextColor(COLOR_RED);
-            break;
-        case WARNING_LOW:
-        case WARNING_HIGH:
-            DisplayManager.setTextColor(COLOR_YELLOW);
-            break;
-        case NORMAL:
-            DisplayManager.setTextColor(COLOR_GREEN);
-            break;
-        default:
-            DisplayManager.setTextColor(COLOR_GRAY);
-            break;
-    }
-
-    DisplayManager.printText(x, y, readingToDisplay.c_str(), centered, 2);
+    return readingToDisplay;
 }
 
 #pragma region Show arrow

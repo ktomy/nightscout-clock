@@ -9,7 +9,9 @@ class BGDisplayFaceGraphAndBG : public BGDisplayFaceGraphBase, public BGDisplayF
   public:
     void showReadings(const std::list<GlucoseReading> &readings) const override;
     void markDataAsOld() const override;
-    BGDisplayFaceGraphAndBG() {}
+
+  private:
+    void showTrendVerticalLine(int x, BG_TREND trend) const;
 };
 
 #endif // BGDISPLAYFACEGRAPHANDBG_H

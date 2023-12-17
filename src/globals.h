@@ -3,23 +3,25 @@
 #include <Arduino.h>
 #include <IPAddress.h>
 #define DEBUG
+// #define DEBUG_BG_SOURCE
+#define DEBUG_DISPLAY
 
 #ifdef DEBUG
-#define DEBUG_PRINTLN(x)        \
-    {                           \
-        Serial.print("[");      \
-        Serial.print(millis()); \
-        Serial.print("] [");    \
-        Serial.print(__func__); \
-        Serial.print("]: ");    \
-        Serial.println(x);      \
+#define DEBUG_PRINTLN(x)                                                                                                         \
+    {                                                                                                                            \
+        Serial.print("[");                                                                                                       \
+        Serial.print(millis());                                                                                                  \
+        Serial.print("] [");                                                                                                     \
+        Serial.print(__func__);                                                                                                  \
+        Serial.print("]: ");                                                                                                     \
+        Serial.println(x);                                                                                                       \
     }
-#define DEBUG_PRINTF(format, ...)                                                            \
-    {                                                                                        \
-        String formattedMessage = "[" + String(millis()) + "] [" + String(__func__) + "]: "; \
-        Serial.print(formattedMessage);                                                      \
-        Serial.printf(format, ##__VA_ARGS__);                                                \
-        Serial.println();                                                                    \
+#define DEBUG_PRINTF(format, ...)                                                                                                \
+    {                                                                                                                            \
+        String formattedMessage = "[" + String(millis()) + "] [" + String(__func__) + "]: ";                                     \
+        Serial.print(formattedMessage);                                                                                          \
+        Serial.printf(format, ##__VA_ARGS__);                                                                                    \
+        Serial.println();                                                                                                        \
     }
 #else
 #define DEBUG_PRINTLN(x)
@@ -40,6 +42,7 @@
 #define COLOR_YELLOW 0xFFE0
 #define COLOR_WHITE 0xFFFF
 #define COLOR_GRAY 0xa514
+#define COLOR_BLACK 0x0000
 
 extern bool BLOCK_NAVIGATION;
 extern float TEMP_OFFSET;

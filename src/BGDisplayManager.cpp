@@ -52,7 +52,12 @@ void BGDisplayManager_::setFace(int id) {
         currentFaceIndex = id;
         currentFace = (faces[currentFaceIndex]);
         DisplayManager.clearMatrix();
-        currentFace->showReadings(displayedReadings);
+        if (displayedReadings.size() > 0) {
+            currentFace->showReadings(displayedReadings);
+        } else {
+            DisplayManager.setTextColor(COLOR_GRAY);
+            DisplayManager.printText(0, 6, "No data", CENTER, 0);
+        }
     }
 }
 
@@ -63,9 +68,12 @@ void BGDisplayManager_::tick() {
 void BGDisplayManager_::showData(std::list<GlucoseReading> glucoseReadings) {
 
     if (glucoseReadings.size() == 0) {
+        DisplayManager.setTextColor(COLOR_GRAY);
+        DisplayManager.printText(0, 6, "No data", CENTER, 0);
         return;
     }
-
+    
+    DisplayManager.clearMatrix();
     currentFace->showReadings(glucoseReadings);
 
     displayedReadings = glucoseReadings;

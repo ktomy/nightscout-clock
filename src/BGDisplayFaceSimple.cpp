@@ -6,12 +6,10 @@ void BGDisplayFaceSimple::showReadings(const std::list<GlucoseReading> &readings
 
     DisplayManager.clearMatrix();
 
-    showReadingBase(readings.back(), 0, 6, true);
+    showReading(readings.back(), 0, 6, CENTER);
 
     // show arrow in the right part of the screen
     showTrendArrow(readings.back(), 32 - 5, 1);
 }
 
 void BGDisplayFaceSimple::markDataAsOld() const {}
-
-

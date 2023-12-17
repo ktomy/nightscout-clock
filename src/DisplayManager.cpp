@@ -124,14 +124,18 @@ void DisplayManager_::clearMatrix() {
 // DisplayManager_::printText(int16_t x, int16_t y, const char *text, TEXT_ALIGNMENT alignment, byte textCase) {
 // }
 
-void DisplayManager_::printText(int16_t x, int16_t y, const char *text, bool centered, byte textCase) {
+void DisplayManager_::printText(int16_t x, int16_t y, const char *text, TEXT_ALIGNMENT alignment, byte textCase) {
 
-    if (centered) {
-        uint16_t textWidth = getTextWidth(text, textCase);
-        int16_t textX = ((32 - textWidth) / 2);
-        matrix->setCursor(textX, y);
-    } else {
+    if (alignment == LEFT) {
         matrix->setCursor(x, y);
+    } else if (alignment == RIGHT) {
+        uint16_t textWidth = getTextWidth(text, textCase);
+        int16_t textX = x - textWidth;
+        matrix->setCursor(textX, y);
+    } else if (alignment == CENTER) {
+        uint16_t textWidthForCenter = getTextWidth(text, textCase);
+        int16_t textXForCenter = ((32 - textWidthForCenter) / 2);
+        matrix->setCursor(textXForCenter, y);
     }
 
     if ((UPPERCASE_LETTERS && textCase == 0) || textCase == 1) {
@@ -202,7 +206,7 @@ void DisplayManager_::showFatalError(String errorMessage) {
         float position = 32;
         while (position > finalPosition) {
             matrix->clear();
-            printText(position, 6, errorMessage.c_str(), false, 1);
+            printText(position, 6, errorMessage.c_str(), LEFT, 1);
             position -= 0.18;
             checckForImprovWifiConnection();
         }

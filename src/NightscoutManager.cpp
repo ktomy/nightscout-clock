@@ -38,7 +38,7 @@ void NightscoutManager_::tick() {
 
             if (!firstConnectionSuccess) {
                 DisplayManager.clearMatrix();
-                DisplayManager.printText(0, 6, "To API", true, 0);
+                DisplayManager.printText(0, 6, "To API", CENTER, 0);
             }
 
             glucoseReadings = updateReadings(SettingsManager.settings.nsUrl, SettingsManager.settings.nsApiKey, glucoseReadings);
@@ -97,7 +97,6 @@ std::list<GlucoseReading> NightscoutManager_::updateReadings(String baseUrl, Str
     if (existingReadings.size() > 0 && existingReadings.back().epoch > lastReadingEpoch) {
         lastReadingEpoch = existingReadings.back().epoch;
     }
-
     DEBUG_PRINTLN("Updating NS values since epoch: " + String(lastReadingEpoch));
 
     // retrieve new readings until there are no new readings or until we reach
@@ -107,9 +106,11 @@ std::list<GlucoseReading> NightscoutManager_::updateReadings(String baseUrl, Str
         std::list<GlucoseReading> retrievedReadings =
             retrieveReadings(baseUrl, apiKey, lastReadingEpoch, lastReadingEpoch + 60 * 60, 60);
 
+#ifdef DEBUG_BG_SOURCE
         DEBUG_PRINTLN("Retrieved readings: " + String(retrievedReadings.size()) + ", last reading epoch: " +
                       String(retrievedReadings.back().epoch) + " Difference between first reading and last reading in minutes: " +
                       String((retrievedReadings.back().epoch - retrievedReadings.front().epoch) / 60));
+#endif
 
         if (retrievedReadings.size() == 0) {
             DEBUG_PRINTLN("No more readings");
@@ -119,9 +120,11 @@ std::list<GlucoseReading> NightscoutManager_::updateReadings(String baseUrl, Str
         existingReadings.insert(existingReadings.end(), retrievedReadings.begin(), retrievedReadings.end());
         lastReadingEpoch = existingReadings.back().epoch;
 
+#ifdef DEBUG_BG_SOURCE
         DEBUG_PRINTLN("Existing readings: " + String(existingReadings.size()) +
                       ", last reading epoch: " + String(lastReadingEpoch) +
                       " Difference to now is: " + String((time(NULL) - lastReadingEpoch) / 60) + " minutes");
+#endif
 
     } while (lastReadingEpoch < time(NULL) - 5 * 60);
     return existingReadings;
@@ -131,8 +134,10 @@ std::list<GlucoseReading> NightscoutManager_::retrieveReadings(String baseUrl, S
                                                                unsigned long long readingSinceEpoch,
                                                                unsigned long long readingToEpoch, int numberOfvalues) {
 
+#ifdef DEBUG_BG_SOURCE
     DEBUG_PRINTLN("Getting NS values. Reading since epoch: " + String(readingSinceEpoch) +
                   ", number of values: " + String(numberOfvalues) + ", reading to epoch: " + String(readingToEpoch));
+#endif
 
     if (baseUrl == "") {
         DisplayManager.showFatalError("Nightscout clock is not configured, please go to http://" + ServerManager.myIP.toString() +
@@ -150,7 +155,9 @@ std::list<GlucoseReading> NightscoutManager_::retrieveReadings(String baseUrl, S
         urlString += "&token=" + apiKey;
     }
 
+#ifdef DEBUG_BG_SOURCE
     DEBUG_PRINTLN("URL: " + urlString)
+#endif
 
     auto urlIsOk = url.setUrl(urlString);
     if (!urlIsOk) {
@@ -158,7 +165,10 @@ std::list<GlucoseReading> NightscoutManager_::retrieveReadings(String baseUrl, S
     }
 
     bool ssl = url.getScheme() == "https";
+
+#ifdef DEBUG_BG_SOURCE
     DEBUG_PRINTLN(ssl ? "SSL Active" : "No SSL")
+#endif
     if (ssl) {
         client->begin(*wifiSecureClient, url.getHost(), url.getPort(), String("/") + url.getPath() + url.getAfterPath(), true);
     } else {

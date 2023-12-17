@@ -1,6 +1,7 @@
 #ifndef DisplayManager_h
 #define DisplayManager_h
 
+#include "enums.h"
 #include <Arduino.h>
 
 class DisplayManager_ {
@@ -12,7 +13,7 @@ class DisplayManager_ {
     void tick();
 
     void HSVtext(int16_t x, int16_t y, const char *text, bool clear, byte textCase);
-    void printText(int16_t x, int16_t y, const char *text, bool centered, byte textCase);
+    void printText(int16_t x, int16_t y, const char *text, TEXT_ALIGNMENT alignment, byte textCase);
     void setTextColor(uint16_t color);
     void clearMatrix();
     void drawBitmap(int16_t x, int16_t y, const uint8_t bitmap[], int16_t w, int16_t h, uint16_t color);
