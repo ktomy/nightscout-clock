@@ -9,7 +9,7 @@ enum class BG_UNIT : uint8_t {
     MMOLL = 1,
 };
 
-enum BG_TREND : uint8_t {
+enum class BG_TREND : uint8_t {
     NONE = 0,
     DOUBLE_UP = 1,
     SINGLE_UP = 2,
@@ -21,6 +21,33 @@ enum BG_TREND : uint8_t {
     NOT_COMPUTABLE = 8,
     RATE_OUT_OF_RANGE = 9,
 };
+inline String toString(BG_TREND trend) {
+    switch (trend) {
+        case BG_TREND::NONE:
+            return "NONE";
+        case BG_TREND::DOUBLE_UP:
+            return "DOUBLE_UP";
+        case BG_TREND::SINGLE_UP:
+            return "SINGLE_UP";
+        case BG_TREND::FORTY_FIVE_UP:
+            return "FORTY_FIVE_UP";
+        case BG_TREND::FLAT:
+            return "FLAT";
+        case BG_TREND::FORTY_FIVE_DOWN:
+            return "FORTY_FIVE_DOWN";
+        case BG_TREND::SINGLE_DOWN:
+            return "SINGLE_DOWN";
+        case BG_TREND::DOUBLE_DOWN:
+            return "DOUBLE_DOWN";
+        case BG_TREND::NOT_COMPUTABLE:
+            return "NOT_COMPUTABLE";
+        case BG_TREND::RATE_OUT_OF_RANGE:
+            return "RATE_OUT_OF_RANGE";
+
+        default:
+            return "unknown";
+    }
+}
 
 enum class TEXT_ALIGNMENT : uint8_t {
     LEFT = 0,
