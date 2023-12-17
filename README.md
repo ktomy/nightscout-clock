@@ -30,7 +30,7 @@ If you already have an Ulanzi clock, you can try [installing](https://ktomy.gith
    * Full-width glucose graph
    * Graph, value and trend indicator
 ### My TODO list
-* Add multiple faces and enable navigation between them
+* Add multiple faces ~~and enable navigation between them~~ (done)
     * ~~Glucose graph~~ (done)
     * BIG DIGITS
     * Value, trend and difference from the old value
