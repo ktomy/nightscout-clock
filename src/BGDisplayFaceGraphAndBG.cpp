@@ -27,37 +27,37 @@ void BGDisplayFaceGraphAndBG::markDataAsOld() const {}
 
 void BGDisplayFaceGraphAndBG::showTrendVerticalLine(int x, BG_TREND trend) const {
     switch (trend) {
-        case DOUBLE_UP:
+        case BG_TREND::DOUBLE_UP:
             DisplayManager.drawPixel(x, 0, COLOR_RED);
             DisplayManager.drawPixel(x, 1, COLOR_YELLOW);
             DisplayManager.drawPixel(x, 2, COLOR_GREEN);
             DisplayManager.drawPixel(x, 3, COLOR_WHITE);
             break;
-        case DOUBLE_DOWN:
+        case BG_TREND::DOUBLE_DOWN:
             DisplayManager.drawPixel(x, 4, COLOR_WHITE);
             DisplayManager.drawPixel(x, 5, COLOR_GREEN);
             DisplayManager.drawPixel(x, 6, COLOR_YELLOW);
             DisplayManager.drawPixel(x, 7, COLOR_RED);
             break;
-        case SINGLE_UP:
+        case BG_TREND::SINGLE_UP:
             DisplayManager.drawPixel(x, 1, COLOR_YELLOW);
             DisplayManager.drawPixel(x, 2, COLOR_GREEN);
             DisplayManager.drawPixel(x, 3, COLOR_WHITE);
             break;
-        case SINGLE_DOWN:
+        case BG_TREND::SINGLE_DOWN:
             DisplayManager.drawPixel(x, 4, COLOR_WHITE);
             DisplayManager.drawPixel(x, 5, COLOR_GREEN);
             DisplayManager.drawPixel(x, 6, COLOR_YELLOW);
             break;
-        case FORTY_FIVE_UP:
+        case BG_TREND::FORTY_FIVE_UP:
             DisplayManager.drawPixel(x, 2, COLOR_GREEN);
             DisplayManager.drawPixel(x, 3, COLOR_WHITE);
             break;
-        case FORTY_FIVE_DOWN:
+        case BG_TREND::FORTY_FIVE_DOWN:
             DisplayManager.drawPixel(x, 4, COLOR_WHITE);
             DisplayManager.drawPixel(x, 5, COLOR_GREEN);
             break;
-        case FLAT:
+        case BG_TREND::FLAT:
             DisplayManager.drawPixel(x, 3, COLOR_WHITE);
             DisplayManager.drawPixel(x, 4, COLOR_WHITE);
             break;

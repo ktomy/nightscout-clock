@@ -43,25 +43,25 @@ void BGSourceNightscout::tick() {
 BG_TREND parseDirection(String directionInput) {
     auto direction = directionInput;
     direction.toLowerCase();
-    BG_TREND trend = NONE;
+    BG_TREND trend = BG_TREND::NONE;
     if (direction == "doubleup") {
-        trend = DOUBLE_UP;
+        trend = BG_TREND::DOUBLE_UP;
     } else if (direction == "singleup") {
-        trend = SINGLE_UP;
+        trend = BG_TREND::SINGLE_UP;
     } else if (direction == "fortyfiveup") {
-        trend = FORTY_FIVE_UP;
+        trend = BG_TREND::FORTY_FIVE_UP;
     } else if (direction == "flat") {
-        trend = FLAT;
+        trend = BG_TREND::FLAT;
     } else if (direction == "fortyfivedown") {
-        trend = FORTY_FIVE_DOWN;
+        trend = BG_TREND::FORTY_FIVE_DOWN;
     } else if (direction == "singledown") {
-        trend = SINGLE_DOWN;
+        trend = BG_TREND::SINGLE_DOWN;
     } else if (direction == "doubledown") {
-        trend = DOUBLE_DOWN;
+        trend = BG_TREND::DOUBLE_DOWN;
     } else if (direction == "not_computable") {
-        trend = NOT_COMPUTABLE;
+        trend = BG_TREND::NOT_COMPUTABLE;
     } else if (direction == "rate_out_of_range") {
-        trend = RATE_OUT_OF_RANGE;
+        trend = BG_TREND::RATE_OUT_OF_RANGE;
     }
 
     return trend;
@@ -221,7 +221,7 @@ std::list<GlucoseReading> BGSourceNightscout::retrieveReadings(String baseUrl, S
                 } else if (v.containsKey("direction")) {
                     reading.trend = parseDirection(v["direction"].as<String>());
                 } else {
-                    reading.trend = NONE;
+                    reading.trend = BG_TREND::NONE;
                 }
 
                 lastReadings.push_front(reading);
@@ -235,7 +235,7 @@ std::list<GlucoseReading> BGSourceNightscout::retrieveReadings(String baseUrl, S
             String debugLog = "Received readings: ";
             for (auto &reading : lastReadings) {
                 debugLog +=
-                    " " + String(reading.sgv) + " " + String(reading.getSecondsAgo() / 60) + "m " + String(reading.trend) + ", ";
+                    " " + String(reading.sgv) + " " + String(reading.getSecondsAgo() / 60) + "m " + toString(reading.trend) + ", ";
             }
 
             debugLog += "\n";
