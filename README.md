@@ -26,11 +26,14 @@ If you already have an Ulanzi clock, you can try [installing](https://ktomy.gith
 * Multiple clock faces support
    * Default clock face can be selected in the Web UI
    * Clock faces can be changed using arrow buttons on the clock
-   * (there is only one available clock face for now, other faces are still work-in-progress)
+   * Simple clock face (value and trend arrow)
+   * Full-width glucose graph
+   * Graph, value and trend indicator
 ### My TODO list
-* Add multiple faces and enable navigation between them
-    * Glucose graph
+* Add multiple faces ~~and enable navigation between them~~ (done)
+    * ~~Glucose graph~~ (done)
     * BIG DIGITS
+    * Value, trend and difference from the old value
     * Clock (and setting the timezone)
     * Battery, humidity and temperature
 * Smooth color change (rainbow) based on the value and boundaries
@@ -39,6 +42,7 @@ If you already have an Ulanzi clock, you can try [installing](https://ktomy.gith
 * Add smart update timings (calculate 5 minutes since last reading)
 * Get units and value boundaries from Nightscout
 * Change color to gray if the data is too old
+* Support multiple WiFi network configurations (WiFi backup)
 * ~~Configuration during the installation (Improv WiFi)~~ (done)
 * Create installation/configuration video
 * Create a guide for setting up the development environment and code walkthrough for contributions
