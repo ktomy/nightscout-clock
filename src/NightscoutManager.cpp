@@ -6,9 +6,9 @@
 #include <ArduinoJson.h>
 #include <HTTPClient.h>
 #include <LCBUrl.h>
+#include <StreamUtils.h>
 #include <WiFiClientSecure.h>
 #include <list>
-// #include <StreamUtils.h>
 
 // The getter for the instantiated singleton instance
 NightscoutManager_ &NightscoutManager_::getInstance() {
@@ -97,23 +97,39 @@ std::list<GlucoseReading> NightscoutManager_::updateReadings(String baseUrl, Str
     if (existingReadings.size() > 0 && existingReadings.back().epoch > lastReadingEpoch) {
         lastReadingEpoch = existingReadings.back().epoch;
     }
-    DEBUG_PRINTLN("Updating NS values since epoch: " + String(lastReadingEpoch));
+    DEBUG_PRINTLN("Updating NS values since epoch: " + String(lastReadingEpoch) + " (-" +
+                  String((time(NULL) - lastReadingEpoch) / 60) + "m)");
 
     // retrieve new readings until there are no new readings or until we reach
     // the point of now - 5 minutes (as we don't want readings from the future)
     do {
         // retrieve readings since lastReadingEpoch until lastReadingEpoch + 1 hour
-        std::list<GlucoseReading> retrievedReadings =
-            retrieveReadings(baseUrl, apiKey, lastReadingEpoch, lastReadingEpoch + 60 * 60, 60);
+        unsigned long long readToEpoch = lastReadingEpoch + 60 * 60;
+        if (readToEpoch > time(NULL)) {
+            readToEpoch = time(NULL);
+        }
+
+        std::list<GlucoseReading> retrievedReadings = retrieveReadings(baseUrl, apiKey, lastReadingEpoch, readToEpoch, 30);
 
 #ifdef DEBUG_BG_SOURCE
-        DEBUG_PRINTLN("Retrieved readings: " + String(retrievedReadings.size()) + ", last reading epoch: " +
-                      String(retrievedReadings.back().epoch) + " Difference between first reading and last reading in minutes: " +
+        DEBUG_PRINTLN("Retrieved readings: " + String(retrievedReadings.size()) +
+                      ", last reading epoch: " + String(retrievedReadings.back().epoch) + " (-" +
+                      String((time(NULL) - retrievedReadings.back().epoch) / 60) + "m)" +
+                      " Difference between first reading and last reading in minutes: " +
                       String((retrievedReadings.back().epoch - retrievedReadings.front().epoch) / 60));
 #endif
 
+        // remove readings from retrievedReadings which are already present in existingReadings
+        // because some servers (Gluroo) don't process from-to in an expected way
+        retrievedReadings.remove_if([&existingReadings](const GlucoseReading &reading) {
+            return std::find_if(existingReadings.begin(), existingReadings.end(),
+                                [&reading](const GlucoseReading &existingReading) {
+                                    return existingReading.epoch == reading.epoch;
+                                }) != existingReadings.end();
+        });
+
         if (retrievedReadings.size() == 0) {
-            DEBUG_PRINTLN("No more readings");
+            DEBUG_PRINTLN("No new readings");
             break;
         }
         // add retrieved reading to existing readings
@@ -135,8 +151,9 @@ std::list<GlucoseReading> NightscoutManager_::retrieveReadings(String baseUrl, S
                                                                unsigned long long readingToEpoch, int numberOfvalues) {
 
 #ifdef DEBUG_BG_SOURCE
-    DEBUG_PRINTLN("Getting NS values. Reading since epoch: " + String(readingSinceEpoch) +
-                  ", number of values: " + String(numberOfvalues) + ", reading to epoch: " + String(readingToEpoch));
+    DEBUG_PRINTLN("Getting NS values. Reading since epoch: " + String(readingSinceEpoch) + " (-" +
+                  String((time(NULL) - readingSinceEpoch) / 60) + "m)" + ", number of values: " + String(numberOfvalues) +
+                  ", reading to epoch: " + String(readingToEpoch) + " (-" + String((time(NULL) - readingToEpoch) / 60) + "m)");
 #endif
 
     if (baseUrl == "") {
@@ -183,10 +200,16 @@ std::list<GlucoseReading> NightscoutManager_::retrieveReadings(String baseUrl, S
     if (responseCode == HTTP_CODE_OK) {
         DynamicJsonDocument doc(0xFFFF);
 
-        DeserializationError error = deserializeJson(doc, client->getStream());
+        String responseContent = client->getString();
+
+        DeserializationError error = deserializeJson(doc, responseContent);
+
+#ifdef DEBUG_BG_SOURCE
+        DEBUG_PRINTLN("Response: " + responseContent);
+#endif
 
         if (error) {
-            DEBUG_PRINTF("Error deserializing NS response: %s\n", error.c_str());
+            DEBUG_PRINTF("Error deserializing NS response: %s\nFailed on string: %s\n", error.c_str(), responseContent.c_str());
             if (!firstConnectionSuccess) {
                 DisplayManager.showFatalError(String("Invalid Nightscout response: ") + error.c_str());
             }
@@ -241,4 +264,5 @@ bool NightscoutManager_::hasNewData(unsigned long long epochToCompare) {
     auto lastReadingEpoch = glucoseReadings.size() > 0 ? glucoseReadings.back().epoch : 0;
     return lastReadingEpoch > epochToCompare;
 }
+
 std::list<GlucoseReading> NightscoutManager_::getGlucoseData() { return glucoseReadings; }

@@ -50,7 +50,7 @@ void BGDisplayFaceGraphBase::showGraph(uint8_t x_position, uint8_t length, uint1
     auto intervals = BGDisplayManager.getGlucoseIntervals();
 
 #ifdef DEBUG_DISPLAY
-    String pixels = "Graph pixels: ";
+    String pixels = "Graph pixels (right to left): ";
     DEBUG_PRINTF("Pixel size: %d seconds\n", pixelSizeSeconds);
 
     String readingsDebug = "Readings: ";
@@ -78,11 +78,12 @@ void BGDisplayFaceGraphBase::showGraph(uint8_t x_position, uint8_t length, uint1
     for (int i = 0; i < length; i++) {
         auto average = getAverageValueForPeriod(i * pixelSizeSeconds, (i + 1) * pixelSizeSeconds, readings);
 
+#ifdef DEBUG_DISPLAY
         if (average < 0) {
             pixels += "_ ";
             continue;
         }
-
+#endif
         int y = -1;
         uint16_t color;
 
@@ -113,7 +114,9 @@ void BGDisplayFaceGraphBase::showGraph(uint8_t x_position, uint8_t length, uint1
                 break;
         }
 
+#ifdef DEBUG_DISPLAY
         pixels += String(y) + "(" + String(average) + ")" + " ";
+#endif
 
         DisplayManager.drawPixel(x_position + length - 1 - i, y, color);
     }
