@@ -191,7 +191,7 @@ void ServerManager_::setup()
     auto hostname = SettingsManager.settings.hostname = getID();
     WiFi.setHostname(hostname.c_str()); // define hostname
 
-    myIP = startWifi(SettingsManager.settings.ssid, SettingsManager.settings.password);
+    myIP = startWifi(SettingsManager.settings.ssid, SettingsManager.settings.wifi_password);
 
     auto ipAP = IPAddress();
     ipAP.fromString(AP_IP);

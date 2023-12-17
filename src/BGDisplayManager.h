@@ -30,7 +30,7 @@ struct GlucoseIntervals {
                 return interval.intarval_type;
             }
         }
-        return INVALID; // Default to INVALID if not found in any interval
+        return BG_LEVEL::INVALID; // Default to INVALID if not found in any interval
     }
 
     String toString() const {
@@ -38,22 +38,22 @@ struct GlucoseIntervals {
         for (const GlucoseInterval &interval : intervals) {
             ss += "  Low: " + String(interval.low_boundary) + ", High: " + String(interval.high_boundary) + ", Level: ";
             switch (interval.intarval_type) {
-                case URGENT_HIGH:
+                case BG_LEVEL::URGENT_HIGH:
                     ss += "URGENT_HIGH";
                     break;
-                case WARNING_HIGH:
+                case BG_LEVEL::WARNING_HIGH:
                     ss += "WARNING_HIGH";
                     break;
-                case NORMAL:
+                case BG_LEVEL::NORMAL:
                     ss += "NORMAL";
                     break;
-                case WARNING_LOW:
+                case BG_LEVEL::WARNING_LOW:
                     ss += "WARNING_LOW";
                     break;
-                case URGENT_LOW:
+                case BG_LEVEL::URGENT_LOW:
                     ss += "URGENT_LOW";
                     break;
-                case INVALID:
+                case BG_LEVEL::INVALID:
                     ss += "INVALID";
                     break;
             }

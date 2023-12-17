@@ -8,13 +8,13 @@
 class Settings {
   public:
     String ssid;
-    String password;
+    String wifi_password;
     String hostname;
-    String nsUrl;
-    String nsApiKey;
-    BG_UNIT bgUnit;
-    int bgLow;
-    int bgHigh;
+    String nightscout_url;
+    String nightscout_api_key;
+    BG_UNIT bg_units;
+    int bg_low_warn_limit;
+    int bg_high_warn_limit;
     bool auto_brightness;
     int brightness_level;
     int default_clockface;

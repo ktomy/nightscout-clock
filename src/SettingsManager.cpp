@@ -78,18 +78,18 @@ bool SettingsManager_::loadSettingsFromFile() {
         return false;
 
     settings.ssid = (*doc)["ssid"].as<String>();
-    settings.password = (*doc)["password"].as<String>();
+    settings.wifi_password = (*doc)["password"].as<String>();
     /// TODO: Get Network config
 
-    settings.nsUrl = (*doc)["nightscout_url"].as<String>();
-    settings.nsApiKey = (*doc)["api_secret"].as<String>();
-    settings.bgLow = (*doc)["low_mgdl"].as<int>();
-    settings.bgHigh = (*doc)["high_mgdl"].as<int>();
-    settings.bgUnit = (*doc)["units"].as<String>() == "mmol" ? MMOLL : MGDL;
+    settings.nightscout_url = (*doc)["nightscout_url"].as<String>();
+    settings.nightscout_api_key = (*doc)["api_secret"].as<String>();
+    settings.bg_low_warn_limit = (*doc)["low_mgdl"].as<int>();
+    settings.bg_high_warn_limit = (*doc)["high_mgdl"].as<int>();
+    settings.bg_units = (*doc)["units"].as<String>() == "mmol" ? BG_UNIT::MMOLL : BG_UNIT::MGDL;
     settings.auto_brightness = (*doc)["auto_brightness"].as<bool>();
     settings.brightness_level = (*doc)["brightness_level"].as<int>() - 1;
     settings.default_clockface = (*doc)["default_face"].as<int>();
-    settings.bg_source = (*doc)["bg_source"].as<String>() == "nightscout" ? NIGHTSCOUT : DEXCOM;
+    settings.bg_source = (*doc)["bg_source"].as<String>() == "nightscout" ? BG_SOURCE::NIGHTSCOUT : BG_SOURCE::DEXCOM;
     settings.dexom_username = (*doc)["dexcom_username"].as<String>();
     settings.dexcom_password = (*doc)["dexcom_password"].as<String>();
     settings.dexcom_server = (*doc)["dexcom_server"].as<String>();
@@ -106,17 +106,17 @@ bool SettingsManager_::saveSettingsToFile() {
         return false;
 
     (*doc)["ssid"] = settings.ssid;
-    (*doc)["password"] = settings.password;
+    (*doc)["password"] = settings.wifi_password;
 
-    (*doc)["nightscout_url"] = settings.nsUrl;
-    (*doc)["api_secret"] = settings.nsApiKey;
-    (*doc)["low_mgdl"] = settings.bgLow;
-    (*doc)["high_mgdl"] = settings.bgHigh;
-    (*doc)["units"] = settings.bgUnit == MMOLL ? "mmol" : "mgdl";
+    (*doc)["nightscout_url"] = settings.nightscout_url;
+    (*doc)["api_secret"] = settings.nightscout_api_key;
+    (*doc)["low_mgdl"] = settings.bg_low_warn_limit;
+    (*doc)["high_mgdl"] = settings.bg_high_warn_limit;
+    (*doc)["units"] = settings.bg_units == BG_UNIT::MMOLL ? "mmol" : "mgdl";
     (*doc)["auto_brightness"] = settings.auto_brightness;
     (*doc)["brightness_level"] = settings.brightness_level + 1;
     (*doc)["default_face"] = settings.default_clockface;
-    (*doc)["bg_source"] = settings.bg_source == NIGHTSCOUT ? "nightscout" : "dexcom";
+    (*doc)["bg_source"] = settings.bg_source == BG_SOURCE::NIGHTSCOUT ? "nightscout" : "dexcom";
     (*doc)["dexcom_username"] = settings.dexom_username;
     (*doc)["dexcom_password"] = settings.dexcom_password;
     (*doc)["dexcom_server"] = settings.dexcom_server;

@@ -125,7 +125,7 @@ bool onCommandCallback(improv::ImprovCommand cmd)
         set_state(improv::STATE_PROVISIONING);
 
         SettingsManager.settings.ssid = cmd.ssid.c_str();
-        SettingsManager.settings.password = cmd.password.c_str();
+        SettingsManager.settings.wifi_password = cmd.password.c_str();
         SettingsManager.saveSettingsToFile();
 
         ServerManager.stop();

@@ -20,11 +20,12 @@ void BGDisplayManager_::setup() {
     glucoseIntervals = GlucoseIntervals();
     /// TODO: Add urgent values to settings
 
-    glucoseIntervals.addInterval(1, 55, URGENT_LOW);
-    glucoseIntervals.addInterval(56, SettingsManager.settings.bgLow - 1, WARNING_LOW);
-    glucoseIntervals.addInterval(SettingsManager.settings.bgLow, SettingsManager.settings.bgHigh, NORMAL);
-    glucoseIntervals.addInterval(SettingsManager.settings.bgHigh, 260, WARNING_HIGH);
-    glucoseIntervals.addInterval(260, 401, URGENT_HIGH);
+    glucoseIntervals.addInterval(1, 55, BG_LEVEL::URGENT_LOW);
+    glucoseIntervals.addInterval(56, SettingsManager.settings.bg_low_warn_limit - 1, BG_LEVEL::WARNING_LOW);
+    glucoseIntervals.addInterval(SettingsManager.settings.bg_low_warn_limit, SettingsManager.settings.bg_high_warn_limit,
+                                 BG_LEVEL::NORMAL);
+    glucoseIntervals.addInterval(SettingsManager.settings.bg_high_warn_limit, 260, BG_LEVEL::WARNING_HIGH);
+    glucoseIntervals.addInterval(260, 401, BG_LEVEL::URGENT_HIGH);
 
     faces.push_back(new BGDisplayFaceSimple());
     facesNames[0] = "Simple";
@@ -56,7 +57,7 @@ void BGDisplayManager_::setFace(int id) {
             currentFace->showReadings(displayedReadings);
         } else {
             DisplayManager.setTextColor(COLOR_GRAY);
-            DisplayManager.printText(0, 6, "No data", CENTER, 0);
+            DisplayManager.printText(0, 6, "No data", TEXT_ALIGNMENT::CENTER, 0);
         }
     }
 }
@@ -69,7 +70,7 @@ void BGDisplayManager_::showData(std::list<GlucoseReading> glucoseReadings) {
 
     if (glucoseReadings.size() == 0) {
         DisplayManager.setTextColor(COLOR_GRAY);
-        DisplayManager.printText(0, 6, "No data", CENTER, 0);
+        DisplayManager.printText(0, 6, "No data", TEXT_ALIGNMENT::CENTER, 0);
         return;
     }
 

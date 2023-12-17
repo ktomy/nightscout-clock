@@ -29,10 +29,11 @@ void BGSourceNightscout::tick() {
 
             if (!firstConnectionSuccess) {
                 DisplayManager.clearMatrix();
-                DisplayManager.printText(0, 6, "To API", CENTER, 0);
+                DisplayManager.printText(0, 6, "To API", TEXT_ALIGNMENT::CENTER, 0);
             }
 
-            glucoseReadings = updateReadings(SettingsManager.settings.nsUrl, SettingsManager.settings.nsApiKey, glucoseReadings);
+            glucoseReadings = updateReadings(SettingsManager.settings.nightscout_url, SettingsManager.settings.nightscout_api_key,
+                                             glucoseReadings);
 
             lastCallAttemptMills = currentTime;
         }
@@ -44,19 +45,19 @@ BG_TREND parseDirection(String directionInput) {
     direction.toLowerCase();
     BG_TREND trend = NONE;
     if (direction == "doubleup") {
-        trend = DoubleUp;
+        trend = DOUBLE_UP;
     } else if (direction == "singleup") {
-        trend = SingleUp;
+        trend = SINGLE_UP;
     } else if (direction == "fortyfiveup") {
-        trend = FortyFiveUp;
+        trend = FORTY_FIVE_UP;
     } else if (direction == "flat") {
-        trend = Flat;
+        trend = FLAT;
     } else if (direction == "fortyfivedown") {
-        trend = FortyFiveDown;
+        trend = FORTY_FIVE_DOWN;
     } else if (direction == "singledown") {
-        trend = SingleDown;
+        trend = SINGLE_DOWN;
     } else if (direction == "doubledown") {
-        trend = DoubleDown;
+        trend = DOUBLE_DOWN;
     } else if (direction == "not_computable") {
         trend = NOT_COMPUTABLE;
     } else if (direction == "rate_out_of_range") {

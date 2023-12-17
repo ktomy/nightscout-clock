@@ -126,13 +126,13 @@ void DisplayManager_::clearMatrix() {
 
 void DisplayManager_::printText(int16_t x, int16_t y, const char *text, TEXT_ALIGNMENT alignment, byte textCase) {
 
-    if (alignment == LEFT) {
+    if (alignment == TEXT_ALIGNMENT::LEFT) {
         matrix->setCursor(x, y);
-    } else if (alignment == RIGHT) {
+    } else if (alignment == TEXT_ALIGNMENT::RIGHT) {
         uint16_t textWidth = getTextWidth(text, textCase);
         int16_t textX = x - textWidth;
         matrix->setCursor(textX, y);
-    } else if (alignment == CENTER) {
+    } else if (alignment == TEXT_ALIGNMENT::CENTER) {
         uint16_t textWidthForCenter = getTextWidth(text, textCase);
         int16_t textXForCenter = ((32 - textWidthForCenter) / 2);
         matrix->setCursor(textXForCenter, y);
@@ -206,7 +206,7 @@ void DisplayManager_::showFatalError(String errorMessage) {
         float position = 32;
         while (position > finalPosition) {
             matrix->clear();
-            printText(position, 6, errorMessage.c_str(), LEFT, 1);
+            printText(position, 6, errorMessage.c_str(), TEXT_ALIGNMENT::LEFT, 1);
             position -= 0.18;
             checckForImprovWifiConnection();
         }

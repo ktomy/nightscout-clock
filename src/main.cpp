@@ -41,7 +41,7 @@ void setup() {
 
     DisplayManager.clearMatrix();
     DisplayManager.setTextColor(COLOR_WHITE);
-    DisplayManager.printText(0, 6, "Connect", CENTER, 2);
+    DisplayManager.printText(0, 6, "Connect", TEXT_ALIGNMENT::CENTER, 2);
 }
 
 void showJoinAP() {

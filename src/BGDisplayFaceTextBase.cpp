@@ -17,15 +17,15 @@ void BGDisplayFaceTextBase::SetDisplayColorByBGValue(const GlucoseReading &readi
     auto textColor = COLOR_GRAY;
 
     switch (bgLevel) {
-        case URGENT_LOW:
-        case URGENT_HIGH:
+        case BG_LEVEL::URGENT_LOW:
+        case BG_LEVEL::URGENT_HIGH:
             textColor = COLOR_RED;
             break;
-        case WARNING_LOW:
-        case WARNING_HIGH:
+        case BG_LEVEL::WARNING_LOW:
+        case BG_LEVEL::WARNING_HIGH:
             textColor = COLOR_YELLOW;
             break;
-        case NORMAL:
+        case BG_LEVEL::NORMAL:
             textColor = COLOR_GREEN;
             break;
     }
@@ -35,7 +35,7 @@ void BGDisplayFaceTextBase::SetDisplayColorByBGValue(const GlucoseReading &readi
 
 String BGDisplayFaceTextBase::getPrintableReading(const GlucoseReading &reading) const {
     String readingToDisplay = "";
-    if (SettingsManager.settings.bgUnit == MGDL) {
+    if (SettingsManager.settings.bg_units == BG_UNIT::MGDL) {
         readingToDisplay += String(reading.sgv);
     } else {
         char buffer[10];

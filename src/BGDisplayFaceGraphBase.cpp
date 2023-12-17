@@ -65,13 +65,13 @@ void BGDisplayFaceGraphBase::showGraph(uint8_t x_position, uint8_t length, uint1
     GlucoseInterval normalInterval = GlucoseInterval();
 
     for (const GlucoseInterval &interval : intervals.intervals) {
-        if (interval.intarval_type == NORMAL) {
+        if (interval.intarval_type == BG_LEVEL::NORMAL) {
             normalInterval = interval;
             break;
         }
     }
 
-    if (normalInterval.intarval_type == INVALID) {
+    if (normalInterval.intarval_type == BG_LEVEL::INVALID) {
         DisplayManager.showFatalError("No normal interval present, please set up");
     }
 
@@ -92,23 +92,23 @@ void BGDisplayFaceGraphBase::showGraph(uint8_t x_position, uint8_t length, uint1
         uint16_t color;
 
         switch (intervals.getBGLevel(average)) {
-            case URGENT_HIGH:
+            case BG_LEVEL::URGENT_HIGH:
                 y = 0;
                 color = COLOR_RED;
                 break;
-            case WARNING_HIGH:
+            case BG_LEVEL::WARNING_HIGH:
                 y = 1;
                 color = COLOR_YELLOW;
                 break;
-            case NORMAL:
+            case BG_LEVEL::NORMAL:
                 y = getNormalIntervalYPosition(average, normalInterval);
                 color = COLOR_GREEN;
                 break;
-            case WARNING_LOW:
+            case BG_LEVEL::WARNING_LOW:
                 y = 6;
                 color = COLOR_YELLOW;
                 break;
-            case URGENT_LOW:
+            case BG_LEVEL::URGENT_LOW:
                 y = 7;
                 color = COLOR_RED;
                 break;
