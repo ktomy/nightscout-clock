@@ -10,6 +10,8 @@
 #include "globals.h"
 #include "DisplayManager.h"
 
+#define BG_BACKFILL_SECONDS 3 * 60 * 60 // 3 hours
+
 struct GlucoseReading {
   public:
     int sgv;

@@ -14,7 +14,7 @@ void BGSource::tick() {
         struct tm timeinfo;
         if (getLocalTime(&timeinfo)) {
             // delete readings older than now - 3 hours
-            glucoseReadings = deleteOldReadings(glucoseReadings, time(NULL) - 3 * 60 * 60);
+            glucoseReadings = deleteOldReadings(glucoseReadings, time(NULL) - BG_BACKFILL_SECONDS);
 
             if (!firstConnectionSuccess) {
                 DisplayManager.clearMatrix();
