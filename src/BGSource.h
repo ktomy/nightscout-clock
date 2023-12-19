@@ -2,6 +2,8 @@
 #define BGSOURCE_H
 
 #include <Arduino.h>
+#include <HTTPClient.h>
+#include <WiFiClientSecure.h>
 #include <list>
 
 #include "enums.h"
@@ -21,10 +23,19 @@ struct GlucoseReading {
 
 class BGSource {
   public:
-    virtual void setup() = 0;
-    virtual void tick() = 0;
-    virtual bool hasNewData(unsigned long long epochToCompare) const = 0;
-    virtual std::list<GlucoseReading> getGlucoseData() const = 0;
+    virtual void setup();
+    virtual void tick();
+    virtual bool hasNewData(unsigned long long epochToCompare) const;
+    virtual std::list<GlucoseReading> getGlucoseData() const;
+
+  protected:
+    HTTPClient *client;
+    WiFiClientSecure *wifiSecureClient;
+    unsigned long long lastCallAttemptMills = 0;
+    bool firstConnectionSuccess = false;
+    std::list<GlucoseReading> glucoseReadings;
+    std::list<GlucoseReading> deleteOldReadings(std::list<GlucoseReading> readings, unsigned long long epochToCompare);
+    virtual std::list<GlucoseReading> updateReadings(std::list<GlucoseReading> existingReadings) = 0;
 };
 
 #endif // BGSOURCE_H

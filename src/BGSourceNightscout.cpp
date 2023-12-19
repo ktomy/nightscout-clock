@@ -4,41 +4,8 @@
 #include "globals.h"
 
 #include <ArduinoJson.h>
-#include <HTTPClient.h>
 #include <LCBUrl.h>
 #include <StreamUtils.h>
-#include <WiFiClientSecure.h>
-#include <list>
-
-unsigned long lastCallAttemptMills = 0;
-
-void BGSourceNightscout::setup() {
-    client = new HTTPClient();
-    wifiSecureClient = new WiFiClientSecure();
-    wifiSecureClient->setInsecure();
-    wifiClient = new WiFiClient();
-}
-
-void BGSourceNightscout::tick() {
-    auto currentTime = millis();
-    if (lastCallAttemptMills == 0 || currentTime > lastCallAttemptMills + 60 * 1000UL) {
-        struct tm timeinfo;
-        if (getLocalTime(&timeinfo)) {
-            // delete readings older than now - 3 hours
-            glucoseReadings = deleteOldReadings(glucoseReadings, time(NULL) - 3 * 60 * 60);
-
-            if (!firstConnectionSuccess) {
-                DisplayManager.clearMatrix();
-                DisplayManager.printText(0, 6, "To API", TEXT_ALIGNMENT::CENTER, 0);
-            }
-
-            glucoseReadings = updateReadings(SettingsManager.settings.nightscout_url, SettingsManager.settings.nightscout_api_key,
-                                             glucoseReadings);
-
-            lastCallAttemptMills = currentTime;
-        }
-    }
-}
 
 BG_TREND parseDirection(String directionInput) {
     auto direction = directionInput;
@@ -67,18 +34,11 @@ BG_TREND parseDirection(String directionInput) {
     return trend;
 }
 
-std::list<GlucoseReading> BGSourceNightscout::deleteOldReadings(std::list<GlucoseReading> readings,
-                                                                unsigned long long epochToCompare) {
-    auto it = readings.begin();
-    while (it != readings.end()) {
-        if (it->epoch < epochToCompare) {
-            it = readings.erase(it);
-        } else {
-            ++it;
-        }
-    }
+std::list<GlucoseReading> BGSourceNightscout::updateReadings(std::list<GlucoseReading> existingReadings) {
+    auto baseUrl = SettingsManager.settings.nightscout_url;
+    auto apiKey = SettingsManager.settings.nightscout_api_key;
 
-    return readings;
+    return updateReadings(baseUrl, apiKey, existingReadings);
 }
 
 std::list<GlucoseReading> BGSourceNightscout::updateReadings(String baseUrl, String apiKey,
@@ -251,10 +211,3 @@ std::list<GlucoseReading> BGSourceNightscout::retrieveReadings(String baseUrl, S
     client->end();
     return lastReadings;
 }
-
-bool BGSourceNightscout::hasNewData(unsigned long long epochToCompare) const {
-    auto lastReadingEpoch = glucoseReadings.size() > 0 ? glucoseReadings.back().epoch : 0;
-    return lastReadingEpoch > epochToCompare;
-}
-
-std::list<GlucoseReading> BGSourceNightscout::getGlucoseData() const { return glucoseReadings; }

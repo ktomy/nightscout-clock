@@ -8,6 +8,7 @@
 #include "enums.h"
 #include "BGSource.h"
 #include "BGSourceNightscout.h"
+#include "BGSourceDexcom.h"
 
 class BGSourceManager_ {
   public:
