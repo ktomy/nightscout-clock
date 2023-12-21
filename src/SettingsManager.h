@@ -19,9 +19,9 @@ class Settings {
     int brightness_level;
     int default_clockface;
     BG_SOURCE bg_source;
-    String dexom_username;
+    String dexcom_username;
     String dexcom_password;
-    String dexcom_server;
+    DEXCOM_SERVER dexcom_server;
 };
 
 class SettingsManager_ {

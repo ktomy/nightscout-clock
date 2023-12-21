@@ -90,9 +90,9 @@ bool SettingsManager_::loadSettingsFromFile() {
     settings.brightness_level = (*doc)["brightness_level"].as<int>() - 1;
     settings.default_clockface = (*doc)["default_face"].as<int>();
     settings.bg_source = (*doc)["data_source"].as<String>() == "nightscout" ? BG_SOURCE::NIGHTSCOUT : BG_SOURCE::DEXCOM;
-    settings.dexom_username = (*doc)["dexcom_username"].as<String>();
+    settings.dexcom_username = (*doc)["dexcom_username"].as<String>();
     settings.dexcom_password = (*doc)["dexcom_password"].as<String>();
-    settings.dexcom_server = (*doc)["dexcom_server"].as<String>();
+    settings.dexcom_server = (*doc)["dexcom_server"].as<String>() == "us" ? DEXCOM_SERVER::US : DEXCOM_SERVER::NON_US;
 
     delete doc;
 
@@ -117,9 +117,9 @@ bool SettingsManager_::saveSettingsToFile() {
     (*doc)["brightness_level"] = settings.brightness_level + 1;
     (*doc)["default_face"] = settings.default_clockface;
     (*doc)["data_source"] = settings.bg_source == BG_SOURCE::NIGHTSCOUT ? "nightscout" : "dexcom";
-    (*doc)["dexcom_username"] = settings.dexom_username;
+    (*doc)["dexcom_username"] = settings.dexcom_username;
     (*doc)["dexcom_password"] = settings.dexcom_password;
-    (*doc)["dexcom_server"] = settings.dexcom_server;
+    (*doc)["dexcom_server"] = settings.dexcom_server == DEXCOM_SERVER::US ? "us" : "ous";
 
     if (trySaveJsonAsSettings(*doc) == false)
         return false;

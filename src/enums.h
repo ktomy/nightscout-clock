@@ -71,6 +71,12 @@ enum class BG_SOURCE : uint8_t {
     MEDTRONIC = 3,
 };
 
+enum class DEXCOM_SERVER : uint8_t {
+    INVALID = 0,
+    US = 1,
+    NON_US = 2,
+};
+
 inline String toString(BG_SOURCE source) {
     switch (source) {
         case BG_SOURCE::NO_SOURCE:

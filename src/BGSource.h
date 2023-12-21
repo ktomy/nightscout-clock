@@ -38,6 +38,7 @@ class BGSource {
     std::list<GlucoseReading> glucoseReadings;
     std::list<GlucoseReading> deleteOldReadings(std::list<GlucoseReading> readings, unsigned long long epochToCompare);
     virtual std::list<GlucoseReading> updateReadings(std::list<GlucoseReading> existingReadings) = 0;
+    BG_TREND parseDirection(String directionInput);
 };
 
 #endif // BGSOURCE_H

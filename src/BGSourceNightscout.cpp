@@ -7,33 +7,6 @@
 #include <LCBUrl.h>
 #include <StreamUtils.h>
 
-BG_TREND parseDirection(String directionInput) {
-    auto direction = directionInput;
-    direction.toLowerCase();
-    BG_TREND trend = BG_TREND::NONE;
-    if (direction == "doubleup") {
-        trend = BG_TREND::DOUBLE_UP;
-    } else if (direction == "singleup") {
-        trend = BG_TREND::SINGLE_UP;
-    } else if (direction == "fortyfiveup") {
-        trend = BG_TREND::FORTY_FIVE_UP;
-    } else if (direction == "flat") {
-        trend = BG_TREND::FLAT;
-    } else if (direction == "fortyfivedown") {
-        trend = BG_TREND::FORTY_FIVE_DOWN;
-    } else if (direction == "singledown") {
-        trend = BG_TREND::SINGLE_DOWN;
-    } else if (direction == "doubledown") {
-        trend = BG_TREND::DOUBLE_DOWN;
-    } else if (direction == "not_computable") {
-        trend = BG_TREND::NOT_COMPUTABLE;
-    } else if (direction == "rate_out_of_range") {
-        trend = BG_TREND::RATE_OUT_OF_RANGE;
-    }
-
-    return trend;
-}
-
 std::list<GlucoseReading> BGSourceNightscout::updateReadings(std::list<GlucoseReading> existingReadings) {
     auto baseUrl = SettingsManager.settings.nightscout_url;
     auto apiKey = SettingsManager.settings.nightscout_api_key;
@@ -44,7 +17,7 @@ std::list<GlucoseReading> BGSourceNightscout::updateReadings(std::list<GlucoseRe
 std::list<GlucoseReading> BGSourceNightscout::updateReadings(String baseUrl, String apiKey,
                                                              std::list<GlucoseReading> existingReadings) {
     // set last epoch to now - 3 hours (we don't want to get too many readings)
-    unsigned long long lastReadingEpoch = time(NULL) - 3 * 60 * 60;
+    unsigned long long lastReadingEpoch = time(NULL) - BG_BACKFILL_SECONDS;
     // get last epoch from existing readings if it is newer than default one
     if (existingReadings.size() > 0 && existingReadings.back().epoch > lastReadingEpoch) {
         lastReadingEpoch = existingReadings.back().epoch;
