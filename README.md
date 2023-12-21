@@ -18,6 +18,7 @@ If you already have an Ulanzi clock, you can try [installing](https://ktomy.gith
 * [Juggluco](https://www.juggluco.nl/) data source (support for HTTP Nightscout endpoints)
 * [Improv WiFi](https://github.com/improv-wifi) compatibility (setting up WiFi during the installation)
 * [Gluroo](https://gluroo.com/) data source (API_SECRET within the URL parameters)
+* Dexcom Share data source
 * Brightness adjustment
    * Brightness can be adjusted within the Web UI
    * Automatic brightness adjustment based on the ambient light
@@ -47,7 +48,7 @@ If you already have an Ulanzi clock, you can try [installing](https://ktomy.gith
 * Create installation/configuration video
 * Create a guide for setting up the development environment and code walkthrough for contributions
 * Add more data sources
-   * Dexcom
+   * ~~Dexcom~~ (done)
    * Medtronic
    * xDrip
    * [~~Juggluco~~](https://www.juggluco.nl/) (done)
