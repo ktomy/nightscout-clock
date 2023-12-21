@@ -3,7 +3,7 @@
 #include <Arduino.h>
 #include <IPAddress.h>
 #define DEBUG
-#define DEBUG_BG_SOURCE
+// #define DEBUG_BG_SOURCE
 // #define DEBUG_DISPLAY
 
 #ifdef DEBUG
