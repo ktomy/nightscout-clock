@@ -11,7 +11,7 @@ class BGDisplayFaceTextBase : virtual public BGDisplayFace {
 
   protected:
     void showTrendArrow(const GlucoseReading reading, int16_t x, int16_t y) const;
-    void showReading(const GlucoseReading reading, int16_t x, int16_t y, TEXT_ALIGNMENT alignment) const;
+    void showReading(const GlucoseReading reading, int16_t x, int16_t y, TEXT_ALIGNMENT alignment, FONT_TYPE fontType) const;
     void SetDisplayColorByBGValue(const GlucoseReading &reading) const;
     String getPrintableReading(const GlucoseReading &reading) const;
 };

@@ -55,6 +55,12 @@ enum class TEXT_ALIGNMENT : uint8_t {
     RIGHT = 2,
 };
 
+enum class FONT_TYPE : uint8_t {
+    SMALL = 0,
+    MEDIUM = 1,
+    LARGE = 2,
+};
+
 enum class BG_LEVEL : uint8_t {
     INVALID = 0,
     URGENT_LOW = 1,

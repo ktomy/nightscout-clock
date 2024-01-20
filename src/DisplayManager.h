@@ -29,6 +29,7 @@ class DisplayManager_ {
     void update();
     void clearMatrixPart(uint8_t x, uint8_t y, uint8_t width, uint8_t height);
     float getTextWidth(const char *text, byte textCase);
+    void setFont(FONT_TYPE fontType);
 };
 
 extern DisplayManager_ &DisplayManager;

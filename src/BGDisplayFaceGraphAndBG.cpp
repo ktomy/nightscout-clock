@@ -19,7 +19,7 @@ void BGDisplayFaceGraphAndBG::showReadings(const std::list<GlucoseReading> &read
 #endif
 
     showGraph(0, grqphWidth, minutesToShow, readings);
-    showReading(readings.back(), 31, 6, TEXT_ALIGNMENT::RIGHT);
+    showReading(readings.back(), 31, 6, TEXT_ALIGNMENT::RIGHT, FONT_TYPE::MEDIUM);
     showTrendVerticalLine(31, readings.back().trend);
 }
 

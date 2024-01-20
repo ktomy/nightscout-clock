@@ -3,11 +3,13 @@
 #include "globals.h"
 #include <map>
 
-void BGDisplayFaceTextBase::showReading(const GlucoseReading reading, int16_t x, int16_t y, TEXT_ALIGNMENT alignment) const {
+void BGDisplayFaceTextBase::showReading(const GlucoseReading reading, int16_t x, int16_t y, TEXT_ALIGNMENT alignment,
+                                        FONT_TYPE font) const {
 
     String readingToDisplay = getPrintableReading(reading);
 
     SetDisplayColorByBGValue(reading);
+    DisplayManager.setFont(font);
 
     DisplayManager.printText(x, y, readingToDisplay.c_str(), alignment, 2);
 }
