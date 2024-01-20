@@ -53,7 +53,7 @@
 */
 // AwtrixFont Version 20230713
 
-const uint8_t AwtrixBitmaps[] PROGMEM = {
+static const uint8_t AwtrixBitmaps[] PROGMEM = {
     0x00,                               /*[0]    0x20 space */
     0x80, 0x80, 0x80, 0x00, 0x80,       /*[1]    0x21 exclam */
     0xA0, 0xA0,                         /*[2]    0x22 quotedbl */
@@ -262,7 +262,7 @@ const uint8_t AwtrixBitmaps[] PROGMEM = {
 };
 
 /* {offset, width, height, advance cursor, x offset, y offset} */
-const GFXglyph AwtrixFontGlyphs[] PROGMEM = {
+static const GFXglyph AwtrixFontGlyphs[] PROGMEM = {
     {0, 8, 1, 2, 0, -5},   /*[0]    0x20 space */
     {1, 8, 5, 2, 0, -5},   /*[1]    0x21 exclam */
     {6, 8, 2, 4, 0, -5},   /*[2]    0x22 quotedbl */
@@ -470,7 +470,7 @@ const GFXglyph AwtrixFontGlyphs[] PROGMEM = {
     {899, 8, 5, 4, 0, -5}, /*[203] 0xFFFD uniFFFD */
 };
 
-std::map<char, uint16_t> CharMap = {
+static const std::map<char, uint16_t> CharMap1 PROGMEM = {
     {32, 2},   {33, 2},   {34, 4},   {35, 4},   {36, 4},   {37, 4},   {38, 4},  {39, 2},  {40, 3},  {41, 3},  {42, 4},
     {43, 4},   {44, 3},   {45, 4},   {46, 2},   {47, 4},   {48, 4},   {49, 4},  {50, 4},  {51, 4},  {52, 4},  {53, 4},
     {54, 4},   {55, 4},   {56, 4},   {57, 4},   {58, 2},   {59, 3},   {60, 4},  {61, 4},  {62, 4},  {63, 4},  {64, 4},
@@ -491,4 +491,4 @@ std::map<char, uint16_t> CharMap = {
     {253, 4},  {254, 4},  {255, 4},  {285, 2},  {338, 4},  {339, 4},  {352, 4}, {353, 4}, {376, 4}, {381, 4}, {382, 4},
     {3748, 2}, {5024, 2}, {8226, 2}, {8230, 4}, {8364, 4}, {65533, 4}};
 
-const ClockFont AwtrixFont PROGMEM = {(uint8_t *)AwtrixBitmaps, (GFXglyph *)AwtrixFontGlyphs, 0x20, 0xFF, 6, CharMap};
+const ClockFont AwtrixFont PROGMEM = {(uint8_t *)AwtrixBitmaps, (GFXglyph *)AwtrixFontGlyphs, 0x20, 0xFF, 6, CharMap1};

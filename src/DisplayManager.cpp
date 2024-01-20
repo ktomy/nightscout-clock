@@ -1,11 +1,12 @@
 #include "DisplayManager.h"
+#include "ClockFont.h"
 #include "AwtrixFont.h"
+#include "MuFont.h"
 #include "BGDisplayManager.h"
 #include "globals.h"
 #include "improv_consume.h"
 #include <FastLED_NeoMatrix.h>
 #include <map>
-#include "ClockFont.h"
 
 // The getter for the instantiated singleton instance
 DisplayManager_ &DisplayManager_::getInstance() {
@@ -37,7 +38,7 @@ void DisplayManager_::setFont(FONT_TYPE fontType) {
             currentFont = AwtrixFont;
             break;
         case FONT_TYPE::LARGE:
-            currentFont = AwtrixFont;
+            currentFont = muHeavy8ptBold;
         default:
             break;
     }
@@ -199,6 +200,7 @@ void DisplayManager_::HSVtext(int16_t x, int16_t y, const char *text, bool clear
 void DisplayManager_::showFatalError(String errorMessage) {
     DEBUG_PRINTF("Fatal error: %s\n", errorMessage.c_str());
     setTextColor(COLOR_GRAY);
+
     while (true) {
         auto finalPosition = -1 * getTextWidth(errorMessage.c_str(), 1);
         float position = 32;

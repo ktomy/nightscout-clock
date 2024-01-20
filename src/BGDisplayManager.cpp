@@ -33,6 +33,8 @@ void BGDisplayManager_::setup() {
     facesNames[1] = "Full graph";
     faces.push_back(new BGDisplayFaceGraphAndBG());
     facesNames[2] = "Graph and BG";
+    faces.push_back(new BGDisplayFaceBigText());
+    facesNames[3] = "Big text";
 
     currentFaceIndex = SettingsManager.settings.default_clockface;
     if (currentFaceIndex >= faces.size()) {
