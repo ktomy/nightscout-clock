@@ -75,6 +75,8 @@ enum class BG_SOURCE : uint8_t {
     NIGHTSCOUT = 1,
     DEXCOM = 2,
     MEDTRONIC = 3,
+    API = 4,
+    LIBRELINKUP = 5,
 };
 
 enum class DEXCOM_SERVER : uint8_t {

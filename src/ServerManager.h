@@ -6,9 +6,8 @@
 #include <AsyncTCP.h>
 #include <ESPAsyncWebServer.h>
 
-class ServerManager_
-{
-private:
+class ServerManager_ {
+  private:
     bool apMode;
     AsyncWebServer *ws;
     ServerManager_() = default;
@@ -18,7 +17,7 @@ private:
     IPAddress setAPmode(String ssid, String psk);
     void saveConfigHandler();
 
-public:
+  public:
     static ServerManager_ &getInstance();
     void setup();
     void tick();
@@ -28,6 +27,7 @@ public:
     IPAddress myIP;
     DNSServer dnsServer;
     unsigned long getTime();
+    AsyncWebHandler addHandler(AsyncWebHandler *handler);
 };
 
 extern ServerManager_ &ServerManager;

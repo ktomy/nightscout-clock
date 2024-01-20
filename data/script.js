@@ -50,6 +50,9 @@
                 addFocusOutValidation('dexcom_username');
                 addFocusOutValidation('dexcom_password');
                 break;
+            case "api":
+                setElementValidity(glucoseSource, true);
+                break;
         }
     });
 
@@ -97,6 +100,8 @@
             isValid &= validate($('#dexcom_server'), patterns.dexcom_server);
             isValid &= validate($('#dexcom_username'), patterns.dexcom_username);
             isValid &= validate($('#dexcom_password'), patterns.dexcom_password);
+        } else if (value === "api") {
+            // No validation needed
         } else {
             isValid = false
             setElementValidity(glucoseSource, false);

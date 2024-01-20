@@ -81,18 +81,34 @@ bool SettingsManager_::loadSettingsFromFile() {
     settings.wifi_password = (*doc)["password"].as<String>();
     /// TODO: Get Network config
 
-    settings.nightscout_url = (*doc)["nightscout_url"].as<String>();
-    settings.nightscout_api_key = (*doc)["api_secret"].as<String>();
     settings.bg_low_warn_limit = (*doc)["low_mgdl"].as<int>();
     settings.bg_high_warn_limit = (*doc)["high_mgdl"].as<int>();
     settings.bg_units = (*doc)["units"].as<String>() == "mmol" ? BG_UNIT::MMOLL : BG_UNIT::MGDL;
+
     settings.auto_brightness = (*doc)["auto_brightness"].as<bool>();
     settings.brightness_level = (*doc)["brightness_level"].as<int>() - 1;
     settings.default_clockface = (*doc)["default_face"].as<int>();
-    settings.bg_source = (*doc)["data_source"].as<String>() == "nightscout" ? BG_SOURCE::NIGHTSCOUT : BG_SOURCE::DEXCOM;
+
+    String data_source = (*doc)["data_source"].as<String>();
+    if (data_source == "nightscout") {
+        settings.bg_source = BG_SOURCE::NIGHTSCOUT;
+    } else if (data_source == "dexcom") {
+        settings.bg_source = BG_SOURCE::DEXCOM;
+    } else if (data_source == "medtronic") {
+        settings.bg_source = BG_SOURCE::MEDTRONIC;
+    } else if (data_source == "api") {
+        settings.bg_source = BG_SOURCE::API;
+    } else if (data_source == "librelinkup") {
+        settings.bg_source = BG_SOURCE::LIBRELINKUP;
+    } else {
+        settings.bg_source = BG_SOURCE::NO_SOURCE;
+    }
     settings.dexcom_username = (*doc)["dexcom_username"].as<String>();
     settings.dexcom_password = (*doc)["dexcom_password"].as<String>();
     settings.dexcom_server = (*doc)["dexcom_server"].as<String>() == "us" ? DEXCOM_SERVER::US : DEXCOM_SERVER::NON_US;
+
+    settings.nightscout_url = (*doc)["nightscout_url"].as<String>();
+    settings.nightscout_api_key = (*doc)["api_secret"].as<String>();
 
     delete doc;
 
@@ -108,18 +124,43 @@ bool SettingsManager_::saveSettingsToFile() {
     (*doc)["ssid"] = settings.ssid;
     (*doc)["password"] = settings.wifi_password;
 
-    (*doc)["nightscout_url"] = settings.nightscout_url;
-    (*doc)["api_secret"] = settings.nightscout_api_key;
     (*doc)["low_mgdl"] = settings.bg_low_warn_limit;
     (*doc)["high_mgdl"] = settings.bg_high_warn_limit;
     (*doc)["units"] = settings.bg_units == BG_UNIT::MMOLL ? "mmol" : "mgdl";
+
     (*doc)["auto_brightness"] = settings.auto_brightness;
     (*doc)["brightness_level"] = settings.brightness_level + 1;
     (*doc)["default_face"] = settings.default_clockface;
-    (*doc)["data_source"] = settings.bg_source == BG_SOURCE::NIGHTSCOUT ? "nightscout" : "dexcom";
+
+    String data_source = "no_source";
+    switch (settings.bg_source) {
+        case BG_SOURCE::NIGHTSCOUT:
+            data_source = "nightscout";
+            break;
+        case BG_SOURCE::DEXCOM:
+            data_source = "dexcom";
+            break;
+        case BG_SOURCE::MEDTRONIC:
+            data_source = "medtronic";
+            break;
+        case BG_SOURCE::API:
+            data_source = "api";
+            break;
+        case BG_SOURCE::LIBRELINKUP:
+            data_source = "librelinkup";
+            break;
+        default:
+            data_source = "no_source";
+            break;
+    }
+    (*doc)["data_source"] = data_source;
+
     (*doc)["dexcom_username"] = settings.dexcom_username;
     (*doc)["dexcom_password"] = settings.dexcom_password;
     (*doc)["dexcom_server"] = settings.dexcom_server == DEXCOM_SERVER::US ? "us" : "ous";
+
+    (*doc)["nightscout_url"] = settings.nightscout_url;
+    (*doc)["api_secret"] = settings.nightscout_api_key;
 
     if (trySaveJsonAsSettings(*doc) == false)
         return false;

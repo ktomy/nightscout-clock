@@ -10,8 +10,7 @@
 #include "DisplayManager.h"
 
 // The getter for the instantiated singleton instance
-ServerManager_ &ServerManager_::getInstance()
-{
+ServerManager_ &ServerManager_::getInstance() {
     static ServerManager_ instance;
     return instance;
 }
@@ -19,8 +18,7 @@ ServerManager_ &ServerManager_::getInstance()
 // Initialize the global shared instance
 ServerManager_ &ServerManager = ServerManager.getInstance();
 
-String getID()
-{
+String getID() {
     // uint8_t mac[6];
     // WiFi.macAddress(mac);
     // char *macStr = new char[24];
@@ -29,8 +27,7 @@ String getID()
     return String(HOSTNAME_PREFIX);
 }
 
-IPAddress ServerManager_::setAPmode(String ssid, String psk)
-{
+IPAddress ServerManager_::setAPmode(String ssid, String psk) {
     auto ipAP = IPAddress();
     auto netmaskAP = IPAddress();
     auto gatewayAP = IPAddress();
@@ -49,27 +46,23 @@ IPAddress ServerManager_::setAPmode(String ssid, String psk)
     return WiFi.softAPIP();
 }
 
-IPAddress ServerManager_::startWifi(String ssid, String password)
-{
+IPAddress ServerManager_::startWifi(String ssid, String password) {
     this->isInAPMode = false;
 
     IPAddress ip;
     int timeout = WIFI_CONNECT_TIMEOUT;
 
-    if (ssid != "")
-    {
+    if (ssid != "") {
         WiFi.mode(WIFI_STA);
 
         WiFi.begin(ssid, password);
         DEBUG_PRINTF("Connecting to %s\n", ssid);
 
         auto startTime = millis();
-        while (WiFi.status() != WL_CONNECTED)
-        {
+        while (WiFi.status() != WL_CONNECTED) {
             delay(300);
             Serial.print(".");
-            if (WiFi.status() == WL_CONNECTED)
-            {
+            if (WiFi.status() == WL_CONNECTED) {
                 WiFi.setAutoReconnect(true);
                 WiFi.persistent(true);
                 ip = WiFi.localIP();
@@ -89,105 +82,96 @@ IPAddress ServerManager_::startWifi(String ssid, String password)
     return ip;
 }
 
-void ServerManager_::setupWebServer(IPAddress ip)
-{
+AsyncWebHandler ServerManager_::addHandler(AsyncWebHandler *handler) {
+    if (ws != nullptr) {
+        ws->addHandler(handler);
+    }
+    return *handler;
+}
+
+void ServerManager_::setupWebServer(IPAddress ip) {
     ws = new AsyncWebServer(80);
 
     DefaultHeaders::Instance().addHeader("Access-Control-Allow-Origin", "*");
     DefaultHeaders::Instance().addHeader("Access-Control-Allow-Methods", "GET, POST, PUT");
     DefaultHeaders::Instance().addHeader("Access-Control-Allow-Headers", "Content-Type");
 
-    ws->addHandler(new AsyncCallbackJsonWebHandler(
-        "/api/save",
-        [this](AsyncWebServerRequest *request, JsonVariant &json)
-        {
-            if (not json.is<JsonObject>())
-            {
-                request->send(200, "application/json", "{\"status\": \"json parsing error\"}");
-                return;
-            }
-            auto &&data = json.as<JsonObject>();
-            if (SettingsManager.trySaveJsonAsSettings(data))
-            {
-                request->send(200, "application/json", "{\"status\": \"ok\"}");
-            }
-            else
-            {
-                request->send(200, "application/json", "{\"status\": \"Settings save error\"}");
-            }
-        }));
+    ws->addHandler(new AsyncCallbackJsonWebHandler("/api/save", [this](AsyncWebServerRequest *request, JsonVariant &json) {
+        if (not json.is<JsonObject>()) {
+            request->send(200, "application/json", "{\"status\": \"json parsing error\"}");
+            return;
+        }
+        auto &&data = json.as<JsonObject>();
+        if (SettingsManager.trySaveJsonAsSettings(data)) {
+            request->send(200, "application/json", "{\"status\": \"ok\"}");
+        } else {
+            request->send(200, "application/json", "{\"status\": \"Settings save error\"}");
+        }
+    }));
 
-    ws->on("/api/reset", HTTP_POST, [](AsyncWebServerRequest *request)
-           {
+    ws->on("/api/reset", HTTP_POST, [](AsyncWebServerRequest *request) {
         request->send(200, "application/json", "{\"status\": \"ok\"}");
         delay(200);
         LittleFS.end();
-        ESP.restart(); });
+        ESP.restart();
+    });
 
-    ws->on("/api/factory-reset", HTTP_POST, [](AsyncWebServerRequest *request)
-           {
+    ws->on("/api/factory-reset", HTTP_POST, [](AsyncWebServerRequest *request) {
         request->send(200, "application/json", "{\"status\": \"ok\"}");
         delay(200);
-        SettingsManager.factoryReset(); });
+        SettingsManager.factoryReset();
+    });
 
     ws->serveStatic("/", LittleFS, "/").setDefaultFile("index.html");
     ;
 
-    ws->onNotFound([](AsyncWebServerRequest *request)
-                   {
-    if (request->method() == HTTP_OPTIONS) {
-        request->send(200);
-    } else {
-        request->send(404);
-    } });
+    ws->onNotFound([](AsyncWebServerRequest *request) {
+        if (request->method() == HTTP_OPTIONS) {
+            request->send(200);
+        } else {
+            request->send(404);
+        }
+    });
 
     ws->begin();
 }
 
-bool initTimeIfNeeded()
-{
+bool initTimeIfNeeded() {
 
     struct tm timeinfo;
 
-    if (!getLocalTime(&timeinfo))
-    {
+    if (!getLocalTime(&timeinfo)) {
         configTime(0, 0, "pool.ntp.org"); // Connect to NTP server, with 0 TZ offset
-        if (!getLocalTime(&timeinfo))
-        {
+        if (!getLocalTime(&timeinfo)) {
             DEBUG_PRINTLN("Failed to obtain time");
             return false;
         }
 
-        DEBUG_PRINTF("Got the time from NTP: %02d.%02d.%d %02d:%02d:%02d\n", timeinfo.tm_mday, timeinfo.tm_mon + 1, timeinfo.tm_year + 1900, timeinfo.tm_hour, timeinfo.tm_min, timeinfo.tm_sec);
+        DEBUG_PRINTF("Got the time from NTP: %02d.%02d.%d %02d:%02d:%02d\n", timeinfo.tm_mday, timeinfo.tm_mon + 1,
+                     timeinfo.tm_year + 1900, timeinfo.tm_hour, timeinfo.tm_min, timeinfo.tm_sec);
     }
 
     return true;
 }
 
-unsigned long ServerManager_::getTime()
-{
+unsigned long ServerManager_::getTime() {
     struct tm timeinfo;
-    if (!getLocalTime(&timeinfo))
-    {
+    if (!getLocalTime(&timeinfo)) {
         DEBUG_PRINTLN("Failed to obtain time");
         return 0;
-    }
-    else
-    {
+    } else {
         time_t t = mktime(&timeinfo);
         return t;
     }
 }
 
-void ServerManager_::stop()
-{
+void ServerManager_::stop() {
     ws->end();
     delete ws;
     WiFi.disconnect();
 }
 
-void ServerManager_::setup()
-{
+void ServerManager_::setup() {
     auto hostname = SettingsManager.settings.hostname = getID();
     WiFi.setHostname(hostname.c_str()); // define hostname
 
@@ -201,8 +185,7 @@ void ServerManager_::setup()
     setupWebServer(myIP);
 }
 
-void ServerManager_::tick()
-{
+void ServerManager_::tick() {
     initTimeIfNeeded();
     if (apMode)
         dnsServer.processNextRequest();
