@@ -30,10 +30,11 @@ If you already have an Ulanzi clock, you can try [installing](https://ktomy.gith
    * Simple clock face (value and trend arrow)
    * Full-width glucose graph
    * Graph, value and trend indicator
+   * BIG DIGITS
 ### My TODO list
 * Add multiple faces ~~and enable navigation between them~~ (done)
     * ~~Glucose graph~~ (done)
-    * BIG DIGITS
+    * ~~BIG DIGITS~~ (done)
     * Value, trend and difference from the old value
     * Clock (and setting the timezone)
     * Battery, humidity and temperature
