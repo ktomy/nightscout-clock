@@ -1,4 +1,4 @@
-@echo off
+rem @echo off
 :retry
     REM Upload firmware
     C:\Users\User\.platformio\penv\Scripts\python.exe "C:\Users\User\.platformio\packages\tool-esptoolpy\esptool.py" ^
