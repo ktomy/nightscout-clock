@@ -95,6 +95,10 @@ inline String toString(BG_SOURCE source) {
             return "DEXCOM";
         case BG_SOURCE::MEDTRONIC:
             return "MEDTRONIC";
+        case BG_SOURCE::API:
+            return "API";
+        case BG_SOURCE::LIBRELINKUP:
+            return "LIBRELINKUP";
         default:
             return "unknown";
     }

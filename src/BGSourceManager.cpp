@@ -27,8 +27,10 @@ void BGSourceManager_::setup(BG_SOURCE bgSourceType) {
             bgSource = new BGSourceApi();
             break;
         default:
-            DEBUG_PRINTLN("BGSourceManager_::setup: Unknown BG_SOURCE: " + toString(bgSourceType));
-            DisplayManager.showFatalError("Unknown data source: " + toString(bgSourceType));
+            DEBUG_PRINTLN("BGSourceManager_::setup: Unknown BG_SOURCE: " + toString(bgSourceType) + " (" +
+                          String((int)bgSourceType) + ")");
+            DisplayManager.showFatalError("Unknown data source: " + toString(bgSourceType) + " (" + String((int)bgSourceType) +
+                                          ")");
     }
     bgSource->setup();
 }

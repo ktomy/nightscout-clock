@@ -10,6 +10,7 @@ class ServerManager_ {
   private:
     bool apMode;
     AsyncWebServer *ws;
+    AsyncStaticWebHandler *staticFilesHandler = nullptr;
     ServerManager_() = default;
 
     IPAddress startWifi(String ssid, String password);
@@ -28,6 +29,8 @@ class ServerManager_ {
     DNSServer dnsServer;
     unsigned long getTime();
     AsyncWebHandler addHandler(AsyncWebHandler *handler);
+    void removeStaticFileHandler();
+    void addStaticFileHandler();
 };
 
 extern ServerManager_ &ServerManager;

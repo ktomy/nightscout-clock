@@ -27,7 +27,7 @@ class BGSource {
   public:
     virtual void setup();
     virtual void tick();
-    virtual bool hasNewData(unsigned long long epochToCompare) const;
+    virtual bool hasNewData(unsigned long long epochToCompare);
     virtual std::list<GlucoseReading> getGlucoseData() const;
 
   protected:

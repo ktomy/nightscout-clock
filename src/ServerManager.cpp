@@ -90,6 +90,9 @@ AsyncWebHandler ServerManager_::addHandler(AsyncWebHandler *handler) {
 }
 
 void ServerManager_::setupWebServer(IPAddress ip) {
+#ifdef DEBUG_BG_SOURCE
+    DEBUG_PRINTLN("ServerManager::setupWebServer");
+#endif
     ws = new AsyncWebServer(80);
 
     DefaultHeaders::Instance().addHeader("Access-Control-Allow-Origin", "*");
@@ -122,8 +125,7 @@ void ServerManager_::setupWebServer(IPAddress ip) {
         SettingsManager.factoryReset();
     });
 
-    ws->serveStatic("/", LittleFS, "/").setDefaultFile("index.html");
-    ;
+    addStaticFileHandler();
 
     ws->onNotFound([](AsyncWebServerRequest *request) {
         if (request->method() == HTTP_OPTIONS) {
@@ -134,6 +136,24 @@ void ServerManager_::setupWebServer(IPAddress ip) {
     });
 
     ws->begin();
+}
+
+void ServerManager_::removeStaticFileHandler() {
+    if (staticFilesHandler != nullptr) {
+        ws->removeHandler(staticFilesHandler);
+        staticFilesHandler = nullptr;
+    } else {
+        DEBUG_PRINTLN("removeStaticFileHandler: staticFilesHandler is null");
+    }
+}
+
+void ServerManager_::addStaticFileHandler() {
+    if (staticFilesHandler != nullptr) {
+        removeStaticFileHandler();
+    }
+    staticFilesHandler = new AsyncStaticWebHandler("/", LittleFS, "/", NULL);
+    staticFilesHandler->setDefaultFile("index.html");
+    ws->addHandler(staticFilesHandler);
 }
 
 bool initTimeIfNeeded() {

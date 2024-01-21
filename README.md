@@ -31,6 +31,9 @@ If you already have an Ulanzi clock, you can try [installing](https://ktomy.gith
    * Full-width glucose graph
    * Graph, value and trend indicator
    * BIG DIGITS
+* Added API data dource. The clock has a simple Nightscout-like endpoint which can receive glucose values from an external source. The main purpose of this feature is to be able to test the clock during the clockfaces development. In order to activate this feature, select the API data source within the clock's Web UI. Here are the endpoints:
+    * /api/v1/entries POST endpoint receives an array of Nightscout-like entries. The only significant fields are `sgv`, `date` and `trend` or `direction`. Due to the limited memory the API is stable when sent less than 10 recotds
+    * /api/v1/entries DELETE endpoint deleted all entries no matter the payload
 ### My TODO list
 * Add multiple faces ~~and enable navigation between them~~ (done)
     * ~~Glucose graph~~ (done)

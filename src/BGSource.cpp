@@ -41,7 +41,7 @@ std::list<GlucoseReading> BGSource::deleteOldReadings(std::list<GlucoseReading> 
     return readings;
 }
 
-bool BGSource::hasNewData(unsigned long long epochToCompare) const {
+bool BGSource::hasNewData(unsigned long long epochToCompare) {
     auto lastReadingEpoch = glucoseReadings.size() > 0 ? glucoseReadings.back().epoch : 0;
     return lastReadingEpoch > epochToCompare;
 }
