@@ -9,6 +9,7 @@
 #include "BGSource.h"
 #include "BGSourceNightscout.h"
 #include "BGSourceDexcom.h"
+#include "BGSourceApi.h"
 
 class BGSourceManager_ {
   public:

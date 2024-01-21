@@ -23,6 +23,9 @@ void BGSourceManager_::setup(BG_SOURCE bgSourceType) {
         case BG_SOURCE::DEXCOM:
             bgSource = new BGSourceDexcom();
             break;
+        case BG_SOURCE::API:
+            bgSource = new BGSourceApi();
+            break;
         default:
             DEBUG_PRINTLN("BGSourceManager_::setup: Unknown BG_SOURCE: " + toString(bgSourceType));
             DisplayManager.showFatalError("Unknown data source: " + toString(bgSourceType));
