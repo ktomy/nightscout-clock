@@ -50,6 +50,8 @@ int BGDisplayManager_::getCurrentFaceId() { return currentFaceIndex; }
 
 GlucoseIntervals BGDisplayManager_::getGlucoseIntervals() { return glucoseIntervals; }
 
+unsigned long lastTick = 0;
+
 void BGDisplayManager_::setFace(int id) {
     if (id < faces.size()) {
         currentFaceIndex = id;
@@ -57,6 +59,8 @@ void BGDisplayManager_::setFace(int id) {
         DisplayManager.clearMatrix();
         if (displayedReadings.size() > 0) {
             currentFace->showReadings(displayedReadings);
+            lastTick = 0;
+            tick();
         } else {
             DisplayManager.setTextColor(COLOR_GRAY);
             DisplayManager.printText(0, 6, "No data", TEXT_ALIGNMENT::CENTER, 0);
@@ -66,6 +70,14 @@ void BGDisplayManager_::setFace(int id) {
 
 void BGDisplayManager_::tick() {
     /// TODO: Check if the last reading is too old and make it gray
+    if (millis() - lastTick > 60000) {
+        lastTick = millis();
+        if (displayedReadings.size() > 0) {
+            if (displayedReadings.back().getSecondsAgo() > 60 * BG_DATA_OLD_OFFSET_MINUTES) {
+                currentFace->showReadings(displayedReadings, true);
+            }
+        }
+    }
 }
 
 void BGDisplayManager_::showData(std::list<GlucoseReading> glucoseReadings) {

@@ -4,7 +4,7 @@
 #include "globals.h"
 #include <Arduino.h>
 
-void BGDisplayFaceGraphAndBG::showReadings(const std::list<GlucoseReading> &readings) const {
+void BGDisplayFaceGraphAndBG::showReadings(const std::list<GlucoseReading> &readings, bool dataIsOld) const {
 
     GlucoseReading reading = readings.back();
     String printableReading = getPrintableReading(reading);
@@ -19,11 +19,9 @@ void BGDisplayFaceGraphAndBG::showReadings(const std::list<GlucoseReading> &read
 #endif
 
     showGraph(0, grqphWidth, minutesToShow, readings);
-    showReading(readings.back(), 31, 6, TEXT_ALIGNMENT::RIGHT, FONT_TYPE::MEDIUM);
+    showReading(readings.back(), 31, 6, TEXT_ALIGNMENT::RIGHT, FONT_TYPE::MEDIUM, dataIsOld);
     showTrendVerticalLine(31, readings.back().trend);
 }
-
-void BGDisplayFaceGraphAndBG::markDataAsOld() const {}
 
 void BGDisplayFaceGraphAndBG::showTrendVerticalLine(int x, BG_TREND trend) const {
     switch (trend) {

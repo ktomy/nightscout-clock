@@ -6,10 +6,7 @@
 
 class BGDisplayFaceSimple : public BGDisplayFaceTextBase {
   public:
-    void showReadings(const std::list<GlucoseReading> &readings) const override;
-    void markDataAsOld() const override;
-
-  private:
+    void showReadings(const std::list<GlucoseReading> &readings, bool dataIsOld = false) const override;
 };
 
 #endif

@@ -4,11 +4,15 @@
 #include <map>
 
 void BGDisplayFaceTextBase::showReading(const GlucoseReading reading, int16_t x, int16_t y, TEXT_ALIGNMENT alignment,
-                                        FONT_TYPE font) const {
+                                        FONT_TYPE font, bool isOld) const {
 
     String readingToDisplay = getPrintableReading(reading);
+    if (!isOld) {
+        SetDisplayColorByBGValue(reading);
+    } else {
+        DisplayManager.setTextColor(BG_COLOR_OLD);
+    }
 
-    SetDisplayColorByBGValue(reading);
     DisplayManager.setFont(font);
 
     DisplayManager.printText(x, y, readingToDisplay.c_str(), alignment, 2);
@@ -22,14 +26,14 @@ void BGDisplayFaceTextBase::SetDisplayColorByBGValue(const GlucoseReading &readi
     switch (bgLevel) {
         case BG_LEVEL::URGENT_LOW:
         case BG_LEVEL::URGENT_HIGH:
-            textColor = COLOR_RED;
+            textColor = BG_COLOR_URGENT;
             break;
         case BG_LEVEL::WARNING_LOW:
         case BG_LEVEL::WARNING_HIGH:
-            textColor = COLOR_YELLOW;
+            textColor = BG_COLOR_WARNING;
             break;
         case BG_LEVEL::NORMAL:
-            textColor = COLOR_GREEN;
+            textColor = BG_COLOR_NORMAL;
             break;
     }
 
