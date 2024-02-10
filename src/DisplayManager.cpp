@@ -201,7 +201,14 @@ void DisplayManager_::showFatalError(String errorMessage) {
     DEBUG_PRINTF("Fatal error: %s\n", errorMessage.c_str());
     setTextColor(COLOR_GRAY);
 
+    auto startMills = millis();
+
     while (true) {
+
+        if (millis() - startMills > 16 * 1000 * 10) {
+            ESP.restart();
+        }
+
         auto finalPosition = -1 * getTextWidth(errorMessage.c_str(), 1);
         float position = 32;
         while (position > finalPosition) {
