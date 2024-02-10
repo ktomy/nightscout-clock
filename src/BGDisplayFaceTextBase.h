@@ -13,7 +13,7 @@ class BGDisplayFaceTextBase : virtual public BGDisplayFace {
     void showReading(const GlucoseReading reading, int16_t x, int16_t y, TEXT_ALIGNMENT alignment, FONT_TYPE fontType,
                      bool isOld = false) const;
     void SetDisplayColorByBGValue(const GlucoseReading &reading) const;
-    String getPrintableReading(const GlucoseReading &reading) const;
+    String getPrintableReading(const int sgv) const;
 };
 
 #endif // BGDISPLAYFACETEXTBASE_H

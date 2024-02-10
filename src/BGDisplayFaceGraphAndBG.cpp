@@ -7,7 +7,7 @@
 void BGDisplayFaceGraphAndBG::showReadings(const std::list<GlucoseReading> &readings, bool dataIsOld) const {
 
     GlucoseReading reading = readings.back();
-    String printableReading = getPrintableReading(reading);
+    String printableReading = getPrintableReading(reading.sgv);
     uint8_t textWidth = DisplayManager.getTextWidth(printableReading.c_str(), 2);
     // 32 is the width of the display, 2 for arrow and space
     uint8_t grqphWidth = 32 - textWidth - 2;

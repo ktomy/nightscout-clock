@@ -18,7 +18,7 @@ struct GlucoseReading {
     BG_TREND trend;
     unsigned long long epoch;
 
-    int getSecondsAgo() { return time(NULL) - epoch; }
+    int getSecondsAgo() const { return time(NULL) - epoch; }
 
     String toString() const { return String(sgv) + "," + ::toString(trend) + "," + String(epoch); }
 };

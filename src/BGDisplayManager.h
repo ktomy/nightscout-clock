@@ -6,6 +6,7 @@
 #include "BGDisplayFaceGraphAndBG.h"
 #include "BGDisplayFaceSimple.h"
 #include "BGDisplayFaceBigText.h"
+#include "BGDisplayFaceValueAndDiff.h"
 #include "BGSource.h"
 
 #include <Arduino.h>

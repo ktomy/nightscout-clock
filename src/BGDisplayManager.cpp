@@ -35,6 +35,8 @@ void BGDisplayManager_::setup() {
     facesNames[2] = "Graph and BG";
     faces.push_back(new BGDisplayFaceBigText());
     facesNames[3] = "Big text";
+    faces.push_back(new BGDisplayFaceValueAndDiff());
+    facesNames[4] = "Value and diff";
 
     currentFaceIndex = SettingsManager.settings.default_clockface;
     if (currentFaceIndex >= faces.size()) {

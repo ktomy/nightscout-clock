@@ -6,7 +6,7 @@
 void BGDisplayFaceTextBase::showReading(const GlucoseReading reading, int16_t x, int16_t y, TEXT_ALIGNMENT alignment,
                                         FONT_TYPE font, bool isOld) const {
 
-    String readingToDisplay = getPrintableReading(reading);
+    String readingToDisplay = getPrintableReading(reading.sgv);
     if (!isOld) {
         SetDisplayColorByBGValue(reading);
     } else {
@@ -40,13 +40,13 @@ void BGDisplayFaceTextBase::SetDisplayColorByBGValue(const GlucoseReading &readi
     DisplayManager.setTextColor(textColor);
 }
 
-String BGDisplayFaceTextBase::getPrintableReading(const GlucoseReading &reading) const {
+String BGDisplayFaceTextBase::getPrintableReading(const int sgv) const {
     String readingToDisplay = "";
     if (SettingsManager.settings.bg_units == BG_UNIT::MGDL) {
-        readingToDisplay += String(reading.sgv);
+        readingToDisplay += String(sgv);
     } else {
         char buffer[10];
-        sprintf(buffer, "%.1f", round((float)reading.sgv / 1.8) / 10);
+        sprintf(buffer, "%.1f", round((float)sgv / 1.8) / 10);
         readingToDisplay += String(buffer);
     }
     return readingToDisplay;

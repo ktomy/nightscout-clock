@@ -31,6 +31,8 @@ If you already have an Ulanzi clock, you can try [installing](https://ktomy.gith
    * Full-width glucose graph
    * Graph, value and trend indicator
    * BIG DIGITS
+   * Value, trend and difference from the old value
+* Change color to gray if the data is too old
 * Added API data dource. The clock has a simple Nightscout-like endpoint which can receive glucose values from an external source. The main purpose of this feature is to be able to test the clock during the clockfaces development. In order to activate this feature, select the API data source within the clock's Web UI. Here are the endpoints:
     * /api/v1/entries POST endpoint receives an array of Nightscout-like entries. The only significant fields are `sgv`, `date` and `trend` or `direction`. Due to the limited memory the API is stable when sent less than 10 recotds
     * /api/v1/entries DELETE endpoint deleted all entries no matter the payload
@@ -38,7 +40,7 @@ If you already have an Ulanzi clock, you can try [installing](https://ktomy.gith
 * Add multiple faces ~~and enable navigation between them~~ (done)
     * ~~Glucose graph~~ (done)
     * ~~BIG DIGITS~~ (done)
-    * Value, trend and difference from the old value
+    * ~~Value, trend and difference from the old value~~ (done)
     * Clock (and setting the timezone)
     * Battery, humidity and temperature
 * Smooth color change (rainbow) based on the value and boundaries
@@ -46,7 +48,7 @@ If you already have an Ulanzi clock, you can try [installing](https://ktomy.gith
 * ~~Add error message if no connection to Nightscout or NTP servers is possible~~ (done)
 * Add smart update timings (calculate 5 minutes since last reading)
 * Get units and value boundaries from Nightscout
-* Change color to gray if the data is too old
+* ~~Change color to gray if the data is too old~~ (done)
 * Support multiple WiFi network configurations (WiFi backup)
 * ~~Configuration during the installation (Improv WiFi)~~ (done)
 * Create installation/configuration video
