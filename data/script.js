@@ -15,13 +15,16 @@
         dexcom_server: /^(us|ous)$/,
         ns_protocol: /^(http|https)$/,
         clock_timezone: /^.{2,}$/,
+        time_format: /^(12|24)$/,
 
     };
     let configJson = {};
 
     addFocusOutValidation('ssid');
     addFocusOutValidation('wifi_password');
+
     addFocusOutValidation('clock_timezone');
+    addFocusOutValidation('time_format');
 
     const glucoseSource = $('#glucose_source');
     const nightscoutSettingsCard = $('#nightscout_settings_card');
@@ -83,6 +86,7 @@
         allValid &= validateGlucoseSource();
         allValid &= validateBG();
         allValid &= validate($('#clock_timezone'), patterns.clock_timezone);
+        allValid &= validate($('#time_format'), patterns.time_format);
 
         if (!allValid) {
             return;
@@ -159,6 +163,7 @@
         json['default_face'] = parseInt($('#default_clock_face').val());
         json['tz_libc'] = $('#clock_timezone').val();
         json['tz'] = $('#clock_timezone option:selected').text();
+        json['time_format'] = $('#time_format').val();
 
         return JSON.stringify(json);
     }
@@ -358,6 +363,7 @@
         $('#brightness_level').val(json['brightness_level']);
         $('#default_clock_face').val(json['default_face']);
 
+        $('#time_format').val(json['time_format']);
 
         var tz = json['tz'];
         if (!tz) {

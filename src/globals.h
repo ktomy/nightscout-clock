@@ -3,7 +3,7 @@
 #include <Arduino.h>
 #include <IPAddress.h>
 #define DEBUG
-// #define DEBUG_BG_SOURCE
+#define DEBUG_BG_SOURCE
 // #define DEBUG_DISPLAY
 
 #ifdef DEBUG
@@ -62,10 +62,6 @@ extern float CURRENT_LUX;
 extern bool IS_CELSIUS;
 extern bool SENSOR_READING;
 extern uint16_t LDR_RAW;
-extern String TIME_FORMAT;
-extern String DATE_FORMAT;
-extern int BACKGROUND_EFFECT;
-extern bool START_ON_MONDAY;
 extern uint8_t BATTERY_PERCENT;
 extern uint16_t BATTERY_RAW;
 extern bool MATRIX_OFF;

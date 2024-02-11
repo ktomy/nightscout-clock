@@ -111,6 +111,7 @@ bool SettingsManager_::loadSettingsFromFile() {
     settings.nightscout_api_key = (*doc)["api_secret"].as<String>();
 
     settings.tz_libc_value = (*doc)["tz_libc"].as<String>();
+    settings.time_format = (*doc)["time_format"].as<String>() == "12" ? TIME_FORMAT::HOURS_12 : TIME_FORMAT::HOURS_24;
 
     delete doc;
 
@@ -165,6 +166,7 @@ bool SettingsManager_::saveSettingsToFile() {
     (*doc)["api_secret"] = settings.nightscout_api_key;
 
     (*doc)["tz_libc"] = settings.tz_libc_value;
+    (*doc)["time_format"] = settings.time_format == TIME_FORMAT::HOURS_12 ? "12" : "24";
 
     if (trySaveJsonAsSettings(*doc) == false)
         return false;

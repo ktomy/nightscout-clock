@@ -1,10 +1,6 @@
 #include "globals.h"
 
 uint16_t LDR_RAW;
-String TIME_FORMAT = "%H:%M:%S";
-String DATE_FORMAT = "%d.%m.%y";
-int BACKGROUND_EFFECT = -1;
-bool START_ON_MONDAY;
 bool BLOCK_NAVIGATION = false;
 float HUM_OFFSET;
 float TEMP_OFFSET = -9;

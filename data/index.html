@@ -196,7 +196,7 @@
                 <h5 class="card-header">Device settings</h5>
                 <div class="card-body">
                     <div class="row">
-                        <div class="col-md-4 col-lg-4">
+                        <div class="col-md-3 col-lg-3">
                             <label for="brightness_level" class="form-label">Brightness level</label>
                             <select class="form-select" id="brightness_level" required>
                                 <option value="0">Auto</option>
@@ -215,7 +215,7 @@
                                 Please select display brightness level
                             </div>
                         </div>
-                        <div class="col-md-4 col-lg-4">
+                        <div class="col-md-3 col-lg-3">
                             <label for="default_clock_face" class="form-label">Default clock face</label>
                             <select class="form-select" id="default_clock_face" required>
                                 <option value="0">Simple</option>
@@ -229,13 +229,24 @@
                                 Please select default clock face
                             </div>
                         </div>
-                        <div class="col-md-4 col-lg-4">
-                            <label for="clock_timezone" class="form-label">Click time zone</label>
+                        <div class="col-md-3 col-lg-3">
+                            <label for="clock_timezone" class="form-label">Clock time zone</label>
                             <select class="form-select" id="clock_timezone" required>
                                 <option value="">Choose...</option>
                             </select>
                             <div class="invalid-feedback">
                                 Please select your time zone
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-lg-3">
+                            <label for="time_format" class="form-label">Time format</label>
+                            <select class="form-select" id="time_format" required>
+                                <option value="">Choose...</option>
+                                <option value="12">AM/PM</option>
+                                <option value="24">24h</option>
+                            </select>
+                            <div class="invalid-feedback">
+                                Please select the time format (AM/PM or 24h)
                             </div>
                         </div>
                     </div>

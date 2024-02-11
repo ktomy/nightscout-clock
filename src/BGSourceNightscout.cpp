@@ -16,32 +16,38 @@ std::list<GlucoseReading> BGSourceNightscout::updateReadings(std::list<GlucoseRe
 
 std::list<GlucoseReading> BGSourceNightscout::updateReadings(String baseUrl, String apiKey,
                                                              std::list<GlucoseReading> existingReadings) {
+    unsigned long long currentEpoch = ServerManager.getUtcEpoch();
     // set last epoch to now - 3 hours (we don't want to get too many readings)
-    unsigned long long lastReadingEpoch = time(NULL) - BG_BACKFILL_SECONDS;
+    unsigned long long lastReadingEpoch = currentEpoch - BG_BACKFILL_SECONDS;
     // get last epoch from existing readings if it is newer than default one
     if (existingReadings.size() > 0 && existingReadings.back().epoch > lastReadingEpoch) {
         lastReadingEpoch = existingReadings.back().epoch;
     }
     DEBUG_PRINTLN("Updating NS values since epoch: " + String(lastReadingEpoch) + " (-" +
-                  String((time(NULL) - lastReadingEpoch) / 60) + "m)");
+                  String((currentEpoch - lastReadingEpoch) / 60) + "m)");
 
     // retrieve new readings until there are no new readings or until we reach
     // the point of now - 5 minutes (as we don't want readings from the future)
     do {
         // retrieve readings since lastReadingEpoch until lastReadingEpoch + 1 hour
         unsigned long long readToEpoch = lastReadingEpoch + 60 * 60;
-        if (readToEpoch > time(NULL)) {
-            readToEpoch = time(NULL);
+        if (readToEpoch > currentEpoch) {
+            readToEpoch = currentEpoch;
         }
 
-        std::list<GlucoseReading> retrievedReadings = retrieveReadings(baseUrl, apiKey, lastReadingEpoch, readToEpoch, 30);
+        // retrieve readings starting from the last reading plus one second (to not include the existing reading)
+        std::list<GlucoseReading> retrievedReadings = retrieveReadings(baseUrl, apiKey, lastReadingEpoch + 1, readToEpoch, 30);
 
 #ifdef DEBUG_BG_SOURCE
-        DEBUG_PRINTLN("Retrieved readings: " + String(retrievedReadings.size()) +
-                      ", last reading epoch: " + String(retrievedReadings.back().epoch) + " (-" +
-                      String((time(NULL) - retrievedReadings.back().epoch) / 60) + "m)" +
-                      " Difference between first reading and last reading in minutes: " +
-                      String((retrievedReadings.back().epoch - retrievedReadings.front().epoch) / 60));
+        if (retrievedReadings.size() == 0) {
+            DEBUG_PRINTLN("Retrieved no readings");
+        } else {
+            DEBUG_PRINTLN("Retrieved readings: " + String(retrievedReadings.size()) +
+                          ", last reading epoch: " + String(retrievedReadings.back().epoch) + " (-" +
+                          String((currentEpoch - retrievedReadings.back().epoch) / 60) + "m)" +
+                          " Difference between first reading and last reading in minutes: " +
+                          String((retrievedReadings.back().epoch - retrievedReadings.front().epoch) / 60));
+        }
 #endif
 
         // remove readings from retrievedReadings which are already present in existingReadings
@@ -64,10 +70,10 @@ std::list<GlucoseReading> BGSourceNightscout::updateReadings(String baseUrl, Str
 #ifdef DEBUG_BG_SOURCE
         DEBUG_PRINTLN("Existing readings: " + String(existingReadings.size()) +
                       ", last reading epoch: " + String(lastReadingEpoch) +
-                      " Difference to now is: " + String((time(NULL) - lastReadingEpoch) / 60) + " minutes");
+                      " Difference to now is: " + String((currentEpoch - lastReadingEpoch) / 60) + " minutes");
 #endif
 
-    } while (lastReadingEpoch < time(NULL) - 5 * 60);
+    } while (lastReadingEpoch < currentEpoch - 5 * 60);
     return existingReadings;
 }
 
@@ -75,10 +81,12 @@ std::list<GlucoseReading> BGSourceNightscout::retrieveReadings(String baseUrl, S
                                                                unsigned long long readingSinceEpoch,
                                                                unsigned long long readingToEpoch, int numberOfvalues) {
 
+    unsigned long long currentEpoch = ServerManager.getUtcEpoch();
+
 #ifdef DEBUG_BG_SOURCE
     DEBUG_PRINTLN("Getting NS values. Reading since epoch: " + String(readingSinceEpoch) + " (-" +
-                  String((time(NULL) - readingSinceEpoch) / 60) + "m)" + ", number of values: " + String(numberOfvalues) +
-                  ", reading to epoch: " + String(readingToEpoch) + " (-" + String((time(NULL) - readingToEpoch) / 60) + "m)");
+                  String((currentEpoch - readingSinceEpoch) / 60) + "m)" + ", number of values: " + String(numberOfvalues) +
+                  ", reading to epoch: " + String(readingToEpoch) + " (-" + String((currentEpoch - readingToEpoch) / 60) + "m)");
 #endif
 
     if (baseUrl == "") {
@@ -165,14 +173,18 @@ std::list<GlucoseReading> BGSourceNightscout::retrieveReadings(String baseUrl, S
             // Sort readings by epoch (no idea if they come sorted from the API)
             lastReadings.sort([](const GlucoseReading &a, const GlucoseReading &b) -> bool { return a.epoch < b.epoch; });
 
-            String debugLog = "Received readings: ";
-            for (auto &reading : lastReadings) {
-                debugLog += " " + String(reading.sgv) + " -" + String(reading.getSecondsAgo() / 60) + "m " +
-                            toString(reading.trend) + ", ";
-            }
+            if (lastReadings.size() == 0) {
+                DEBUG_PRINTLN("No readings received");
+            } else {
+                String debugLog = "Received readings: ";
+                for (auto &reading : lastReadings) {
+                    debugLog += " " + String(reading.sgv) + " -" + String(reading.getSecondsAgo() / 60) + "m " +
+                                toString(reading.trend) + ", ";
+                }
 
-            debugLog += "\n";
-            DEBUG_PRINTLN(debugLog);
+                debugLog += "\n";
+                DEBUG_PRINTLN(debugLog);
+            }
         }
     } else {
         DEBUG_PRINTF("Error getting readings %d\n", responseCode);

@@ -85,6 +85,12 @@ enum class DEXCOM_SERVER : uint8_t {
     NON_US = 2,
 };
 
+enum class TIME_FORMAT : uint8_t {
+    INVALID = 0,
+    HOURS_12 = 1,
+    HOURS_24 = 2,
+};
+
 inline String toString(BG_SOURCE source) {
     switch (source) {
         case BG_SOURCE::NO_SOURCE:

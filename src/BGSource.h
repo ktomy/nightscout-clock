@@ -10,7 +10,7 @@
 #include "globals.h"
 #include "DisplayManager.h"
 
-#define BG_BACKFILL_SECONDS 3 * 60 * 60 // 3 hours
+#define BG_BACKFILL_SECONDS 3 * 60 * 60 + 1 // 3 hours one second (to overcome the "after last reading" read)
 
 struct GlucoseReading {
   public:
@@ -33,7 +33,7 @@ class BGSource {
   protected:
     HTTPClient *client;
     WiFiClientSecure *wifiSecureClient;
-    unsigned long long lastCallAttemptMills = 0;
+    unsigned long long lastCallAttemptEpoch = 0;
     bool firstConnectionSuccess = false;
     std::list<GlucoseReading> glucoseReadings;
     std::list<GlucoseReading> deleteOldReadings(std::list<GlucoseReading> readings, unsigned long long epochToCompare);
