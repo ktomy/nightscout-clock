@@ -3,6 +3,7 @@
 #include "BGSourceManager.h"
 #include "BGSource.h"
 #include "SettingsManager.h"
+#include "ServerManager.h"
 #include "globals.h"
 
 #include <list>
@@ -67,9 +68,8 @@ void BGDisplayManager_::setFace(int id) {
 
 void BGDisplayManager_::tick() {
 
-    struct tm timeinfo;
-    getLocalTime(&timeinfo);
-    auto currentEpoch = mktime(&timeinfo);
+    auto currentEpoch = ServerManager.getUtcEpoch();
+    tm timeInfo = ServerManager.getTimezonedTime();
 
     if (bgSourceManager.hasNewData(BGDisplayManager.getLastDisplayedGlucoseEpoch())) {
         DEBUG_PRINTLN("We have new data");
@@ -77,7 +77,7 @@ void BGDisplayManager_::tick() {
         lastRefreshEpoch = currentEpoch;
     } else {
         // We refresh the display every minue trying to match the exact :00 second
-        if (timeinfo.tm_sec == 0 && currentEpoch > lastRefreshEpoch || currentEpoch - lastRefreshEpoch > 60) {
+        if (timeInfo.tm_sec == 0 && currentEpoch > lastRefreshEpoch || currentEpoch - lastRefreshEpoch > 60) {
             lastRefreshEpoch = currentEpoch;
             if (displayedReadings.size() > 0) {
                 bool dataIsOld = displayedReadings.back().getSecondsAgo() > 60 * BG_DATA_OLD_OFFSET_MINUTES;

@@ -155,6 +155,7 @@
         json['brightness_level'] = brightness;
         json['default_face'] = parseInt($('#default_clock_face').val());
         json['tz_libc'] = $('#clock_timezone').val();
+        json['tz'] = $('#clock_timezone option:selected').text();
 
         return JSON.stringify(json);
     }
@@ -353,21 +354,19 @@
         $('#brightness_level').val(json['brightness_level']);
         $('#default_clock_face').val(json['default_face']);
 
-        var tzValue = json['tz_libc'];
-        if (tzValue) {
-            $('#clock_timezone').val(tzValue);
-        } else {
-            // Get timezone from browser name, find in list and set the value to the drop-down list
-            var tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-            var tzSelect = $('#clock_timezone');
-            for (var i = 0; i < tzSelect[0].length; i++) {
-                if (tzSelect[0][i].text == tz) {
-                    tzSelect[0].selectedIndex = i;
-                    break;
-                }
+
+        var tz = json['tz'];
+        if (!tz) {
+            tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        }
+
+        var tzSelect = $('#clock_timezone');
+        for (var i = 0; i < tzSelect[0].length; i++) {
+            if (tzSelect[0][i].text == tz) {
+                tzSelect[0].selectedIndex = i;
+                break;
             }
         }
     }
-
 
 })()

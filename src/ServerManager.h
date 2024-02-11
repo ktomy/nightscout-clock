@@ -17,6 +17,8 @@ class ServerManager_ {
     void setupWebServer(IPAddress ip);
     IPAddress setAPmode(String ssid, String psk);
     void saveConfigHandler();
+    bool initTimeIfNeeded();
+    void setTimezone();
 
   public:
     static ServerManager_ &getInstance();
@@ -27,7 +29,8 @@ class ServerManager_ {
     bool isInAPMode;
     IPAddress myIP;
     DNSServer dnsServer;
-    unsigned long getTime();
+    unsigned long getUtcEpoch();
+    tm getTimezonedTime();
     AsyncWebHandler addHandler(AsyncWebHandler *handler);
     void removeStaticFileHandler();
     void addStaticFileHandler();

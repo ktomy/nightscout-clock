@@ -7,10 +7,10 @@
     "gateway": "",
     "dns1": "",
     "dns2": "",
-    "data_source": "nightscout",
+    "data_source": "",
     "dexcom_username": "",
     "dexcom_password": "",
-    "dexcom_server": "us",
+    "dexcom_server": "",
     "nightscout_url": "",
     "api_secret": "",
     "units": "",
@@ -18,5 +18,7 @@
     "high_mgdl": 0,
     "auto_brightness": true,
     "brightness_level": 0,
-    "default_face": 2
+    "default_face": 3,
+    "tz_libc": "",
+    "tz": ""
 }

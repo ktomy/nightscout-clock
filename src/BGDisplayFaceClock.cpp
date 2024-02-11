@@ -1,5 +1,6 @@
 #include "BGDisplayFaceClock.h"
 #include "BGDisplayManager.h"
+#include "ServerManager.h"
 #include "globals.h"
 
 void BGDisplayFaceClock::showReadings(const std::list<GlucoseReading> &readings, bool dataIsOld) const {
@@ -14,8 +15,7 @@ void BGDisplayFaceClock::showReadings(const std::list<GlucoseReading> &readings,
 void BGDisplayFaceClock::showClock() const {
     // Show current time
 
-    struct tm timeinfo;
-    getLocalTime(&timeinfo);
+    tm timeinfo = ServerManager.getTimezonedTime();
 
     char timeStr[6];
     sprintf(timeStr, "%02d:%02d", timeinfo.tm_hour, timeinfo.tm_min);

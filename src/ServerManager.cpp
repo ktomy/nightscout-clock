@@ -156,7 +156,7 @@ void ServerManager_::addStaticFileHandler() {
     ws->addHandler(staticFilesHandler);
 }
 
-bool initTimeIfNeeded() {
+bool ServerManager_::initTimeIfNeeded() {
 
     struct tm timeinfo;
 
@@ -167,36 +167,39 @@ bool initTimeIfNeeded() {
             return false;
         }
 
-        DEBUG_PRINTF("Got the time from NTP (UTC): %02d.%02d.%d %02d:%02d:%02d\n", timeinfo.tm_mday, timeinfo.tm_mon + 1,
-                     timeinfo.tm_year + 1900, timeinfo.tm_hour, timeinfo.tm_min, timeinfo.tm_sec);
+        setTimezone();
 
-        setenv("TZ", SettingsManager.settings.tz_libc_value.c_str(), 1);
-        tzset();
-
-        getLocalTime(&timeinfo);
+        timeinfo = getTimezonedTime();
 
         DEBUG_PRINTF("Local time is: %02d.%02d.%d %02d:%02d:%02d\n", timeinfo.tm_mday, timeinfo.tm_mon + 1,
                      timeinfo.tm_year + 1900, timeinfo.tm_hour, timeinfo.tm_min, timeinfo.tm_sec);
-
-        auto utc = time(nullptr);
-        gmtime_r(&utc, &timeinfo);
-
-        DEBUG_PRINTF("UTC time is: %02d.%02d.%d %02d:%02d:%02d\n", timeinfo.tm_mday, timeinfo.tm_mon + 1, timeinfo.tm_year + 1900,
-                     timeinfo.tm_hour, timeinfo.tm_min, timeinfo.tm_sec);
     }
 
     return true;
 }
 
-unsigned long ServerManager_::getTime() {
+void ServerManager_::setTimezone() {
+    setenv("TZ", SettingsManager.settings.tz_libc_value.c_str(), 1);
+    tzset();
+}
+
+unsigned long ServerManager_::getUtcEpoch() {
     struct tm timeinfo;
     if (!getLocalTime(&timeinfo)) {
         DEBUG_PRINTLN("Failed to obtain time");
         return 0;
     } else {
-        time_t t = mktime(&timeinfo);
-        return t;
+        auto utc = time(nullptr);
+        return utc;
     }
+}
+
+tm ServerManager_::getTimezonedTime() {
+    struct tm timeinfo;
+    if (!getLocalTime(&timeinfo)) {
+        DEBUG_PRINTLN("Failed to obtain time");
+    }
+    return timeinfo;
 }
 
 void ServerManager_::stop() {
@@ -217,6 +220,7 @@ void ServerManager_::setup() {
     DEBUG_PRINTF("My IP: %d.%d.%d.%d", myIP[0], myIP[1], myIP[2], myIP[3]);
 
     setupWebServer(myIP);
+    setTimezone();
 }
 
 void ServerManager_::tick() {

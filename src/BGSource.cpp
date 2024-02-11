@@ -1,4 +1,5 @@
 #include "BGSource.h"
+#include "ServerManager.h"
 
 unsigned long lastCallAttemptMills = 0;
 
@@ -9,22 +10,19 @@ void BGSource::setup() {
 }
 
 void BGSource::tick() {
-    auto currentTime = millis();
+    auto currentTime = ServerManager.getUtcEpoch();
     if (lastCallAttemptMills == 0 || currentTime > lastCallAttemptMills + 60 * 1000UL) {
-        struct tm timeinfo;
-        if (getLocalTime(&timeinfo)) {
-            // delete readings older than now - 3 hours
-            glucoseReadings = deleteOldReadings(glucoseReadings, time(NULL) - BG_BACKFILL_SECONDS);
+        // delete readings older than now - 3 hours
+        glucoseReadings = deleteOldReadings(glucoseReadings, time(NULL) - BG_BACKFILL_SECONDS);
 
-            if (!firstConnectionSuccess) {
-                DisplayManager.clearMatrix();
-                DisplayManager.printText(0, 6, "To API", TEXT_ALIGNMENT::CENTER, 0);
-            }
-
-            glucoseReadings = updateReadings(glucoseReadings);
-
-            lastCallAttemptMills = currentTime;
+        if (!firstConnectionSuccess) {
+            DisplayManager.clearMatrix();
+            DisplayManager.printText(0, 6, "To API", TEXT_ALIGNMENT::CENTER, 0);
         }
+
+        glucoseReadings = updateReadings(glucoseReadings);
+
+        lastCallAttemptMills = currentTime;
     }
 }
 

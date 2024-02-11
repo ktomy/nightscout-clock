@@ -1,4 +1,5 @@
 #include "BGSourceManager.h"
+#include "ServerManager.h"
 
 // Define the static getInstance method
 BGSourceManager_ &BGSourceManager_::getInstance() {
@@ -39,9 +40,7 @@ void BGSourceManager_::tick() {
 
     // We poll the data once a minute trying to sync this with the last received data
 
-    struct tm timeinfo;
-    getLocalTime(&timeinfo);
-    auto currentEpoch = mktime(&timeinfo);
+    auto currentEpoch = ServerManager.getUtcEpoch();
 
     if (currentEpoch - lastPollEpoch < 61) {
         return;
