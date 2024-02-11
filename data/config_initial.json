@@ -7,7 +7,7 @@
     "gateway": "",
     "dns1": "",
     "dns2": "",
-    "data_source": "",
+    "data_source": "nightscout",
     "dexcom_username": "",
     "dexcom_password": "",
     "dexcom_server": "",

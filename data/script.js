@@ -55,6 +55,9 @@
             case "api":
                 setElementValidity(glucoseSource, true);
                 break;
+            default:
+                setElementValidity(glucoseSource, false);
+                break;
         }
     });
 
@@ -310,6 +313,7 @@
 
         // glucose source
         $('#glucose_source').val(json['data_source']);
+        $('#glucose_source').trigger('change');
 
         //Dexcom
         $('#dexcom_server').val(json['dexcom_server']);
