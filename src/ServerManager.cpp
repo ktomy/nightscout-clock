@@ -167,8 +167,22 @@ bool initTimeIfNeeded() {
             return false;
         }
 
-        DEBUG_PRINTF("Got the time from NTP: %02d.%02d.%d %02d:%02d:%02d\n", timeinfo.tm_mday, timeinfo.tm_mon + 1,
+        DEBUG_PRINTF("Got the time from NTP (UTC): %02d.%02d.%d %02d:%02d:%02d\n", timeinfo.tm_mday, timeinfo.tm_mon + 1,
                      timeinfo.tm_year + 1900, timeinfo.tm_hour, timeinfo.tm_min, timeinfo.tm_sec);
+
+        setenv("TZ", SettingsManager.settings.tz_libc_value.c_str(), 1);
+        tzset();
+
+        getLocalTime(&timeinfo);
+
+        DEBUG_PRINTF("Local time is: %02d.%02d.%d %02d:%02d:%02d\n", timeinfo.tm_mday, timeinfo.tm_mon + 1,
+                     timeinfo.tm_year + 1900, timeinfo.tm_hour, timeinfo.tm_min, timeinfo.tm_sec);
+
+        auto utc = time(nullptr);
+        gmtime_r(&utc, &timeinfo);
+
+        DEBUG_PRINTF("UTC time is: %02d.%02d.%d %02d:%02d:%02d\n", timeinfo.tm_mday, timeinfo.tm_mon + 1, timeinfo.tm_year + 1900,
+                     timeinfo.tm_hour, timeinfo.tm_min, timeinfo.tm_sec);
     }
 
     return true;

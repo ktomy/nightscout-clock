@@ -1,5 +1,6 @@
 #include "BGDisplayManager.h"
 #include "DisplayManager.h"
+#include "BGSourceManager.h"
 #include "BGSource.h"
 #include "SettingsManager.h"
 #include "globals.h"
@@ -37,6 +38,8 @@ void BGDisplayManager_::setup() {
     facesNames[3] = "Big text";
     faces.push_back(new BGDisplayFaceValueAndDiff());
     facesNames[4] = "Value and diff";
+    faces.push_back(new BGDisplayFaceClock());
+    facesNames[5] = "Clock and value";
 
     currentFaceIndex = SettingsManager.settings.default_clockface;
     if (currentFaceIndex >= faces.size()) {
@@ -52,31 +55,35 @@ int BGDisplayManager_::getCurrentFaceId() { return currentFaceIndex; }
 
 GlucoseIntervals BGDisplayManager_::getGlucoseIntervals() { return glucoseIntervals; }
 
-unsigned long lastTick = 0;
-
 void BGDisplayManager_::setFace(int id) {
     if (id < faces.size()) {
         currentFaceIndex = id;
         currentFace = (faces[currentFaceIndex]);
         DisplayManager.clearMatrix();
-        if (displayedReadings.size() > 0) {
-            currentFace->showReadings(displayedReadings);
-            lastTick = 0;
-            tick();
-        } else {
-            DisplayManager.setTextColor(COLOR_GRAY);
-            DisplayManager.printText(0, 6, "No data", TEXT_ALIGNMENT::CENTER, 0);
-        }
+        lastRefreshEpoch = 0;
+        tick();
     }
 }
 
 void BGDisplayManager_::tick() {
-    /// TODO: Check if the last reading is too old and make it gray
-    if (millis() - lastTick > 60000) {
-        lastTick = millis();
-        if (displayedReadings.size() > 0) {
-            if (displayedReadings.back().getSecondsAgo() > 60 * BG_DATA_OLD_OFFSET_MINUTES) {
-                currentFace->showReadings(displayedReadings, true);
+
+    struct tm timeinfo;
+    getLocalTime(&timeinfo);
+    auto currentEpoch = mktime(&timeinfo);
+
+    if (bgSourceManager.hasNewData(BGDisplayManager.getLastDisplayedGlucoseEpoch())) {
+        DEBUG_PRINTLN("We have new data");
+        BGDisplayManager.showData(bgSourceManager.getInstance().getGlucoseData());
+        lastRefreshEpoch = currentEpoch;
+    } else {
+        // We refresh the display every minue trying to match the exact :00 second
+        if (timeinfo.tm_sec == 0 && currentEpoch > lastRefreshEpoch || currentEpoch - lastRefreshEpoch > 60) {
+            lastRefreshEpoch = currentEpoch;
+            if (displayedReadings.size() > 0) {
+                bool dataIsOld = displayedReadings.back().getSecondsAgo() > 60 * BG_DATA_OLD_OFFSET_MINUTES;
+                currentFace->showReadings(displayedReadings, dataIsOld);
+            } else {
+                currentFace->showNoData();
             }
         }
     }
@@ -85,8 +92,7 @@ void BGDisplayManager_::tick() {
 void BGDisplayManager_::showData(std::list<GlucoseReading> glucoseReadings) {
 
     if (glucoseReadings.size() == 0) {
-        DisplayManager.setTextColor(COLOR_GRAY);
-        DisplayManager.printText(0, 6, "No data", TEXT_ALIGNMENT::CENTER, 0);
+        currentFace->showNoData();
         return;
     }
 

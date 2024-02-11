@@ -7,6 +7,7 @@
 #include "BGDisplayFaceSimple.h"
 #include "BGDisplayFaceBigText.h"
 #include "BGDisplayFaceValueAndDiff.h"
+#include "BGDisplayFaceClock.h"
 #include "BGSource.h"
 
 #include <Arduino.h>
@@ -85,6 +86,9 @@ class BGDisplayManager_ {
     int getCurrentFaceId();
 
     void setFace(int id);
+
+  private:
+    unsigned long long lastRefreshEpoch;
 };
 
 extern BGDisplayManager_ &BGDisplayManager;

@@ -110,6 +110,8 @@ bool SettingsManager_::loadSettingsFromFile() {
     settings.nightscout_url = (*doc)["nightscout_url"].as<String>();
     settings.nightscout_api_key = (*doc)["api_secret"].as<String>();
 
+    settings.tz_libc_value = (*doc)["tz_libc"].as<String>();
+
     delete doc;
 
     this->settings = settings;
@@ -161,6 +163,8 @@ bool SettingsManager_::saveSettingsToFile() {
 
     (*doc)["nightscout_url"] = settings.nightscout_url;
     (*doc)["api_secret"] = settings.nightscout_api_key;
+
+    (*doc)["tz_libc"] = settings.tz_libc_value;
 
     if (trySaveJsonAsSettings(*doc) == false)
         return false;

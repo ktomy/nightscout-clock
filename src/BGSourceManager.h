@@ -27,6 +27,7 @@ class BGSourceManager_ {
     BGSourceManager_(const BGSourceManager_ &) = delete;
     BGSourceManager_ &operator=(const BGSourceManager_ &) = delete;
     BGSource *bgSource;
+    unsigned long long lastPollEpoch = 0;
 };
 
 extern BGSourceManager_ &bgSourceManager; // Declare extern variable

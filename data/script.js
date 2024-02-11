@@ -14,12 +14,14 @@
         bg_mmol: /^(([2-9])|([1-2][0-9]))(\.[1-9])?$/,
         dexcom_server: /^(us|ous)$/,
         ns_protocol: /^(http|https)$/,
+        clock_timezone: /^.{2,}$/,
 
     };
     let configJson = {};
 
     addFocusOutValidation('ssid');
     addFocusOutValidation('wifi_password');
+    addFocusOutValidation('clock_timezone');
 
     const glucoseSource = $('#glucose_source');
     const nightscoutSettingsCard = $('#nightscout_settings_card');
@@ -77,6 +79,7 @@
         allValid &= validate($('#wifi_password'), patterns.wifi_password);
         allValid &= validateGlucoseSource();
         allValid &= validateBG();
+        allValid &= validate($('#clock_timezone'), patterns.clock_timezone);
 
         if (!allValid) {
             return;
@@ -151,6 +154,7 @@
         json['auto_brightness'] = brightness == 0;
         json['brightness_level'] = brightness;
         json['default_face'] = parseInt($('#default_clock_face').val());
+        json['tz_libc'] = $('#clock_timezone').val();
 
         return JSON.stringify(json);
     }
@@ -263,21 +267,38 @@
     }
 
     var configJsonUrl = 'config.json';
+    var tzJson = "tzdata.json";
+
     if (window.location.href.indexOf("127.0.0.1") > 0) {
         configJsonUrl = "http://192.168.86.24/config.json";
+        tzJson = "http://192.168.86.24/tzdata.json";
+
     }
 
-    fetch(configJsonUrl)
-        .then(response => response.json())
-        .then(data => {
-            console.log(data);
-            configJson = data;
+    Promise.all([
+        fetch(configJsonUrl),
+        fetch(tzJson)
+    ]).then(([configJsonData, tzJsonData]) => {
+        Promise.all([configJsonData.json(), tzJsonData.json()]).then(([configJsonLocal, tzJsonLocal]) => {
+            var tzSelect = $('#clock_timezone');
+            for (let tzInfo of tzJsonLocal) {
+                var option = document.createElement("option");
+                option.text = tzInfo.name;
+                option.value = tzInfo.value;
+                tzSelect.append(option);
+            }
+            configJson = configJsonLocal;
             loadFormData();
-            sleep(300).then(x => {
-                $('#main_block').removeClass("collapse");
-                $('#loading_block').addClass("collapse");
-            });
+
+            $('#main_block').removeClass("collapse");
+            $('#loading_block').addClass("collapse");
+
         });
+
+
+    }).catch(error => {
+        console.log(`Fetching error: ${error}`);
+    });
 
     function loadFormData() {
         var json = configJson;
@@ -331,6 +352,21 @@
         // Device settings
         $('#brightness_level').val(json['brightness_level']);
         $('#default_clock_face').val(json['default_face']);
+
+        var tzValue = json['tz_libc'];
+        if (tzValue) {
+            $('#clock_timezone').val(tzValue);
+        } else {
+            // Get timezone from browser name, find in list and set the value to the drop-down list
+            var tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            var tzSelect = $('#clock_timezone');
+            for (var i = 0; i < tzSelect[0].length; i++) {
+                if (tzSelect[0][i].text == tz) {
+                    tzSelect[0].selectedIndex = i;
+                    break;
+                }
+            }
+        }
     }
 
 

@@ -62,10 +62,7 @@ void loop() {
         ServerManager.tick();
         bgSourceManager.tick();
         BGDisplayManager.tick();
-        if (bgSourceManager.hasNewData(BGDisplayManager.getLastDisplayedGlucoseEpoch())) {
-            DEBUG_PRINTLN("We have new data");
-            BGDisplayManager.showData(bgSourceManager.getInstance().getGlucoseData());
-        }
+
     } else if (ServerManager.isInAPMode) {
         showJoinAP();
     }

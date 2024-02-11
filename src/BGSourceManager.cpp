@@ -35,7 +35,28 @@ void BGSourceManager_::setup(BG_SOURCE bgSourceType) {
     bgSource->setup();
 }
 
-void BGSourceManager_::tick() { bgSource->tick(); }
+void BGSourceManager_::tick() {
+
+    // We poll the data once a minute trying to sync this with the last received data
+
+    struct tm timeinfo;
+    getLocalTime(&timeinfo);
+    auto currentEpoch = mktime(&timeinfo);
+
+    if (currentEpoch - lastPollEpoch < 61) {
+        return;
+    }
+
+    bgSource->tick();
+
+    auto readings = bgSource->getGlucoseData();
+    auto lastReadingEpoch = readings.size() > 0 ? readings.back().epoch : 0;
+    if (lastPollEpoch < lastReadingEpoch) {
+        lastPollEpoch = lastReadingEpoch;
+    } else {
+        lastPollEpoch = currentEpoch;
+    }
+}
 
 bool BGSourceManager_::hasNewData(unsigned long long epochToCompare) { return bgSource->hasNewData(epochToCompare); }
 

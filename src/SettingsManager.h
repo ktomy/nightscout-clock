@@ -22,6 +22,7 @@ class Settings {
     String dexcom_username;
     String dexcom_password;
     DEXCOM_SERVER dexcom_server;
+    String tz_libc_value;
 };
 
 class SettingsManager_ {

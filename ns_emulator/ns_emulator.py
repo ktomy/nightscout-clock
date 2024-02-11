@@ -15,10 +15,14 @@ else:
     print(dump.dump_all(response).decode('utf-8'))
     exit(1)
 
-since_count = 36
+since_count = 36 # generate since 36 * 5 minutes ago
+to_count = 4 # generate to 4 * 5 minutes ago
+mid_value = 250
+amplitude = 100
+
 current_time = datetime.now() - timedelta(minutes=since_count * 5)
-for i in range(since_count, 0, -1):
-    value = int(150 + 50 * math.sin(math.radians(i * 20)))
+for i in range(since_count, to_count, -1):
+    value = int(mid_value + amplitude / 2 * math.sin(math.radians(i * 20)))
     date_string = current_time.strftime("%Y-%m-%dT%H:%M:%S")
     date_epoch = int(current_time.timestamp()) * 1000
     entry = {
