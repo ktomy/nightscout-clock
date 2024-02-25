@@ -2,6 +2,9 @@
 #define GLOBALS_H
 #include <Arduino.h>
 #include <IPAddress.h>
+
+#define VERSION "0.1"
+
 #define DEBUG
 #define DEBUG_BG_SOURCE
 // #define DEBUG_DISPLAY
