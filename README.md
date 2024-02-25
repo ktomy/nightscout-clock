@@ -10,6 +10,8 @@ Nightscout Clock (or NSClock) is a custom firmware for [Ulanzi TC001](https://ww
 
 If you already have an Ulanzi clock, you can try [installing](https://ktomy.github.io/nightscout-clock/) the Nightscout clock firmware
 
+### Current version: 0.1
+
 ### What already works
 * Simple web-based installation (no need to install flashing tools, you just need the clock and a web browser)
 * AP mode and web-based configuration: the clock hosts a website where the user can configure Nightscout hostname, units type and low/high limits
@@ -38,6 +40,7 @@ If you already have an Ulanzi clock, you can try [installing](https://ktomy.gith
 * Added API data dource. The clock has a simple Nightscout-like endpoint which can receive glucose values from an external source. The main purpose of this feature is to be able to test the clock during the clockfaces development. In order to activate this feature, select the API data source within the clock's Web UI. Here are the endpoints:
     * /api/v1/entries POST endpoint receives an array of Nightscout-like entries. The only significant fields are `sgv`, `date` and `trend` or `direction`. Due to the limited memory the API is stable when sent less than 10 recotds
     * /api/v1/entries DELETE endpoint deleted all entries no matter the payload
+* Added firmware versioning
 ### My TODO list
 * Add more clock faces
     * Battery, humidity and temperature
