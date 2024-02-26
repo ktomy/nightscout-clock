@@ -3,11 +3,11 @@
 #include <Arduino.h>
 #include <IPAddress.h>
 
-#define VERSION "0.3"
+#define VERSION "0.4"
 
 #define DEBUG
 // #define DEBUG_BG_SOURCE
-// #define DEBUG_DISPLAY
+#define DEBUG_DISPLAY
 
 #ifdef DEBUG
 #define DEBUG_PRINTLN(x)                                                                                                         \

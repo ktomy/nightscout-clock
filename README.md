@@ -10,7 +10,7 @@ Nightscout Clock (or NSClock) is a custom firmware for [Ulanzi TC001](https://ww
 
 If you already have an Ulanzi clock, you can try [installing](https://ktomy.github.io/nightscout-clock/) the Nightscout clock firmware
 
-### Current version: 0.3
+### Current version: 0.4
 
 ### What already works
 * Simple web-based installation (no need to install flashing tools, you just need the clock and a web browser)
