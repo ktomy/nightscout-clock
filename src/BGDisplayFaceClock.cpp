@@ -18,6 +18,21 @@ void BGDisplayFaceClock::showClock() const {
     tm timeinfo = ServerManager.getTimezonedTime();
 
     char timeStr[6];
+
+    auto time_format = SettingsManager.settings.time_format;
+    if (time_format == TIME_FORMAT::HOURS_12) {
+        bool is_pm = timeinfo.tm_hour >= 12;
+        if (timeinfo.tm_hour == 0) {
+            timeinfo.tm_hour = 12;
+        } else if (timeinfo.tm_hour > 12) {
+            timeinfo.tm_hour -= 12;
+        }
+
+        for (int i = 0; i < 17; i++) {
+            DisplayManager.drawPixel(i, 7, is_pm ? COLOR_BLUE : COLOR_CYAN);
+        }
+    }
+
     sprintf(timeStr, "%02d:%02d", timeinfo.tm_hour, timeinfo.tm_min);
 
     DisplayManager.setTextColor(COLOR_WHITE);

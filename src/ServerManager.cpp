@@ -160,18 +160,21 @@ bool ServerManager_::initTimeIfNeeded() {
 
     struct tm timeinfo;
 
-    if (!getLocalTime(&timeinfo)) {
+    if (!getLocalTime(&timeinfo) || getUtcEpoch() - lastTimeSync > TIME_SYNC_INTERVAL) {
         configTime(0, 0, "pool.ntp.org"); // Connect to NTP server, with 0 TZ offset
         if (!getLocalTime(&timeinfo)) {
             DEBUG_PRINTLN("Failed to obtain time");
             return false;
         }
 
+        lastTimeSync = getUtcEpoch();
+
         setTimezone();
 
         timeinfo = getTimezonedTime();
 
-        DEBUG_PRINTF("Local time is: %02d.%02d.%d %02d:%02d:%02d\n", timeinfo.tm_mday, timeinfo.tm_mon + 1,
+        DEBUG_PRINTF("Timezone is: %s, local time is: %02d.%02d.%d %02d:%02d:%02d\n",
+                     SettingsManager.settings.tz_libc_value.c_str(), timeinfo.tm_mday, timeinfo.tm_mon + 1,
                      timeinfo.tm_year + 1900, timeinfo.tm_hour, timeinfo.tm_min, timeinfo.tm_sec);
     }
 

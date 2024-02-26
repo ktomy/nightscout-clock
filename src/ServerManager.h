@@ -12,6 +12,7 @@ class ServerManager_ {
     AsyncWebServer *ws;
     AsyncStaticWebHandler *staticFilesHandler = nullptr;
     ServerManager_() = default;
+    unsigned long lastTimeSync = 0;
 
     IPAddress startWifi(String ssid, String password);
     void setupWebServer(IPAddress ip);

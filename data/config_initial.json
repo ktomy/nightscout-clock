@@ -20,5 +20,6 @@
     "brightness_level": 0,
     "default_face": 3,
     "tz_libc": "",
-    "tz": ""
+    "tz": "",
+    "time_format": "24"
 }
