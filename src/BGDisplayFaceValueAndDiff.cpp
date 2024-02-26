@@ -25,6 +25,9 @@ void BGDisplayFaceValueAndDiff::showReadings(const std::list<GlucoseReading> &re
     } else {
         DisplayManager.setTextColor(COLOR_WHITE);
     }
+#ifdef DEBUG_DISPLAY
+    DEBUG_PRINTF("Diff: %s", diff.c_str());
+#endif
 
     DisplayManager.printText(33, 6, diff.c_str(), TEXT_ALIGNMENT::RIGHT, 2);
 }

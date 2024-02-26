@@ -83,6 +83,7 @@ const uint8_t symbol_empty[] PROGMEM = {
 
 const std::map<BG_TREND, const uint8_t *> glucoseTrendSymbols = {
     {BG_TREND::NONE, symbol_empty},
+    {BG_TREND::DOUBLE_UP, symbol_doubleUp},
     {BG_TREND::SINGLE_UP, symbol_singleUp},
     {BG_TREND::FORTY_FIVE_UP, symbol_fortyFiveUp},
     {BG_TREND::FLAT, symbol_flat},
