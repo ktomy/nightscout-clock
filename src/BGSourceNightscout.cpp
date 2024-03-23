@@ -4,8 +4,8 @@
 #include "globals.h"
 
 #include <ArduinoJson.h>
-#include <LCBUrl.h>
 #include <StreamUtils.h>
+#include <Hashing/Hash.h>
 
 std::list<GlucoseReading> BGSourceNightscout::updateReadings(std::list<GlucoseReading> existingReadings) {
     auto baseUrl = SettingsManager.settings.nightscout_url;
@@ -81,65 +81,26 @@ std::list<GlucoseReading> BGSourceNightscout::retrieveReadings(String baseUrl, S
                                                                unsigned long long readingSinceEpoch,
                                                                unsigned long long readingToEpoch, int numberOfvalues) {
 
-    unsigned long long currentEpoch = ServerManager.getUtcEpoch();
+    std::list<GlucoseReading> lastReadings;
 
-#ifdef DEBUG_BG_SOURCE
-    DEBUG_PRINTLN("Getting NS values. Reading since epoch: " + String(readingSinceEpoch) + " (-" +
-                  String((currentEpoch - readingSinceEpoch) / 60) + "m)" + ", number of values: " + String(numberOfvalues) +
-                  ", reading to epoch: " + String(readingToEpoch) + " (-" + String((currentEpoch - readingToEpoch) / 60) + "m)");
-#endif
-
-    if (baseUrl == "") {
-        DisplayManager.showFatalError("Nightscout clock is not configured, please go to http://" + ServerManager.myIP.toString() +
-                                      "/ and configure the device");
-    }
-
-    LCBUrl url;
-
-    String sinceEpoch = String(readingSinceEpoch * 1000);
-    String toEpoch = String(readingToEpoch * 1000);
-
-    String urlString = String(baseUrl + "api/v1/entries?find[date][$gt]=" + sinceEpoch + "&find[date][$lte]=" + toEpoch +
-                              "&count=" + numberOfvalues);
-    if (apiKey != "") {
-        urlString += "&token=" + apiKey;
-    }
-
-#ifdef DEBUG_BG_SOURCE
-    DEBUG_PRINTLN("URL: " + urlString)
-#endif
-
-    auto urlIsOk = url.setUrl(urlString);
-    if (!urlIsOk) {
-        DisplayManager.showFatalError("Invalid Nightscout URL: " + urlString);
-    }
+    LCBUrl url = prepareUrl(baseUrl, readingSinceEpoch, readingToEpoch, numberOfvalues);
 
     bool ssl = url.getScheme() == "https";
 
 #ifdef DEBUG_BG_SOURCE
     DEBUG_PRINTLN(ssl ? "SSL Active" : "No SSL")
 #endif
-    if (ssl) {
-        client->begin(*wifiSecureClient, url.getHost(), url.getPort(), String("/") + url.getPath() + url.getAfterPath(), true);
-    } else {
-        client->begin(url.getHost(), url.getPort(), String("/") + url.getPath() + url.getAfterPath());
-    }
 
-    std::list<GlucoseReading> lastReadings;
+    auto responseCode = initiateCall(url, ssl, apiKey);
+    String responseContent = client->getString();
+#ifdef DEBUG_BG_SOURCE
+    DEBUG_PRINTLN("Response: " + responseContent);
+#endif
 
-    client->setFollowRedirects(HTTPC_FORCE_FOLLOW_REDIRECTS);
-    client->addHeader("Accept", "application/json");
-    auto responseCode = client->GET();
     if (responseCode == HTTP_CODE_OK) {
         DynamicJsonDocument doc(0xFFFF);
 
-        String responseContent = client->getString();
-
         DeserializationError error = deserializeJson(doc, responseContent);
-
-#ifdef DEBUG_BG_SOURCE
-        DEBUG_PRINTLN("Response: " + responseContent);
-#endif
 
         if (error) {
             DEBUG_PRINTF("Error deserializing NS response: %s\nFailed on string: %s\n", error.c_str(), responseContent.c_str());
@@ -195,4 +156,62 @@ std::list<GlucoseReading> BGSourceNightscout::retrieveReadings(String baseUrl, S
 
     client->end();
     return lastReadings;
+}
+
+LCBUrl BGSourceNightscout::prepareUrl(String baseUrl, unsigned long long readingSinceEpoch, unsigned long long readingToEpoch,
+                                      int numberOfvalues) {
+
+    unsigned long long currentEpoch = ServerManager.getUtcEpoch();
+
+#ifdef DEBUG_BG_SOURCE
+    DEBUG_PRINTLN("Getting NS values. Reading since epoch: " + String(readingSinceEpoch) + " (-" +
+                  String((currentEpoch - readingSinceEpoch) / 60) + "m)" + ", number of values: " + String(numberOfvalues) +
+                  ", reading to epoch: " + String(readingToEpoch) + " (-" + String((currentEpoch - readingToEpoch) / 60) + "m)");
+#endif
+
+    if (baseUrl == "") {
+        DisplayManager.showFatalError("Nightscout clock is not configured, please go to http://" + ServerManager.myIP.toString() +
+                                      "/ and configure the device");
+    }
+
+    LCBUrl url;
+
+    String sinceEpoch = String(readingSinceEpoch * 1000);
+    String toEpoch = String(readingToEpoch * 1000);
+
+    String urlString = String(baseUrl + "api/v1/entries?find[date][$gt]=" + sinceEpoch + "&find[date][$lte]=" + toEpoch +
+                              "&count=" + numberOfvalues);
+
+#ifdef DEBUG_BG_SOURCE
+    DEBUG_PRINTLN("URL: " + urlString)
+#endif
+
+    auto urlIsOk = url.setUrl(urlString);
+    if (!urlIsOk) {
+        DisplayManager.showFatalError("Invalid Nightscout URL: " + urlString);
+    }
+    return url;
+}
+
+int BGSourceNightscout::initiateCall(LCBUrl url, bool ssl, String apiKey) {
+    if (ssl) {
+        client->begin(*wifiSecureClient, url.getHost(), url.getPort(), String("/") + url.getPath() + url.getAfterPath(), true);
+    } else {
+        client->begin(url.getHost(), url.getPort(), String("/") + url.getPath() + url.getAfterPath());
+    }
+
+    client->setFollowRedirects(HTTPC_FORCE_FOLLOW_REDIRECTS);
+    client->addHeader("Accept", "application/json");
+
+    if (apiKey != "") {
+        auto hashedApiKey = sha1(apiKey);
+        client->addHeader("api-secret", hashedApiKey);
+#ifdef DEBUG_BG_SOURCE
+        DEBUG_PRINTLN("API Key: " + apiKey);
+        DEBUG_PRINTLN("Hashed API Key: " + hashedApiKey);
+#endif
+    }
+
+    auto responseCode = client->GET();
+    return responseCode;
 }
