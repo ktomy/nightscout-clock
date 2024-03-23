@@ -4,9 +4,8 @@
 #include <Arduino.h>
 #include <EasyButton.h>
 
-class PeripheryManager_
-{
-private:
+class PeripheryManager_ {
+  private:
     PeripheryManager_() = default;
     const int BatReadings = 10;
     uint16_t TotalBatReadings[10];
@@ -19,11 +18,12 @@ private:
     unsigned long previousMillis = 0;
     const unsigned long interval = 1000;
 
-public:
+  public:
     static PeripheryManager_ &getInstance();
     void setup();
     void tick();
     const char *readUptime();
+    const void playRTTTLString(String rtttl);
 };
 
 extern PeripheryManager_ &PeripheryManager;

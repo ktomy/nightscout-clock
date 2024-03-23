@@ -16,3 +16,6 @@ int BRIGHTNESS_PERCENT;
 bool MATRIX_OFF;
 uint8_t MIN_BRIGHTNESS = 2;
 uint8_t MAX_BRIGHTNESS = 180;
+static const String sound_urgent_low PROGMEM = "urgent_low:d=4,o=5,b=230:4e6,4p,4e6,4p,4e6,4p,4e6";
+static const String sound_low PROGMEM = "low:d=4,o=5,b=200:4e5,4p,4e5,4p,4e5";
+static const String sound_high PROGMEM = "high:d=4,o=5,b=125:4e7,p,4e7";

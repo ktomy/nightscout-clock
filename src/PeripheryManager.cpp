@@ -163,3 +163,9 @@ const char *PeripheryManager_::readUptime() {
     sprintf(uptime, "%lu", uptimeSeconds);
     return uptime;
 }
+
+const void PeripheryManager_::playRTTTLString(String rtttl) {
+    static char melodyName[64];
+    Melody melody = MelodyFactory.loadRtttlString(rtttl.c_str());
+    player.playAsync(melody);
+}
