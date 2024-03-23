@@ -38,6 +38,13 @@ std::list<GlucoseReading> BGSourceNightscout::updateReadings(String baseUrl, Str
         // retrieve readings starting from the last reading plus one second (to not include the existing reading)
         std::list<GlucoseReading> retrievedReadings = retrieveReadings(baseUrl, apiKey, lastReadingEpoch + 1, readToEpoch, 30);
 
+        // if we didn't get any readings and the last reading is older than now, try to get the last readings
+        // this is the case when there are gaps in readings for more than one hour for e.g. sensor change
+        if (retrievedReadings.size() == 0 && readToEpoch < currentEpoch) {
+            std::list<GlucoseReading> retrievedReadings =
+                retrieveReadings(baseUrl, apiKey, lastReadingEpoch + 1, currentEpoch, 30);
+        }
+
 #ifdef DEBUG_BG_SOURCE
         if (retrievedReadings.size() == 0) {
             DEBUG_PRINTLN("Retrieved no readings");
