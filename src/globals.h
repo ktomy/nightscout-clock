@@ -5,10 +5,6 @@
 
 #define VERSION "0.6"
 
-// #define DEBUG
-// #define DEBUG_BG_SOURCE
-// #define DEBUG_DISPLAY
-
 #ifdef DEBUG
 #define DEBUG_PRINTLN(x)                                                                                                         \
     {                                                                                                                            \
