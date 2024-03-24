@@ -18,7 +18,7 @@
  *   along with this library; if not, see <http://www.gnu.org/licenses/>   *
  ***************************************************************************/
 #include "melody_player.h"
-#include "../Globals.h"
+#include "../globals.h"
 /**
  * https://stackoverflow.com/questions/24609271/errormake-unique-is-not-a-member-of-std
  */
