@@ -3,7 +3,7 @@
 #include <Arduino.h>
 #include <IPAddress.h>
 
-#define VERSION "0.5"
+#define VERSION "0.6"
 
 // #define DEBUG
 // #define DEBUG_BG_SOURCE
