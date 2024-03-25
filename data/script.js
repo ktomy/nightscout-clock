@@ -26,6 +26,10 @@
     addFocusOutValidation('clock_timezone');
     addFocusOutValidation('time_format');
 
+    $('#alarm_high_enable').change((e) => { changeAlarmState(e.target) });
+    $('#alarm_low_enable').change((e) => { changeAlarmState(e.target) });
+    $('#alarm_urgent_low_enable').change((e) => { changeAlarmState(e.target) });
+
     const glucoseSource = $('#glucose_source');
     const nightscoutSettingsCard = $('#nightscout_settings_card');
     const dexcomSettingsCard = $('#dexcom_settings_card');
@@ -87,6 +91,7 @@
         allValid &= validateBG();
         allValid &= validate($('#clock_timezone'), patterns.clock_timezone);
         allValid &= validate($('#time_format'), patterns.time_format);
+        allValid &= validateAlarms();
 
         if (!allValid) {
             return;
@@ -95,6 +100,82 @@
         const jsonString = createJson();
         uploadForm(jsonString);
     });
+
+    function changeAlarmState(target) {
+        const alarmType = $(target).attr('id').replace('_enable', '').replace('alarm_', '');
+        const alarmState = $(target).is(':checked');
+        $(`#alarm_${alarmType}_value`).prop('disabled', !alarmState);
+        $(`#alarm_${alarmType}_snooze`).prop('disabled', !alarmState);
+        $(`#alarm_${alarmType}_silence`).prop('disabled', !alarmState);
+
+        if (alarmState) {
+            addFocusOutValidation(`alarm_${alarmType}_value`, bgValidationPattternSelector);
+            addFocusOutValidationDropDown(`alarm_${alarmType}_snooze`);
+            addFocusOutValidationDropDown(`alarm_${alarmType}_silence`);
+        } else {
+            removeFocusOutValidation(`alarm_${alarmType}_value`);
+            removeFocusOutValidationDropDown(`alarm_${alarmType}_snooze`);
+            removeFocusOutValidationDropDown(`alarm_${alarmType}_silence`);
+            clearValidationStatus(`alarm_${alarmType}_value`);
+            clearValidationStatus(`alarm_${alarmType}_snooze`);
+            clearValidationStatus(`alarm_${alarmType}_silence`);
+        }
+    }
+
+    function addFocusOutValidationDropDown(fieldName) {
+        const field = $(`#${fieldName}`);
+        field.on('focusout', (e) => {
+            validateDropDown($(e.target));
+        });
+    }
+
+    function removeFocusOutValidationDropDown(fieldName) {
+        const field = $(`#${fieldName}`);
+        field.off('focusout');
+    }
+
+    function bgValidationPattternSelector() {
+        if ($('#bg_units').val() == "mgdl") {
+            return patterns.bg_mgdl;
+        } else if ($('#bg_units').val() == "mmol") {
+            return patterns.bg_mmol;
+        } else {
+            console.error("No BG units selected");
+            return undefined;
+        }
+    }
+
+    function validateAlarms() {
+        let isValid = true;
+        isValid &= validateAlarm('high');
+        isValid &= validateAlarm('low');
+        isValid &= validateAlarm('urgent_low');
+        return isValid;
+    }
+
+    function validateAlarm(alarmType) {
+        const alarmEnabled = $(`#alarm_${alarmType}_enable`).is(':checked');
+        if (!alarmEnabled) {
+            return true;
+        }
+
+        const valueField = $(`#alarm_${alarmType}_value`);
+        let isValid = validate(valueField, bgValidationPattternSelector());
+        isValid &= validateDropDown($(`#alarm_${alarmType}_snooze`));
+        isValid &= validateDropDown($(`#alarm_${alarmType}_silence`));
+        return isValid;
+    }
+
+    function validateDropDown(dropDown) {
+        const value = dropDown.val();
+        if (value === "") {
+            setElementValidity(dropDown, false);
+            return false;
+        } else {
+            setElementValidity(dropDown, true);
+            return true;
+        }
+    }
 
     function validateGlucoseSource() {
         const value = glucoseSource.val();
@@ -165,7 +246,33 @@
         json['tz'] = $('#clock_timezone option:selected').text();
         json['time_format'] = $('#time_format').val();
 
+        //Alarms
+
+        setAlarmDataToJson(json, 'high');
+        setAlarmDataToJson(json, 'low');
+        setAlarmDataToJson(json, 'urgent_low');
+
         return JSON.stringify(json);
+    }
+
+    function setAlarmDataToJson(json, alarmType) {
+        const alarmEnabled = $(`#alarm_${alarmType}_enable`).is(':checked');
+        json[`alarm_${alarmType}_enabled`] = alarmEnabled;
+        if (!alarmEnabled) {
+            return;
+        }
+
+        let alarmValue = $(`#alarm_${alarmType}_value`).val();
+        const snooze = $(`#alarm_${alarmType}_snooze`).val();
+        const silence = $(`#alarm_${alarmType}_silence`).val();
+
+        if ($('#bg_units').val() == 'mmol') {
+            alarmValue = Math.round(parseFloat(alarmValue) * 18);
+        }
+
+        json[`alarm_${alarmType}_value`] = alarmValue;
+        json[`alarm_${alarmType}_snooze_interval`] = snooze;
+        json[`alarm_${alarmType}_silence_interval`] = silence;
     }
 
     function uploadForm(json) {
@@ -228,15 +335,13 @@
 
 
     function validateBG() {
-        var valid = true;
-        if ($('#bg_units').val() == "mgdl") {
+        let valid = true;
+        valid &= validate($('#bg_low'), bgValidationPattternSelector());
+        valid &= validate($('#bg_high'), bgValidationPattternSelector());
+
+        const bgUnits = $('#bg_units').val();
+        if (bgUnits === "mgdl" || bgUnits === "mmol") {
             setElementValidity($('#bg_units'), true);
-            valid &= validate($('#bg_low'), patterns.bg_mgdl);
-            valid &= validate($('#bg_high'), patterns.bg_mgdl);
-        } else if ($('#bg_units').val() == "mmol") {
-            setElementValidity($('#bg_units'), true);
-            valid &= validate($('#bg_low'), patterns.bg_mmol);
-            valid &= validate($('#bg_high'), patterns.bg_mmol);
         } else {
             setElementValidity($('#bg_units'), false);
             valid = false;
@@ -253,11 +358,30 @@
         field.off('focusout');
     }
 
-    function addFocusOutValidation(fieldName) {
+    function addFocusOutValidation(fieldName, patternSelector) {
         const field = $(`#${fieldName}`);
         field.on('focusout', (e) => {
-            validate($(e.target), patterns[fieldName])
+            let pattern = undefined;
+            if (fieldName in patterns) {
+                pattern = patterns[fieldName];
+            }
+            if (patternSelector !== undefined) {
+                pattern = patternSelector(fieldName);
+            }
+
+            if (pattern !== undefined) {
+                validate($(e.target), pattern)
+            } else {
+                console.error(`No pattern found for field ${fieldName}`);
+            }
+
         });
+    }
+
+    function clearValidationStatus(fieldName) {
+        const field = $(`#${fieldName}`);
+        field.removeClass("is-invalid");
+        field.removeClass("is-valid");
     }
 
     function setElementValidity(field, valid) {
@@ -377,6 +501,28 @@
                 break;
             }
         }
+
+        // Alarms
+
+        loadAlarmDataFromJson(json, 'high');
+        loadAlarmDataFromJson(json, 'low');
+        loadAlarmDataFromJson(json, 'urgent_low');
+    }
+
+    function loadAlarmDataFromJson(json, alarmType) {
+        const alarmEnabled = json[`alarm_${alarmType}_enabled`];
+        $(`#alarm_${alarmType}_enable`).prop('checked', alarmEnabled);
+
+        let alarmValue = json[`alarm_${alarmType}_value`];
+
+        if (alarmValue % 1 === 0 && json['units'] == 'mmol') {
+            alarmValue = ((Math.round(alarmValue / 1.8) / 10) + "").replace(",", ".")
+        }
+        $(`#alarm_${alarmType}_value`).val(alarmValue);
+        $(`#alarm_${alarmType}_snooze`).val(json[`alarm_${alarmType}_snooze_interval` || ""]);
+        $(`#alarm_${alarmType}_silence`).val(json[`alarm_${alarmType}_silence_interval` || ""]);
+
+        changeAlarmState($(`#alarm_${alarmType}_enable`));
     }
 
 })()

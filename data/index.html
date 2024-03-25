@@ -23,12 +23,12 @@
             <div class="collapse" id="main_block">
                 <div class="card" id="wifi_setup_card">
                     <h5 class="card-header" id="headingOne">
-                        Wireless network settings
+                        Wireless network
                     </h5>
                     <div class="card-body">
                         <div class="row g-3">
                             <div class="col-sm-6">
-                                <label for="ssid" class="form-label">Wireless network name (SSID)</label>
+                                <label for="ssid" class="form-label">WiFi network name (SSID)</label>
                                 <input type="text" class="form-control" id="ssid" placeholder="" value="" required>
                                 <div class="invalid-feedback">
                                     Valid network name (SSID) is required
@@ -72,7 +72,7 @@
                 <div id="dexcom_settings_card" class="d-none">
                     <div class="card">
                         <h5 class="card-header" id="headingTwo">
-                            Dexcom settings
+                            Dexcom connection
                         </h5>
                         <div class="card-body">
                             <div class="row">
@@ -109,7 +109,7 @@
                 <div class="d-none" id="nightscout_settings_card">
                     <div class="card">
                         <h5 class="card-header" id="headingThree">
-                            Nightscout settings
+                            Nightscout connection
                         </h5>
                         <div class="card-body">
                             <div class="row">
@@ -157,10 +157,13 @@
                     <br />
                 </div>
                 <div class="card" id="glucode_related_settings_card">
-                    <h5 class="card-header">Glucose-related settings</h5>
+                    <h5 class="card-header d-flex justify-content-between align-items-center">
+                        Glucose-related settings
+                        <button type="button" class="btn btn-sm btn-primary" disabled>Load from Nightscout</button>
+                    </h5>
                     <div class="card-body">
                         <div class="row">
-                            <div class="col-sm-4">
+                            <div class="col-sm-2">
                                 <label for="bg_units" class="form-label">Blood glucose units</label>
                                 <select class="form-select" id="bg_units" required>
                                     <option value="">Choose...</option>
@@ -171,21 +174,230 @@
                                     Please select blood glucose units type
                                 </div>
                             </div>
+                            <div class="col-sm-2">
+                                <label for="bg_urgent_low" class="form-label">
+                                    BG Urgent Low value
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="darkred"
+                                        class="bi bi-square-fill" viewBox="0 0 16 16">
+                                        <path
+                                            d="M0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2z" />
+                                    </svg> </label>
 
-                            <div class="col-sm-4">
-                                <label for="bg_low" class="form-label">BG low value</label>
+                                <input type="text" class="form-control" id="bg_urgent_low" placeholder="" required>
+                                <div class="invalid-feedback">
+                                    BG Urgent Low value is required
+                                </div>
+                            </div>
+                            <div class="col-sm-2">
+                                <label for="bg_low" class="form-label">
+                                    BG Low value
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#8B8000"
+                                        class="bi bi-square-fill" viewBox="0 0 16 16">
+                                        <path
+                                            d="M0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2z" />
+                                    </svg>
+                                </label>
                                 <input type="text" class="form-control" id="bg_low" placeholder="" required>
                                 <div class="invalid-feedback">
                                     BG Low value is required
                                 </div>
                             </div>
-
-                            <div class="col-sm-4">
-                                <label for="bg_high" class="form-label">BG High value</label>
+                            <div class="col-sm-2">
+                                <label for="bg_normal" class="form-label">
+                                    Normal interval
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#008000"
+                                        class="bi bi-square-fill" viewBox="0 0 16 16">
+                                        <path
+                                            d="M0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2z" />
+                                    </svg>
+                                </label>
+                                <input type="text" class="form-control" id="bg_normal" placeholder="" disabled>
+                            </div>
+                            <div class="col-sm-2">
+                                <label for="bg_high" class="form-label">
+                                    BG High value
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#8B8000"
+                                        class="bi bi-square-fill" viewBox="0 0 16 16">
+                                        <path
+                                            d="M0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2z" />
+                                    </svg>
+                                </label>
                                 <input type="text" class="form-control" id="bg_high" placeholder="" required>
                                 <div class="invalid-feedback">
                                     BG High value is required
                                 </div>
+                            </div>
+                            <div class="col-sm-2">
+                                <label for="bg_urgent_high" class="form-label">
+                                    BG Urgent High value
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="darkred"
+                                        class="bi bi-square-fill" viewBox="0 0 16 16">
+                                        <path
+                                            d="M0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2z" />
+                                    </svg> </label>
+                                <input type="text" class="form-control" id="bg_urgent_high" placeholder="" required>
+                                <div class="invalid-feedback">
+                                    BG Urgent High value is required
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <br />
+
+            <div class="card" id="device_settings_card">
+                <h5 class="card-header">Glucose levels alerts</h5>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-sm-2">
+                            <br class="d-none d-sm-block" />
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" value="" id="alarm_high_enable">
+                                <label class="form-check-label" for="alarm_high_enable">
+                                    High alert
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-sm-1 align-content-center">
+                            <button class="btn btn-outline-primary w-100" type="button">Try</button>
+                        </div>
+                        <div class="col-sm-3">
+                            <label for="alarm_high_value" class="form-label">Alert when above</label>
+                            <input type="text" class="form-control" id="alarm_high_value" placeholder="" required
+                                disabled>
+                            <div class="invalid-feedback">
+                                High alert threshold value is required
+                            </div>
+                        </div>
+                        <div class="col-sm-3">
+                            <label for="alarm_high_snooze" class="form-label">Repeat after</label>
+                            <select class="form-select" id="alarm_high_snooze" required disabled>
+                                <option value="">Choose...</option>
+                                <option value="5">5 minutes</option>
+                                <option value="10">10 minutes</option>
+                                <option value="15">15 minutes</option>
+                                <option value="30">30 minutes</option>
+                                <option value="60">1 hour</option>
+                                <option value="120">2 hours</option>
+                                <option value="0">Never</option>
+                            </select>
+                            <div class="invalid-feedback">
+                                Please select high alert snooze interval
+                            </div>
+                        </div>
+                        <div class="col-sm-3">
+                            <label for="alarm_high_silence" class="form-label">Silence interval</label>
+                            <select class="form-select" id="alarm_high_silence" required disabled>
+                                <option value="">Choose...</option>
+                                <option value="0">No silence</option>
+                                <option value="12_8">22:00 - 8:00</option>
+                                <option value="8_22">08:00 - 22:00</option>
+                            </select>
+                            <div class="invalid-feedback">
+                                Splease choose High alert silence interval
+                            </div>
+                        </div>
+                    </div>
+                    <hr />
+                    <div class="row">
+                        <div class="col-sm-2">
+                            <br class="d-none d-sm-block" />
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" value="" id="alarm_low_enable">
+                                <label class="form-check-label" for="alarm_low_enable">
+                                    Low alert
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-sm-1 align-content-center">
+                            <button class="btn btn-outline-primary w-100" type="button">Try</button>
+                        </div>
+                        <div class="col-sm-3">
+                            <label for="alarm_low_value" class="form-label">Alert when above</label>
+                            <input type="text" class="form-control" id="alarm_low_value" placeholder="" required
+                                disabled>
+                            <div class="invalid-feedback">
+                                Low alert threshold value is required
+                            </div>
+                        </div>
+                        <div class="col-sm-3">
+                            <label for="alarm_low_snooze" class="form-label">Repeat after</label>
+                            <select class="form-select" id="alarm_low_snooze" required disabled>
+                                <option value="">Choose...</option>
+                                <option value="5">5 minutes</option>
+                                <option value="10">10 minutes</option>
+                                <option value="15">15 minutes</option>
+                                <option value="30">30 minutes</option>
+                                <option value="60">1 hour</option>
+                                <option value="120">2 hours</option>
+                                <option value="0">Never</option>
+                            </select>
+                            <div class="invalid-feedback">
+                                Please select Low alert snooze interval
+                            </div>
+                        </div>
+                        <div class="col-sm-3">
+                            <label for="alarm_low_silence" class="form-label">Silence interval</label>
+                            <select class="form-select" id="alarm_low_silence" required disabled>
+                                <option value="">Choose...</option>
+                                <option value="0">No silence</option>
+                                <option value="12_8">22:00 - 8:00</option>
+                                <option value="8_22">08:00 - 22:00</option>
+                            </select>
+                            <div class="invalid-feedback">
+                                Splease choose Low alert silence interval
+                            </div>
+                        </div>
+                    </div>
+                    <hr />
+                    <div class="row">
+                        <div class="col-sm-2">
+                            <br class="d-none d-sm-block" />
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" value="" id="alarm_urgent_low_enable">
+                                <label class="form-check-label" for="alarm_urgent_low_enable">
+                                    Urgent Low alert
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-sm-1 align-content-center">
+                            <button class="btn btn-outline-primary w-100" type="button">Try</button>
+                        </div>
+                        <div class="col-sm-3">
+                            <label for="alarm_urgent_low_value" class="form-label">Alert when above</label>
+                            <input type="text" class="form-control" id="alarm_urgent_low_value" placeholder="" required
+                                disabled>
+                            <div class="invalid-feedback">
+                                Urgent Low alert threshold value is required
+                            </div>
+                        </div>
+                        <div class="col-sm-3">
+                            <label for="alarm_urgent_low_snooze" class="form-label">Repeat after</label>
+                            <select class="form-select" id="alarm_urgent_low_snooze" required disabled>
+                                <option value="">Choose...</option>
+                                <option value="5">5 minutes</option>
+                                <option value="10">10 minutes</option>
+                                <option value="15">15 minutes</option>
+                                <option value="30">30 minutes</option>
+                                <option value="60">1 hour</option>
+                                <option value="120">2 hours</option>
+                                <option value="0">Never</option>
+                            </select>
+                            <div class="invalid-feedback">
+                                Please select Urgent Low alert snooze interval
+                            </div>
+                        </div>
+                        <div class="col-sm-3">
+                            <label for="alarm_urgent_low_silence" class="form-label">Silence interval</label>
+                            <select class="form-select" id="alarm_urgent_low_silence" required disabled>
+                                <option value="">Choose...</option>
+                                <option value="0">No silence</option>
+                                <option value="12_8">22:00 - 8:00</option>
+                                <option value="8_22">08:00 - 22:00</option>
+                            </select>
+                            <div class="invalid-feedback">
+                                Splease choose Urgent Low alert silence interval
                             </div>
                         </div>
                     </div>
@@ -247,165 +459,6 @@
                             </select>
                             <div class="invalid-feedback">
                                 Please select the time format (AM/PM or 24h)
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <br />
-
-            <div class="card" id="device_settings_card">
-                <h5 class="card-header">Glucose levels alerts settings</h5>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-sm-2">
-                            <br class="d-none d-sm-block" />
-                            <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" value="" id="alarm_high_enable">
-                                <label class="form-check-label" for="alarm_high_enable">
-                                    Enable High alert
-                                </label>
-                            </div>
-                        </div>
-                        <div class="col-sm-1 align-content-center">
-                            <button class="btn btn-outline-primary w-100" type="button" disabled>Test</button>
-                        </div>
-                        <div class="col-sm-3">
-                            <label for="alarm_high_value" class="form-label">Alert when above</label>
-                            <input type="text" class="form-control" id="alarm_high_value" placeholder="" required
-                                disabled>
-                            <div class="invalid-feedback">
-                                High alert threshold value is required
-                            </div>
-                        </div>
-                        <div class="col-sm-3">
-                            <label for="alarm_high_snooze" class="form-label">Repeat after</label>
-                            <select class="form-select" id="alarm_high_snooze" required disabled>
-                                <option value="">Choose...</option>
-                                <option value="5">5 minutes</option>
-                                <option value="10">10 minutes</option>
-                                <option value="15">15 minutes</option>
-                                <option value="30">30 minutes</option>
-                                <option value="60">1 hour</option>
-                                <option value="120">2 hours</option>
-                                <option value="0">Never</option>
-                            </select>
-                            <div class="invalid-feedback">
-                                Please select high alert snooze interval
-                            </div>
-                        </div>
-                        <div class="col-sm-3">
-                            <label for="alarm_high_silence" class="form-label">Silence interval</label>
-                            <select class="form-select" id="alarm_high_silence" required disabled>
-                                <option value="">Choose...</option>
-                                <option value="0">No silence</option>
-                                <option value="12_8">22:00 - 8:00</option>
-                                <option value="8_22">08:00 - 22:00</option>
-                            </select>
-                            <div class="invalid-feedback">
-                                Splease choose High alert silence interval
-                            </div>
-                        </div>
-                    </div>
-                    <hr />
-                    <div class="row">
-                        <div class="col-sm-2">
-                            <br class="d-none d-sm-block" />
-                            <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" value="" id="alarm_low_enable">
-                                <label class="form-check-label" for="alarm_low_enable">
-                                    Enable Low alert
-                                </label>
-                            </div>
-                        </div>
-                        <div class="col-sm-1 align-content-center">
-                            <button class="btn btn-outline-primary w-100" type="button" disabled>Test</button>
-                        </div>
-                        <div class="col-sm-3">
-                            <label for="alarm_low_value" class="form-label">Alert when above</label>
-                            <input type="text" class="form-control" id="alarm_low_value" placeholder="" required
-                                disabled>
-                            <div class="invalid-feedback">
-                                Low alert threshold value is required
-                            </div>
-                        </div>
-                        <div class="col-sm-3">
-                            <label for="alarm_low_snooze" class="form-label">Repeat after</label>
-                            <select class="form-select" id="alarm_low_snooze" required disabled>
-                                <option value="">Choose...</option>
-                                <option value="5">5 minutes</option>
-                                <option value="10">10 minutes</option>
-                                <option value="15">15 minutes</option>
-                                <option value="30">30 minutes</option>
-                                <option value="60">1 hour</option>
-                                <option value="120">2 hours</option>
-                                <option value="0">Never</option>
-                            </select>
-                            <div class="invalid-feedback">
-                                Please select Low alert snooze interval
-                            </div>
-                        </div>
-                        <div class="col-sm-3">
-                            <label for="alarm_low_silence" class="form-label">Silence interval</label>
-                            <select class="form-select" id="alarm_low_silence" required disabled>
-                                <option value="">Choose...</option>
-                                <option value="0">No silence</option>
-                                <option value="12_8">22:00 - 8:00</option>
-                                <option value="8_22">08:00 - 22:00</option>
-                            </select>
-                            <div class="invalid-feedback">
-                                Splease choose Low alert silence interval
-                            </div>
-                        </div>
-                    </div>
-                    <hr />
-                    <div class="row">
-                        <div class="col-sm-2">
-                            <br class="d-none d-sm-block" />
-                            <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" value="" id="alarm_urgent_low_enable">
-                                <label class="form-check-label" for="alarm_urgent_low_enable">
-                                    Enable Urgent Low alert
-                                </label>
-                            </div>
-                        </div>
-                        <div class="col-sm-1 align-content-center">
-                            <button class="btn btn-outline-primary w-100" type="button" disabled>Test</button>
-                        </div>
-                        <div class="col-sm-3">
-                            <label for="alarm_urgent_low_value" class="form-label">Alert when above</label>
-                            <input type="text" class="form-control" id="alarm_urgent_low_value" placeholder="" required
-                                disabled>
-                            <div class="invalid-feedback">
-                                Urgent Low alert threshold value is required
-                            </div>
-                        </div>
-                        <div class="col-sm-3">
-                            <label for="alarm_urgent_low_snooze" class="form-label">Repeat after</label>
-                            <select class="form-select" id="alarm_urgent_low_snooze" required disabled>
-                                <option value="">Choose...</option>
-                                <option value="5">5 minutes</option>
-                                <option value="10">10 minutes</option>
-                                <option value="15">15 minutes</option>
-                                <option value="30">30 minutes</option>
-                                <option value="60">1 hour</option>
-                                <option value="120">2 hours</option>
-                                <option value="0">Never</option>
-                            </select>
-                            <div class="invalid-feedback">
-                                Please select Urgent Low alert snooze interval
-                            </div>
-                        </div>
-                        <div class="col-sm-3">
-                            <label for="alarm_urgent_low_silence" class="form-label">Silence interval</label>
-                            <select class="form-select" id="alarm_urgent_low_silence" required disabled>
-                                <option value="">Choose...</option>
-                                <option value="0">No silence</option>
-                                <option value="12_8">22:00 - 8:00</option>
-                                <option value="8_22">08:00 - 22:00</option>
-                            </select>
-                            <div class="invalid-feedback">
-                                Splease choose Urgent Low alert silence interval
                             </div>
                         </div>
                     </div>
