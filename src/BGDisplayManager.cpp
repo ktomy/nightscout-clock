@@ -22,12 +22,14 @@ void BGDisplayManager_::setup() {
     glucoseIntervals = GlucoseIntervals();
     /// TODO: Add urgent values to settings
 
-    glucoseIntervals.addInterval(1, 55, BG_LEVEL::URGENT_LOW);
-    glucoseIntervals.addInterval(56, SettingsManager.settings.bg_low_warn_limit - 1, BG_LEVEL::WARNING_LOW);
+    glucoseIntervals.addInterval(1, SettingsManager.settings.bg_low_urgent_limit, BG_LEVEL::URGENT_LOW);
+    glucoseIntervals.addInterval(SettingsManager.settings.bg_low_urgent_limit + 1, SettingsManager.settings.bg_low_warn_limit - 1,
+                                 BG_LEVEL::WARNING_LOW);
     glucoseIntervals.addInterval(SettingsManager.settings.bg_low_warn_limit, SettingsManager.settings.bg_high_warn_limit,
                                  BG_LEVEL::NORMAL);
-    glucoseIntervals.addInterval(SettingsManager.settings.bg_high_warn_limit, 260, BG_LEVEL::WARNING_HIGH);
-    glucoseIntervals.addInterval(260, 401, BG_LEVEL::URGENT_HIGH);
+    glucoseIntervals.addInterval(SettingsManager.settings.bg_high_warn_limit, SettingsManager.settings.bg_high_urgent_limit - 1,
+                                 BG_LEVEL::WARNING_HIGH);
+    glucoseIntervals.addInterval(SettingsManager.settings.bg_high_urgent_limit, 401, BG_LEVEL::URGENT_HIGH);
 
     faces.push_back(new BGDisplayFaceSimple());
     facesNames[0] = "Simple";

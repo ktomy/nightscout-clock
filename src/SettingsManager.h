@@ -9,6 +9,7 @@
 class SettingsManager_ {
   private:
     SettingsManager_() = default;
+    DynamicJsonDocument *readConfigJsonFile();
 
   public:
     static SettingsManager_ &getInstance();

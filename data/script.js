@@ -18,6 +18,7 @@
         time_format: /^(12|24)$/,
 
     };
+
     let configJson = {};
 
     addFocusOutValidation('ssid');
@@ -34,56 +35,37 @@
     const nightscoutSettingsCard = $('#nightscout_settings_card');
     const dexcomSettingsCard = $('#dexcom_settings_card');
 
-    glucoseSource.change(() => {
-        const value = glucoseSource.val();
-        nightscoutSettingsCard.toggleClass("d-none", value !== "nightscout");
-        dexcomSettingsCard.toggleClass("d-none", value !== "dexcom");
-
-        removeFocusOutValidation('ns_hostname');
-        removeFocusOutValidation('ns_port');
-        removeFocusOutValidation('api_secret');
-        removeFocusOutValidation('dexcom_server');
-        removeFocusOutValidation('dexcom_username');
-        removeFocusOutValidation('dexcom_password');
-
-        switch (value) {
-            case "nightscout":
-                setElementValidity(glucoseSource, true);
-                addFocusOutValidation('ns_hostname');
-                addFocusOutValidation('ns_port');
-                addFocusOutValidation('api_secret');
-                break;
-            case "dexcom":
-                setElementValidity(glucoseSource, true);
-                addFocusOutValidation('dexcom_server');
-                addFocusOutValidation('dexcom_username');
-                addFocusOutValidation('dexcom_password');
-                break;
-            case "api":
-                setElementValidity(glucoseSource, true);
-                break;
-            default:
-                setElementValidity(glucoseSource, false);
-                break;
-        }
-    });
+    glucoseSource.change(glucoseDataSourceSwitch);
 
     $('#bg_units').change((e) => {
         validateBG();
     });
-    $('#bg_low').on('focusout', (e) => {
-        validateBG();
-    });
-    $('#bg_high').on('focusout', (e) => {
-        validateBG();
-    });
+
+    $('#bg_urgent_low, #bg_low, #bg_high, #bg_urgent_high').on('focusout', validateBG);
+
+    $('#btn_load_limits_from_ns').on('click', loadNightscoutData);
+
     $('#ns_protocol').change((e) => {
         validate($('#ns_protocol'), patterns.ns_protocol);
     });
 
-    const saveButton = $("#save");
-    saveButton.on('click', (e) => {
+    $("#save").on('click', validateAndSave);
 
+    loadConfiguration();
+
+    function validateAndSave() {
+        const allValid = validateAll();
+
+        if (!allValid) {
+            showToastFailure("Error", "Please correct the validation errors before saving");
+            return;
+        }
+
+        const jsonString = createJson();
+        uploadForm(jsonString);
+    }
+
+    function validateAll() {
         var allValid = true;
         allValid &= validate($('#ssid'), patterns.ssid);
         allValid &= validate($('#wifi_password'), patterns.wifi_password);
@@ -92,14 +74,123 @@
         allValid &= validate($('#clock_timezone'), patterns.clock_timezone);
         allValid &= validate($('#time_format'), patterns.time_format);
         allValid &= validateAlarms();
+        return allValid;
+    }
 
-        if (!allValid) {
-            return;
+    function glucoseDataSourceSwitch() {
+        {
+            const value = glucoseSource.val();
+            nightscoutSettingsCard.toggleClass("d-none", value !== "nightscout");
+            dexcomSettingsCard.toggleClass("d-none", value !== "dexcom");
+
+            removeFocusOutValidation('ns_hostname');
+            removeFocusOutValidation('ns_port');
+            removeFocusOutValidation('api_secret');
+            removeFocusOutValidation('dexcom_server');
+            removeFocusOutValidation('dexcom_username');
+            removeFocusOutValidation('dexcom_password');
+
+            switch (value) {
+                case "nightscout":
+                    setElementValidity(glucoseSource, true);
+                    addFocusOutValidation('ns_hostname');
+                    addFocusOutValidation('ns_port');
+                    addFocusOutValidation('api_secret');
+                    break;
+                case "dexcom":
+                    setElementValidity(glucoseSource, true);
+                    addFocusOutValidation('dexcom_server');
+                    addFocusOutValidation('dexcom_username');
+                    addFocusOutValidation('dexcom_password');
+                    break;
+                case "api":
+                    setElementValidity(glucoseSource, true);
+                    break;
+                default:
+                    setElementValidity(glucoseSource, false);
+                    break;
+            }
         }
+    }
 
-        const jsonString = createJson();
-        uploadForm(jsonString);
-    });
+    function mgdlToSelectedUnits(value) {
+        if ($('#bg_units').val() == 'mmol') {
+            return ((Math.round(value / 1.8) / 10) + "").replace(",", ".").replace("NaN", "");
+        }
+        return value.replace("NaN", "") + "";
+    }
+
+    function loadNightscoutData() {
+        {
+            if ($('#ns_protocol').val() == "" || $('#ns_hostname').val() == "") {
+                showToastFailure("Error", "Please fill in the Nightscout hostname and port before loading the thresholds");
+                return;
+            }
+            $('#btn_load_limits_from_ns').prop('disabled', true);
+
+            var url = new URL("http://bogus.url/");
+            url.protocol = $('#ns_protocol').val()
+            url.hostname = $('#ns_hostname').val();
+            if ($('#ns_port').val() != "") {
+                url.port = $('#ns_port').val();
+            }
+            url.pathname = "/api/v1/status.json";
+
+            let fetchSettings = (url, headers) => {
+                return fetch(url, {
+                    method: "GET",
+                    headers: headers
+                })
+                    .then(function (res) {
+                        if (res?.ok) {
+                            res.json().then(data => {
+                                if (data.settings) {
+                                    var settings = data.settings;
+                                    $('#bg_units').val(settings.units == "mmol" ? "mmol" : "mgdl");
+                                    $('#bg_low').val(mgdlToSelectedUnits(settings.thresholds.bgTargetBottom));
+                                    $('#bg_high').val(mgdlToSelectedUnits(settings.thresholds.bgTargetTop));
+                                    $('#bg_urgent_low').val(mgdlToSelectedUnits(settings.thresholds.bgLow));
+                                    $('#bg_urgent_high').val(mgdlToSelectedUnits(settings.thresholds.bgHigh));
+                                    //trigger change event to update the validation
+                                    $('#bg_units').trigger('change');
+
+
+                                    showToastSuccess("Success", "Blood glucose thresholds successfully loaded from Nightscout");
+                                }
+                                else {
+                                    console.log("No settings found in Nightscout response");
+                                    showToastFailure("Error", "Failed to load settings from Nightscout");
+                                }
+                            });
+                        }
+                        else {
+                            console.log(`Response error: ${res?.status}`)
+                            showToastFailure("Error", "Failed to load settings from Nightscout");
+                        }
+                        $('#btn_load_limits_from_ns').prop('disabled', false);
+                    })
+                    .catch(error => {
+                        console.log(`Fetching error: ${error}`);
+                        $('#btn_load_limits_from_ns').prop('disabled', false);
+                        showToastFailure("Error", "Failed to load settings from Nightscout");
+                    });
+            };
+
+            var headers = {};
+            if ($('#api_secret').val() != "") {
+                cr = crypto.subtle.digest("SHA-1");
+                cr.update($('#api_secret').val());
+                cr.digest().then(function (hash) {
+                    headers["api-secret"] = hash;
+                    fetchSettings(url, headers);
+                });
+            } else {
+                fetchSettings(url, headers);
+            }
+
+            showToastSuccess("Success", "Blood glucose thresholds successfully loaded from Nightscout");
+        }
+    }
 
     function changeAlarmState(target) {
         const alarmType = $(target).attr('id').replace('_enable', '').replace('alarm_', '');
@@ -226,16 +317,25 @@
         json['units'] = $('#bg_units').val();
         var bg_low = 0;
         var bg_high = 0;
+        var bg_urgent_low = 0;
+        var bg_urgent_high = 0;
+
         if ($('#bg_units').val() == 'mgdl') {
             bg_low = parseInt($('#bg_low').val()) || 0;
             bg_high = parseInt($('#bg_high').val()) || 0;
+            bg_urgent_low = parseInt($('#bg_urgent_low').val()) || 0;
+            bg_urgent_high = parseInt($('#bg_urgent_high').val()) || 0;
         } else {
             bg_low = Math.round((parseFloat($('#bg_low').val()) || 0) * 18);
             bg_high = Math.round((parseFloat($('#bg_high').val()) || 0) * 18);
+            bg_urgent_low = Math.round((parseFloat($('#bg_urgent_low').val()) || 0) * 18);
+            bg_urgent_high = Math.round((parseFloat($('#bg_urgent_high').val()) || 0) * 18);
 
         }
         json['low_mgdl'] = bg_low;
         json['high_mgdl'] = bg_high;
+        json['low_urgent_mgdl'] = bg_urgent_low;
+        json['high_urgent_mgdl'] = bg_urgent_high;
 
         //Device settings
         var brightness = parseInt($('#brightness_level').val());
@@ -295,7 +395,7 @@
                 if (res?.ok) {
                     res.json().then(data => {
                         if (data.status == "ok") {
-                            $("#success-alert").removeClass("d-none");
+                            showToastSuccess("Saved!", "The configuration was saved. Nightscout clock will restart to apply the changes.");
 
                             fetch(resetUrl, {
                                 method: "POST",
@@ -306,38 +406,33 @@
                                 body: "{}",
                             });
 
-                            sleep(3000).then(() => {
-                                $("#success-alert").addClass("d-none");
-                            });
                         }
                         else {
-                            showFailureAlert();
+                            showToastFailure("Error", "Failed to save settings");
                         }
                     });
                 }
                 else {
                     console.log(`Response error: ${res?.status}`)
-                    showFailureAlert();
+                    showToastFailure("Error", "Failed to save settings");
                 }
             })
             .catch(error => {
                 console.log(`Fetching error: ${error}`);
-                showFailureAlert();
+                showToastFailure("Error", "Failed to save settings");
             });
     }
-
-    function showFailureAlert() {
-        $("#failure-alert").removeClass("d-none");
-        sleep(3000).then(() => {
-            $("#failure-alert").addClass("d-none");
-        });
-    }
-
 
     function validateBG() {
         let valid = true;
         valid &= validate($('#bg_low'), bgValidationPattternSelector());
         valid &= validate($('#bg_high'), bgValidationPattternSelector());
+        valid &= validate($('#bg_urgent_low'), bgValidationPattternSelector());
+        valid &= validate($('#bg_urgent_high'), bgValidationPattternSelector());
+
+        if (valid) {
+            $('#bg_normal').val(`${$('#bg_low').val()}...${$('#bg_high').val()}`);
+        }
 
         const bgUnits = $('#bg_units').val();
         if (bgUnits === "mgdl" || bgUnits === "mmol") {
@@ -395,43 +490,47 @@
 
         return valid;
     }
-    function sleep(ms) {
-        return new Promise(resolve => setTimeout(resolve, ms));
-    }
 
-    var configJsonUrl = 'config.json';
-    var tzJson = "tzdata.json";
+    function loadConfiguration() {
 
-    if (window.location.href.indexOf("127.0.0.1") > 0) {
-        configJsonUrl = "http://192.168.86.24/config.json";
-        tzJson = "http://192.168.86.24/tzdata.json";
+        var configJsonUrl = 'config.json';
+        var tzJson = "tzdata.json";
 
-    }
+        if (window.location.href.indexOf("127.0.0.1") > 0) {
+            configJsonUrl = "http://192.168.86.24/config.json";
+            tzJson = "http://192.168.86.24/tzdata.json";
 
-    Promise.all([
-        fetch(configJsonUrl),
-        fetch(tzJson)
-    ]).then(([configJsonData, tzJsonData]) => {
-        Promise.all([configJsonData.json(), tzJsonData.json()]).then(([configJsonLocal, tzJsonLocal]) => {
-            var tzSelect = $('#clock_timezone');
-            for (let tzInfo of tzJsonLocal) {
-                var option = document.createElement("option");
-                option.text = tzInfo.name;
-                option.value = tzInfo.value;
-                tzSelect.append(option);
-            }
-            configJson = configJsonLocal;
-            loadFormData();
+        }
 
-            $('#main_block').removeClass("collapse");
-            $('#loading_block').addClass("collapse");
+        Promise.all([
+            fetch(configJsonUrl),
+            fetch(tzJson)
+        ]).then(([configJsonData, tzJsonData]) => {
+            Promise.all([configJsonData.json(), tzJsonData.json()]).then(([configJsonLocal, tzJsonLocal]) => {
+                var tzSelect = $('#clock_timezone');
+                for (let tzInfo of tzJsonLocal) {
+                    var option = document.createElement("option");
+                    option.text = tzInfo.name;
+                    option.value = tzInfo.value;
+                    tzSelect.append(option);
+                }
+                configJson = configJsonLocal;
+                loadFormData();
 
+                $('#main_block').removeClass("collapse");
+                $('#loading_block').addClass("collapse");
+
+                validateAll();
+
+            });
+
+
+        }).catch(error => {
+            console.log(`Fetching error: ${error}`);
+            showToastFailure("Error", "Failed to load configuration");
         });
 
-
-    }).catch(error => {
-        console.log(`Fetching error: ${error}`);
-    });
+    }
 
     function loadFormData() {
         var json = configJson;
@@ -472,15 +571,15 @@
         $('#bg_units').val(json['units']);
         var bg_low = json["low_mgdl"];
         var bg_high = json["high_mgdl"];
-        if (bg_low > 0 && bg_high > 0) {
-            if (json["units"] == "mgdl") {
-                $('#bg_low').val(bg_low + "");
-                $('#bg_high').val(bg_high + "");
-            }
-            if (json["units"] == "mmol") {
-                $('#bg_low').val(((Math.round(bg_low / 1.8) / 10) + "").replace(",", "."));
-                $('#bg_high').val(((Math.round(bg_high / 1.8) / 10) + "").replace(",", "."));
-            }
+        var bg_urgent_low = json["low_urgent_mgdl"];
+        var bg_urgent_high = json["high_urgent_mgdl"];
+
+        //        if (bg_low > 0 && bg_high > 0 && bg_urgent_low > 0 && bg_urgent_high > 0)
+        {
+            $('#bg_low').val(mgdlToSelectedUnits(bg_low));
+            $('#bg_high').val(mgdlToSelectedUnits(bg_high));
+            $('#bg_urgent_low').val(mgdlToSelectedUnits(bg_urgent_low));
+            $('#bg_urgent_high').val(mgdlToSelectedUnits(bg_urgent_high));
         }
 
         // Device settings
@@ -523,6 +622,18 @@
         $(`#alarm_${alarmType}_silence`).val(json[`alarm_${alarmType}_silence_interval` || ""]);
 
         changeAlarmState($(`#alarm_${alarmType}_enable`));
+    }
+
+    function showToastSuccess(title, message) {
+        $('#toast_success_title').text(title);
+        $('#toast_success_message').text(message);
+        $('#toast_success').toast('show');
+    }
+
+    function showToastFailure(title, message) {
+        $('#toast_failure_title').text(title);
+        $('#toast_failure_message').text(message);
+        $('#toast_failure').toast('show');
     }
 
 })()

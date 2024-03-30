@@ -47,7 +47,7 @@ void SettingsManager_::factoryReset() {
     ESP.restart();
 }
 
-DynamicJsonDocument *readConfigJsonFile() {
+DynamicJsonDocument *SettingsManager_::readConfigJsonFile() {
     DynamicJsonDocument *doc;
     if (LittleFS.exists(CONFIG_JSON)) {
         auto settings = Settings();
@@ -68,6 +68,7 @@ DynamicJsonDocument *readConfigJsonFile() {
         return doc;
     } else {
         DEBUG_PRINTLN("Cannot read configuration file");
+        factoryReset();
         return NULL;
     }
 }
@@ -79,10 +80,11 @@ bool SettingsManager_::loadSettingsFromFile() {
 
     settings.ssid = (*doc)["ssid"].as<String>();
     settings.wifi_password = (*doc)["password"].as<String>();
-    /// TODO: Get Network config
 
     settings.bg_low_warn_limit = (*doc)["low_mgdl"].as<int>();
     settings.bg_high_warn_limit = (*doc)["high_mgdl"].as<int>();
+    settings.bg_low_urgent_limit = (*doc)["low_urgent_mgdl"].as<int>();
+    settings.bg_high_urgent_limit = (*doc)["high_urgent_mgdl"].as<int>();
     settings.bg_units = (*doc)["units"].as<String>() == "mmol" ? BG_UNIT::MMOLL : BG_UNIT::MGDL;
 
     settings.auto_brightness = (*doc)["auto_brightness"].as<bool>();
@@ -129,6 +131,9 @@ bool SettingsManager_::saveSettingsToFile() {
 
     (*doc)["low_mgdl"] = settings.bg_low_warn_limit;
     (*doc)["high_mgdl"] = settings.bg_high_warn_limit;
+    (*doc)["low_urgent_mgdl"] = settings.bg_low_urgent_limit;
+    (*doc)["high_urgent_mgdl"] = settings.bg_high_urgent_limit;
+
     (*doc)["units"] = settings.bg_units == BG_UNIT::MMOLL ? "mmol" : "mgdl";
 
     (*doc)["auto_brightness"] = settings.auto_brightness;

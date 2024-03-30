@@ -11,6 +11,8 @@ class Settings {
     BG_UNIT bg_units;
     int bg_low_warn_limit;
     int bg_high_warn_limit;
+    int bg_low_urgent_limit;
+    int bg_high_urgent_limit;
     bool auto_brightness;
     int brightness_level;
     int default_clockface;
