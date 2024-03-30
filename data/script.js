@@ -21,37 +21,84 @@
 
     let configJson = {};
 
-    addFocusOutValidation('ssid');
-    addFocusOutValidation('wifi_password');
+    addValidationHandlers();
 
-    addFocusOutValidation('clock_timezone');
-    addFocusOutValidation('time_format');
-
-    $('#alarm_high_enable').change((e) => { changeAlarmState(e.target) });
-    $('#alarm_low_enable').change((e) => { changeAlarmState(e.target) });
-    $('#alarm_urgent_low_enable').change((e) => { changeAlarmState(e.target) });
-
-    const glucoseSource = $('#glucose_source');
-    const nightscoutSettingsCard = $('#nightscout_settings_card');
-    const dexcomSettingsCard = $('#dexcom_settings_card');
-
-    glucoseSource.change(glucoseDataSourceSwitch);
-
-    $('#bg_units').change((e) => {
-        validateBG();
-    });
-
-    $('#bg_urgent_low, #bg_low, #bg_high, #bg_urgent_high').on('focusout', validateBG);
-
-    $('#btn_load_limits_from_ns').on('click', loadNightscoutData);
-
-    $('#ns_protocol').change((e) => {
-        validate($('#ns_protocol'), patterns.ns_protocol);
-    });
-
-    $("#save").on('click', validateAndSave);
+    addButtonsHandlers();
 
     loadConfiguration();
+
+    function addButtonsHandlers() {
+        $('#btn_high_alarm_try').on('click', tryAlarm);
+        $('#btn_low_alarm_try').on('click', tryAlarm);
+        $('#btn_urgent_low_alarm_try').on('click', tryAlarm);
+        $('#btn_load_limits_from_ns').on('click', loadNightscoutData);
+        $("#btn_save").on('click', validateAndSave);
+    }
+
+    function tryAlarm(e) {
+        const alarmType = $(e.target).attr('id').replace('_alarm_try', '').replace('btn_', '');
+
+        let json = JSON.stringify({ "alarm": alarmType });
+
+        let tryAlarmUrl = "/api/alarm";
+        if (window.location.href.indexOf("127.0.0.1") > 0) {
+            console.log("Trying on local ESP..");
+            tryAlarmUrl = "http://192.168.86.24/api/alarm";
+        }
+        fetch(tryAlarmUrl, {
+            method: "POST",
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+            },
+            body: json,
+        })
+            .then(function (res) {
+                if (res?.ok) {
+                    res.json().then(data => {
+                        if (data.status == "ok") {
+                            showToastSuccess("Success", "You should hear the aert playing");
+                        }
+                        else {
+                            showToastFailure("Error", "Could not play the alert");
+                        }
+                    });
+                }
+                else {
+                    console.log(`Response error: ${res?.status}`)
+                    showToastFailure("Error", "Could not play the alert");
+                }
+            })
+            .catch(error => {
+                console.log(`Fetching error: ${error}`);
+                showToastFailure("Error", "Could not play the alert");
+            });
+    }
+
+    function addValidationHandlers() {
+        addFocusOutValidation('ssid');
+        addFocusOutValidation('wifi_password');
+
+        addFocusOutValidation('clock_timezone');
+        addFocusOutValidation('time_format');
+
+        $('#alarm_high_enable').change((e) => { changeAlarmState(e.target) });
+        $('#alarm_low_enable').change((e) => { changeAlarmState(e.target) });
+        $('#alarm_urgent_low_enable').change((e) => { changeAlarmState(e.target) });
+
+        $('#glucose_source').change(glucoseDataSourceSwitch);
+
+        $('#bg_units').change((e) => {
+            validateBG();
+        });
+
+        $('#bg_urgent_low, #bg_low, #bg_high, #bg_urgent_high').on('focusout', validateBG);
+
+        $('#ns_protocol').change((e) => {
+            validate($('#ns_protocol'), patterns.ns_protocol);
+        });
+
+    }
 
     function validateAndSave() {
         const allValid = validateAll();
@@ -78,38 +125,37 @@
     }
 
     function glucoseDataSourceSwitch() {
-        {
-            const value = glucoseSource.val();
-            nightscoutSettingsCard.toggleClass("d-none", value !== "nightscout");
-            dexcomSettingsCard.toggleClass("d-none", value !== "dexcom");
+        const glucoseSource = $('#glucose_source');
+        const value = glucoseSource.val();
+        $('#nightscout_settings_card').toggleClass("d-none", value !== "nightscout");
+        $('#dexcom_settings_card').toggleClass("d-none", value !== "dexcom");
 
-            removeFocusOutValidation('ns_hostname');
-            removeFocusOutValidation('ns_port');
-            removeFocusOutValidation('api_secret');
-            removeFocusOutValidation('dexcom_server');
-            removeFocusOutValidation('dexcom_username');
-            removeFocusOutValidation('dexcom_password');
+        removeFocusOutValidation('ns_hostname');
+        removeFocusOutValidation('ns_port');
+        removeFocusOutValidation('api_secret');
+        removeFocusOutValidation('dexcom_server');
+        removeFocusOutValidation('dexcom_username');
+        removeFocusOutValidation('dexcom_password');
 
-            switch (value) {
-                case "nightscout":
-                    setElementValidity(glucoseSource, true);
-                    addFocusOutValidation('ns_hostname');
-                    addFocusOutValidation('ns_port');
-                    addFocusOutValidation('api_secret');
-                    break;
-                case "dexcom":
-                    setElementValidity(glucoseSource, true);
-                    addFocusOutValidation('dexcom_server');
-                    addFocusOutValidation('dexcom_username');
-                    addFocusOutValidation('dexcom_password');
-                    break;
-                case "api":
-                    setElementValidity(glucoseSource, true);
-                    break;
-                default:
-                    setElementValidity(glucoseSource, false);
-                    break;
-            }
+        switch (value) {
+            case "nightscout":
+                setElementValidity(glucoseSource, true);
+                addFocusOutValidation('ns_hostname');
+                addFocusOutValidation('ns_port');
+                addFocusOutValidation('api_secret');
+                break;
+            case "dexcom":
+                setElementValidity(glucoseSource, true);
+                addFocusOutValidation('dexcom_server');
+                addFocusOutValidation('dexcom_username');
+                addFocusOutValidation('dexcom_password');
+                break;
+            case "api":
+                setElementValidity(glucoseSource, true);
+                break;
+            default:
+                setElementValidity(glucoseSource, false);
+                break;
         }
     }
 
@@ -269,6 +315,7 @@
     }
 
     function validateGlucoseSource() {
+        const glucoseSource = $('#glucose_source');
         const value = glucoseSource.val();
         let isValid = true;
         if (value === "nightscout") {
@@ -635,5 +682,7 @@
         $('#toast_failure_message').text(message);
         $('#toast_failure').toast('show');
     }
+
+
 
 })()

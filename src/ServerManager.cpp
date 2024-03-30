@@ -8,6 +8,7 @@
 #include <LittleFS.h>
 #include "time.h"
 #include "DisplayManager.h"
+#include "PeripheryManager.h"
 
 // The getter for the instantiated singleton instance
 ServerManager_ &ServerManager_::getInstance() {
@@ -112,6 +113,31 @@ void ServerManager_::setupWebServer(IPAddress ip) {
         }
     }));
 
+    ws->addHandler(new AsyncCallbackJsonWebHandler("/api/alarm", [this](AsyncWebServerRequest *request, JsonVariant &json) {
+        if (not json.is<JsonObject>()) {
+            request->send(400, "application/json", "{\"status\": \"json parsing error\"}");
+            return;
+        }
+        auto &&data = json.as<JsonObject>();
+        if (data.containsKey("alarmType")) {
+            auto alarmType = data["alarmType"].as<String>();
+            if (alarmType == "high") {
+                PeripheryManager.playRTTTLString(sound_high);
+            } else if (alarmType == "low") {
+                PeripheryManager.playRTTTLString(sound_low);
+            } else if (alarmType == "urgent_low") {
+                PeripheryManager.playRTTTLString(sound_urgent_low);
+            } else {
+                request->send(400, "application/json", "{\"status\": \"alarm type not found\"}");
+                return;
+            }
+
+            request->send(200, "application/json", "{\"status\": \"ok\"}");
+        } else {
+            request->send(400, "application/json", "{\"status\": \"alarm key not found\"}");
+        }
+    }));
+
     ws->on("/api/reset", HTTP_POST, [](AsyncWebServerRequest *request) {
         request->send(200, "application/json", "{\"status\": \"ok\"}");
         delay(200);
@@ -157,7 +183,6 @@ void ServerManager_::addStaticFileHandler() {
 }
 
 bool ServerManager_::initTimeIfNeeded() {
-
     struct tm timeinfo;
 
     if (!getLocalTime(&timeinfo) || getUtcEpoch() - lastTimeSync > TIME_SYNC_INTERVAL) {
