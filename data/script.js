@@ -38,7 +38,7 @@
     function tryAlarm(e) {
         const alarmType = $(e.target).attr('id').replace('_alarm_try', '').replace('btn_', '');
 
-        let json = JSON.stringify({ "alarm": alarmType });
+        let json = JSON.stringify({ "alarmType": alarmType });
 
         let tryAlarmUrl = "/api/alarm";
         if (window.location.href.indexOf("127.0.0.1") > 0) {
@@ -682,7 +682,5 @@
         $('#toast_failure_message').text(message);
         $('#toast_failure').toast('show');
     }
-
-
 
 })()
