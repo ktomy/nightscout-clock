@@ -79,7 +79,7 @@ class BGDisplayManager_ {
     void setup();
     void tick();
     void showData(std::list<GlucoseReading> glucoseReadings);
-    unsigned long long getLastDisplayedGlucoseEpoch();
+    GlucoseReading *getLastDisplayedGlucoseReading();
     GlucoseIntervals getGlucoseIntervals();
 
     std::map<int, String> getFaces();

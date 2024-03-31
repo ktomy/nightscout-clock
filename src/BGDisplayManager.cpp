@@ -73,7 +73,9 @@ void BGDisplayManager_::tick() {
     auto currentEpoch = ServerManager.getUtcEpoch();
     tm timeInfo = ServerManager.getTimezonedTime();
 
-    if (bgSourceManager.hasNewData(bgDisplayManager.getLastDisplayedGlucoseEpoch())) {
+    auto lastReading = bgDisplayManager.getLastDisplayedGlucoseReading();
+
+    if (bgSourceManager.hasNewData(lastReading == NULL ? 0 : lastReading->epoch)) {
         DEBUG_PRINTLN("We have new data");
         bgDisplayManager.showData(bgSourceManager.getInstance().getGlucoseData());
         lastRefreshEpoch = currentEpoch;
@@ -104,10 +106,10 @@ void BGDisplayManager_::showData(std::list<GlucoseReading> glucoseReadings) {
     displayedReadings = glucoseReadings;
 }
 
-unsigned long long BGDisplayManager_::getLastDisplayedGlucoseEpoch() {
+GlucoseReading *BGDisplayManager_::getLastDisplayedGlucoseReading() {
     if (displayedReadings.size() > 0) {
-        return displayedReadings.back().epoch;
+        return &displayedReadings.back();
     } else {
-        return 0;
+        return NULL;
     }
 }

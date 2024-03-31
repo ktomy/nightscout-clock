@@ -22,4 +22,16 @@ class Settings {
     DEXCOM_SERVER dexcom_server;
     String tz_libc_value;
     TIME_FORMAT time_format;
+    bool alarm_urgent_low_enabled;
+    int alarm_urgent_low_mgdl;
+    int alarm_urgent_low_snooze_minutes;
+    String alarm_urgent_low_silence_interval;
+    bool alarm_low_enabled;
+    int alarm_low_mgdl;
+    int alarm_low_snooze_minutes;
+    String alarm_low_silence_interval;
+    bool alarm_high_enabled;
+    int alarm_high_mgdl;
+    int alarm_high_snooze_minutes;
+    String alarm_high_silence_interval;
 };

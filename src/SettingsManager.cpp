@@ -115,6 +115,20 @@ bool SettingsManager_::loadSettingsFromFile() {
     settings.tz_libc_value = (*doc)["tz_libc"].as<String>();
     settings.time_format = (*doc)["time_format"].as<String>() == "12" ? TIME_FORMAT::HOURS_12 : TIME_FORMAT::HOURS_24;
 
+    // read alarms data
+    settings.alarm_urgent_low_enabled = (*doc)["alarm_urgent_low_enabled"].as<bool>();
+    settings.alarm_urgent_low_mgdl = (*doc)["alarm_urgent_low_value"].as<int>();
+    settings.alarm_urgent_low_snooze_minutes = (*doc)["alarm_urgent_low_snooze_interval"].as<int>();
+    settings.alarm_urgent_low_silence_interval = (*doc)["alarm_urgent_low_silence_interval"].as<String>();
+    settings.alarm_low_enabled = (*doc)["alarm_low_enabled"].as<bool>();
+    settings.alarm_low_mgdl = (*doc)["alarm_low_value"].as<int>();
+    settings.alarm_low_snooze_minutes = (*doc)["alarm_low_snooze_interval"].as<int>();
+    settings.alarm_low_silence_interval = (*doc)["alarm_low_silence_interval"].as<String>();
+    settings.alarm_high_enabled = (*doc)["alarm_high_enabled"].as<bool>();
+    settings.alarm_high_mgdl = (*doc)["alarm_high_value"].as<int>();
+    settings.alarm_high_snooze_minutes = (*doc)["alarm_high_snooze_interval"].as<int>();
+    settings.alarm_high_silence_interval = (*doc)["alarm_high_silence_interval"].as<String>();
+
     delete doc;
 
     this->settings = settings;
@@ -172,6 +186,20 @@ bool SettingsManager_::saveSettingsToFile() {
 
     (*doc)["tz_libc"] = settings.tz_libc_value;
     (*doc)["time_format"] = settings.time_format == TIME_FORMAT::HOURS_12 ? "12" : "24";
+
+    // save alarms data
+    (*doc)["alarm_urgent_low_enabled"] = settings.alarm_urgent_low_enabled;
+    (*doc)["alarm_urgent_low_value"] = settings.alarm_urgent_low_mgdl;
+    (*doc)["alarm_urgent_low_snooze_interval"] = settings.alarm_urgent_low_snooze_minutes;
+    (*doc)["alarm_urgent_low_silence_interval"] = settings.alarm_urgent_low_silence_interval;
+    (*doc)["alarm_low_enabled"] = settings.alarm_low_enabled;
+    (*doc)["alarm_low_value"] = settings.alarm_low_mgdl;
+    (*doc)["alarm_low_snooze_interval"] = settings.alarm_low_snooze_minutes;
+    (*doc)["alarm_low_silence_interval"] = settings.alarm_low_silence_interval;
+    (*doc)["alarm_high_enabled"] = settings.alarm_high_enabled;
+    (*doc)["alarm_high_value"] = settings.alarm_high_mgdl;
+    (*doc)["alarm_high_snooze_interval"] = settings.alarm_high_snooze_minutes;
+    (*doc)["alarm_high_silence_interval"] = settings.alarm_high_silence_interval;
 
     if (trySaveJsonAsSettings(*doc) == false)
         return false;

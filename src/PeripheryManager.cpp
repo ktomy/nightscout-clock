@@ -8,6 +8,7 @@
 #include "SettingsManager.h"
 #include <MelodyPlayer/melody_player.h>
 #include <MelodyPlayer/melody_factory.h>
+#include <BGAlarmManager.h>
 
 // Pinouts für das ULANZI-Environment
 #define BATTERY_PIN 34
@@ -72,6 +73,7 @@ void right_button_pressed() {
 
 void select_button_pressed() {
     DEBUG_PRINTLN(F("Select button clicked"));
+    bgAlarmManager.snoozeAlarm();
     if (!BLOCK_NAVIGATION) {
         DisplayManager.selectButton();
     }

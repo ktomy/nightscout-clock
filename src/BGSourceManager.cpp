@@ -36,57 +36,7 @@ void BGSourceManager_::setup(BG_SOURCE bgSourceType) {
     bgSource->setup();
 }
 
-// #ifdef DEBUG_BG_SOURCE
-
-// unsigned long tickDebugMills = 0;
-
-// #endif
-
-void BGSourceManager_::tick() {
-
-    //     // We poll the data once a minute trying to sync this with the last received data
-
-    //     auto currentEpoch = ServerManager.getUtcEpoch();
-
-    // #ifdef DEBUG_BG_SOURCE
-
-    //     if (millis() - tickDebugMills > 10000) {
-    //         tickDebugMills = millis();
-    //         // debug print current method, current epoch and last poll epoch
-    //         if (currentEpoch - lastPollEpoch < 61) {
-    //             DEBUG_PRINTF("currentEpoch: %lu, lastPollEpoch: %llu, delta: %llu, not calling the source", currentEpoch,
-    //                          lastPollEpoch, currentEpoch - lastPollEpoch);
-    //         }
-    //     }
-
-    // #endif
-
-    //     if (currentEpoch - lastPollEpoch < 61) {
-    //         return;
-    //     }
-
-    // #ifdef DEBUG_BG_SOURCE
-
-    //     DEBUG_PRINTLN("BGSourceManager_::tick: Calling bgSource->tick()");
-
-    // #endif
-
-    bgSource->tick();
-
-    // #ifdef DEBUG_BG_SOURCE
-
-    //     DEBUG_PRINTLN("BGSourceManager_::tick: bgSource->tick() called");
-
-    // #endif
-
-    //     auto readings = bgSource->getGlucoseData();
-    //     auto lastReadingEpoch = readings.size() > 0 ? readings.back().epoch : 0;
-    //     if (lastPollEpoch < lastReadingEpoch) {
-    //         lastPollEpoch = lastReadingEpoch + 5;
-    //     } else {
-    //         lastPollEpoch = currentEpoch;
-    //     }
-}
+void BGSourceManager_::tick() { bgSource->tick(); }
 
 bool BGSourceManager_::hasNewData(unsigned long long epochToCompare) { return bgSource->hasNewData(epochToCompare); }
 
