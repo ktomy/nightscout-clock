@@ -47,7 +47,7 @@ void BGDisplayFaceGraphBase::showGraph(uint8_t x_position, uint8_t length, uint1
     DisplayManager.clearMatrixPart(x_position, 0, length, 8);
     auto pixelSizeSeconds = (forMinutes * 60) / length;
 
-    auto intervals = BGDisplayManager.getGlucoseIntervals();
+    auto intervals = bgDisplayManager.getGlucoseIntervals();
 
 #ifdef DEBUG_DISPLAY
     String pixels = "Graph pixels (right to left): ";

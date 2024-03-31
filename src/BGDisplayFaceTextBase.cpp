@@ -20,7 +20,7 @@ void BGDisplayFaceTextBase::showReading(const GlucoseReading reading, int16_t x,
 
 void BGDisplayFaceTextBase::SetDisplayColorByBGValue(const GlucoseReading &reading) const {
 
-    auto bgLevel = BGDisplayManager.getGlucoseIntervals().getBGLevel(reading.sgv);
+    auto bgLevel = bgDisplayManager.getGlucoseIntervals().getBGLevel(reading.sgv);
     auto textColor = COLOR_GRAY;
 
     switch (bgLevel) {

@@ -6,6 +6,7 @@
 #include "DisplayManager.h"
 #include "BGDisplayManager.h"
 #include "PeripheryManager.h"
+#include "BGAlarmManager.h"
 #include "globals.h"
 
 #include "improv_consume.h"
@@ -32,8 +33,9 @@ void setup() {
 
     ServerManager.setup();
     bgSourceManager.setup(SettingsManager.settings.bg_source);
-    BGDisplayManager.setup();
+    bgDisplayManager.setup();
     PeripheryManager.setup();
+    bgAlarmManager.setup();
     PeripheryManager.playRTTTLString(sound_boot);
 
     DEBUG_PRINTLN("Setup done");
@@ -62,7 +64,8 @@ void loop() {
     if (ServerManager.isConnected) {
         ServerManager.tick();
         bgSourceManager.tick();
-        BGDisplayManager.tick();
+        bgDisplayManager.tick();
+        bgAlarmManager.tick();
 
     } else if (ServerManager.isInAPMode) {
         showJoinAP();

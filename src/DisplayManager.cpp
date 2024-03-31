@@ -253,19 +253,19 @@ void DisplayManager_::setPower(bool state) {
 
 // cycle to previous face
 void DisplayManager_::leftButton() {
-    if (BGDisplayManager.getCurrentFaceId() == 0) {
-        BGDisplayManager.setFace(BGDisplayManager.getFaces().size() - 1);
+    if (bgDisplayManager.getCurrentFaceId() == 0) {
+        bgDisplayManager.setFace(bgDisplayManager.getFaces().size() - 1);
     } else {
-        BGDisplayManager.setFace(BGDisplayManager.getCurrentFaceId() - 1);
+        bgDisplayManager.setFace(bgDisplayManager.getCurrentFaceId() - 1);
     }
 }
 
 // cycle to next face
 void DisplayManager_::rightButton() {
-    if (BGDisplayManager.getCurrentFaceId() == BGDisplayManager.getFaces().size() - 1) {
-        BGDisplayManager.setFace(0);
+    if (bgDisplayManager.getCurrentFaceId() == bgDisplayManager.getFaces().size() - 1) {
+        bgDisplayManager.setFace(0);
     } else {
-        BGDisplayManager.setFace(BGDisplayManager.getCurrentFaceId() + 1);
+        bgDisplayManager.setFace(bgDisplayManager.getCurrentFaceId() + 1);
     }
 }
 

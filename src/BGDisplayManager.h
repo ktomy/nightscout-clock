@@ -91,6 +91,6 @@ class BGDisplayManager_ {
     unsigned long long lastRefreshEpoch;
 };
 
-extern BGDisplayManager_ &BGDisplayManager;
+extern BGDisplayManager_ &bgDisplayManager;
 
 #endif

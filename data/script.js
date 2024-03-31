@@ -57,7 +57,7 @@
                 if (res?.ok) {
                     res.json().then(data => {
                         if (data.status == "ok") {
-                            showToastSuccess("Success", "You should hear the aert playing");
+                            showToastSuccess("Success", "You should hear the alert playing");
                         }
                         else {
                             showToastFailure("Error", "Could not play the alert");

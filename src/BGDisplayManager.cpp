@@ -15,7 +15,7 @@ BGDisplayManager_ &BGDisplayManager_::getInstance() {
 }
 
 // Initialize the global shared instance
-BGDisplayManager_ &BGDisplayManager = BGDisplayManager.getInstance();
+BGDisplayManager_ &bgDisplayManager = bgDisplayManager.getInstance();
 
 void BGDisplayManager_::setup() {
 
@@ -73,9 +73,9 @@ void BGDisplayManager_::tick() {
     auto currentEpoch = ServerManager.getUtcEpoch();
     tm timeInfo = ServerManager.getTimezonedTime();
 
-    if (bgSourceManager.hasNewData(BGDisplayManager.getLastDisplayedGlucoseEpoch())) {
+    if (bgSourceManager.hasNewData(bgDisplayManager.getLastDisplayedGlucoseEpoch())) {
         DEBUG_PRINTLN("We have new data");
-        BGDisplayManager.showData(bgSourceManager.getInstance().getGlucoseData());
+        bgDisplayManager.showData(bgSourceManager.getInstance().getGlucoseData());
         lastRefreshEpoch = currentEpoch;
     } else {
         // We refresh the display every minue trying to match the exact :00 second
