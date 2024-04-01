@@ -72,17 +72,20 @@ void BGAlarmManager_::tick() {
                 activeAlarm = &alarmData;
                 alarmData.lastAlarmTime = ServerManager.getUtcEpoch();
                 PeripheryManager.playRTTTLString(alarmData.alarmSound);
+                DEBUG_PRINTLN("Playing alarm sound");
             } else {
                 if (activeAlarm->isSnoozed) {
                     if (ServerManager.getUtcEpoch() - activeAlarm->lastAlarmTime > 60 * activeAlarm->snoozeTimeMinutes) {
                         activeAlarm->isSnoozed = false;
                         activeAlarm->lastAlarmTime = ServerManager.getUtcEpoch();
                         PeripheryManager.playRTTTLString(alarmData.alarmSound);
+                        DEBUG_PRINTLN("Playing alarm sound");
                     }
                 } else {
                     if (ServerManager.getUtcEpoch() - activeAlarm->lastAlarmTime > 60 * 5) {
                         activeAlarm->lastAlarmTime = ServerManager.getUtcEpoch();
                         PeripheryManager.playRTTTLString(alarmData.alarmSound);
+                        DEBUG_PRINTLN("Playing alarm sound");
                     }
                 }
             }

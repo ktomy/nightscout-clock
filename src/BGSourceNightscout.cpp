@@ -41,8 +41,8 @@ std::list<GlucoseReading> BGSourceNightscout::updateReadings(String baseUrl, Str
         // if we didn't get any readings and the last reading is older than now, try to get the last readings
         // this is the case when there are gaps in readings for more than one hour for e.g. sensor change
         if (retrievedReadings.size() == 0 && readToEpoch < currentEpoch) {
-            std::list<GlucoseReading> retrievedReadings =
-                retrieveReadings(baseUrl, apiKey, lastReadingEpoch + 1, currentEpoch, 30);
+            DEBUG_PRINTLN("Second try to get readings");
+            retrievedReadings = retrieveReadings(baseUrl, apiKey, lastReadingEpoch + 1, currentEpoch, 30);
         }
 
 #ifdef DEBUG_BG_SOURCE
