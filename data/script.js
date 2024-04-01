@@ -163,7 +163,7 @@
         if ($('#bg_units').val() == 'mmol') {
             return ((Math.round(value / 1.8) / 10) + "").replace(",", ".").replace("NaN", "");
         }
-        return value.replace("NaN", "") + "";
+        return value.toString().replace("NaN", "") + "";
     }
 
     function loadNightscoutData() {
@@ -581,6 +581,10 @@
 
     function loadFormData() {
         var json = configJson;
+
+        if (!json) {
+            return;
+        }
 
         //WiFi
         $('#ssid').val(json['ssid']);
