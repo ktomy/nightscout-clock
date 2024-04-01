@@ -6,23 +6,23 @@
             "chipFamily": "ESP32",
             "parts": [
                 {
-                    "path": "artifacts/bootloader.bin",
+                    "path": "https://ktomy.github.io/nightscout-clock/artifacts/bootloader.bin",
                     "offset": 4096
                 },
                 {
-                    "path": "artifacts/partitions.bin",
+                    "path": "https://ktomy.github.io/nightscout-clock/artifacts/partitions.bin",
                     "offset": 32768
                 },
                 {
-                    "path": "artifacts/boot_app0.bin",
+                    "path": "https://ktomy.github.io/nightscout-clock/artifacts/boot_app0.bin",
                     "offset": 57344
                 },
                 {
-                    "path": "artifacts/firmware.bin",
+                    "path": "https://ktomy.github.io/nightscout-clock/artifacts/firmware.bin",
                     "offset": 65536
                 },
                 {
-                    "path": "artifacts/littlefs.bin",
+                    "path": "https://ktomy.github.io/nightscout-clock/artifacts/littlefs.bin",
                     "offset": 2162688
                 }
             ]
