@@ -105,9 +105,15 @@ std::list<GlucoseReading> BGSourceNightscout::retrieveReadings(String baseUrl, S
 #endif
 
     if (responseCode == HTTP_CODE_OK) {
-        DynamicJsonDocument doc(0xFFFF);
+        DynamicJsonDocument doc(0x1000);
 
-        DeserializationError error = deserializeJson(doc, responseContent);
+        StaticJsonDocument<1024> filter;
+        filter[0]["sgv"] = true;
+        filter[0]["date"] = true;
+        filter[0]["trend"] = true;
+        filter[0]["direction"] = true;
+
+        DeserializationError error = deserializeJson(doc, responseContent, DeserializationOption::Filter(filter));
 
         if (error) {
             DEBUG_PRINTF("Error deserializing NS response: %s\nFailed on string: %s\n", error.c_str(), responseContent.c_str());
