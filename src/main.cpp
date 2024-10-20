@@ -36,7 +36,7 @@ void setup() {
     bgDisplayManager.setup();
     PeripheryManager.setup();
     bgAlarmManager.setup();
-    PeripheryManager.playRTTTLString(sound_boot);
+    //PeripheryManager.playRTTTLString(sound_boot);
 
     DEBUG_PRINTLN("Setup done");
     String welcomeMessage = "Nightscout clock   " + ServerManager.myIP.toString();
