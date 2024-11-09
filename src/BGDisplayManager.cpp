@@ -85,7 +85,7 @@ void BGDisplayManager_::maybeRrefreshScreen(bool force) {
         lastRefreshEpoch = currentEpoch;
     } else {
         // We refresh the display every minue trying to match the exact :00 second
-        if (timeInfo.tm_sec == 0 && currentEpoch > lastRefreshEpoch || currentEpoch - lastRefreshEpoch > 60) {
+        if ( force || timeInfo.tm_sec == 0 && currentEpoch > lastRefreshEpoch || currentEpoch - lastRefreshEpoch > 60) {
             lastRefreshEpoch = currentEpoch;
             if (displayedReadings.size() > 0) {
                 bool dataIsOld = displayedReadings.back().getSecondsAgo() > 60 * BG_DATA_OLD_OFFSET_MINUTES;

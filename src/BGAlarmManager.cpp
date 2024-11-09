@@ -120,6 +120,8 @@ void BGAlarmManager_::tick() {
 void BGAlarmManager_::snoozeAlarm() {
     if (activeAlarm != NULL) {
         DEBUG_PRINTLN("Snoozing alarm");
+        DisplayManager.clearMatrix();
+        DisplayManager.setTextColor(COLOR_CYAN);
         DisplayManager.printText(0, 6, "Snoozed", TEXT_ALIGNMENT::CENTER, 0);
         delay(1000);
         bgDisplayManager.maybeRrefreshScreen(true);
