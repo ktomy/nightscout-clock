@@ -69,6 +69,10 @@ void BGDisplayManager_::setFace(int id) {
 }
 
 void BGDisplayManager_::tick() {
+    maybeRrefreshScreen();
+}
+
+void BGDisplayManager_::maybeRrefreshScreen(bool force) {
 
     auto currentEpoch = ServerManager.getUtcEpoch();
     tm timeInfo = ServerManager.getTimezonedTime();

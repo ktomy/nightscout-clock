@@ -78,6 +78,7 @@ class BGDisplayManager_ {
     static BGDisplayManager_ &getInstance();
     void setup();
     void tick();
+    void maybeRrefreshScreen(bool force = false);
     void showData(std::list<GlucoseReading> glucoseReadings);
     GlucoseReading *getLastDisplayedGlucoseReading();
     GlucoseIntervals getGlucoseIntervals();

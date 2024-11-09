@@ -49,6 +49,22 @@ void BGAlarmManager_::setup() {
 
 bool isInSilentInterval(String silenceInterval) {
     // TODO: Implement this function
+    if (silenceInterval == "" || silenceInterval == "0") {
+        return false;
+    }
+    if (silenceInterval == "22_8") {
+        auto time = ServerManager.getTimezonedTime();
+        if (time.tm_hour >= 22 || time.tm_hour < 8) {
+            return true;
+        }
+    }
+    if (silenceInterval == "8_22") {
+        auto time = ServerManager.getTimezonedTime();
+        if (time.tm_hour >= 8 && time.tm_hour < 22) {
+            return true;
+        }
+    }
+
     return false;
 }
 
@@ -64,6 +80,8 @@ void BGAlarmManager_::tick() {
             if (isInSilentInterval(alarmData.silenceInterval)) {
                 if (activeAlarm != NULL) {
                     activeAlarm->isSnoozed = false;
+                    activeAlarm->lastAlarmTime = 0;
+
                 }
                 activeAlarm = NULL;
                 return;
@@ -75,7 +93,7 @@ void BGAlarmManager_::tick() {
                 DEBUG_PRINTLN("Playing alarm sound");
             } else {
                 if (activeAlarm->isSnoozed) {
-                    if (ServerManager.getUtcEpoch() - activeAlarm->lastAlarmTime > 60 * activeAlarm->snoozeTimeMinutes) {
+                    if (activeAlarm->snoozeTimeMinutes != 0 && ServerManager.getUtcEpoch() - activeAlarm->lastAlarmTime > 60 * activeAlarm->snoozeTimeMinutes) {
                         activeAlarm->isSnoozed = false;
                         activeAlarm->lastAlarmTime = ServerManager.getUtcEpoch();
                         PeripheryManager.playRTTTLString(alarmData.alarmSound);
@@ -102,7 +120,9 @@ void BGAlarmManager_::tick() {
 void BGAlarmManager_::snoozeAlarm() {
     if (activeAlarm != NULL) {
         DEBUG_PRINTLN("Snoozing alarm");
+        DisplayManager.printText(0, 6, "Snoozed", TEXT_ALIGNMENT::CENTER, 0);
+        delay(1000);
+        bgDisplayManager.maybeRrefreshScreen(true);
         activeAlarm->isSnoozed = true;
-        activeAlarm->lastAlarmTime = ServerManager.getUtcEpoch();
     }
 }
