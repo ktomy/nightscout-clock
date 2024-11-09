@@ -47,7 +47,7 @@ echo "Upload done"
 
 sleep 2
 
-if [[ $1 == "monitor" || $2 == "monitor" ]]; then
+if [[ $1 == "--monitor" || $2 == "--monitor" ]]; then
     echo "Starting serial monitor..."
     $PROJECTDIR/scripts/monitor.sh
 else
