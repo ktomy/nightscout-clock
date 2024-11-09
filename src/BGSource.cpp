@@ -9,6 +9,13 @@ void BGSource::setup() {
     wifiSecureClient->setInsecure();
 }
 
+void BGSource::handleFailedAttempt() {
+    ServerManager.failedAttempts++;
+    if (ServerManager.failedAttempts >= 10) {
+        ServerManager.reconnectWifi();
+    }
+}
+
 void BGSource::tick() {
     unsigned long long currentTime = ServerManager.getUtcEpoch();
     if (lastCallAttemptEpoch == 0 || currentTime > lastCallAttemptEpoch + 60) {

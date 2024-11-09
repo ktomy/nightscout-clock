@@ -105,7 +105,64 @@ std::list<GlucoseReading> BGSourceDexcom::retrieveReadings(DEXCOM_SERVER dexcomS
     client->addHeader("Accept", "application/json");
     client->addHeader("User-Agent", "Nightscout-clock");
     auto responseCode = client->GET();
-    if (responseCode != HTTP_CODE_OK) {
+    if (responseCode == HTTP_CODE_OK) {
+        DynamicJsonDocument doc(0xFFFF);
+
+        String responseContent = client->getString();
+
+        DeserializationError error = deserializeJson(doc, responseContent);
+
+#ifdef DEBUG_BG_SOURCE
+        DEBUG_PRINTLN("Response: " + responseContent);
+#endif
+
+        if (error) {
+            DEBUG_PRINTF("Error deserializing dexcom response: %s\nFailed on string: %s\n", error.c_str(), responseContent.c_str());
+            if (!firstConnectionSuccess) {
+                DisplayManager.showFatalError(String("Invalid Dexcom Share response: ") + error.c_str());
+            }
+
+            return readings;
+        }
+        
+        if (doc.is<JsonArray>()) {
+            JsonArray jsonArray = doc.as<JsonArray>();
+            for (JsonVariant v : jsonArray) {
+                GlucoseReading reading;
+                reading.sgv = v["Value"].as<int>();
+                auto epochString = v["ST"].as<String>();
+                // Trim Date(1703182152000) to 1703182152
+                epochString = epochString.substring(5, epochString.length() - 4);
+                // convert to unsigned long long
+                reading.epoch = strtoull(epochString.c_str(), NULL, 10);
+                if (v.containsKey("Trend")) {
+                    reading.trend = parseDirection(v["Trend"].as<String>());
+                } else {
+                    reading.trend = BG_TREND::NONE;
+                }
+
+                readings.push_front(reading);
+            }
+
+            firstConnectionSuccess = true;
+
+            // Sort readings by epoch (no idea if they come sorted from the API)
+            readings.sort([](const GlucoseReading &a, const GlucoseReading &b) -> bool { return a.epoch < b.epoch; });
+
+            String debugLog = "Received readings: ";
+            for (auto &reading : readings) {
+                debugLog +=
+                    " " + String(reading.sgv) + " -" + String(reading.getSecondsAgo() / 60) + "m " + toString(reading.trend) + ", ";
+            }
+
+            debugLog += "\n";
+            DEBUG_PRINTLN(debugLog);
+        } else {
+            DEBUG_PRINTLN("Dexcom response is not an array");
+        }
+
+        ServerManager.failedAttempts = 0; // Reset failed attempts counter
+    } else {
         DEBUG_PRINTF("Error getting readings %d\n", responseCode);
         if (responseCode == HTTP_CODE_INTERNAL_SERVER_ERROR) {
             auto errorResponseString = client->getString();
@@ -117,62 +174,10 @@ std::list<GlucoseReading> BGSourceDexcom::retrieveReadings(DEXCOM_SERVER dexcomS
         if (!firstConnectionSuccess) {
             DisplayManager.showFatalError(String("Error connecting to Dexcom server: ") + responseCode);
         }
+        if (responseCode == -1) {
+            handleFailedAttempt();
+        }
         return readings;
-    }
-
-    DynamicJsonDocument doc(0xFFFF);
-
-    String responseContent = client->getString();
-
-    DeserializationError error = deserializeJson(doc, responseContent);
-
-#ifdef DEBUG_BG_SOURCE
-    DEBUG_PRINTLN("Response: " + responseContent);
-#endif
-
-    if (error) {
-        DEBUG_PRINTF("Error deserializing dexcom response: %s\nFailed on string: %s\n", error.c_str(), responseContent.c_str());
-        if (!firstConnectionSuccess) {
-            DisplayManager.showFatalError(String("Invalid Dexcom Share response: ") + error.c_str());
-        }
-
-        return readings;
-    }
-    
-    if (doc.is<JsonArray>()) {
-        JsonArray jsonArray = doc.as<JsonArray>();
-        for (JsonVariant v : jsonArray) {
-            GlucoseReading reading;
-            reading.sgv = v["Value"].as<int>();
-            auto epochString = v["ST"].as<String>();
-            // Trim Date(1703182152000) to 1703182152
-            epochString = epochString.substring(5, epochString.length() - 4);
-            // convert to unsigned long long
-            reading.epoch = strtoull(epochString.c_str(), NULL, 10);
-            if (v.containsKey("Trend")) {
-                reading.trend = parseDirection(v["Trend"].as<String>());
-            } else {
-                reading.trend = BG_TREND::NONE;
-            }
-
-            readings.push_front(reading);
-        }
-
-        firstConnectionSuccess = true;
-
-        // Sort readings by epoch (no idea if they come sorted from the API)
-        readings.sort([](const GlucoseReading &a, const GlucoseReading &b) -> bool { return a.epoch < b.epoch; });
-
-        String debugLog = "Received readings: ";
-        for (auto &reading : readings) {
-            debugLog +=
-                " " + String(reading.sgv) + " -" + String(reading.getSecondsAgo() / 60) + "m " + toString(reading.trend) + ", ";
-        }
-
-        debugLog += "\n";
-        DEBUG_PRINTLN(debugLog);
-    } else {
-        DEBUG_PRINTLN("Dexcom response is not an array");
     }
 
     client->end();

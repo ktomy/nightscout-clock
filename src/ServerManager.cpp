@@ -68,6 +68,7 @@ IPAddress ServerManager_::startWifi(String ssid, String password) {
                 WiFi.persistent(true);
                 ip = WiFi.localIP();
                 DEBUG_PRINTLN("Connected");
+                failedAttempts = 0; // Reset failed attempts counter
                 return ip;
             }
             // If no connection after a while go in Access Point mode
@@ -81,6 +82,14 @@ IPAddress ServerManager_::startWifi(String ssid, String password) {
 
     WiFi.begin();
     return ip;
+}
+
+void ServerManager_::reconnectWifi() {
+    DEBUG_PRINTLN("Reconnecting to WiFi...");
+    WiFi.disconnect();
+    delay(1000);
+    myIP = startWifi(SettingsManager.settings.ssid, SettingsManager.settings.wifi_password);
+    failedAttempts = 0;
 }
 
 AsyncWebHandler ServerManager_::addHandler(AsyncWebHandler *handler) {

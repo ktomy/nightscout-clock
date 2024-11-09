@@ -9,6 +9,7 @@
 #include "enums.h"
 #include "globals.h"
 #include "DisplayManager.h"
+#include "ServerManager.h"
 
 #define BG_BACKFILL_SECONDS 3 * 60 * 60 + 1 // 3 hours one second (to overcome the "after last reading" read)
 
@@ -39,6 +40,7 @@ class BGSource {
     std::list<GlucoseReading> deleteOldReadings(std::list<GlucoseReading> readings, unsigned long long epochToCompare);
     virtual std::list<GlucoseReading> updateReadings(std::list<GlucoseReading> existingReadings) = 0;
     BG_TREND parseDirection(String directionInput);
+    void handleFailedAttempt();
 };
 
 #endif // BGSOURCE_H

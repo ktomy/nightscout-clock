@@ -1,5 +1,4 @@
 #include "BGSourceNightscout.h"
-#include "ServerManager.h"
 #include "SettingsManager.h"
 #include "globals.h"
 
@@ -160,10 +159,14 @@ std::list<GlucoseReading> BGSourceNightscout::retrieveReadings(String baseUrl, S
                 DEBUG_PRINTLN(debugLog);
             }
         }
+        ServerManager.failedAttempts = 0; // Reset failed attempts counter
     } else {
         DEBUG_PRINTF("Error getting readings %d\n", responseCode);
         if (!firstConnectionSuccess) {
             DisplayManager.showFatalError(String("Error connecting to Nightscout: ") + responseCode);
+        }
+        if (responseCode == -1) {
+            handleFailedAttempt();
         }
     }
 

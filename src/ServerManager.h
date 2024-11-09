@@ -35,6 +35,8 @@ class ServerManager_ {
     AsyncWebHandler addHandler(AsyncWebHandler *handler);
     void removeStaticFileHandler();
     void addStaticFileHandler();
+    int failedAttempts = 0;
+    void reconnectWifi();
 };
 
 extern ServerManager_ &ServerManager;
