@@ -1,18 +1,55 @@
 # Nightscout Clock
 ![Nihtscout clock logo](https://github.com/ktomy/nightscout-clock/assets/1446257/1198c06d-b017-409d-aca3-2bca63581ecb)
-## This project is in the MVP state and is actively worked on
 
-Nightscout Clock (or NSClock) is a custom firmware for [Ulanzi TC001](https://www.ulanzi.com/products/ulanzi-pixel-smart-clock-2882?aff=1191) allowing it to connect to Nightscout server, read blood glucose values and show them on the matrix screen
+
+*Nightscout Clock (or NSClock) is an open-source product aimed to help caregivers of people with type 1 diabetes have more piece of mind by being able to better glance at their loved onve blood glucose values.*
 
 <p align=center>
-<img height="400" src="https://ktomy.github.io/nightscout-clock/nightscout_clock_simple_face.jpg" />
+<img height="300" width="400" src="https://ktomy.github.io/nightscout-clock/nightscout_clock_simple_face.jpg" />
 </p>
 
-If you already have an Ulanzi clock, you can try [installing](https://ktomy.github.io/nightscout-clock/) the Nightscout clock firmware
+## Here is what it can do
+* 6 colorful clockfaces
+* Can get glucose data from Dexcom Share or Nightscout
+* Supports mg/dl and mmol/l
+* 10 minutes setup through web browser
+* Configurable low/high limits
+* Audible alarms in case the blood sugar is too low or too high
+* Automatic brightness adjuistment
+* Notifies of stall data
+* ...and more
+
+## How to install
+1. Buy [Ulanzi TC001](https://www.ulanzi.com/products/ulanzi-pixel-smart-clock-2882?aff=1191), it is about $50, so you don't have to sell a kidney, it is available both in US and Europe (Aliexpress sells it as well, for the same price)
+2. Wait a few days for the delivery
+3. Unpack, turn on (press on `<` and `>` buttons for a few seconds)
+4. Connect the USB-C cable (comes with the clock) to your computer
+5. Go to the [installation page](https://ktomy.github.io/nightscout-clock/)
+6. Follow the instructions
+7. Once the clock installed, take out your phone and join `nsclock` wi-fi network. Then go to `http://192.168.4.1/`
+8. Set up your device, provide the Wi-Fi network details, your Dexcom or Nightscout credentials, glucose warning limits and other parameters
+9. You're all set, enjoy!
+
+## More information for people who needs it
+
+Nightscout CLock is a custom firmware for Ulanzi TC001. It can also run (with minor changes) on AWTRIX-Light custom hardware, so if you need bigger display, feel free to research.
+
+### Clockfaces
+| Name            | Look     |
+|-----------------|----------|
+| SImple          | Test     |
+| BIG DIGITS      | Test     |
+| 3-hours graph   | Test     |
+| Graph and value | Test     |
+| Delta           | Test     |
+| Time and value  | Test     |
+
+
+
 
 ### Current version: 0.13
 
-### Features
+### Features (technical stuff, feel free to ignore)
 * Web-based installation (no need to install flashing tools, you just need the clock and a web browser)
 * AP mode and web-based configuration: the clock hosts a website where the user can configure all the  parameters (data source, limits, alarms, display)
 * Simple glucose value display with trend arrow
