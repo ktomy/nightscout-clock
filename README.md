@@ -4,9 +4,7 @@
 
 *Nightscout Clock (or NSClock) is an open-source product aimed to help caregivers of people with type 1 diabetes have more piece of mind by being able to better glance at their loved onve blood glucose values.*
 
-<p align=center>
-<img height="300" width="400" src="https://ktomy.github.io/nightscout-clock/nightscout_clock_simple_face.jpg" />
-</p>
+![resized_IMG_0217](https://github.com/user-attachments/assets/9c5d810a-76c0-414b-8d93-d46a6afa8bf6)
 
 ## Here is what it can do
 * 6 colorful clockfaces
