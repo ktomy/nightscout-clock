@@ -1,6 +1,7 @@
 # Nightscout Clock
 ![Nihtscout clock logo](https://github.com/ktomy/nightscout-clock/assets/1446257/1198c06d-b017-409d-aca3-2bca63581ecb)
 
+### Current version: 0.13
 
 *Nightscout Clock (or NSClock) is an open-source product aimed to help caregivers of people with type 1 diabetes have more piece of mind by being able to better glance at their loved onve blood glucose values.*
 
@@ -44,10 +45,7 @@ Nightscout CLock is a custom firmware for Ulanzi TC001. It can also run (with mi
 
 ### Configuration web interface
 ![copped](https://github.com/user-attachments/assets/6a04b1f2-6c07-49ee-8c63-e145d3823ee9)
-
-
-### Current version: 0.13
-
+--------
 ### Features (technical stuff, feel free to ignore)
 * Web-based installation (no need to install flashing tools, you just need the clock and a web browser)
 * AP mode and web-based configuration: the clock hosts a website where the user can configure all the  parameters (data source, limits, alarms, display)
