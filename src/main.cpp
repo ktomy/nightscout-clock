@@ -1,5 +1,5 @@
 #include <Arduino.h>
-
+#include <esp32-hal.h>
 #include "SettingsManager.h"
 #include "ServerManager.h"
 #include "BGSourceManager.h"
@@ -36,7 +36,7 @@ void setup() {
     bgDisplayManager.setup();
     PeripheryManager.setup();
     bgAlarmManager.setup();
-    //PeripheryManager.playRTTTLString(sound_boot);
+    // PeripheryManager.playRTTTLString(sound_boot);
 
     DEBUG_PRINTLN("Setup done");
     String welcomeMessage = "Nightscout clock   " + ServerManager.myIP.toString();
@@ -60,7 +60,22 @@ void showJoinAP() {
     apModeHintPosition -= 0.18;
 }
 
+int getFreeMemory() { return ESP.getFreeHeap(); }
+
 void loop() {
+
+#ifdef DEBUG_MEMORY
+
+    static unsigned long lastMemoryCheck = 0;
+    unsigned long currentMillis = millis();
+
+    if (currentMillis - lastMemoryCheck >= 10000) { // Check memory every second
+        lastMemoryCheck = currentMillis;
+        auto freeMemory = getFreeMemory();
+        DEBUG_PRINTLN("Free memory: " + String(freeMemory));
+    }
+#endif
+
     if (ServerManager.isConnected) {
         ServerManager.tick();
         bgSourceManager.tick();

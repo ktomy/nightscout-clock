@@ -117,14 +117,16 @@ std::list<GlucoseReading> BGSourceDexcom::retrieveReadings(DEXCOM_SERVER dexcomS
 #endif
 
         if (error) {
-            DEBUG_PRINTF("Error deserializing dexcom response: %s\nFailed on string: %s\n", error.c_str(), responseContent.c_str());
+            DEBUG_PRINTF("Error deserializing dexcom response: %s\nFailed on string: %s\n", error.c_str(),
+                         responseContent.c_str());
             if (!firstConnectionSuccess) {
                 DisplayManager.showFatalError(String("Invalid Dexcom Share response: ") + error.c_str());
             }
 
+            doc.clear();
             return readings;
         }
-        
+
         if (doc.is<JsonArray>()) {
             JsonArray jsonArray = doc.as<JsonArray>();
             for (JsonVariant v : jsonArray) {
@@ -151,8 +153,8 @@ std::list<GlucoseReading> BGSourceDexcom::retrieveReadings(DEXCOM_SERVER dexcomS
 
             String debugLog = "Received readings: ";
             for (auto &reading : readings) {
-                debugLog +=
-                    " " + String(reading.sgv) + " -" + String(reading.getSecondsAgo() / 60) + "m " + toString(reading.trend) + ", ";
+                debugLog += " " + String(reading.sgv) + " -" + String(reading.getSecondsAgo() / 60) + "m " +
+                            toString(reading.trend) + ", ";
             }
 
             debugLog += "\n";
@@ -160,6 +162,8 @@ std::list<GlucoseReading> BGSourceDexcom::retrieveReadings(DEXCOM_SERVER dexcomS
         } else {
             DEBUG_PRINTLN("Dexcom response is not an array");
         }
+
+        doc.clear();
 
         ServerManager.failedAttempts = 0; // Reset failed attempts counter
     } else {
