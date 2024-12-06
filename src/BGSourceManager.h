@@ -10,6 +10,8 @@
 #include "BGSourceNightscout.h"
 #include "BGSourceDexcom.h"
 #include "BGSourceApi.h"
+#include "BGSourceLibreLinkUp.h"
+#include "BGSourceMedtronic.h"
 
 class BGSourceManager_ {
   public:

@@ -16,6 +16,7 @@
         ns_protocol: /^(http|https)$/,
         clock_timezone: /^.{2,}$/,
         time_format: /^(12|24)$/,
+        email_format: /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/,
 
     };
 
@@ -329,6 +330,9 @@
             isValid &= validate($('#dexcom_server'), patterns.dexcom_server);
             isValid &= validate($('#dexcom_username'), patterns.dexcom_username);
             isValid &= validate($('#dexcom_password'), patterns.dexcom_password);
+        } else if (value === "librelinkup") {
+            isValid &= validate($('#librelinkup_email'), patterns.email_format);
+            isValid &= validate($('#dexcom_password'), patterns.librelinkup_password);
         } else if (value === "api") {
             // No validation needed
         } else {
@@ -351,6 +355,10 @@
         json['dexcom_server'] = $('#dexcom_server').val();
         json['dexcom_username'] = $('#dexcom_username').val();
         json['dexcom_password'] = $('#dexcom_password').val();
+
+        //LibreLinkUp
+        json['librelinkup_email'] = $('#librelinkup_email').val();
+        json['librelinkup_password'] = $('#librelinkup_password').val();
 
         //Nightscout
         json['api_secret'] = $('#api_secret').val();
@@ -598,6 +606,10 @@
         $('#dexcom_server').val(json['dexcom_server']);
         $('#dexcom_username').val(json['dexcom_username']);
         $('#dexcom_password').val(json['dexcom_password']);
+
+        //LibreLinkUp
+        $('#librelinkup_email').val(json['librelinkup_email']);
+        $('#librelinkup_password').val(json['librelinkup_password']);
 
         //Nightscout        
         $('#api_secret').val(json['api_secret']);

@@ -63,6 +63,8 @@
                                     <option value="">Choose...</option>
                                     <option value="dexcom">Dexcom</option>
                                     <option value="nightscout">Nightscout</option>
+                                    <option value="librelinkup">LibreLinkUp</option>
+                                    <option value="carelink">Medtronic CareLink</option>
                                     <option value="api">API (see project documentation)</option>
                                 </select>
                                 <div class="invalid-feedback">
@@ -154,6 +156,32 @@
                                 <input type="password" class="form-control" id="api_secret" />
                                 <div class="invalid-feedback">
                                     API secret must be at least 12 characters long
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <br />
+                </div>
+                <div id="librelinkup_settings_card" class="d-none">
+                    <div class="card">
+                        <h5 class="card-header" id="headingTwo">
+                            LibreLink Up connection
+                        </h5>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-lg-5 col-md-6 col-12 mb-3 mb-md-0">
+                                    <label for="librelinkup_email" class="form-label">LibreLink Up email</label>
+                                    <input type="text" class="form-control" id="librelinkup_email">
+                                    <div class="invalid-feedback">
+                                        LibreLink Up email is required
+                                    </div>
+                                </div>
+                                <div class="col-lg-5 col-md-6 col-12 mb-3 mb-md-0">
+                                    <label for="librelinkup_password" class="form-label">LibreLink Up password</label>
+                                    <input type="password" class="form-control" id="librelinkup_password">
+                                    <div class="invalid-feedback">
+                                        LibreLink Up password is required
+                                    </div>
                                 </div>
                             </div>
                         </div>

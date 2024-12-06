@@ -27,6 +27,12 @@ void BGSourceManager_::setup(BG_SOURCE bgSourceType) {
         case BG_SOURCE::API:
             bgSource = new BGSourceApi();
             break;
+        case BG_SOURCE::LIBRELINKUP:
+            bgSource = new BGSourceLibreLinkUp();
+            break;
+        case BG_SOURCE::MEDTRONIC:
+            bgSource = new BGSourceMedtronic();
+            break;
         default:
             DEBUG_PRINTLN("BGSourceManager_::setup: Unknown BG_SOURCE: " + toString(bgSourceType) + " (" +
                           String((int)bgSourceType) + ")");

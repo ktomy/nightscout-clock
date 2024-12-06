@@ -109,6 +109,9 @@ bool SettingsManager_::loadSettingsFromFile() {
     settings.dexcom_password = (*doc)["dexcom_password"].as<String>();
     settings.dexcom_server = (*doc)["dexcom_server"].as<String>() == "us" ? DEXCOM_SERVER::US : DEXCOM_SERVER::NON_US;
 
+    settings.librelinkup_email = (*doc)["librelinkup_email"].as<String>();
+    settings.librelinkup_password = (*doc)["librelinkup_password"].as<String>();
+
     settings.nightscout_url = (*doc)["nightscout_url"].as<String>();
     settings.nightscout_api_key = (*doc)["api_secret"].as<String>();
 
@@ -180,6 +183,9 @@ bool SettingsManager_::saveSettingsToFile() {
     (*doc)["dexcom_username"] = settings.dexcom_username;
     (*doc)["dexcom_password"] = settings.dexcom_password;
     (*doc)["dexcom_server"] = settings.dexcom_server == DEXCOM_SERVER::US ? "us" : "ous";
+
+    (*doc)["librelinkup_email"] = settings.librelinkup_email;
+    (*doc)["librelinkup_password"] = settings.librelinkup_password;
 
     (*doc)["nightscout_url"] = settings.nightscout_url;
     (*doc)["api_secret"] = settings.nightscout_api_key;
