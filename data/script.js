@@ -17,6 +17,7 @@
         clock_timezone: /^.{2,}$/,
         time_format: /^(12|24)$/,
         email_format: /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/,
+        not_empty: /^.{1,}$/,
 
     };
 
@@ -130,6 +131,7 @@
         const value = glucoseSource.val();
         $('#nightscout_settings_card').toggleClass("d-none", value !== "nightscout");
         $('#dexcom_settings_card').toggleClass("d-none", value !== "dexcom");
+        $('#librelinkup_settings_card').toggleClass("d-none", value !== "librelinkup");
 
         removeFocusOutValidation('ns_hostname');
         removeFocusOutValidation('ns_port');
@@ -137,6 +139,9 @@
         removeFocusOutValidation('dexcom_server');
         removeFocusOutValidation('dexcom_username');
         removeFocusOutValidation('dexcom_password');
+        removeFocusOutValidation('librelinkup_email');
+        removeFocusOutValidation('librelinkup_password');
+        removeFocusOutValidation('librelinkup_region');
 
         switch (value) {
             case "nightscout":
@@ -153,6 +158,12 @@
                 break;
             case "api":
                 setElementValidity(glucoseSource, true);
+                break;
+            case "librelinkup":
+                setElementValidity(glucoseSource, true);
+                addFocusOutValidation('librelinkup_email');
+                addFocusOutValidation('librelinkup_password');
+                addFocusOutValidation('librelinkup_region');
                 break;
             default:
                 setElementValidity(glucoseSource, false);
@@ -332,7 +343,8 @@
             isValid &= validate($('#dexcom_password'), patterns.dexcom_password);
         } else if (value === "librelinkup") {
             isValid &= validate($('#librelinkup_email'), patterns.email_format);
-            isValid &= validate($('#dexcom_password'), patterns.librelinkup_password);
+            isValid &= validate($('#librelinkup_password'), patterns.dexcom_password);
+            isValid &= validate($('#librelinkup_region'), patterns.not_empty);
         } else if (value === "api") {
             // No validation needed
         } else {
@@ -359,6 +371,7 @@
         //LibreLinkUp
         json['librelinkup_email'] = $('#librelinkup_email').val();
         json['librelinkup_password'] = $('#librelinkup_password').val();
+        json['librelinkup_region'] = $('#librelinkup_region').val();
 
         //Nightscout
         json['api_secret'] = $('#api_secret').val();
@@ -610,6 +623,7 @@
         //LibreLinkUp
         $('#librelinkup_email').val(json['librelinkup_email']);
         $('#librelinkup_password').val(json['librelinkup_password']);
+        $('#librelinkup_region').val(json['librelinkup_region']);
 
         //Nightscout        
         $('#api_secret').val(json['api_secret']);

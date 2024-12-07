@@ -33,8 +33,11 @@
     "alarm_high_snooze_interval": 60,
     "alarm_low_snooze_interval": 30,
     "alarm_urgent_low_snooze_interval": 15,
-    "alarm_high_silence_interfal": "0",
-    "alarm_low_silence_interfal": "0",
-    "alarm_urgent_low_silence_interfal": "0",
-    "test_variable": "test_value"
+    "alarm_high_silence_interval": "0",
+    "alarm_low_silence_interval": "0",
+    "alarm_urgent_low_silence_interval": "0",
+    "test_variable": "test_value",
+    "librelinkup_email": "",
+    "librelinkup_password": "",
+    "librelinkup_region": "EU"
 }

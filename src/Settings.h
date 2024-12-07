@@ -22,6 +22,7 @@ class Settings {
     DEXCOM_SERVER dexcom_server;
     String librelinkup_email;
     String librelinkup_password;
+    String librelinkup_region;
     String tz_libc_value;
     TIME_FORMAT time_format;
     bool alarm_urgent_low_enabled;
