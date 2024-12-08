@@ -21,6 +21,7 @@ class AuthTicket {
     unsigned long long duration;
     String token;
     String accountId;
+    String patientId;
 };
 
 class BGSourceLibreLinkUp : public BGSource {
@@ -33,8 +34,10 @@ class BGSourceLibreLinkUp : public BGSource {
     void deleteAuthTicket();
     AuthTicket login();
     AuthTicket authTicket;
-    std::list<GlucoseReading> getReadings(AuthTicket authTicket);
-    String getLibreLinkUpConnection();
+    std::list<GlucoseReading> getReadings(unsigned long long lastReadingEpoch);
+    GlucoseReading getLibreLinkUpConnection();
+    String encodeSHA256(String toEncode);
+    unsigned long long libreFactoryTimestampToEpoch(String dateString);
     std::map<String, String> standardHeaders = {{"User-Agent", USER_AGENT},
                                                 // {"Accept", "application/json"},
                                                 {"Content-Type", "application/json;charset=UTF-8"},

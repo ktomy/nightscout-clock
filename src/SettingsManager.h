@@ -9,14 +9,14 @@
 class SettingsManager_ {
   private:
     SettingsManager_() = default;
-    DynamicJsonDocument *readConfigJsonFile();
+    JsonDocument *readConfigJsonFile();
 
   public:
     static SettingsManager_ &getInstance();
     void setup();
     bool loadSettingsFromFile();
     bool saveSettingsToFile();
-    bool trySaveJsonAsSettings(DynamicJsonDocument doc);
+    bool trySaveJsonAsSettings(JsonDocument doc);
     void factoryReset();
 
     Settings settings;

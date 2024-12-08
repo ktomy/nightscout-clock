@@ -104,9 +104,9 @@ std::list<GlucoseReading> BGSourceNightscout::retrieveReadings(String baseUrl, S
 #endif
 
     if (responseCode == HTTP_CODE_OK) {
-        DynamicJsonDocument doc(0x1000);
+        JsonDocument doc;
 
-        StaticJsonDocument<1024> filter;
+        JsonDocument filter;
         filter[0]["sgv"] = true;
         filter[0]["date"] = true;
         filter[0]["trend"] = true;
@@ -130,9 +130,9 @@ std::list<GlucoseReading> BGSourceNightscout::retrieveReadings(String baseUrl, S
                 reading.sgv = v["sgv"].as<int>();
                 reading.epoch = v["date"].as<unsigned long long>() / 1000;
                 // sensor.epoch = v["mills"].as<unsigned long>();
-                if (v.containsKey("trend")) {
+                if (v["trend"].is<int>()) {
                     reading.trend = (BG_TREND)(v["trend"].as<int>());
-                } else if (v.containsKey("direction")) {
+                } else if (v["direction"].is<String>()) {
                     reading.trend = parseDirection(v["direction"].as<String>());
                 } else {
                     reading.trend = BG_TREND::NONE;

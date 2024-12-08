@@ -21,7 +21,9 @@ struct GlucoseReading {
 
     int getSecondsAgo() const { return time(NULL) - epoch; }
 
-    String toString() const { return String(sgv) + "," + ::toString(trend) + "," + String(epoch); }
+    String toString() const {
+        return String(sgv) + "," + ::toString(trend) + "," + String(epoch) + "(" + String(getSecondsAgo()) + ")";
+    }
 };
 
 class BGSource {

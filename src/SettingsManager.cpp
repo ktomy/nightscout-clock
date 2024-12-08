@@ -47,8 +47,8 @@ void SettingsManager_::factoryReset() {
     ESP.restart();
 }
 
-DynamicJsonDocument *SettingsManager_::readConfigJsonFile() {
-    DynamicJsonDocument *doc;
+JsonDocument *SettingsManager_::readConfigJsonFile() {
+    JsonDocument *doc;
     if (LittleFS.exists(CONFIG_JSON)) {
         auto settings = Settings();
         File file = LittleFS.open(CONFIG_JSON);
@@ -57,7 +57,7 @@ DynamicJsonDocument *SettingsManager_::readConfigJsonFile() {
             return NULL;
         }
 
-        doc = new DynamicJsonDocument((int)(file.size() * 2));
+        doc = new JsonDocument();
         DeserializationError error = deserializeJson(*doc, file);
         if (error) {
             DEBUG_PRINTF("Deserialization error. File size: %d, requested memory: %d. Error: %s\n", file.size(),
@@ -217,7 +217,7 @@ bool SettingsManager_::saveSettingsToFile() {
     return true;
 }
 
-bool SettingsManager_::trySaveJsonAsSettings(DynamicJsonDocument doc) {
+bool SettingsManager_::trySaveJsonAsSettings(JsonDocument doc) {
     DEBUG_PRINTLN(doc.as<String>());
     auto file = LittleFS.open(CONFIG_JSON, FILE_WRITE);
     if (!file) {

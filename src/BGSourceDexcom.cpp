@@ -106,7 +106,7 @@ std::list<GlucoseReading> BGSourceDexcom::retrieveReadings(DEXCOM_SERVER dexcomS
     client->addHeader("User-Agent", "Nightscout-clock");
     auto responseCode = client->GET();
     if (responseCode == HTTP_CODE_OK) {
-        DynamicJsonDocument doc(0xFFFF);
+        JsonDocument doc;
 
         String responseContent = client->getString();
 
@@ -200,7 +200,7 @@ String BGSourceDexcom::getAccountId(DEXCOM_SERVER dexcomServer, String dexcomUse
     getAccountIdUrl += DEXCOM_GET_ACCOUNT_ID_PATH;
 
     // create JSON body having username, password and applicationId
-    DynamicJsonDocument doc(1024);
+    JsonDocument doc;
     doc["accountName"] = dexcomUsername;
     doc["password"] = dexcomPassword;
     doc["applicationId"] = DEXCOM_APPLICATION_ID;
@@ -262,7 +262,7 @@ String BGSourceDexcom::getSessionId(DEXCOM_SERVER dexcomServer, String accountId
     getSessionIdUrl += DEXCOM_GET_SESSION_ID_PATH;
 
     // create JSON body having accountId, password and applicationId
-    DynamicJsonDocument doc(1024);
+    JsonDocument doc;
     doc["accountId"] = accountId;
     doc["password"] = dexcomPassword;
     doc["applicationId"] = DEXCOM_APPLICATION_ID;
