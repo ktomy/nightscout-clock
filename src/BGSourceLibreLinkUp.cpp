@@ -98,25 +98,14 @@ AuthTicket BGSourceLibreLinkUp::login() {
 }
 
 unsigned long long BGSourceLibreLinkUp::libreFactoryTimestampToEpoch(String dateString) {
-    // input string comes in format like 12/25/2024 4:57:22 PM
-    // output is epoch time
-
+    setenv("TZ", "UTC0", 1);
+    tzset();
     struct tm tm;
     strptime(dateString.c_str(), "%m/%d/%Y %I:%M:%S %p", &tm);
-
-    auto tz_backup = getenv("TZ");
-    setenv("TZ", "UTC", 1);
-    tzset();
     time_t t = mktime(&tm);
-    setenv("TZ", tz_backup, 1);
+    setenv("TZ", SettingsManager.settings.tz_libc_value.c_str(), 1);
     tzset();
-
-    // now we have epoch time in UTC, we need to convert it to local time
-    struct tm timeinfo;
-    localtime_r(&t, &timeinfo);
-    auto local_epoch = mktime(&timeinfo);
-
-    return local_epoch;
+    return t;
 }
 
 BG_TREND trendFromLibreTrend(int trend) {
@@ -280,8 +269,7 @@ std::list<GlucoseReading> BGSourceLibreLinkUp::getReadings(unsigned long long la
         return std::list<GlucoseReading>();
     }
 
-    // if (lastReadingEpoch >= readingFromConnection.epoch - 60 * 5)
-    {
+    if (lastReadingEpoch >= readingFromConnection.epoch - 60 * 5) {
 #ifdef DEBUG_BG_SOURCE
         DEBUG_PRINTF("No historical data needed, last reading is %d seconds older then the current reading\n",
                      readingFromConnection.epoch - lastReadingEpoch);
@@ -316,6 +304,8 @@ std::list<GlucoseReading> BGSourceLibreLinkUp::getReadings(unsigned long long la
     // #ifdef DEBUG_BG_SOURCE
     //     DEBUG_PRINTLN("Response: " + response);
     // #endif
+
+    firstConnectionSuccess = true;
 
     JsonDocument doc;
 
@@ -355,9 +345,22 @@ std::list<GlucoseReading> BGSourceLibreLinkUp::getReadings(unsigned long long la
         reading.trend = BG_TREND::NONE;
         String dateString = v["FactoryTimestamp"].as<String>();
         reading.epoch = libreFactoryTimestampToEpoch(dateString);
+        if (reading.getSecondsAgo() < 0) {
+            DEBUG_PRINTF("Reading from the future: %s: %s\n", dateString.c_str(), reading.toString().c_str());
+        }
 
         glucoseReadings.push_front(reading);
     }
+    String debug_read_values = "Read values: ";
+
+    glucoseReadings.sort([](const GlucoseReading &a, const GlucoseReading &b) { return a.epoch < b.epoch; });
+    for (auto &reading : glucoseReadings) {
+        debug_read_values += String(reading.sgv) + ":(" + String(reading.getSecondsAgo()) + "), ";
+    }
+
+#ifdef DEBUG_BG_SOURCE
+    DEBUG_PRINTLN(debug_read_values);
+#endif
 
     doc.clear();
     client->end();
