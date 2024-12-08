@@ -1,0 +1,10 @@
+[wokwi]
+version = 1
+elf = ".pio/build/ulanzi_debug/firmware.elf"
+firmware = ".pio/build/ulanzi_debug/merged_firmware.bin"
+
+
+# Forward http://localhost:8180 to port 80 on the simulated ESP32:
+[[net.forward]]
+from = "localhost:8180"
+to = "target:80"

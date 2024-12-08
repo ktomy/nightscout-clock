@@ -1,0 +1,238 @@
+{
+    "version": 1,
+    "author": "Ives Lima",
+    "editor": "wokwi",
+    "parts": [
+        {
+            "type": "board-esp32-devkit-c-v4",
+            "id": "esp",
+            "top": -355.2,
+            "left": 513.64,
+            "attrs": {}
+        },
+        {
+            "type": "wokwi-pushbutton",
+            "id": "btn1",
+            "top": -202.2,
+            "left": 396.6,
+            "rotate": 90,
+            "attrs": {
+                "color": "teal",
+                "bounce": "0"
+            }
+        },
+        {
+            "type": "wokwi-vcc",
+            "id": "vcc1",
+            "top": -316.04,
+            "left": 470.4,
+            "attrs": {}
+        },
+        {
+            "type": "wokwi-gnd",
+            "id": "gnd1",
+            "top": -201.6,
+            "left": 489,
+            "attrs": {}
+        },
+        {
+            "type": "wokwi-neopixel-canvas",
+            "id": "neopixels",
+            "top": -520,
+            "left": -264.5,
+            "attrs": {
+                "rows": "8",
+                "cols": "32",
+                "pixelate": "square"
+            }
+        },
+        {
+            "type": "wokwi-photoresistor-sensor",
+            "id": "ldr1",
+            "top": -509.1,
+            "left": 436.1,
+            "rotate": 90,
+            "attrs": {}
+        },
+        {
+            "type": "wokwi-pushbutton",
+            "id": "btn2",
+            "top": -116.67,
+            "left": 363.58,
+            "rotate": 90,
+            "attrs": {
+                "color": "teal",
+                "bounce": "0"
+            }
+        },
+        {
+            "type": "wokwi-pushbutton",
+            "id": "btn3",
+            "top": -116.67,
+            "left": 430.78,
+            "rotate": 90,
+            "attrs": {
+                "color": "teal",
+                "bounce": "0"
+            }
+        },
+        {
+            "type": "wokwi-buzzer",
+            "id": "bz1",
+            "top": -352.8,
+            "left": 625.8,
+            "attrs": {
+                "volume": "0.1"
+            }
+        }
+    ],
+    "connections": [
+        [
+            "esp:TX",
+            "$serialMonitor:RX",
+            "",
+            []
+        ],
+        [
+            "esp:RX",
+            "$serialMonitor:TX",
+            "",
+            []
+        ],
+        [
+            "esp:GND.1",
+            "gnd1:GND",
+            "black",
+            [
+                "h0"
+            ]
+        ],
+        [
+            "gnd1:GND",
+            "btn1:2.r",
+            "black",
+            [
+                "v0",
+                "h-19.2",
+                "v57.6",
+                "h-76.8"
+            ]
+        ],
+        [
+            "neopixels:VDD",
+            "vcc1:VCC",
+            "red",
+            [
+                "h-5",
+                "v9.6",
+                "h268.8",
+                "v57.6"
+            ]
+        ],
+        [
+            "neopixels:VSS",
+            "btn1:2.r",
+            "black",
+            [
+                "v0"
+            ]
+        ],
+        [
+            "ldr1:DO",
+            "esp:35",
+            "green",
+            [
+                "v48",
+                "h-9",
+                "v67.2"
+            ]
+        ],
+        [
+            "ldr1:VCC",
+            "vcc1:VCC",
+            "red",
+            [
+                "v19.2",
+                "h-48",
+                "v105.6"
+            ]
+        ],
+        [
+            "ldr1:GND",
+            "gnd1:GND",
+            "black",
+            [
+                "v28.8",
+                "h-28.4",
+                "v163.2"
+            ]
+        ],
+        [
+            "btn2:1.l",
+            "btn3:2.l",
+            "green",
+            [
+                "v0"
+            ]
+        ],
+        [
+            "btn3:2.r",
+            "gnd1:GND",
+            "black",
+            [
+                "v10.67",
+                "h52.02"
+            ]
+        ],
+        [
+            "btn1:2.l",
+            "esp:27",
+            "green",
+            [
+                "v0"
+            ]
+        ],
+        [
+            "btn2:2.l",
+            "esp:26",
+            "green",
+            [
+                "v0"
+            ]
+        ],
+        [
+            "btn3:1.l",
+            "esp:14",
+            "green",
+            [
+                "v0"
+            ]
+        ],
+        [
+            "bz1:1",
+            "esp:GND.3",
+            "black",
+            [
+                "v0"
+            ]
+        ],
+        [
+            "bz1:2",
+            "esp:15",
+            "red",
+            [
+                "v0"
+            ]
+        ],
+        [
+            "neopixels:DIN",
+            "esp:32",
+            "green",
+            [
+                "v67.2",
+                "h407.25"
+            ]
+        ]
+    ],
+    "dependencies": {}
+}
