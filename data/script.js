@@ -3,7 +3,7 @@
     'use strict'
 
     const patterns = {
-        ssid: /^[^!#;+\]\/"\t][^+\]\/"\t]{0,30}[^ +\]\/"\t]$|^[^ !#;+\]\/"\t]$[ \t]+$/,
+        ssid: /^[\x20-\x7E]{1,32}$/,
         wifi_password: /^.{8,}$/,
         dexcom_username: /^.{6,}$/,
         dexcom_password: /^.{8,20}$/,
