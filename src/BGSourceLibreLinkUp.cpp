@@ -346,7 +346,7 @@ std::list<GlucoseReading> BGSourceLibreLinkUp::getReadings(unsigned long long la
         String dateString = v["FactoryTimestamp"].as<String>();
         reading.epoch = libreFactoryTimestampToEpoch(dateString);
         if (reading.getSecondsAgo() < 0) {
-            DEBUG_PRINTF("Reading from the future: %s: %s\n", dateString.c_str(), reading.toString().c_str());
+            DEBUG_PRINTF("Reading from the future: %s: %s: %lu\n", dateString.c_str(), reading.toString().c_str(), time(NULL));
         }
 
         glucoseReadings.push_front(reading);

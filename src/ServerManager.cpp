@@ -128,7 +128,7 @@ void ServerManager_::setupWebServer(IPAddress ip) {
             return;
         }
         auto &&data = json.as<JsonObject>();
-        if (data.containsKey("alarmType")) {
+        if (data["alarmType"].is<String>()) {
             auto alarmType = data["alarmType"].as<String>();
             if (alarmType == "high") {
                 PeripheryManager.playRTTTLString(sound_high);
@@ -210,6 +210,8 @@ bool ServerManager_::initTimeIfNeeded() {
         DEBUG_PRINTF("Timezone is: %s, local time is: %02d.%02d.%d %02d:%02d:%02d\n",
                      SettingsManager.settings.tz_libc_value.c_str(), timeinfo.tm_mday, timeinfo.tm_mon + 1,
                      timeinfo.tm_year + 1900, timeinfo.tm_hour, timeinfo.tm_min, timeinfo.tm_sec);
+        Serial.printf("Local time is: %02d.%02d.%d %02d:%02d:%02d\n", timeinfo.tm_mday, timeinfo.tm_mon + 1,
+                      timeinfo.tm_year + 1900, timeinfo.tm_hour, timeinfo.tm_min, timeinfo.tm_sec);
     }
 
     return true;
