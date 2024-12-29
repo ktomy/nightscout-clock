@@ -88,5 +88,22 @@ Nightscout CLock is a custom firmware for Ulanzi TC001. It can also run (with mi
    * Medtronic
    * ...more... (if you are the author of a CGM data collecting app/service nad you want your data to be displayed on the Nightscout Clock, please contact me)
  
+## Changes
+
+### 0.14
+
+- Updated README to be more customer-friendly
+- Started preparing for LibreLink Up data source integration, [#9](https://github.com/ktomy/nightscout-clock/issues/9))
+- Improved memory management to avoid NOMEMORY issues and unplanned restarts, [#19](https://github.com/ktomy/nightscout-clock/issues/19)
+- Improved WiFi SSID validation, [#16](https://github.com/ktomy/nightscout-clock/issues/16)
+- Fixed typos in Web UI (thanks @motinis)
+
+### 0.13
+
+- Finished alarms feature
+- Improved WiFi reconnection handling [#15](https://github.com/ktomy/nightscout-clock/issues/15)
+- Migrated development environment to Linux
+- Removed boot sound
+
 ---
 The code is heavily inspired by (has a lot of copy-pasted code from :D ) [AWTRIX Light](https://github.com/Blueforcer/awtrix-light) project.
