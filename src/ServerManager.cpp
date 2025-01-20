@@ -47,33 +47,35 @@ IPAddress ServerManager_::setAPmode(String ssid, String psk) {
     return WiFi.softAPIP();
 }
 
-IPAddress ServerManager_::startWifi(String ssid, String password) {
+IPAddress ServerManager_::startWifi(String ssid[], String password[], int numToCheck) {
     this->isInAPMode = false;
 
     IPAddress ip;
     int timeout = WIFI_CONNECT_TIMEOUT;
 
-    if (ssid != "") {
-        WiFi.mode(WIFI_STA);
+    for (int i = 0; i < numToCheck; i++) {
+        if (ssid[i] != "") {
+            WiFi.mode(WIFI_STA);
 
-        WiFi.begin(ssid, password);
-        DEBUG_PRINTF("Connecting to %s\n", ssid);
+            WiFi.begin(ssid[i], password[i]);
+            DEBUG_PRINTF("Connecting to %s\n", ssid[i]);
 
-        auto startTime = millis();
-        while (WiFi.status() != WL_CONNECTED) {
-            delay(300);
-            Serial.print(".");
-            if (WiFi.status() == WL_CONNECTED) {
-                WiFi.setAutoReconnect(true);
-                WiFi.persistent(true);
-                ip = WiFi.localIP();
-                DEBUG_PRINTLN("Connected");
-                failedAttempts = 0; // Reset failed attempts counter
-                return ip;
+            auto startTime = millis();
+            while (WiFi.status() != WL_CONNECTED) {
+                delay(300);
+                Serial.print(".");
+                if (WiFi.status() == WL_CONNECTED) {
+                    WiFi.setAutoReconnect(true);
+                    WiFi.persistent(true);
+                    ip = WiFi.localIP();
+                    DEBUG_PRINTLN("Connected");
+                    failedAttempts = 0; // Reset failed attempts counter
+                    return ip;
+                }
+                // If no connection after a while go in Access Point mode
+                if (millis() - startTime > timeout)
+                    break;
             }
-            // If no connection after a while go in Access Point mode
-            if (millis() - startTime > timeout)
-                break;
         }
     }
     ip = setAPmode(SettingsManager.settings.hostname, AP_MODE_PASSWORD);
@@ -88,7 +90,12 @@ void ServerManager_::reconnectWifi() {
     DEBUG_PRINTLN("Reconnecting to WiFi...");
     WiFi.disconnect();
     delay(1000);
-    myIP = startWifi(SettingsManager.settings.ssid, SettingsManager.settings.wifi_password);
+    int numToCheck = 1;
+    if (SettingsManager.settings.ssid[1] != "") {
+        numToCheck++;
+    }
+    
+    myIP = startWifi(SettingsManager.settings.ssid, SettingsManager.settings.wifi_password, numToCheck);
     failedAttempts = 0;
 }
 

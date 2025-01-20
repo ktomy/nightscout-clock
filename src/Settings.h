@@ -3,8 +3,9 @@
 
 class Settings {
   public:
-    String ssid;
-    String wifi_password;
+    String ssid[2];
+    String wifi_password[2];
+    
     String hostname;
     String nightscout_url;
     String nightscout_api_key;

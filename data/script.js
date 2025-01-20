@@ -118,6 +118,11 @@
         var allValid = true;
         allValid &= validate($('#ssid'), patterns.ssid);
         allValid &= validate($('#wifi_password'), patterns.wifi_password);
+        allValid &= validate($('#ssid_1'), patterns.ssid, true);
+        allValid &= validate($('#wifi_password_1'), patterns.wifi_password, true);
+        if ($('#ssid_1').val().length > 0)
+            allValid &= validate($('#wifi_password_1'), patterns.wifi_password);
+        
         allValid &= validateGlucoseSource();
         allValid &= validateBG();
         allValid &= validate($('#clock_timezone'), patterns.clock_timezone);
@@ -359,6 +364,9 @@
         //WiFi
         json['ssid'] = $('#ssid').val();
         json['password'] = $('#wifi_password').val();
+        json['ssid_1'] = $('#ssid_1').val();
+        json['password_1'] = $('#wifi_password_1').val();
+
 
         //Glucose source
         json['data_source'] = $('#glucose_source').val();
@@ -513,6 +521,12 @@
     }
 
     function validate(field, regex) {
+        return validate(field, regex, false)
+    }
+
+    function validate(field, regex, allowEmpty) {
+        if (field.val().length === 0)
+            return setElementValidity(field, allowEmpty);
         return setElementValidity(field, regex.test(field.val()));
     }
 
@@ -610,6 +624,9 @@
         //WiFi
         $('#ssid').val(json['ssid']);
         $('#wifi_password').val(json['password']);
+        $('#ssid_1').val(json['ssid_1']);
+        $('#wifi_password_1').val(json['password_1']);
+
 
         // glucose source
         $('#glucose_source').val(json['data_source']);

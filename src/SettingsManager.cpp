@@ -78,8 +78,10 @@ bool SettingsManager_::loadSettingsFromFile() {
     if (doc == NULL)
         return false;
 
-    settings.ssid = (*doc)["ssid"].as<String>();
-    settings.wifi_password = (*doc)["password"].as<String>();
+    settings.ssid[0] = (*doc)["ssid"].as<String>();
+    settings.wifi_password[0] = (*doc)["password"].as<String>();
+    settings.ssid[1] = (*doc)["ssid_1"].as<String>();
+    settings.wifi_password[1] = (*doc)["password_1"].as<String>();
 
     settings.bg_low_warn_limit = (*doc)["low_mgdl"].as<int>();
     settings.bg_high_warn_limit = (*doc)["high_mgdl"].as<int>();
@@ -144,8 +146,11 @@ bool SettingsManager_::saveSettingsToFile() {
     if (doc == NULL)
         return false;
 
-    (*doc)["ssid"] = settings.ssid;
-    (*doc)["password"] = settings.wifi_password;
+    (*doc)["ssid"] = settings.ssid[0];
+    (*doc)["password"] = settings.wifi_password[0];
+    (*doc)["ssid_1"] = settings.ssid[1];
+    (*doc)["password_1"] = settings.wifi_password[1];
+
 
     (*doc)["low_mgdl"] = settings.bg_low_warn_limit;
     (*doc)["high_mgdl"] = settings.bg_high_warn_limit;

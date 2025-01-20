@@ -1,6 +1,8 @@
 {
     "ssid": "",
     "password": "",
+    "ssid_1": "",
+    "password_1": "",    
     "dhcp": true,
     "ip": "",
     "netmask": "",
