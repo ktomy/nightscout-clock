@@ -25,27 +25,53 @@ void BGDisplayFaceValueAndDiff::showReadings(const std::list<GlucoseReading> &re
     } else {
         DisplayManager.setTextColor(COLOR_WHITE);
     }
-#ifdef DEBUG_DISPLAY
-    DEBUG_PRINTF("Diff: %s", diff.c_str());
-#endif
 
     DisplayManager.printText(33, 6, diff.c_str(), TEXT_ALIGNMENT::RIGHT, 2);
 }
 
 String BGDisplayFaceValueAndDiff::getDiff(const std::list<GlucoseReading> &readings) const {
     if (readings.size() < 2) {
+#ifdef DEBUG_DISPLAY
+        DEBUG_PRINTLN("Not enough readings to calculate diff");
+#endif
         return "";
     }
 
     auto last = readings.back();
-    auto prev = std::prev(readings.end(), 2);
-    if (last.getSecondsAgo() - prev->getSecondsAgo() > 6 * 60) {
-        return "";
+    std::list<GlucoseReading> foundReadings;
+    // cycle through reading starting from the last one until the time of reading is less than 5 minutes prior to the last
+    // reading. Store the found readings
+    for (auto it = readings.rbegin(); it != readings.rend(); ++it) {
+        if (last.epoch - it->epoch > 5 * 60) {
+            break;
+        }
+        foundReadings.push_front(*it);
+    }
+    // cucle through found readings, get min and max SGVs
+    int minSGV = 9999;
+    int maxSGV = 0;
+    for (const auto &reading : foundReadings) {
+        if (reading.sgv < minSGV) {
+            minSGV = reading.sgv;
+        }
+        if (reading.sgv > maxSGV) {
+            maxSGV = reading.sgv;
+        }
+    }
+    int base = last.sgv;
+    if (minSGV != base && maxSGV != base) {
+#ifdef DEBUG_DISPLAY
+        DEBUG_PRINTLN("Too many changes in last 5 minutes");
+#endif
+        return "?";
     }
 
-    int diff = last.sgv - prev->sgv;
+    int diff = minSGV == base ? base - maxSGV : base - minSGV;
 
     if (std::abs(diff) > 99) {
+#ifdef DEBUG_DISPLAY
+        DEBUG_PRINTLN("Diff is too big: " + String(diff));
+#endif
         return "?";
     }
 
@@ -55,5 +81,10 @@ String BGDisplayFaceValueAndDiff::getDiff(const std::list<GlucoseReading> &readi
     }
 
     diffString += getPrintableReading(diff);
+
+#ifdef DEBUG_DISPLAY
+    DEBUG_PRINTF("SGV Diff: %s (%d readings)", diffString.c_str(), foundReadings.size());
+#endif
+
     return diffString;
 }
