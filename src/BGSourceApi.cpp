@@ -56,7 +56,7 @@ void BGSourceApi::HandleEntriesPost(AsyncWebServerRequest *request, JsonVariant 
             return;
         }
         auto &&entryObj = entry.as<JsonObject>();
-        if (not entryObj.containsKey("dateString") or not entryObj.containsKey("sgv")) {
+        if (entryObj["dateString"].isNull() || entryObj["sgv"].isNull()) {
             request->send(400, "application/json", "{\"status\": \"json parsing error\"}");
             return;
         }

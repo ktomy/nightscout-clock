@@ -137,7 +137,7 @@ std::list<GlucoseReading> BGSourceDexcom::retrieveReadings(DEXCOM_SERVER dexcomS
                 epochString = epochString.substring(5, epochString.length() - 4);
                 // convert to unsigned long long
                 reading.epoch = strtoull(epochString.c_str(), NULL, 10);
-                if (v.containsKey("Trend")) {
+                if (v["Trend"].is<String>()) {
                     reading.trend = parseDirection(v["Trend"].as<String>());
                 } else {
                     reading.trend = BG_TREND::NONE;
