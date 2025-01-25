@@ -298,8 +298,7 @@
                     </div>
                 </div>
                 <br />
-
-                <div class="card" id="device_settings_card">
+                <div class="card" id="alarms_settings_card">
                     <h5 class="card-header">Glucose levels alerts</h5>
                     <div class="card-body">
                         <div class="row">
@@ -516,6 +515,79 @@
                                 </select>
                                 <div class="invalid-feedback">
                                     Please select the time format (AM/PM or 24h)
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <br />
+                <div class="card" id="advanced_settings_card">
+                    <h5 class="card-header">Advanced settings &nbsp;&nbsp; <span class="card-subtitle text-muted small">
+                            You probably don't need to change anything here</span>
+                    </h5>
+                    <button class="btn btn-sm btn-outline-secondary float-end" data-bs-toggle="collapse"
+                        data-bs-target="#advanced_settings" type="button">Show / hide</button>
+
+                    <div class="card-body collapse" id="advanced_settings">
+                        <div class="row">
+                            <div class="col-12">
+                                <table>
+                                    <tr>
+                                        <td>
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" value=""
+                                                    id="additional_wifi_enable">
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <h5>Additional WiFi Network</h5>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+
+                        </div>
+                        <div class="row">
+                            <div class="col-3">
+                                <label for="additional_wifi_type" class="form-label">WiFi Type</label>
+                                <select class="form-select" id="additional_wifi_type" required>
+                                    <option value="">Choose...</option>
+                                    <option value="wpa_psk">WPA-PSK</option>
+                                    <option value="wpa_eap">WPA-EAP</option>
+                                </select>
+                                <div class="invalid-feedback">
+                                    Please select WiFi type
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                <label for="additional_ssid" class="form-label">WiFi network name (SSID)</label>
+                                <input type="text" class="form-control" id="additional_ssid" placeholder="" required>
+                                <div class="invalid-feedback">
+                                    Valid network name (SSID) is required
+                                </div>
+                            </div>
+                            <div class="col-3 d-none" id="additional_wifi_psk">
+                                <label for="additional_wifi_password" class="form-label">WiFi password</label>
+                                <input type="password" class="form-control" id="additional_wifi_password" placeholder=""
+                                    required>
+                                <div class="invalid-feedback">
+                                    Password is required and must be at least 8 characters long
+                                </div>
+                            </div>
+                            <div class="col-3 d-none" id="additional_wifi_eap">
+                                <label for="additional_wifi_username" class="form-label">WiFi username</label>
+                                <input type="text" class="form-control" id="additional_wifi_username" placeholder=""
+                                    required>
+                                <div class="invalid-feedback">
+                                    Username is required
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                <label for="additional_wifi_eap_password" class="form-label">WiFi password</label>
+                                <input type="password" class="form-control" id="additional_wifi_eap_password"
+                                    placeholder="" required>
+                                <div class="invalid-feedback">
+                                    Password is required and must be at least 8 characters long
                                 </div>
                             </div>
                         </div>

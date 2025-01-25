@@ -1,4 +1,3 @@
-
 (() => {
     'use strict'
 
@@ -35,6 +34,18 @@
         $('#btn_urgent_low_alarm_try').on('click', tryAlarm);
         $('#btn_load_limits_from_ns').on('click', loadNightscoutData);
         $("#btn_save").on('click', validateAndSave);
+        $('#additional_wifi_enable').on('change', toggleAdditionalWifiSettings);
+    }
+
+    $('#additional_wifi_type').on('change', function () {
+        var wifiType = $(this).val();
+        $('#additional_wifi_psk').toggleClass('d-none', wifiType !== 'wpa_psk');
+        $('#additional_wifi_eap').toggleClass('d-none', wifiType !== 'wpa_eap');
+    });
+
+    function toggleAdditionalWifiSettings() {
+        const isChecked = $('#additional_wifi_enable').is(':checked');
+        $('#additional_wifi_settings').toggleClass('d-none', !isChecked);
     }
 
     function tryAlarm(e) {
@@ -420,6 +431,12 @@
         setAlarmDataToJson(json, 'low');
         setAlarmDataToJson(json, 'urgent_low');
 
+        // Additional WiFi
+        json['additional_wifi_enable'] = $('#additional_wifi_enable').is(':checked');
+        json['additional_wifi_type'] = $('#additional_wifi_type').val();
+        json['additional_wifi_psk'] = $('#additional_wifi_psk').val();
+        json['additional_wifi_eap'] = $('#additional_wifi_eap').val();
+
         return JSON.stringify(json);
     }
 
@@ -683,6 +700,13 @@
         loadAlarmDataFromJson(json, 'high');
         loadAlarmDataFromJson(json, 'low');
         loadAlarmDataFromJson(json, 'urgent_low');
+
+        // Additional WiFi
+        $('#additional_wifi_enable').prop('checked', json['additional_wifi_enable']);
+        $('#additional_wifi_type').val(json['additional_wifi_type']);
+        $('#additional_wifi_psk').val(json['additional_wifi_psk']);
+        $('#additional_wifi_eap').val(json['additional_wifi_eap']);
+        toggleAdditionalWifiSettings();
     }
 
     function loadAlarmDataFromJson(json, alarmType) {
@@ -712,5 +736,7 @@
         $('#toast_failure_message').text(message);
         $('#toast_failure').toast('show');
     }
+
+
 
 })()
