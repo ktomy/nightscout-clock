@@ -1,7 +1,7 @@
 # Nightscout Clock
 ![Nihtscout clock logo](https://github.com/ktomy/nightscout-clock/assets/1446257/1198c06d-b017-409d-aca3-2bca63581ecb)
 
-### Current version: 0.14
+### Current version: 0.15
 
 *Nightscout Clock (or NSClock) is an open-source product aimed to help caregivers of people with type 1 diabetes have more piece of mind by being able to better glance at their loved onve blood glucose values.*
 
@@ -89,6 +89,14 @@ Nightscout CLock is a custom firmware for Ulanzi TC001. It can also run (with mi
    * ...more... (if you are the author of a CGM data collecting app/service nad you want your data to be displayed on the Nightscout Clock, please contact me)
  
 ## Changes
+
+### 0.15
+
+- Fixed delta showing 0 when there are multiple sources uploading data to Nightscout. [#25](https://github.com/ktomy/nightscout-clock/issues/25)
+- Implemented WPA-Enterprise connectivity (Wifi type selector available for additional WiFi network). [#23](https://github.com/ktomy/nightscout-clock/issues/23)
+- Fixed project dependencies divergence. [#30](https://github.com/ktomy/nightscout-clock/issues/30)
+- Implemented possibility of setting custom hostname. [#18](https://github.com/ktomy/nightscout-clock/issues/18)
+- Implementing possibility of having additional WiFi network. [#7](https://github.com/ktomy/nightscout-clock/issues/7)
 
 ### 0.14
 
