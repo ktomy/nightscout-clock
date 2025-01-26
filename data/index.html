@@ -545,9 +545,9 @@
                                     </tr>
                                 </table>
                             </div>
-
                         </div>
-                        <div class="row">
+
+                        <div class="row d-none" id="additional_wifi_settings">
                             <div class="col-3">
                                 <label for="additional_wifi_type" class="form-label">WiFi Type</label>
                                 <select class="form-select" id="additional_wifi_type" required>
@@ -559,22 +559,14 @@
                                     Please select WiFi type
                                 </div>
                             </div>
-                            <div class="col-3">
+                            <div class="col-3 d-none" id="additional_ssid_cell">
                                 <label for="additional_ssid" class="form-label">WiFi network name (SSID)</label>
                                 <input type="text" class="form-control" id="additional_ssid" placeholder="" required>
                                 <div class="invalid-feedback">
                                     Valid network name (SSID) is required
                                 </div>
                             </div>
-                            <div class="col-3 d-none" id="additional_wifi_psk">
-                                <label for="additional_wifi_password" class="form-label">WiFi password</label>
-                                <input type="password" class="form-control" id="additional_wifi_password" placeholder=""
-                                    required>
-                                <div class="invalid-feedback">
-                                    Password is required and must be at least 8 characters long
-                                </div>
-                            </div>
-                            <div class="col-3 d-none" id="additional_wifi_eap">
+                            <div class="col-3 d-none" id="additional_wifi_username_cell">
                                 <label for="additional_wifi_username" class="form-label">WiFi username</label>
                                 <input type="text" class="form-control" id="additional_wifi_username" placeholder=""
                                     required>
@@ -582,12 +574,40 @@
                                     Username is required
                                 </div>
                             </div>
-                            <div class="col-3">
-                                <label for="additional_wifi_eap_password" class="form-label">WiFi password</label>
-                                <input type="password" class="form-control" id="additional_wifi_eap_password"
-                                    placeholder="" required>
+                            <div class="col-3 d-none" id="additional_wifi_password_cell">
+                                <label for="additional_wifi_password" class="form-label">WiFi password</label>
+                                <input type="password" class="form-control" id="additional_wifi_password" placeholder=""
+                                    required>
                                 <div class="invalid-feedback">
                                     Password is required and must be at least 8 characters long
+                                </div>
+                            </div>
+                        </div>
+                        <hr />
+                        <div class="row">
+                            <div class="col-12">
+                                <table>
+                                    <tr>
+                                        <td>
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" value=""
+                                                    id="custom_hostname_enable">
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <h5>Custom hostname</h5>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="row d-none" id="custom_hostname_settings">
+
+                            <div class="col-6" id="custom_hostname_cell">
+                                <label for="custom_hostname" class="form-label">Custom hostname</label>
+                                <input type="text" class="form-control" id="custom_hostname" placeholder="" required>
+                                <div class="invalid-feedback">
+                                    Valid hostname is required
                                 </div>
                             </div>
                         </div>
