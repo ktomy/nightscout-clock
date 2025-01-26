@@ -133,6 +133,17 @@ bool SettingsManager_::loadSettingsFromFile() {
     settings.alarm_high_snooze_minutes = (*doc)["alarm_high_snooze_interval"].as<int>();
     settings.alarm_high_silence_interval = (*doc)["alarm_high_silence_interval"].as<String>();
 
+    // Additional WiFi
+    settings.additional_wifi_enable = (*doc)["additional_wifi_enable"].as<bool>();
+    settings.additional_wifi_type = (*doc)["additional_wifi_type"].as<String>();
+    settings.additional_wifi_ssid = (*doc)["additional_ssid"].as<String>();
+    settings.additional_wifi_username = (*doc)["additional_wifi_username"].as<String>();
+    settings.additional_wifi_password = (*doc)["additional_wifi_password"].as<String>();
+
+    // Custom hostname
+    settings.custom_hostname_enable = (*doc)["custom_hostname_enable"].as<bool>();
+    settings.custom_hostname = (*doc)["custom_hostname"].as<String>();
+
     delete doc;
 
     this->settings = settings;
@@ -208,6 +219,17 @@ bool SettingsManager_::saveSettingsToFile() {
     (*doc)["alarm_high_value"] = settings.alarm_high_mgdl;
     (*doc)["alarm_high_snooze_interval"] = settings.alarm_high_snooze_minutes;
     (*doc)["alarm_high_silence_interval"] = settings.alarm_high_silence_interval;
+
+    // Additional WiFi
+    (*doc)["additional_wifi_enable"] = settings.additional_wifi_enable;
+    (*doc)["additional_wifi_type"] = settings.additional_wifi_type;
+    (*doc)["additional_ssid"] = settings.additional_wifi_ssid;
+    (*doc)["additional_wifi_username"] = settings.additional_wifi_username;
+    (*doc)["additional_wifi_password"] = settings.additional_wifi_password;
+
+    // Custom hostname
+    (*doc)["custom_hostname_enable"] = settings.custom_hostname_enable;
+    (*doc)["custom_hostname"] = settings.custom_hostname;
 
     if (trySaveJsonAsSettings(*doc) == false)
         return false;

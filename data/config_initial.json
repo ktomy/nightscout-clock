@@ -39,5 +39,12 @@
     "test_variable": "test_value",
     "librelinkup_email": "",
     "librelinkup_password": "",
-    "librelinkup_region": "EU"
+    "librelinkup_region": "EU",
+    "additional_wifi_enable": false,
+    "additional_wifi_type": "",
+    "additional_ssid": "",
+    "additional_wifi_username": "",
+    "additional_wifi_password": "",
+    "custom_hostname_enable": false,
+    "custom_hostname": ""
 }

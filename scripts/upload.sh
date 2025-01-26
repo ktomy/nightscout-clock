@@ -50,9 +50,9 @@ sleep 2
 if [[ $1 == "--monitor" || $2 == "--monitor" ]]; then
     echo "Starting serial monitor..."
     $PROJECTDIR/scripts/monitor.sh
-else
-    echo "Let's reset the device"
-    $PROJECTDIR/scripts/reset.sh
+# else
+#     echo "Let's reset the device"
+#     $PROJECTDIR/scripts/reset.sh
 fi
 
 

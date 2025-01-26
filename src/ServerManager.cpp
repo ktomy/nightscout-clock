@@ -19,13 +19,22 @@ ServerManager_ &ServerManager_::getInstance() {
 // Initialize the global shared instance
 ServerManager_ &ServerManager = ServerManager.getInstance();
 
-String getID() {
-    // uint8_t mac[6];
-    // WiFi.macAddress(mac);
-    // char *macStr = new char[24];
-    // snprintf(macStr, 24, "%s_%02x%02x%02x", HOSTNAME_PREFIX, mac[3], mac[4], mac[5]);
-    // return String(macStr);
-    return String(HOSTNAME_PREFIX);
+String ServerManager_::getHostname() {
+    if (SettingsManager.settings.hostname != "") {
+        return SettingsManager.settings.hostname;
+    }
+
+    String hostname = HOSTNAME_PREFIX;
+
+    if (SettingsManager.settings.custom_hostname_enable) {
+        hostname = SettingsManager.settings.custom_hostname;
+    }
+
+    SettingsManager.settings.hostname = hostname;
+
+    DEBUG_PRINTF("Hostname: %s\n", hostname.c_str());
+
+    return hostname;
 }
 
 IPAddress ServerManager_::setAPmode(String ssid, String psk) {
@@ -47,48 +56,77 @@ IPAddress ServerManager_::setAPmode(String ssid, String psk) {
     return WiFi.softAPIP();
 }
 
-IPAddress ServerManager_::startWifi(String ssid, String password) {
+void initiateWiFiConnection(String wifi_type, String ssid, String username, String password) {
+    if (wifi_type == "wpa_eap") {
+        WiFi.begin(ssid, WPA2_AUTH_PEAP, username, username, password);
+    } else {
+        WiFi.begin(ssid, password);
+    }
+}
+
+bool tryConnectToWiFi(String wifi_type, String ssid, String username, String password) {
+
+    if (ssid == "") {
+        return false;
+    }
+    int timeout = WIFI_CONNECT_TIMEOUT;
+
+    WiFi.mode(WIFI_STA);
+
+    initiateWiFiConnection(wifi_type, ssid, username, password);
+
+    DEBUG_PRINTF("Connecting to %s (%s)\n", ssid.c_str(), wifi_type.c_str());
+
+    auto startTime = millis();
+    while (WiFi.status() != WL_CONNECTED) {
+        delay(300);
+        Serial.print(".");
+        if (WiFi.status() == WL_CONNECTED) {
+            return true;
+        }
+        // If no connection after a while go in Access Point mode
+        if (millis() - startTime > timeout)
+            break;
+    }
+
+    Serial.println();
+
+    return false;
+}
+
+IPAddress ServerManager_::startWifi() {
     this->isInAPMode = false;
 
     IPAddress ip;
-    int timeout = WIFI_CONNECT_TIMEOUT;
 
-    if (ssid != "") {
-        WiFi.mode(WIFI_STA);
-
-        WiFi.begin(ssid, password);
-        DEBUG_PRINTF("Connecting to %s\n", ssid);
-
-        auto startTime = millis();
-        while (WiFi.status() != WL_CONNECTED) {
-            delay(300);
-            Serial.print(".");
-            if (WiFi.status() == WL_CONNECTED) {
-                WiFi.setAutoReconnect(true);
-                WiFi.persistent(true);
-                ip = WiFi.localIP();
-                DEBUG_PRINTLN("Connected");
-                failedAttempts = 0; // Reset failed attempts counter
-                return ip;
-            }
-            // If no connection after a while go in Access Point mode
-            if (millis() - startTime > timeout)
-                break;
-        }
+    bool connected = tryConnectToWiFi("wpa_psk", SettingsManager.settings.ssid, "", SettingsManager.settings.wifi_password);
+    if (!connected && SettingsManager.settings.additional_wifi_enable) {
+        connected = tryConnectToWiFi(SettingsManager.settings.additional_wifi_type, SettingsManager.settings.additional_wifi_ssid,
+                                     SettingsManager.settings.additional_wifi_username,
+                                     SettingsManager.settings.additional_wifi_password);
     }
-    ip = setAPmode(SettingsManager.settings.hostname, AP_MODE_PASSWORD);
 
+    if (connected) {
+        WiFi.setAutoReconnect(true);
+        WiFi.persistent(true);
+        ip = WiFi.localIP();
+        DEBUG_PRINTLN("Connected");
+        failedAttempts = 0; // Reset failed API call attempts counter
+        return ip;
+    }
+
+    ip = setAPmode(getHostname(), AP_MODE_PASSWORD);
     this->isInAPMode = true;
-
     WiFi.begin();
     return ip;
 }
 
+// When we cannot get BG for some time, we want to reconnect to wifi
 void ServerManager_::reconnectWifi() {
     DEBUG_PRINTLN("Reconnecting to WiFi...");
     WiFi.disconnect();
     delay(1000);
-    myIP = startWifi(SettingsManager.settings.ssid, SettingsManager.settings.wifi_password);
+    myIP = startWifi();
     failedAttempts = 0;
 }
 
@@ -248,10 +286,10 @@ void ServerManager_::stop() {
 }
 
 void ServerManager_::setup() {
-    auto hostname = SettingsManager.settings.hostname = getID();
-    WiFi.setHostname(hostname.c_str()); // define hostname
 
-    myIP = startWifi(SettingsManager.settings.ssid, SettingsManager.settings.wifi_password);
+    WiFi.setHostname(getHostname().c_str()); // define hostname
+
+    myIP = startWifi();
 
     auto ipAP = IPAddress();
     ipAP.fromString(AP_IP);

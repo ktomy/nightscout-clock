@@ -37,4 +37,11 @@ class Settings {
     int alarm_high_mgdl;
     int alarm_high_snooze_minutes;
     String alarm_high_silence_interval;
+    bool additional_wifi_enable;
+    String additional_wifi_type;
+    String additional_wifi_ssid;
+    String additional_wifi_username;
+    String additional_wifi_password;
+    bool custom_hostname_enable;
+    String custom_hostname;
 };

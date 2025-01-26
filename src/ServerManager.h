@@ -14,12 +14,13 @@ class ServerManager_ {
     ServerManager_() = default;
     unsigned long lastTimeSync = 0;
 
-    IPAddress startWifi(String ssid, String password);
+    IPAddress startWifi();
     void setupWebServer(IPAddress ip);
     IPAddress setAPmode(String ssid, String psk);
     void saveConfigHandler();
     bool initTimeIfNeeded();
     void setTimezone();
+    String getHostname();
 
   public:
     static ServerManager_ &getInstance();

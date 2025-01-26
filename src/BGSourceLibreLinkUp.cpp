@@ -78,7 +78,7 @@ AuthTicket BGSourceLibreLinkUp::login() {
         client->end();
         DisplayManager.clearMatrix();
         DisplayManager.setTextColor(COLOR_CYAN);
-        DisplayManager.printText(0, 6, "Redirect...", TEXT_ALIGNMENT::CENTER, 0);
+        DisplayManager.printText(0, 6, "Redirect", TEXT_ALIGNMENT::CENTER, 0);
         delay(2000);
         ESP.restart();
     }

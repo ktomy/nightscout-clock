@@ -60,7 +60,7 @@ void showJoinAP() {
     apModeHintPosition -= 0.18;
 }
 
-int getFreeMemory() { return ESP.getFreeHeap(); }
+// int getFreeMemory() { return ESP.getFreeHeap(); }
 
 void loop() {
 

@@ -28,6 +28,8 @@
 
     addButtonsHandlers();
 
+    addAdditionalWifiTypeHandler();
+
     loadConfiguration();
 
     function addButtonsHandlers() {
@@ -41,31 +43,34 @@
 
     }
 
-    $('#additional_wifi_type').on('change', function () {
-        var wifiType = $(this).val();
-        switch (wifiType) {
-            case "wpa_psk":
-                $('#additional_ssid_cell').removeClass('d-none');
-                $('#additional_wifi_password_cell').removeClass('d-none');
-                $('#additional_wifi_username_cell').addClass('d-none');
-                break;
-            case "wpa_eap":
-                $('#additional_ssid_cell').removeClass('d-none');
-                $('#additional_wifi_password_cell').removeClass('d-none');
-                $('#additional_wifi_username_cell').removeClass('d-none');
-                break;
-            default:
-                $('#additional_ssid_cell').addClass('d-none');
-                $('#additional_wifi_password_cell').addClass('d-none');
-                $('#additional_wifi_username_cell').addClass('d-none');
-                break;
+    function addAdditionalWifiTypeHandler() {
+        $('#additional_wifi_type').on('change', function () {
+            var wifiType = $(this).val();
+            switch (wifiType) {
+                case "wpa_psk":
+                    $('#additional_ssid_cell').removeClass('d-none');
+                    $('#additional_wifi_password_cell').removeClass('d-none');
+                    $('#additional_wifi_username_cell').addClass('d-none');
+                    break;
+                case "wpa_eap":
+                    $('#additional_ssid_cell').removeClass('d-none');
+                    $('#additional_wifi_password_cell').removeClass('d-none');
+                    $('#additional_wifi_username_cell').removeClass('d-none');
+                    break;
+                default:
+                    $('#additional_ssid_cell').addClass('d-none');
+                    $('#additional_wifi_password_cell').addClass('d-none');
+                    $('#additional_wifi_username_cell').addClass('d-none');
+                    break;
 
-        };
-    });
+            };
+        });
+    }
 
     function toggleAdditionalWifiSettings() {
         const isChecked = $('#additional_wifi_enable').is(':checked');
         $('#additional_wifi_settings').toggleClass('d-none', !isChecked);
+        $('#additional_wifi_type').trigger('change');
     }
 
     function toggleCustomHostnameSettings() {
@@ -744,6 +749,7 @@
         // Custom hostname
         $('#custom_hostname_enable').prop('checked', json['custom_hostname_enable']);
         $('#custom_hostname').val(json['custom_hostname']);
+        toggleCustomHostnameSettings();
     }
 
     function loadAlarmDataFromJson(json, alarmType) {
