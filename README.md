@@ -47,8 +47,11 @@ Nightscout CLock is a custom firmware for Ulanzi TC001. It can also run (with mi
 ![copped](https://github.com/user-attachments/assets/6a04b1f2-6c07-49ee-8c63-e145d3823ee9)
 --------
 ### Features (technical stuff, feel free to ignore)
-* Web-based installation (no need to install flashing tools, you just need the clock and a web browser)
-* AP mode and web-based configuration: the clock hosts a website where the user can configure all the  parameters (data source, limits, alarms, display)
+* Web-based installation (no need to install flashing tools, you just need the clock and a web browser). The clock hosts a website where the user can configure all the  parameters (data source, limits, alarms, display)
+    * Access-Point mode to set the initial configuration
+    * Support for a secondary WiFi (e.g. if you want to take the clock in your car for a long trip)
+    * Support for WPA-Enterprise
+    * Ability to set custom hostname in in case you have multiple NSClocks on the same network
 * Simple glucose value display with trend arrow
 * Changing color based on limits
 * Nightscout data source, the clock gett units type and value boundaries from Nightscout
@@ -81,7 +84,6 @@ Nightscout CLock is a custom firmware for Ulanzi TC001. It can also run (with mi
 * Add more clock faces
     * Battery, humidity and temperature
 * Smooth color change (rainbow) based on the value and boundaries
-* Support multiple WiFi network configurations (WiFi backup)
 * Create installation/configuration video
 * Create a guide for setting up the development environment and code walkthrough for contributions
 * Add more data sources
