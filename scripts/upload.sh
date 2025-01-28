@@ -28,7 +28,7 @@ fi
 if [[ $1 == "--all" ]]; then
     FILES="0x1000 $PROJECTDIR/.pio/build/ulanzi_debug/bootloader.bin \
            0x8000 $PROJECTDIR/.pio/build/ulanzi_debug/partitions.bin \
-           0xe000 ~/.platformio/packages/framework-arduinoespressif32/tools/partitions/boot_app0.bin \
+           0xe000 $(realpath ~/.platformio/packages/framework-arduinoespressif32/tools/partitions/boot_app0.bin) \
            $FILES"
 fi
 
