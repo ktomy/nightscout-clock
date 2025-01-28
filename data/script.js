@@ -615,7 +615,7 @@
 
     function loadConfiguration() {
 
-        var configJsonUrl = 'config.json';
+        var configJsonUrl = 'config.json?' + Date.now();
         var tzJson = "tzdata.json";
 
         if (window.location.href.indexOf("127.0.0.1") > 0) {
