@@ -42,7 +42,7 @@ String BGDisplayFaceValueAndDiff::getDiff(const std::list<GlucoseReading> &readi
     // cycle through reading starting from the last one until the time of reading is less than 5 minutes prior to the last
     // reading. Store the found readings
     for (auto it = readings.rbegin(); it != readings.rend(); ++it) {
-        if (last.epoch - it->epoch > 5 * 60) {
+        if (last.epoch - it->epoch > (6 * 60 + 30)) {
             break;
         }
         foundReadings.push_front(*it);
