@@ -39,7 +39,7 @@ String BGDisplayFaceValueAndDiff::getDiff(const std::list<GlucoseReading> &readi
 
     auto last = readings.back();
     std::list<GlucoseReading> foundReadings;
-    // cycle through reading starting from the last one until the time of reading is less than 5 minutes prior to the last
+    // cycle through reading starting from the last one until the time of reading is less than 6.5 minutes prior to the last
     // reading. Store the found readings
     for (auto it = readings.rbegin(); it != readings.rend(); ++it) {
         if (last.epoch - it->epoch > (6 * 60 + 30)) {
@@ -61,7 +61,7 @@ String BGDisplayFaceValueAndDiff::getDiff(const std::list<GlucoseReading> &readi
     int base = last.sgv;
     if (minSGV != base && maxSGV != base) {
 #ifdef DEBUG_DISPLAY
-        DEBUG_PRINTLN("Too many changes in last 5 minutes");
+        DEBUG_PRINTLN("Too many changes in last 6.5 minutes");
 #endif
         return "?";
     }
