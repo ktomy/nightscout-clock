@@ -76,7 +76,7 @@ String BGDisplayFaceValueAndDiff::getDiff(const std::list<GlucoseReading> &readi
     }
 
     String diffString = "";
-    if (diff > 0) {
+    if (diff >= 0) {
         diffString += "+";
     }
 
