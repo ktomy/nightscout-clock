@@ -46,7 +46,7 @@ jobs:
             cp .pio/build/ulanzi/firmware.bin artifacts/
             cp .pio/build/ulanzi/littlefs.bin artifacts/
       - name: Archive
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: firmware
           path: artifacts/*.bin
@@ -65,16 +65,16 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@v3
       - name: Download artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: firmware
           path: www/artifacts
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v2
+        uses: actions/upload-pages-artifact@v3
         with:
           # Upload only www directory
           path: 'www'
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v2
+        uses: actions/deploy-pages@v4
 
