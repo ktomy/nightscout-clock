@@ -3,7 +3,7 @@
 #include <Arduino.h>
 #include <IPAddress.h>
 
-#define VERSION "0.16"
+#define VERSION "0.16.1"
 
 #ifdef DEBUG
 #define DEBUG_PRINTLN(x)                                                                                                         \
@@ -51,7 +51,7 @@
 #define BG_COLOR_WARNING COLOR_YELLOW
 #define BG_COLOR_URGENT COLOR_RED
 
-#define BG_DATA_OLD_OFFSET_MINUTES 20
+#define BG_DATA_OLD_OFFSET_MINUTES 6
 
 extern bool BLOCK_NAVIGATION;
 extern float TEMP_OFFSET;
