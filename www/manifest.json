@@ -1,28 +1,28 @@
 {
     "name": "Nightscout clock",
-    "version": "0.16",
+    "version": "0.16.1",
     "builds": [
         {
             "chipFamily": "ESP32",
             "parts": [
                 {
-                    "path": "https://ktomy.github.io/nightscout-clock/artifacts/bootloader.bin",
+                    "path": "https://TheBeardedTechGuy.github.io/nightscout-clock/artifacts/bootloader.bin",
                     "offset": 4096
                 },
                 {
-                    "path": "https://ktomy.github.io/nightscout-clock/artifacts/partitions.bin",
+                    "path": "https://TheBeardedTechGuy.github.io/nightscout-clock/artifacts/partitions.bin",
                     "offset": 32768
                 },
                 {
-                    "path": "https://ktomy.github.io/nightscout-clock/artifacts/boot_app0.bin",
+                    "path": "https://TheBeardedTechGuy.github.io/nightscout-clock/artifacts/boot_app0.bin",
                     "offset": 57344
                 },
                 {
-                    "path": "https://ktomy.github.io/nightscout-clock/artifacts/firmware.bin",
+                    "path": "https://TheBeardedTechGuy.github.io/nightscout-clock/artifacts/firmware.bin",
                     "offset": 65536
                 },
                 {
-                    "path": "https://ktomy.github.io/nightscout-clock/artifacts/littlefs.bin",
+                    "path": "https://TheBeardedTechGuy.github.io/nightscout-clock/artifacts/littlefs.bin",
                     "offset": 2162688
                 }
             ]
