@@ -27,6 +27,21 @@ void BGDisplayFaceValueAndDiff::showReadings(const std::list<GlucoseReading> &re
     }
 
     DisplayManager.printText(33, 6, diff.c_str(), TEXT_ALIGNMENT::RIGHT, 2);
+    
+    // New Feature: Draw Blocks at Bottom
+    unsigned long currentTime = millis() / 1000; // Get current time in seconds
+    int minutesSinceLastUpdate = (currentTime - lastReading.epoch) / 60;
+
+    // Cap the number of blocks to 5
+    int blockCount = std::min(minutesSinceLastUpdate, 5);
+
+    // Draw the blocks
+    for (int i = 0; i < blockCount; i++) {
+        int x = 4 + (i * 6); // Calculate x-position for each block
+        int y = 30;          // Fixed y-position for the bottom row
+        DisplayManager.drawRect(x, y, 4, 4, COLOR_WHITE); // Draw a 4x4 block
+        DisplayManager.fillRect(x, y, 4, 4, COLOR_WHITE); // Fill the block
+    }    
 }
 
 String BGDisplayFaceValueAndDiff::getDiff(const std::list<GlucoseReading> &readings) const {
