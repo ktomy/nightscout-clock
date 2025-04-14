@@ -36,11 +36,17 @@ void BGDisplayFaceValueAndDiff::showReadings(const std::list<GlucoseReading> &re
     int blockCount = std::min(minutesSinceLastUpdate, 5);
 
     // Draw the blocks
-    for (int i = 0; i < blockCount; i++) {
-        int x = 4 + (i * 6); // Calculate x-position for each block
-        int y = 30;          // Fixed y-position for the bottom row
-        DisplayManager.drawRect(x, y, 4, 4, COLOR_WHITE); // Draw a 4x4 block
-        DisplayManager.fillRect(x, y, 4, 4, COLOR_WHITE); // Fill the block
+// Calculate block positions and draw using drawPixel
+for (int i = 0; i < blockCount; i++) {
+    int xStart = 4 + (i * 6); // Calculate x position
+    int yStart = 30;          // Fixed y-position for the bottom
+
+    // Draw a 4x4 block using drawPixel
+    for (int x = xStart; x < xStart + 4; x++) {
+        for (int y = yStart; y < yStart + 4; y++) {
+            DisplayManager.drawPixel(x, y, COLOR_WHITE, true); // Draw each pixel
+        }
+    }
     }    
 }
 
