@@ -229,6 +229,14 @@ void DisplayManager_::drawPixel(uint8_t x, uint8_t y, uint16_t color, bool updat
     }
 }
 
+void DisplayManager_::drawRect(int16_t x, int16_t y, int16_t width, int16_t height, uint16_t color) {
+    for (int16_t i = 0; i < width; i++) {
+        for (int16_t j = 0; j < height; j++) {
+            drawPixel(x + i, y + j, color);
+        }
+    }
+}
+
 void DisplayManager_::setBrightness(int bri) {
     if (MATRIX_OFF) {
         matrix->setBrightness(0);
