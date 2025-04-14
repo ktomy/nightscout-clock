@@ -30,6 +30,7 @@ class DisplayManager_ {
     void clearMatrixPart(uint8_t x, uint8_t y, uint8_t width, uint8_t height);
     float getTextWidth(const char *text, byte textCase);
     void setFont(FONT_TYPE fontType);
+    void drawRect(int16_t x, int16_t y, int16_t width, int16_t height, uint16_t color);
 };
 
 extern DisplayManager_ &DisplayManager;
