@@ -1,7 +1,7 @@
 # Nightscout Clock
 ![Nihtscout clock logo](https://github.com/ktomy/nightscout-clock/assets/1446257/1198c06d-b017-409d-aca3-2bca63581ecb)
 
-### Current version: 0.17
+### Current version: 0.18
 ![Build and Release](https://github.com/ktomy/nightscout-clock/actions/workflows/build_release.yml/badge.svg)
 
 *Nightscout Clock (or NSClock) is an open-source product aimed to help caregivers of people with type 1 diabetes have more piece of mind by being able to better glance at their loved onve blood glucose values.*
@@ -92,6 +92,10 @@ Nightscout CLock is a custom firmware for Ulanzi TC001. It can also run (with mi
    * ...more... (if you are the author of a CGM data collecting app/service nad you want your data to be displayed on the Nightscout Clock, please contact me)
  
 ## Changes
+
+### 0.18
+
+- Fixed Nightscout domain name validation, closed [#39](https://github.com/ktomy/nightscout-clock/issues/39)
 
 ### 0.17
 
