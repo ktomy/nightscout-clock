@@ -11,7 +11,8 @@
 #include "PeripheryManager.h"
 
 // The getter for the instantiated singleton instance
-ServerManager_ &ServerManager_::getInstance() {
+ServerManager_ &ServerManager_::getInstance()
+{
     static ServerManager_ instance;
     return instance;
 }
@@ -19,14 +20,17 @@ ServerManager_ &ServerManager_::getInstance() {
 // Initialize the global shared instance
 ServerManager_ &ServerManager = ServerManager.getInstance();
 
-String ServerManager_::getHostname() {
-    if (SettingsManager.settings.hostname != "") {
+String ServerManager_::getHostname()
+{
+    if (SettingsManager.settings.hostname != "")
+    {
         return SettingsManager.settings.hostname;
     }
 
     String hostname = HOSTNAME_PREFIX;
 
-    if (SettingsManager.settings.custom_hostname_enable) {
+    if (SettingsManager.settings.custom_hostname_enable)
+    {
         hostname = SettingsManager.settings.custom_hostname;
     }
 
@@ -37,7 +41,8 @@ String ServerManager_::getHostname() {
     return hostname;
 }
 
-IPAddress ServerManager_::setAPmode(String ssid, String psk) {
+IPAddress ServerManager_::setAPmode(String ssid, String psk)
+{
     auto ipAP = IPAddress();
     auto netmaskAP = IPAddress();
     auto gatewayAP = IPAddress();
@@ -56,17 +61,23 @@ IPAddress ServerManager_::setAPmode(String ssid, String psk) {
     return WiFi.softAPIP();
 }
 
-void initiateWiFiConnection(String wifi_type, String ssid, String username, String password) {
-    if (wifi_type == "wpa_eap") {
+void initiateWiFiConnection(String wifi_type, String ssid, String username, String password)
+{
+    if (wifi_type == "wpa_eap")
+    {
         WiFi.begin(ssid, WPA2_AUTH_PEAP, username, username, password);
-    } else {
+    }
+    else
+    {
         WiFi.begin(ssid, password);
     }
 }
 
-bool tryConnectToWiFi(String wifi_type, String ssid, String username, String password) {
+bool tryConnectToWiFi(String wifi_type, String ssid, String username, String password)
+{
 
-    if (ssid == "") {
+    if (ssid == "")
+    {
         return false;
     }
     int timeout = WIFI_CONNECT_TIMEOUT;
@@ -78,10 +89,12 @@ bool tryConnectToWiFi(String wifi_type, String ssid, String username, String pas
     DEBUG_PRINTF("Connecting to %s (%s)\n", ssid.c_str(), wifi_type.c_str());
 
     auto startTime = millis();
-    while (WiFi.status() != WL_CONNECTED) {
+    while (WiFi.status() != WL_CONNECTED)
+    {
         delay(300);
         Serial.print(".");
-        if (WiFi.status() == WL_CONNECTED) {
+        if (WiFi.status() == WL_CONNECTED)
+        {
             return true;
         }
         // If no connection after a while go in Access Point mode
@@ -94,19 +107,22 @@ bool tryConnectToWiFi(String wifi_type, String ssid, String username, String pas
     return false;
 }
 
-IPAddress ServerManager_::startWifi() {
+IPAddress ServerManager_::startWifi()
+{
     this->isInAPMode = false;
 
     IPAddress ip;
 
     bool connected = tryConnectToWiFi("wpa_psk", SettingsManager.settings.ssid, "", SettingsManager.settings.wifi_password);
-    if (!connected && SettingsManager.settings.additional_wifi_enable) {
+    if (!connected && SettingsManager.settings.additional_wifi_enable)
+    {
         connected = tryConnectToWiFi(SettingsManager.settings.additional_wifi_type, SettingsManager.settings.additional_wifi_ssid,
-                                     SettingsManager.settings.additional_wifi_username,
-                                     SettingsManager.settings.additional_wifi_password);
+                                        SettingsManager.settings.additional_wifi_username,
+                                        SettingsManager.settings.additional_wifi_password);
     }
 
-    if (connected) {
+    if (connected)
+    {
         WiFi.setAutoReconnect(true);
         WiFi.persistent(true);
         ip = WiFi.localIP();
@@ -122,7 +138,8 @@ IPAddress ServerManager_::startWifi() {
 }
 
 // When we cannot get BG for some time, we want to reconnect to wifi
-void ServerManager_::reconnectWifi() {
+void ServerManager_::reconnectWifi()
+{
     DEBUG_PRINTLN("Reconnecting to WiFi...");
     WiFi.disconnect();
     delay(1000);
@@ -130,14 +147,17 @@ void ServerManager_::reconnectWifi() {
     failedAttempts = 0;
 }
 
-AsyncWebHandler ServerManager_::addHandler(AsyncWebHandler *handler) {
-    if (ws != nullptr) {
+AsyncWebHandler ServerManager_::addHandler(AsyncWebHandler *handler)
+{
+    if (ws != nullptr)
+    {
         ws->addHandler(handler);
     }
     return *handler;
 }
 
-void ServerManager_::setupWebServer(IPAddress ip) {
+void ServerManager_::setupWebServer(IPAddress ip)
+{
 #ifdef DEBUG_BG_SOURCE
     DEBUG_PRINTLN("ServerManager::setupWebServer");
 #endif
@@ -147,7 +167,8 @@ void ServerManager_::setupWebServer(IPAddress ip) {
     DefaultHeaders::Instance().addHeader("Access-Control-Allow-Methods", "GET, POST, PUT");
     DefaultHeaders::Instance().addHeader("Access-Control-Allow-Headers", "Content-Type");
 
-    ws->addHandler(new AsyncCallbackJsonWebHandler("/api/save", [this](AsyncWebServerRequest *request, JsonVariant &json) {
+    ws->addHandler(new AsyncCallbackJsonWebHandler("/api/save", [this](AsyncWebServerRequest *request, JsonVariant &json)
+    {
         if (not json.is<JsonObject>()) {
             request->send(200, "application/json", "{\"status\": \"json parsing error\"}");
             return;
@@ -157,10 +178,10 @@ void ServerManager_::setupWebServer(IPAddress ip) {
             request->send(200, "application/json", "{\"status\": \"ok\"}");
         } else {
             request->send(200, "application/json", "{\"status\": \"Settings save error\"}");
-        }
-    }));
+        } }));
 
-    ws->addHandler(new AsyncCallbackJsonWebHandler("/api/alarm", [this](AsyncWebServerRequest *request, JsonVariant &json) {
+    ws->addHandler(new AsyncCallbackJsonWebHandler("/api/alarm", [this](AsyncWebServerRequest *request, JsonVariant &json)
+    {
         if (not json.is<JsonObject>()) {
             request->send(400, "application/json", "{\"status\": \"json parsing error\"}");
             return;
@@ -182,46 +203,74 @@ void ServerManager_::setupWebServer(IPAddress ip) {
             request->send(200, "application/json", "{\"status\": \"ok\"}");
         } else {
             request->send(400, "application/json", "{\"status\": \"alarm key not found\"}");
-        }
-    }));
+        } }));
 
-    ws->on("/api/reset", HTTP_POST, [](AsyncWebServerRequest *request) {
+    ws->on("/api/reset", HTTP_POST, [](AsyncWebServerRequest *request)
+           {
         request->send(200, "application/json", "{\"status\": \"ok\"}");
         delay(200);
         LittleFS.end();
-        ESP.restart();
-    });
+        ESP.restart(); });
 
-    ws->on("/api/factory-reset", HTTP_POST, [](AsyncWebServerRequest *request) {
+        ws->addHandler(new AsyncCallbackJsonWebHandler("/api/displaypower", [this](AsyncWebServerRequest *request, JsonVariant &json)
+        {
+            if (not json.is<JsonObject>()) {
+                request->send(400, "application/json", "{\"status\": \"json parsing error\"}");
+                return;
+            }
+            auto &&data = json.as<JsonObject>();
+            if (data["power"].is<String>()) {
+                auto powerState = data["power"].as<String>();
+                if (powerState == "on") {
+                    DisplayManager.setPower(true);
+                } else if (powerState == "off") {
+                    DisplayManager.setPower(false);
+                } else {
+                    request->send(400, "application/json", "{\"status\": \"Invalid power state\"}");
+                    return;
+                }
+    
+                request->send(200, "application/json", "{\"status\": \"ok\"}");
+            } else {
+                request->send(400, "application/json", "{\"status\": \"power key not found\"}");
+            } }));        
+
+    ws->on("/api/factory-reset", HTTP_POST, [](AsyncWebServerRequest *request)
+           {
         request->send(200, "application/json", "{\"status\": \"ok\"}");
         delay(200);
-        SettingsManager.factoryReset();
-    });
+        SettingsManager.factoryReset(); });
 
     addStaticFileHandler();
 
-    ws->onNotFound([](AsyncWebServerRequest *request) {
+    ws->onNotFound([](AsyncWebServerRequest *request)
+                   {
         if (request->method() == HTTP_OPTIONS) {
             request->send(200);
         } else {
             request->send(404);
-        }
-    });
+        } });
 
     ws->begin();
 }
 
-void ServerManager_::removeStaticFileHandler() {
-    if (staticFilesHandler != nullptr) {
+void ServerManager_::removeStaticFileHandler()
+{
+    if (staticFilesHandler != nullptr)
+    {
         ws->removeHandler(staticFilesHandler);
         staticFilesHandler = nullptr;
-    } else {
+    }
+    else
+    {
         DEBUG_PRINTLN("removeStaticFileHandler: staticFilesHandler is null");
     }
 }
 
-void ServerManager_::addStaticFileHandler() {
-    if (staticFilesHandler != nullptr) {
+void ServerManager_::addStaticFileHandler()
+{
+    if (staticFilesHandler != nullptr)
+    {
         removeStaticFileHandler();
     }
     staticFilesHandler = new AsyncStaticWebHandler("/", LittleFS, "/", NULL);
@@ -229,12 +278,15 @@ void ServerManager_::addStaticFileHandler() {
     ws->addHandler(staticFilesHandler);
 }
 
-bool ServerManager_::initTimeIfNeeded() {
+bool ServerManager_::initTimeIfNeeded()
+{
     struct tm timeinfo;
 
-    if (!getLocalTime(&timeinfo) || getUtcEpoch() - lastTimeSync > TIME_SYNC_INTERVAL) {
+    if (!getLocalTime(&timeinfo) || getUtcEpoch() - lastTimeSync > TIME_SYNC_INTERVAL)
+    {
         configTime(0, 0, "pool.ntp.org"); // Connect to NTP server, with 0 TZ offset
-        if (!getLocalTime(&timeinfo)) {
+        if (!getLocalTime(&timeinfo))
+        {
             DEBUG_PRINTLN("Failed to obtain time");
             return false;
         }
@@ -255,37 +307,46 @@ bool ServerManager_::initTimeIfNeeded() {
     return true;
 }
 
-void ServerManager_::setTimezone() {
+void ServerManager_::setTimezone()
+{
     setenv("TZ", SettingsManager.settings.tz_libc_value.c_str(), 1);
     tzset();
 }
 
-unsigned long ServerManager_::getUtcEpoch() {
+unsigned long ServerManager_::getUtcEpoch()
+{
     struct tm timeinfo;
-    if (!getLocalTime(&timeinfo)) {
+    if (!getLocalTime(&timeinfo))
+    {
         DEBUG_PRINTLN("Failed to obtain time");
         return 0;
-    } else {
+    }
+    else
+    {
         auto utc = time(nullptr);
         return utc;
     }
 }
 
-tm ServerManager_::getTimezonedTime() {
+tm ServerManager_::getTimezonedTime()
+{
     struct tm timeinfo;
-    if (!getLocalTime(&timeinfo)) {
+    if (!getLocalTime(&timeinfo))
+    {
         DEBUG_PRINTLN("Failed to obtain time");
     }
     return timeinfo;
 }
 
-void ServerManager_::stop() {
+void ServerManager_::stop()
+{
     ws->end();
     delete ws;
     WiFi.disconnect();
 }
 
-void ServerManager_::setup() {
+void ServerManager_::setup()
+{
 
     WiFi.setHostname(getHostname().c_str()); // define hostname
 
@@ -300,7 +361,8 @@ void ServerManager_::setup() {
     setTimezone();
 }
 
-void ServerManager_::tick() {
+void ServerManager_::tick()
+{
     initTimeIfNeeded();
     if (apMode)
         dnsServer.processNextRequest();
