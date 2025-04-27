@@ -44,4 +44,6 @@ class Settings {
     String additional_wifi_password;
     bool custom_hostname_enable;
     String custom_hostname;
+    bool custom_nodatatimer_enable;
+    int custom_nodatatimer;
 };

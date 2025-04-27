@@ -51,8 +51,6 @@
 #define BG_COLOR_WARNING COLOR_YELLOW
 #define BG_COLOR_URGENT COLOR_RED
 
-#define BG_DATA_OLD_OFFSET_MINUTES 20
-
 extern bool BLOCK_NAVIGATION;
 extern float TEMP_OFFSET;
 extern float HUM_OFFSET;
@@ -73,4 +71,5 @@ extern const String sound_urgent_low PROGMEM;
 extern const String sound_low PROGMEM;
 extern const String sound_high PROGMEM;
 extern const String sound_boot PROGMEM;
+extern int BG_DATA_OLD_OFFSET_MINUTES;
 #endif // Globals_H

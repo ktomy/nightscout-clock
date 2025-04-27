@@ -46,5 +46,7 @@
     "additional_wifi_username": "",
     "additional_wifi_password": "",
     "custom_hostname_enable": false,
-    "custom_hostname": ""
+    "custom_hostname": "",
+    "custom_nodatatimer_enable": false,
+    "custom_nodatatimer": 20
 }
