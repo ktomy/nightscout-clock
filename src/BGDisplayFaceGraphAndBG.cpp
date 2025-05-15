@@ -15,14 +15,6 @@ void BGDisplayFaceGraphAndBG::showReadings(const std::list<GlucoseReading> &read
 
     auto lastReading = readings.back();
 
-    // Calculate time since last data update
-    int elapsedMinutes = (ServerManager.getUtcEpoch() - lastReading.epoch) / 60;
-
-    // Call timer block function
-    BGDisplayManager_::drawTimerBlocks(elapsedMinutes, 5, dataIsOld);
-
-    DisplayManager.update();
-
 #ifdef DEBUG_DISPLAY
     DEBUG_PRINTF("For the value %d, printable is: %s, text width: %u, graph width: %u\n", reading.sgv, printableReading.c_str(),
                  textWidth, grqphWidth);
@@ -31,6 +23,14 @@ void BGDisplayFaceGraphAndBG::showReadings(const std::list<GlucoseReading> &read
     showGraph(0, grqphWidth, minutesToShow, readings);
     showReading(readings.back(), 31, 6, TEXT_ALIGNMENT::RIGHT, FONT_TYPE::MEDIUM, dataIsOld);
     showTrendVerticalLine(31, readings.back().trend);
+
+     // Calculate time since last data update
+    int elapsedMinutes = (ServerManager.getUtcEpoch() - lastReading.epoch) / 60;
+
+    // Call timer block function
+    BGDisplayManager_::drawTimerBlocks(elapsedMinutes, 5, dataIsOld);
+
+    DisplayManager.update();
 }
 
 void BGDisplayFaceGraphAndBG::showTrendVerticalLine(int x, BG_TREND trend) const {
