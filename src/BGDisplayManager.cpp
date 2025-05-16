@@ -110,6 +110,23 @@ void BGDisplayManager_::showData(std::list<GlucoseReading> glucoseReadings) {
     displayedReadings = glucoseReadings;
 }
 
+//Function to draw timer blocks at bottom of clock faces
+void BGDisplayManager_::drawTimerBlocks(int elapsedMinutes, int maxBlocks, bool dataIsOld) {
+    const int blockSpacing = 1; // Space between blocks
+    const int totalSpacing = blockSpacing * (maxBlocks - 1);
+    const int blockWidth = (MATRIX_WIDTH - totalSpacing) / maxBlocks; // Dynamically calculate block width
+
+    int blockCount = elapsedMinutes > maxBlocks ? maxBlocks : elapsedMinutes;
+    int startX = 1; // Start 1 pixel over to the right
+
+    for (int i = 0; i < blockCount; ++i) {
+        int blockStartX = startX + i * (blockWidth + blockSpacing); // Calculate starting position for each block
+        for (int x = blockStartX; x < blockStartX + blockWidth; ++x) {
+            DisplayManager.drawPixel(x, MATRIX_HEIGHT - 1, dataIsOld ? COLOR_RED : COLOR_GREEN);
+        }
+    }
+}
+
 GlucoseReading *BGDisplayManager_::getLastDisplayedGlucoseReading() {
     if (displayedReadings.size() > 0) {
         return &displayedReadings.back();

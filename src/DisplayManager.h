@@ -4,6 +4,10 @@
 #include "enums.h"
 #include <Arduino.h>
 
+// Global Matrix variables 
+#define MATRIX_WIDTH 32
+#define MATRIX_HEIGHT 8
+
 class DisplayManager_ {
   private:
   public:

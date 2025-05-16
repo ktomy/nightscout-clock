@@ -27,6 +27,14 @@ void BGDisplayFaceValueAndDiff::showReadings(const std::list<GlucoseReading> &re
     }
 
     DisplayManager.printText(33, 6, diff.c_str(), TEXT_ALIGNMENT::RIGHT, 2);
+
+     // Calculate time since last data update
+    int elapsedMinutes = (ServerManager.getUtcEpoch() - lastReading.epoch) / 60;
+
+    // Call timer block function
+    BGDisplayManager_::drawTimerBlocks(elapsedMinutes, 5, dataIsOld);
+
+    DisplayManager.update();
 }
 
 String BGDisplayFaceValueAndDiff::getDiff(const std::list<GlucoseReading> &readings) const {
