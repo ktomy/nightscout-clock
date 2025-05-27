@@ -131,16 +131,26 @@ void BGDisplayManager_::showData(std::list<GlucoseReading> glucoseReadings) {
 void BGDisplayManager_::drawTimerBlocks(
     GlucoseReading lastReading, int width, int xPosition, int yPosition) {
     const int MAX_BLOXCS = 5;  // maximum number of blocks to draw
+
+    int blocksCount = lastReading.getSecondsAgo() / 60;
+    if (blocksCount > MAX_BLOXCS) {
+        blocksCount = MAX_BLOXCS;  // we draw maximum 5 lines
+    }
+    if (blocksCount <= 0) {
+#ifdef DEBUG_DISPLAY
+        DEBUG_PRINTLN("No blocks to draw, not drawing timer blocks");
+#endif
+        return;
+    }
+
     // minimal block size is 1 pixel, size between blocks is 1 pixel, so we get width, subtract spaces
     // between lines and divide by the maximum number of lines
     int blockSize = blockSize = (width - 4) / MAX_BLOXCS;
     if (blockSize < 1) {
+#ifdef DEBUG_DISPLAY
         DEBUG_PRINTLN("Block size is less than 1, not drawing timer blocks");
+#endif
         return;
-    }
-    int blocksCount = lastReading.getSecondsAgo() / 60;
-    if (blocksCount > MAX_BLOXCS) {
-        blocksCount = MAX_BLOXCS;  // we draw maximum 5 lines
     }
 
     // Now let's alter xPosition to center the blocks in the available space

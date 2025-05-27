@@ -101,14 +101,14 @@ AuthTicket BGSourceLibreLinkUp::login() {
     return authTicket;
 }
 
-unsigned long long BGSourceLibreLinkUp::libreFactoryTimestampToEpoch(String dateString) {
-    setenv("TZ", "UTC0", 1);
-    tzset();
+unsigned long long BGSourceLibreLinkUp::libreTimestampToEpoch(String dateString) {
+    // setenv("TZ", "UTC0", 1);
+    // tzset();
     struct tm tm;
     strptime(dateString.c_str(), "%m/%d/%Y %I:%M:%S %p", &tm);
     time_t t = mktime(&tm);
-    setenv("TZ", SettingsManager.settings.tz_libc_value.c_str(), 1);
-    tzset();
+    // setenv("TZ", SettingsManager.settings.tz_libc_value.c_str(), 1);
+    // tzset();
     return t;
 }
 
@@ -184,8 +184,8 @@ GlucoseReading BGSourceLibreLinkUp::getLibreLinkUpConnection() {
 
     GlucoseReading reading;
     reading.sgv = doc["data"][0]["glucoseMeasurement"]["ValueInMgPerDl"].as<int>();
-    String dateString = doc["data"][0]["glucoseMeasurement"]["FactoryTimestamp"].as<String>();
-    reading.epoch = libreFactoryTimestampToEpoch(dateString);
+    String dateString = doc["data"][0]["glucoseMeasurement"]["Timestamp"].as<String>();
+    reading.epoch = libreTimestampToEpoch(dateString);
     reading.trend = trendFromLibreTrend(doc["data"][0]["glucoseMeasurement"]["TrendArrow"].as<int>());
 
 #ifdef DEBUG_BG_SOURCE
@@ -311,17 +311,24 @@ std::list<GlucoseReading> BGSourceLibreLinkUp::getReadings(unsigned long long la
     client->addHeader("account-id", encodeSHA256(authTicket.accountId));
 
     auto responseCode = client->GET();
-    if (responseCode != HTTP_CODE_OK) {
-        DEBUG_PRINTF("Error getting glucose from LibreLinkUp %d\n", responseCode);
+    if (responseCode != HTTP_CODE_OK && firstConnectionSuccess == false) {
+        DEBUG_PRINTF("Error getting graph from LibreLinkUp %d\n", responseCode);
         DisplayManager.showFatalError(
-            String("Error getting connections from LibreLinkUp: ") + String(responseCode));
+            String("Error getting graph from LibreLinkUp: ") + String(responseCode));
     }
+#ifdef DEBUG_BG_SOURCE
+    else {
+        if (responseCode != HTTP_CODE_OK) {
+            DEBUG_PRINTF("Error getting graph from LibreLinkUp %d\n", responseCode);
+        }
+    }
+#endif
 
     String response = client->getString();
 
-    // #ifdef DEBUG_BG_SOURCE
-    //     DEBUG_PRINTLN("Response: " + response);
-    // #endif
+#ifdef DEBUG_BG_SOURCE
+    DEBUG_PRINTLN("Graph Response: " + response);
+#endif
 
     firstConnectionSuccess = true;
 
@@ -333,7 +340,7 @@ std::list<GlucoseReading> BGSourceLibreLinkUp::getReadings(unsigned long long la
 
     JsonDocument filter;
     filter["data"]["graphData"][0]["ValueInMgPerDl"] = true;
-    filter["data"]["graphData"][0]["FactoryTimestamp"] = true;
+    filter["data"]["graphData"][0]["Timestamp"] = true;
     filter["status"] = true;
 
     DeserializationOption::Filter filterOption(filter);
@@ -362,8 +369,12 @@ std::list<GlucoseReading> BGSourceLibreLinkUp::getReadings(unsigned long long la
         GlucoseReading reading;
         reading.sgv = v["ValueInMgPerDl"].as<int>();
         reading.trend = BG_TREND::NONE;
-        String dateString = v["FactoryTimestamp"].as<String>();
-        reading.epoch = libreFactoryTimestampToEpoch(dateString);
+        String dateString = v["Timestamp"].as<String>();
+        reading.epoch = libreTimestampToEpoch(dateString);
+        // DEBUG_PRINTF(
+        //     "Reading: %s, epoch: %llu, seconds ago: %d\n", dateString.c_str(), reading.epoch,
+        //     reading.getSecondsAgo());
+
         if (reading.getSecondsAgo() < 0) {
             DEBUG_PRINTF(
                 "Reading from the future: %s: %s: %lu\n", dateString.c_str(), reading.toString().c_str(),
