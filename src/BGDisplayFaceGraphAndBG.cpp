@@ -9,8 +9,8 @@ void BGDisplayFaceGraphAndBG::showReadings(const std::list<GlucoseReading> &read
     GlucoseReading reading = readings.back();
     String printableReading = getPrintableReading(reading.sgv);
     uint8_t textWidth = DisplayManager.getTextWidth(printableReading.c_str(), 2);
-    // 32 is the width of the display, 2 for arrow and space
-    uint8_t grqphWidth = 32 - textWidth - 2;
+    // 2 for arrow and space
+    uint8_t grqphWidth = MATRIX_WIDTH - textWidth - 2;
     uint8_t minutesToShow = grqphWidth * 5;
 
     auto lastReading = readings.back();
@@ -23,12 +23,6 @@ void BGDisplayFaceGraphAndBG::showReadings(const std::list<GlucoseReading> &read
     showGraph(0, grqphWidth, minutesToShow, readings);
     showReading(readings.back(), 31, 6, TEXT_ALIGNMENT::RIGHT, FONT_TYPE::MEDIUM, dataIsOld);
     showTrendVerticalLine(31, readings.back().trend);
-
-     // Calculate time since last data update
-    int elapsedMinutes = (ServerManager.getUtcEpoch() - lastReading.epoch) / 60;
-
-    // Call timer block function
-    BGDisplayManager_::drawTimerBlocks(elapsedMinutes, 5, dataIsOld);
 
 }
 
