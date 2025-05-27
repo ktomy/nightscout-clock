@@ -95,8 +95,8 @@ Nightscout CLock is a custom firmware for Ulanzi TC001. It can also run (with mi
 
 ### 0.19
 
-- Added custom "Data is old" threshold, (thanks @TheBeardedTechGuy for [#43](https://github.com/ktomy/nightscout-clock/pull/43))
-- Added glucose age display as bars in the bottom part of most of the clockfaces (thanks @TheBeardedTechGuy for [#41](https://github.com/ktomy/nightscout-clock/pull/41))
+- Added custom "Data is old" threshold, (thanks [@TheBeardedTechGuy](https://github.com/TheBeardedTechGuy) for [#43](https://github.com/ktomy/nightscout-clock/pull/43))
+- Added glucose age display as bars in the bottom part of most of the clockfaces (thanks [@TheBeardedTechGuy](https://github.com/TheBeardedTechGuy) for [#41](https://github.com/ktomy/nightscout-clock/pull/41))
 
 ### 0.18
 
