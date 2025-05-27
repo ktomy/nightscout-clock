@@ -7,5 +7,5 @@ void BGDisplayFaceBigText::showReadings(const std::list<GlucoseReading> &reading
     showReading(readings.back(), 0, 7, TEXT_ALIGNMENT::LEFT, FONT_TYPE::LARGE, dataIsOld);
 
     // show arrow in the right part of the screen
-    showTrendArrow(readings.back(), 32 - 5, 1);
+    showTrendArrow(readings.back(), MATRIX_WIDTH - 5, 1);
 }

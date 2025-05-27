@@ -50,7 +50,7 @@ void setMatrixLayout(int layout) {
     DEBUG_PRINTF("Set matrix layout to %i", layout);
     switch (layout) {
         case 0:
-            matrix = new FastLED_NeoMatrix(leds, 32, 8, NEO_MATRIX_TOP + NEO_MATRIX_LEFT + NEO_MATRIX_ROWS + NEO_MATRIX_ZIGZAG);
+            matrix = new FastLED_NeoMatrix(leds, MATRIX_WIDTH, 8, NEO_MATRIX_TOP + NEO_MATRIX_LEFT + NEO_MATRIX_ROWS + NEO_MATRIX_ZIGZAG);
             break;
         case 1:
             matrix = new FastLED_NeoMatrix(leds, 8, 8, 4, 1,
@@ -58,7 +58,7 @@ void setMatrixLayout(int layout) {
             break;
         case 2:
             matrix =
-                new FastLED_NeoMatrix(leds, 32, 8, NEO_MATRIX_TOP + NEO_MATRIX_LEFT + NEO_MATRIX_COLUMNS + NEO_MATRIX_ZIGZAG);
+                new FastLED_NeoMatrix(leds, MATRIX_WIDTH, 8, NEO_MATRIX_TOP + NEO_MATRIX_LEFT + NEO_MATRIX_COLUMNS + NEO_MATRIX_ZIGZAG);
             break;
         default:
             break;
@@ -133,7 +133,7 @@ void DisplayManager_::printText(int16_t x, int16_t y, const char *text, TEXT_ALI
         matrix->setCursor(textX, y);
     } else if (alignment == TEXT_ALIGNMENT::CENTER) {
         uint16_t textWidthForCenter = getTextWidth(text, textCase);
-        int16_t textXForCenter = ((32 - textWidthForCenter) / 2);
+        int16_t textXForCenter = ((MATRIX_WIDTH - textWidthForCenter) / 2);
         matrix->setCursor(textXForCenter, y);
     }
 
@@ -162,7 +162,7 @@ void DisplayManager_::drawBitmap(int16_t x, int16_t y, const uint8_t bitmap[], i
 void DisplayManager_::scrollColorfulText(String message) {
     auto finalPosition = -1 * getTextWidth(message.c_str(), 1);
 
-    float x = 32;
+    float x = MATRIX_WIDTH;
     while (x >= finalPosition) {
         checckForImprovWifiConnection();
         DisplayManager.HSVtext(x, 6, (message).c_str(), true, 0);
@@ -209,7 +209,7 @@ void DisplayManager_::showFatalError(String errorMessage) {
         }
 
         auto finalPosition = -1 * getTextWidth(errorMessage.c_str(), 1);
-        float position = 32;
+        float position = MATRIX_WIDTH;
         while (position > finalPosition) {
             matrix->clear();
             printText(position, 6, errorMessage.c_str(), TEXT_ALIGNMENT::LEFT, 1);

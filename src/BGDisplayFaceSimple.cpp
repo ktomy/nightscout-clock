@@ -7,7 +7,7 @@ void BGDisplayFaceSimple::showReadings(const std::list<GlucoseReading> &readings
     showReading(readings.back(), 0, 6, TEXT_ALIGNMENT::CENTER, FONT_TYPE::MEDIUM, dataIsOld);
 
     // show arrow in the right part of the screen
-    showTrendArrow(readings.back(), 32 - 5, 1);
+    showTrendArrow(readings.back(), MATRIX_WIDTH - 5, 1);
 
     auto lastReading = readings.back();
     

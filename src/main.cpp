@@ -11,7 +11,7 @@
 
 #include "improv_consume.h"
 
-float apModeHintPosition = 32;
+float apModeHintPosition = MATRIX_WIDTH; // Start the scrolling right after the screen
 
 void setup() {
 

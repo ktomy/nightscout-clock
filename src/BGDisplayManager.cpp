@@ -114,7 +114,7 @@ void BGDisplayManager_::showData(std::list<GlucoseReading> glucoseReadings) {
     displayedReadings = glucoseReadings;
 }
 
-//Function to draw timer blocks at bottom of clock faces
+
 void BGDisplayManager_::drawTimerBlocks(int elapsedMinutes, int maxBlocks, bool dataIsOld) {
     const int blockSpacing = 1; // Space between blocks
     const int totalSpacing = blockSpacing * (maxBlocks - 1);
