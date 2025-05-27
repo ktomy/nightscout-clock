@@ -3,10 +3,12 @@
 #include "BGDisplayManager.h"
 #include "globals.h"
 
-void BGDisplayFaceValueAndDiff::showReadings(const std::list<GlucoseReading>& readings, bool dataIsOld) const {
+void BGDisplayFaceValueAndDiff::showReadings(
+    const std::list<GlucoseReading>& readings, bool dataIsOld) const {
     auto lastReading = readings.back();
 
-    // treating special casse where the value representation is too wide, so we move it one pixel to the right
+    // treating special casse where the value representation is too wide, so we move it one pixel to the
+    // right
 
     if (SettingsManager.settings.bg_units == BG_UNIT::MMOLL && lastReading.sgv >= 180) {
         showReading(lastReading, 14, 6, TEXT_ALIGNMENT::RIGHT, FONT_TYPE::MEDIUM, dataIsOld);
@@ -43,8 +45,8 @@ String BGDisplayFaceValueAndDiff::getDiff(const std::list<GlucoseReading>& readi
 
     auto last = readings.back();
     std::list<GlucoseReading> foundReadings;
-    // cycle through reading starting from the last one until the time of reading is less than 6.5 minutes prior to the
-    // last reading. Store the found readings
+    // cycle through reading starting from the last one until the time of reading is less than 6.5
+    // minutes prior to the last reading. Store the found readings
     for (auto it = readings.rbegin(); it != readings.rend(); ++it) {
         if (last.epoch - it->epoch > (6 * 60 + 30)) {
             break;

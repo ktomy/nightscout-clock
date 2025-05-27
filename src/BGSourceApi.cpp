@@ -9,13 +9,14 @@ void BGSourceApi::setup() {
     DEBUG_PRINTLN("BGSourceApi::setup");
 #endif
 
-    // To be able to add handlers we need to remove the default handler, this is kinda dirty hack, but there is no other
-    // way (known to me)
+    // To be able to add handlers we need to remove the default handler, this is kinda dirty hack, but
+    // there is no other way (known to me)
     ServerManager.removeStaticFileHandler();
 
-    ArJsonRequestHandlerFunction entriesPostHandler = [this](AsyncWebServerRequest* request, JsonVariant& json) {
-        this->HandleEntriesPost(request, json);
-    };
+    ArJsonRequestHandlerFunction entriesPostHandler =
+        [this](AsyncWebServerRequest* request, JsonVariant& json) {
+            this->HandleEntriesPost(request, json);
+        };
 
     ServerManager.addHandler(new AsyncCallbackJsonWebHandler("/api/v1/entries", entriesPostHandler));
 
@@ -80,7 +81,8 @@ void BGSourceApi::HandleEntriesPost(AsyncWebServerRequest* request, JsonVariant&
     request->send(200, "application/json", "{\"status\": \"ok\"}");
 
     // Sort readings by epoch
-    glucoseReadings.sort([](const GlucoseReading& a, const GlucoseReading& b) { return a.epoch < b.epoch; });
+    glucoseReadings.sort(
+        [](const GlucoseReading& a, const GlucoseReading& b) { return a.epoch < b.epoch; });
 }
 
 std::list<GlucoseReading> BGSourceApi::updateReadings(std::list<GlucoseReading> existingReadings) {

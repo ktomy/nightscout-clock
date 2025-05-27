@@ -62,8 +62,9 @@ JsonDocument* SettingsManager_::readConfigJsonFile() {
         doc = new JsonDocument();
         DeserializationError error = deserializeJson(*doc, file);
         if (error) {
-            DEBUG_PRINTF("Deserialization error. File size: %d, requested memory: %d. Error: %s\n", file.size(),
-                         (int)(file.size() * 2), error.c_str());
+            DEBUG_PRINTF(
+                "Deserialization error. File size: %d, requested memory: %d. Error: %s\n", file.size(),
+                (int)(file.size() * 2), error.c_str());
             file.close();
             return NULL;
         }
@@ -109,7 +110,8 @@ bool SettingsManager_::loadSettingsFromFile() {
     }
     settings.dexcom_username = (*doc)["dexcom_username"].as<String>();
     settings.dexcom_password = (*doc)["dexcom_password"].as<String>();
-    settings.dexcom_server = (*doc)["dexcom_server"].as<String>() == "us" ? DEXCOM_SERVER::US : DEXCOM_SERVER::NON_US;
+    settings.dexcom_server =
+        (*doc)["dexcom_server"].as<String>() == "us" ? DEXCOM_SERVER::US : DEXCOM_SERVER::NON_US;
 
     settings.librelinkup_email = (*doc)["librelinkup_email"].as<String>();
     settings.librelinkup_password = (*doc)["librelinkup_password"].as<String>();
@@ -119,13 +121,15 @@ bool SettingsManager_::loadSettingsFromFile() {
     settings.nightscout_api_key = (*doc)["api_secret"].as<String>();
 
     settings.tz_libc_value = (*doc)["tz_libc"].as<String>();
-    settings.time_format = (*doc)["time_format"].as<String>() == "12" ? TIME_FORMAT::HOURS_12 : TIME_FORMAT::HOURS_24;
+    settings.time_format =
+        (*doc)["time_format"].as<String>() == "12" ? TIME_FORMAT::HOURS_12 : TIME_FORMAT::HOURS_24;
 
     // read alarms data
     settings.alarm_urgent_low_enabled = (*doc)["alarm_urgent_low_enabled"].as<bool>();
     settings.alarm_urgent_low_mgdl = (*doc)["alarm_urgent_low_value"].as<int>();
     settings.alarm_urgent_low_snooze_minutes = (*doc)["alarm_urgent_low_snooze_interval"].as<int>();
-    settings.alarm_urgent_low_silence_interval = (*doc)["alarm_urgent_low_silence_interval"].as<String>();
+    settings.alarm_urgent_low_silence_interval =
+        (*doc)["alarm_urgent_low_silence_interval"].as<String>();
     settings.alarm_low_enabled = (*doc)["alarm_low_enabled"].as<bool>();
     settings.alarm_low_mgdl = (*doc)["alarm_low_value"].as<int>();
     settings.alarm_low_snooze_minutes = (*doc)["alarm_low_snooze_interval"].as<int>();

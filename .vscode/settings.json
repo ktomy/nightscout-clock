@@ -66,6 +66,6 @@
     "editor.formatOnSave": true,
     "[cpp]": {
         "editor.defaultFormatter": "ms-vscode.cpptools"
-    }
-
+    },
+    "editor.autoIndent": "full"
 }

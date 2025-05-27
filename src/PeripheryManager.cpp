@@ -158,7 +158,8 @@ void PeripheryManager_::tick() {
 }
 
 const char* PeripheryManager_::readUptime() {
-    static char uptime[25];  // Make the array static to keep it from being destroyed when the function returns
+    static char
+        uptime[25];  // Make the array static to keep it from being destroyed when the function returns
     unsigned long currentTime = millis();
     unsigned long elapsedTime = currentTime - startTime;
     unsigned long uptimeSeconds = elapsedTime / 1000;

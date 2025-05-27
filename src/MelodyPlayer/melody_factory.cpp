@@ -71,7 +71,9 @@ Melody MelodyFactoryClass::load(String filepath, FS& fs) {
     }
 
     if (debug)
-        Serial.println(String("This melody object will take at least: ") + (sizeof(NoteDuration) * nNotes) + "bytes");
+        Serial.println(
+            String("This melody object will take at least: ") + (sizeof(NoteDuration) * nNotes) +
+            "bytes");
     if (nNotes < maxLength) {
         notes = std::make_shared<std::vector<NoteDuration>>();
         notes->reserve(nNotes);
@@ -92,8 +94,9 @@ Melody MelodyFactoryClass::load(String filepath, FS& fs) {
     return Melody(title, timeUnit, notes, true);
 }
 
-Melody MelodyFactoryClass::load(String title, unsigned short timeUnit, String notesToLoad[],
-                                unsigned short nNotesToLoad, bool autoSilence) {
+Melody MelodyFactoryClass::load(
+    String title, unsigned short timeUnit, String notesToLoad[], unsigned short nNotesToLoad,
+    bool autoSilence) {
     if (title.length() == 0 && timeUnit <= 20) {
         return Melody();
     }
@@ -120,8 +123,9 @@ Melody MelodyFactoryClass::load(String title, unsigned short timeUnit, String no
     return Melody(title, timeUnit, notes, autoSilence);
 }
 
-Melody MelodyFactoryClass::load(String title, unsigned short timeUnit, int frequenciesToLoad[],
-                                unsigned short nFrequenciesToLoad, bool autoSilence) {
+Melody MelodyFactoryClass::load(
+    String title, unsigned short timeUnit, int frequenciesToLoad[], unsigned short nFrequenciesToLoad,
+    bool autoSilence) {
     if (title.length() == 0 && timeUnit <= 20) {
         return Melody();
     }
@@ -232,8 +236,9 @@ bool MelodyFactoryClass::loadNote(String token) {
     }
 
     if (noteFormat == NoteFormat::STRING) {
-        auto n = std::find_if(noteMapping.cbegin(), noteMapping.cend(),
-                              [&aux](std::pair<StringView, unsigned short> e) { return e.first == aux.c_str(); });
+        auto n = std::find_if(
+            noteMapping.cbegin(), noteMapping.cend(),
+            [&aux](std::pair<StringView, unsigned short> e) { return e.first == aux.c_str(); });
 
         if (n != noteMapping.cend()) {
             note.frequency = n->second;

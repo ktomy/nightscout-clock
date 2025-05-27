@@ -57,8 +57,9 @@ public:
      * frequenciesToLoad are integer numbers expressing the real reproduced frequency.
      * automaticSilence, if true, automatically inserts a small silence between 2 consecutive notes.
      */
-    Melody load(String title, unsigned short timeUnit, String notesToLoad[], unsigned short nNotesToLoad,
-                bool autoSilence = true);
+    Melody load(
+        String title, unsigned short timeUnit, String notesToLoad[], unsigned short nNotesToLoad,
+        bool autoSilence = true);
 
     /**
      * Create a melody with the given parameters.
@@ -67,8 +68,9 @@ public:
      * The last parameter, automaticSilence, if true, automatically inserts a small silence between 2
      * consecutive notes.
      */
-    Melody load(String title, unsigned short timeUnit, int frequenciesToLoad[], unsigned short nFrequenciesToLoad,
-                bool autoSilence = true);
+    Melody load(
+        String title, unsigned short timeUnit, int frequenciesToLoad[],
+        unsigned short nFrequenciesToLoad, bool autoSilence = true);
 
 private:
     enum class NoteFormat { ERROR, STRING, INTEGER };

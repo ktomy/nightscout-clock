@@ -10,8 +10,9 @@
 
 #include "LightDependentResistor.h"
 
-LightDependentResistor::LightDependentResistor(int pin, unsigned long other_resistor, ePhotoCellKind kind,
-                                               unsigned int adc_resolution_bits, unsigned int smoothing_history_size)
+LightDependentResistor::LightDependentResistor(
+    int pin, unsigned long other_resistor, ePhotoCellKind kind, unsigned int adc_resolution_bits,
+    unsigned int smoothing_history_size)
     : _pin(pin),
       _other_resistor(other_resistor),
       _mult_value(32017200),
@@ -55,8 +56,9 @@ LightDependentResistor::LightDependentResistor(int pin, unsigned long other_resi
     }
 }
 
-LightDependentResistor::LightDependentResistor(int pin, unsigned long other_resistor, float mult_value, float pow_value,
-                                               unsigned int adc_resolution_bits, unsigned int smoothing_history_size)
+LightDependentResistor::LightDependentResistor(
+    int pin, unsigned long other_resistor, float mult_value, float pow_value,
+    unsigned int adc_resolution_bits, unsigned int smoothing_history_size)
     : _pin(pin),
       _other_resistor(other_resistor),
       _mult_value(mult_value),
@@ -85,13 +87,17 @@ void LightDependentResistor::updatePhotocellParameters(float mult_value, float p
     _pow_value = pow_value;
 }
 
-float LightDependentResistor::luxToFootCandles(float intensity_in_lux) { return intensity_in_lux / 10.764; }
+float LightDependentResistor::luxToFootCandles(float intensity_in_lux) {
+    return intensity_in_lux / 10.764;
+}
 
 float LightDependentResistor::footCandlesToLux(float intensity_in_footcandles) {
     return 10.764 * intensity_in_footcandles;
 }
 
-void LightDependentResistor::setPhotocellPositionOnGround(bool on_ground) { _photocell_on_ground = on_ground; }
+void LightDependentResistor::setPhotocellPositionOnGround(bool on_ground) {
+    _photocell_on_ground = on_ground;
+}
 
 int LightDependentResistor::getCurrentRawAnalogValue() const {
 // Analog resolution setter is not handled on all boards (not compatible boards: MEGA, ESP8266, Uno)
@@ -120,7 +126,9 @@ float LightDependentResistor::rawAnalogValueToLux(int raw_analog_value) const {
     return _mult_value / (float)pow(photocell_resistor, _pow_value);
 }
 
-float LightDependentResistor::getCurrentLux() const { return rawAnalogValueToLux(getCurrentRawAnalogValue()); }
+float LightDependentResistor::getCurrentLux() const {
+    return rawAnalogValueToLux(getCurrentRawAnalogValue());
+}
 
 float LightDependentResistor::getCurrentFootCandles() const { return luxToFootCandles(getCurrentLux()); }
 
@@ -156,8 +164,9 @@ float LightDependentResistor::getSmoothedLux() {
             _smoothing_sum += _smoothing_history_values[_smoothing_history_next];
 
             // Update next value tu acquire
-            _smoothing_history_next =
-                (_smoothing_history_next < _smoothing_history_size - 1) ? _smoothing_history_next + 1 : 0;
+            _smoothing_history_next = (_smoothing_history_next < _smoothing_history_size - 1)
+                                          ? _smoothing_history_next + 1
+                                          : 0;
 
             sumResult = _smoothing_sum / _smoothing_history_size;
         }

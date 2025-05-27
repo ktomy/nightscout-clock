@@ -58,7 +58,9 @@ void set_error(improv::Error error) {
     Serial.write(data.data(), data.size());
 }
 
-void onErrorCallback(improv::Error err) { DisplayManager.showFatalError("ImprovWifi error: " + String(err)); }
+void onErrorCallback(improv::Error err) {
+    DisplayManager.showFatalError("ImprovWifi error: " + String(err));
+}
 
 void getAvailableWifiNetworks() {
     WiFi.mode(WIFI_STA);
@@ -68,7 +70,9 @@ void getAvailableWifiNetworks() {
     for (int id = 0; id < networkNum; ++id) {
         std::vector<uint8_t> data = improv::build_rpc_response(
             improv::GET_WIFI_NETWORKS,
-            {WiFi.SSID(id), String(WiFi.RSSI(id)), (WiFi.encryptionType(id) == WIFI_AUTH_OPEN ? "NO" : "YES")}, false);
+            {WiFi.SSID(id), String(WiFi.RSSI(id)),
+             (WiFi.encryptionType(id) == WIFI_AUTH_OPEN ? "NO" : "YES")},
+            false);
         send_response(data);
         delay(1);
     }
@@ -89,7 +93,8 @@ bool onCommandCallback(improv::ImprovCommand cmd) {
         case improv::Command::GET_CURRENT_STATE: {
             if ((WiFi.status() == WL_CONNECTED && !ServerManager.isInAPMode)) {
                 set_state(improv::State::STATE_PROVISIONED);
-                std::vector<uint8_t> data = improv::build_rpc_response(improv::GET_CURRENT_STATE, getLocalUrl(), false);
+                std::vector<uint8_t> data =
+                    improv::build_rpc_response(improv::GET_CURRENT_STATE, getLocalUrl(), false);
                 send_response(data);
             } else {
                 set_state(improv::State::STATE_AUTHORIZED);
@@ -116,7 +121,8 @@ bool onCommandCallback(improv::ImprovCommand cmd) {
 
             if (!ServerManager.isInAPMode) {
                 set_state(improv::STATE_PROVISIONED);
-                std::vector<uint8_t> data = improv::build_rpc_response(improv::WIFI_SETTINGS, getLocalUrl(), false);
+                std::vector<uint8_t> data =
+                    improv::build_rpc_response(improv::WIFI_SETTINGS, getLocalUrl(), false);
                 send_response(data);
             } else {
                 set_state(improv::STATE_STOPPED);
@@ -127,15 +133,17 @@ bool onCommandCallback(improv::ImprovCommand cmd) {
         }
 
         case improv::Command::GET_DEVICE_INFO: {
-            std::vector<std::string> infos = {// Firmware name
-                                              "Nightscout clock",
-                                              // Firmware version
-                                              VERSION,
-                                              // Hardware chip/variant
-                                              "Ulanzi TC001",
-                                              // Device name
-                                              std::string(SettingsManager.settings.hostname.c_str())};
-            std::vector<uint8_t> data = improv::build_rpc_response(improv::GET_DEVICE_INFO, infos, false);
+            std::vector<std::string> infos = {
+                // Firmware name
+                "Nightscout clock",
+                // Firmware version
+                VERSION,
+                // Hardware chip/variant
+                "Ulanzi TC001",
+                // Device name
+                std::string(SettingsManager.settings.hostname.c_str())};
+            std::vector<uint8_t> data =
+                improv::build_rpc_response(improv::GET_DEVICE_INFO, infos, false);
             send_response(data);
             break;
         }

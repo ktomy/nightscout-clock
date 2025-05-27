@@ -6,12 +6,14 @@
 
 class BGDisplayFaceTextBase : virtual public BGDisplayFace {
 public:
-    virtual void showReadings(const std::list<GlucoseReading>& readings, bool dataIsOld = false) const = 0;
+    virtual void showReadings(
+        const std::list<GlucoseReading>& readings, bool dataIsOld = false) const = 0;
 
 protected:
     void showTrendArrow(const GlucoseReading reading, int16_t x, int16_t y) const;
-    void showReading(const GlucoseReading reading, int16_t x, int16_t y, TEXT_ALIGNMENT alignment, FONT_TYPE fontType,
-                     bool isOld = false) const;
+    void showReading(
+        const GlucoseReading reading, int16_t x, int16_t y, TEXT_ALIGNMENT alignment, FONT_TYPE fontType,
+        bool isOld = false) const;
     void SetDisplayColorByBGValue(const GlucoseReading& reading) const;
     String getPrintableReading(const int sgv) const;
 };

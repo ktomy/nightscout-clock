@@ -22,7 +22,8 @@ void BGSource::tick() {
     if (lastCallAttemptEpoch == 0 || currentTime > lastCallAttemptEpoch + 60) {
 #ifdef DEBUG_BG_SOURCE
         DEBUG_PRINTF(
-            "BGSource::tick: Collecting data as > 60 seconds since last reading. Current time: %llu, last call attempt "
+            "BGSource::tick: Collecting data as > 60 seconds since last reading. Current time: %llu, "
+            "last call attempt "
             "time: %llu (delta: %llu)",
             currentTime, lastCallAttemptEpoch, currentTime - lastCallAttemptEpoch);
 #endif
@@ -37,18 +38,21 @@ void BGSource::tick() {
 
         glucoseReadings = updateReadings(glucoseReadings);
 
-        auto lastReading = glucoseReadings.size() > 0 ? glucoseReadings.back() : GlucoseReading{0, BG_TREND::NONE, 0};
+        auto lastReading =
+            glucoseReadings.size() > 0 ? glucoseReadings.back() : GlucoseReading{0, BG_TREND::NONE, 0};
         if (lastReading.epoch > currentTime - 60 && lastReading.epoch < currentTime) {
 #ifdef DEBUG_BG_SOURCE
-            DEBUG_PRINTF("BGSource::tick: Adjusting lastCallAttemptEpoch to %llu from %llu (delte %llu)",
-                         lastReading.epoch + 5, currentTime, currentTime - (lastReading.epoch + 5))
+            DEBUG_PRINTF(
+                "BGSource::tick: Adjusting lastCallAttemptEpoch to %llu from %llu (delte %llu)",
+                lastReading.epoch + 5, currentTime, currentTime - (lastReading.epoch + 5))
 #endif
             // 5 seconds to save the value
             lastCallAttemptEpoch = lastReading.epoch + 5;
         } else {
 #ifdef DEBUG_BG_SOURCE
             DEBUG_PRINTF(
-                "BGSource::tick: Not adjusting lastCallAttemptEpoch to last reading %llu from %llu (delta: %llu)",
+                "BGSource::tick: Not adjusting lastCallAttemptEpoch to last reading %llu from %llu "
+                "(delta: %llu)",
                 lastReading.epoch, currentTime, currentTime - (lastReading.epoch + 5))
 #endif
             lastCallAttemptEpoch = currentTime;
@@ -58,8 +62,8 @@ void BGSource::tick() {
         // #ifdef DEBUG_BG_SOURCE
 
         //         // print debug message containing current time and last call attempt time
-        //         DEBUG_PRINTF("BGSource::tick: Not collecting data as < 60 seconds since last reading. Current time:
-        //         %llu, last call "
+        //         DEBUG_PRINTF("BGSource::tick: Not collecting data as < 60 seconds since last reading.
+        //         Current time: %llu, last call "
         //                      "attempt time: %llu",
         //                      currentTime, lastCallAttemptEpoch);
 
@@ -67,8 +71,8 @@ void BGSource::tick() {
     }
 }
 
-std::list<GlucoseReading> BGSource::deleteOldReadings(std::list<GlucoseReading> readings,
-                                                      unsigned long long epochToCompare) {
+std::list<GlucoseReading> BGSource::deleteOldReadings(
+    std::list<GlucoseReading> readings, unsigned long long epochToCompare) {
     auto it = readings.begin();
     auto deletedCount = 0;
     while (it != readings.end()) {

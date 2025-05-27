@@ -5,7 +5,8 @@
 #include "BGDisplayManager.h"
 #include "globals.h"
 
-int getAverageValueForPeriod(uint16_t fromSecondsAgo, uint16_t toSecondsAgo, std::list<GlucoseReading> readings) {
+int getAverageValueForPeriod(
+    uint16_t fromSecondsAgo, uint16_t toSecondsAgo, std::list<GlucoseReading> readings) {
     unsigned long long fromEpoch = time(NULL) - fromSecondsAgo;
     unsigned long long toEpoch = time(NULL) - toSecondsAgo;
     // note, toEpoch is older than fromEpoch
@@ -26,8 +27,10 @@ int getAverageValueForPeriod(uint16_t fromSecondsAgo, uint16_t toSecondsAgo, std
     }
 
 #ifdef DEBUG_DISPLAY
-    DEBUG_PRINTF("Calculating average between %d (%llu) and %d (%llu). Values found: %d, sum is %ld. Average is %d\n",
-                 fromSecondsAgo, fromEpoch, toSecondsAgo, toEpoch, count, sum, average);
+    DEBUG_PRINTF(
+        "Calculating average between %d (%llu) and %d (%llu). Values found: %d, sum is %ld. Average is "
+        "%d\n",
+        fromSecondsAgo, fromEpoch, toSecondsAgo, toEpoch, count, sum, average);
 #endif
 
     return average;
@@ -44,8 +47,9 @@ int getNormalIntervalYPosition(int value, GlucoseInterval interval) {
     return y;
 }
 
-void BGDisplayFaceGraphBase::showGraph(uint8_t x_position, uint8_t length, uint16_t forMinutes,
-                                       const std::list<GlucoseReading>& readings) const {
+void BGDisplayFaceGraphBase::showGraph(
+    uint8_t x_position, uint8_t length, uint16_t forMinutes,
+    const std::list<GlucoseReading>& readings) const {
     auto pixelSizeSeconds = (forMinutes * 60) / length;
 
     auto intervals = bgDisplayManager.getGlucoseIntervals();
@@ -77,7 +81,8 @@ void BGDisplayFaceGraphBase::showGraph(uint8_t x_position, uint8_t length, uint1
     }
 
     for (int i = 0; i < length; i++) {
-        auto average = getAverageValueForPeriod(i * pixelSizeSeconds, (i + 1) * pixelSizeSeconds, readings);
+        auto average =
+            getAverageValueForPeriod(i * pixelSizeSeconds, (i + 1) * pixelSizeSeconds, readings);
 
 #ifdef DEBUG_DISPLAY
         if (average < 0) {

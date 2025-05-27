@@ -44,8 +44,9 @@ class Melody {
 public:
     Melody() : notes(nullptr) {};
 
-    Melody(String title, unsigned short timeUnit, std::shared_ptr<std::vector<NoteDuration>> notes,
-           bool automaticSilence)
+    Melody(
+        String title, unsigned short timeUnit, std::shared_ptr<std::vector<NoteDuration>> notes,
+        bool automaticSilence)
         : title(title), timeUnit(timeUnit), notes(notes), automaticSilence(automaticSilence) {};
 
     /**

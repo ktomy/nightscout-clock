@@ -53,16 +53,19 @@ void setMatrixLayout(int layout) {
     DEBUG_PRINTF("Set matrix layout to %i", layout);
     switch (layout) {
         case 0:
-            matrix = new FastLED_NeoMatrix(leds, MATRIX_WIDTH, 8,
-                                           NEO_MATRIX_TOP + NEO_MATRIX_LEFT + NEO_MATRIX_ROWS + NEO_MATRIX_ZIGZAG);
+            matrix = new FastLED_NeoMatrix(
+                leds, MATRIX_WIDTH, 8,
+                NEO_MATRIX_TOP + NEO_MATRIX_LEFT + NEO_MATRIX_ROWS + NEO_MATRIX_ZIGZAG);
             break;
         case 1:
-            matrix = new FastLED_NeoMatrix(leds, 8, 8, 4, 1,
-                                           NEO_MATRIX_TOP + NEO_MATRIX_LEFT + NEO_MATRIX_ROWS + NEO_MATRIX_PROGRESSIVE);
+            matrix = new FastLED_NeoMatrix(
+                leds, 8, 8, 4, 1,
+                NEO_MATRIX_TOP + NEO_MATRIX_LEFT + NEO_MATRIX_ROWS + NEO_MATRIX_PROGRESSIVE);
             break;
         case 2:
-            matrix = new FastLED_NeoMatrix(leds, MATRIX_WIDTH, 8,
-                                           NEO_MATRIX_TOP + NEO_MATRIX_LEFT + NEO_MATRIX_COLUMNS + NEO_MATRIX_ZIGZAG);
+            matrix = new FastLED_NeoMatrix(
+                leds, MATRIX_WIDTH, 8,
+                NEO_MATRIX_TOP + NEO_MATRIX_LEFT + NEO_MATRIX_COLUMNS + NEO_MATRIX_ZIGZAG);
             break;
         default:
             break;
@@ -84,12 +87,14 @@ void DisplayManager_::applySettings() {
     int displayBrightness = 70;
 
     if (!SettingsManager.settings.auto_brightness) {
-        displayBrightness = map(SettingsManager.settings.brightness_level, 0, 10, MIN_BRIGHTNESS, MAX_BRIGHTNESS);
+        displayBrightness =
+            map(SettingsManager.settings.brightness_level, 0, 10, MIN_BRIGHTNESS, MAX_BRIGHTNESS);
     }
 
-    DEBUG_PRINTLN("Setting brightness to " + String(displayBrightness) +
-                  " auto brightness: " + String(SettingsManager.settings.auto_brightness) +
-                  " and brightness level: " + String(SettingsManager.settings.brightness_level));
+    DEBUG_PRINTLN(
+        "Setting brightness to " + String(displayBrightness) +
+        " auto brightness: " + String(SettingsManager.settings.auto_brightness) +
+        " and brightness level: " + String(SettingsManager.settings.brightness_level));
     DisplayManager.setBrightness(displayBrightness);
 }
 
@@ -124,10 +129,12 @@ void DisplayManager_::clearMatrix() {
     matrix->show();
 }
 
-// DisplayManager_::printText(int16_t x, int16_t y, const char *text, TEXT_ALIGNMENT alignment, byte textCase) {
+// DisplayManager_::printText(int16_t x, int16_t y, const char *text, TEXT_ALIGNMENT alignment, byte
+// textCase) {
 // }
 
-void DisplayManager_::printText(int16_t x, int16_t y, const char* text, TEXT_ALIGNMENT alignment, byte textCase) {
+void DisplayManager_::printText(
+    int16_t x, int16_t y, const char* text, TEXT_ALIGNMENT alignment, byte textCase) {
     if (alignment == TEXT_ALIGNMENT::LEFT) {
         matrix->setCursor(x, y);
     } else if (alignment == TEXT_ALIGNMENT::RIGHT) {
@@ -157,7 +164,8 @@ void DisplayManager_::printText(int16_t x, int16_t y, const char* text, TEXT_ALI
     matrix->show();
 }
 
-void DisplayManager_::drawBitmap(int16_t x, int16_t y, const uint8_t bitmap[], int16_t w, int16_t h, uint16_t color) {
+void DisplayManager_::drawBitmap(
+    int16_t x, int16_t y, const uint8_t bitmap[], int16_t w, int16_t h, uint16_t color) {
     matrix->setCursor(x, y);
     matrix->drawBitmap(x, y, bitmap, w, h, color);
 }

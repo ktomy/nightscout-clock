@@ -12,7 +12,8 @@
 #include "enums.h"
 #include "globals.h"
 
-#define BG_BACKFILL_SECONDS 3 * 60 * 60 + 1  // 3 hours one second (to overcome the "after last reading" read)
+#define BG_BACKFILL_SECONDS \
+    3 * 60 * 60 + 1  // 3 hours one second (to overcome the "after last reading" read)
 
 struct GlucoseReading {
 public:
@@ -23,7 +24,8 @@ public:
     int getSecondsAgo() const { return time(NULL) - epoch; }
 
     String toString() const {
-        return String(sgv) + "," + ::toString(trend) + "," + String(epoch) + "(" + String(getSecondsAgo()) + ")";
+        return String(sgv) + "," + ::toString(trend) + "," + String(epoch) + "(" +
+               String(getSecondsAgo()) + ")";
     }
 };
 
@@ -40,7 +42,8 @@ protected:
     unsigned long long lastCallAttemptEpoch = 0;
     bool firstConnectionSuccess = false;
     std::list<GlucoseReading> glucoseReadings;
-    std::list<GlucoseReading> deleteOldReadings(std::list<GlucoseReading> readings, unsigned long long epochToCompare);
+    std::list<GlucoseReading> deleteOldReadings(
+        std::list<GlucoseReading> readings, unsigned long long epochToCompare);
     virtual std::list<GlucoseReading> updateReadings(std::list<GlucoseReading> existingReadings) = 0;
     BG_TREND parseDirection(String directionInput);
     void handleFailedAttempt();

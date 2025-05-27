@@ -4,8 +4,9 @@
 
 bool BGSourceLibreLinkUp::hasValidAuthentication() {
 #ifdef DEBUG_BG_SOURCE
-    DEBUG_PRINTF("Checking if authentication is valid, token: %s, expires: %llu, now: %llu\n", authTicket.token.c_str(),
-                 authTicket.expires, time(NULL));
+    DEBUG_PRINTF(
+        "Checking if authentication is valid, token: %s, expires: %llu, now: %llu\n",
+        authTicket.token.c_str(), authTicket.expires, time(NULL));
 #endif
 
     if (authTicket.token == "") {
@@ -31,7 +32,8 @@ AuthTicket BGSourceLibreLinkUp::login() {
         DisplayManager.showFatalError("Invalid LibreLinkUp region, please check settings");
     }
 
-    String url = "https://" + libreEndpoints[SettingsManager.settings.librelinkup_region] + "/llu/auth/login";
+    String url =
+        "https://" + libreEndpoints[SettingsManager.settings.librelinkup_region] + "/llu/auth/login";
 
     client->begin(*wifiSecureClient, url);
     client->setTimeout(15000);  // Set timeout to 15 seconds (15000 milliseconds)
@@ -45,7 +47,8 @@ AuthTicket BGSourceLibreLinkUp::login() {
     auto responseCode = client->POST(body);
     if (responseCode != HTTP_CODE_OK) {
         DEBUG_PRINTF("Error logging in to LibreLinkUp %d\n", responseCode);
-        DisplayManager.showFatalError(String("Error logging in to LibreLinkUp: ") + String(responseCode));
+        DisplayManager.showFatalError(
+            String("Error logging in to LibreLinkUp: ") + String(responseCode));
     }
 
     String response = client->getString();
@@ -57,8 +60,9 @@ AuthTicket BGSourceLibreLinkUp::login() {
     JsonDocument doc;
     DeserializationError error = deserializeJson(doc, response);
     if (error) {
-        DEBUG_PRINTF("Error deserializing LibreLinkUp login response: %s\nFailed on string: %s\n", error.c_str(),
-                     response.c_str());
+        DEBUG_PRINTF(
+            "Error deserializing LibreLinkUp login response: %s\nFailed on string: %s\n", error.c_str(),
+            response.c_str());
         DisplayManager.showFatalError(String("Invalid LibreLinkUp login response: ") + error.c_str());
     }
 
@@ -89,8 +93,9 @@ AuthTicket BGSourceLibreLinkUp::login() {
     auto authTicket = AuthTicket(token, expires, duration, accountId);
 
 #ifdef DEBUG_BG_SOURCE
-    DEBUG_PRINTF("Logged in to LibreLinkUp, token: %s, expires: %llu, duration: %llu, accountId %s\n", token.c_str(),
-                 expires, duration, accountId.c_str());
+    DEBUG_PRINTF(
+        "Logged in to LibreLinkUp, token: %s, expires: %llu, duration: %llu, accountId %s\n",
+        token.c_str(), expires, duration, accountId.c_str());
 #endif
 
     return authTicket;
@@ -125,7 +130,8 @@ BG_TREND trendFromLibreTrend(int trend) {
 }
 
 GlucoseReading BGSourceLibreLinkUp::getLibreLinkUpConnection() {
-    String url = "https://" + libreEndpoints[SettingsManager.settings.librelinkup_region] + "/llu/connections";
+    String url =
+        "https://" + libreEndpoints[SettingsManager.settings.librelinkup_region] + "/llu/connections";
 
     client->begin(url);
     for (auto& header : standardHeaders) {
@@ -139,7 +145,8 @@ GlucoseReading BGSourceLibreLinkUp::getLibreLinkUpConnection() {
 
     if (responseCode != HTTP_CODE_OK) {
         DEBUG_PRINTF("Error getting connections from LibreLinkUp %d\n", responseCode);
-        DisplayManager.showFatalError(String("Error getting connections from LibreLinkUp: ") + String(responseCode));
+        DisplayManager.showFatalError(
+            String("Error getting connections from LibreLinkUp: ") + String(responseCode));
     }
 
     String response = client->getString();
@@ -151,13 +158,16 @@ GlucoseReading BGSourceLibreLinkUp::getLibreLinkUpConnection() {
     JsonDocument doc;
     DeserializationError error = deserializeJson(doc, response);
     if (error) {
-        DEBUG_PRINTF("Error deserializing LibreLinkUp connections response: %s\nFailed on string: %s\n", error.c_str(),
-                     response.c_str());
-        DisplayManager.showFatalError(String("Invalid LibreLinkUp connections response: ") + error.c_str());
+        DEBUG_PRINTF(
+            "Error deserializing LibreLinkUp connections response: %s\nFailed on string: %s\n",
+            error.c_str(), response.c_str());
+        DisplayManager.showFatalError(
+            String("Invalid LibreLinkUp connections response: ") + error.c_str());
     }
 
     if (doc["status"].as<int>() != 0) {
-        DEBUG_PRINTF("Failed to get connections from LibreLinkUp, non-zero status %s\n", response.c_str());
+        DEBUG_PRINTF(
+            "Failed to get connections from LibreLinkUp, non-zero status %s\n", response.c_str());
         DisplayManager.showFatalError("Failed to get connections from LibreLinkUp, please restart");
     }
 
@@ -179,8 +189,9 @@ GlucoseReading BGSourceLibreLinkUp::getLibreLinkUpConnection() {
     reading.trend = trendFromLibreTrend(doc["data"][0]["glucoseMeasurement"]["TrendArrow"].as<int>());
 
 #ifdef DEBUG_BG_SOURCE
-    DEBUG_PRINTF("Got LibreLinkUp connection, patientId: %s, firstName: %s, lastName: %s, last reading: %s\n",
-                 patientId.c_str(), firstName.c_str(), lastName.c_str(), reading.toString().c_str());
+    DEBUG_PRINTF(
+        "Got LibreLinkUp connection, patientId: %s, firstName: %s, lastName: %s, last reading: %s\n",
+        patientId.c_str(), firstName.c_str(), lastName.c_str(), reading.toString().c_str());
 #endif
 
     return reading;
@@ -200,7 +211,8 @@ String BGSourceLibreLinkUp::encodeSHA256(String toEncode) {
     return encoded;
 }
 
-std::list<GlucoseReading> BGSourceLibreLinkUp::updateReadings(std::list<GlucoseReading> existingReadings) {
+std::list<GlucoseReading> BGSourceLibreLinkUp::updateReadings(
+    std::list<GlucoseReading> existingReadings) {
     if (!hasValidAuthentication()) {
         deleteAuthTicket();
         auto newAuthTicket = login();
@@ -211,20 +223,23 @@ std::list<GlucoseReading> BGSourceLibreLinkUp::updateReadings(std::list<GlucoseR
         authTicket = newAuthTicket;
     }
 
-    unsigned long long lastReadingEpoch = existingReadings.size() > 0 ? existingReadings.back().epoch : 0;
+    unsigned long long lastReadingEpoch =
+        existingReadings.size() > 0 ? existingReadings.back().epoch : 0;
 
     auto glucoseReadings = getReadings(lastReadingEpoch);
 
     // sort the readings by epoch
-    glucoseReadings.sort([](const GlucoseReading& a, const GlucoseReading& b) { return a.epoch < b.epoch; });
+    glucoseReadings.sort(
+        [](const GlucoseReading& a, const GlucoseReading& b) { return a.epoch < b.epoch; });
 
     // remove readings from retrievedReadings which are already present in existingReadings
     // because some servers (Gluroo) don't process from-to in an expected way
     glucoseReadings.remove_if([&existingReadings](const GlucoseReading& reading) {
-        return std::find_if(existingReadings.begin(), existingReadings.end(),
-                            [&reading](const GlucoseReading& existingReading) {
-                                return existingReading.epoch == reading.epoch;
-                            }) != existingReadings.end();
+        return std::find_if(
+                   existingReadings.begin(), existingReadings.end(),
+                   [&reading](const GlucoseReading& existingReading) {
+                       return existingReading.epoch == reading.epoch;
+                   }) != existingReadings.end();
     });
 
     if (glucoseReadings.size() == 0) {
@@ -236,17 +251,19 @@ std::list<GlucoseReading> BGSourceLibreLinkUp::updateReadings(std::list<GlucoseR
     existingReadings.insert(existingReadings.end(), glucoseReadings.begin(), glucoseReadings.end());
 
 #ifdef DEBUG_BG_SOURCE
-    DEBUG_PRINTLN("Existing readings: " + String(existingReadings.size()) +
-                  ", last reading epoch: " + String(existingReadings.back().epoch) +
-                  " Difference to now is: " + String((time(NULL) - existingReadings.back().epoch) / 60) + " minutes");
+    DEBUG_PRINTLN(
+        "Existing readings: " + String(existingReadings.size()) +
+        ", last reading epoch: " + String(existingReadings.back().epoch) + " Difference to now is: " +
+        String((time(NULL) - existingReadings.back().epoch) / 60) + " minutes");
 
     // print 5 last readings if they exist in format: "SGV - minutes ago, trend, "
     if (existingReadings.size() > 0) {
         String debugLog = "Received readings: ";
         int count = 0;
-        for (auto it = existingReadings.rbegin(); it != existingReadings.rend() && count < 5; ++it, ++count) {
-            debugLog +=
-                " " + String(it->sgv) + " -" + String(it->getSecondsAgo() / 60) + "m " + toString(it->trend) + ", ";
+        for (auto it = existingReadings.rbegin(); it != existingReadings.rend() && count < 5;
+             ++it, ++count) {
+            debugLog += " " + String(it->sgv) + " -" + String(it->getSecondsAgo() / 60) + "m " +
+                        toString(it->trend) + ", ";
         }
 
         debugLog += "\n";
@@ -262,21 +279,23 @@ std::list<GlucoseReading> BGSourceLibreLinkUp::getReadings(unsigned long long la
 
     if (lastCallAttemptEpoch >= readingFromConnection.epoch) {
 #ifdef DEBUG_BG_SOURCE
-        DEBUG_PRINTF("No readings needed, last reading epoch %llu is already in\n", lastCallAttemptEpoch);
+        DEBUG_PRINTF(
+            "No readings needed, last reading epoch %llu is already in\n", lastCallAttemptEpoch);
 #endif
         return std::list<GlucoseReading>();
     }
 
     if (lastReadingEpoch >= readingFromConnection.epoch - 60 * 5) {
 #ifdef DEBUG_BG_SOURCE
-        DEBUG_PRINTF("No historical data needed, last reading is %d seconds older then the current reading\n",
-                     readingFromConnection.epoch - lastReadingEpoch);
+        DEBUG_PRINTF(
+            "No historical data needed, last reading is %d seconds older then the current reading\n",
+            readingFromConnection.epoch - lastReadingEpoch);
 #endif
         return std::list<GlucoseReading>{readingFromConnection};
     }
 
-    String url = "https://" + libreEndpoints[SettingsManager.settings.librelinkup_region] + "/llu/connections/" +
-                 authTicket.patientId + "/graph";
+    String url = "https://" + libreEndpoints[SettingsManager.settings.librelinkup_region] +
+                 "/llu/connections/" + authTicket.patientId + "/graph";
 
 #ifdef DEBUG_BG_SOURCE
     DEBUG_PRINTF("Getting glucose from LibreLinkUp, url: %s\n", url.c_str());
@@ -294,7 +313,8 @@ std::list<GlucoseReading> BGSourceLibreLinkUp::getReadings(unsigned long long la
     auto responseCode = client->GET();
     if (responseCode != HTTP_CODE_OK) {
         DEBUG_PRINTF("Error getting glucose from LibreLinkUp %d\n", responseCode);
-        DisplayManager.showFatalError(String("Error getting connections from LibreLinkUp: ") + String(responseCode));
+        DisplayManager.showFatalError(
+            String("Error getting connections from LibreLinkUp: ") + String(responseCode));
     }
 
     String response = client->getString();
@@ -321,8 +341,9 @@ std::list<GlucoseReading> BGSourceLibreLinkUp::getReadings(unsigned long long la
     DeserializationError error = deserializeJson(doc, response, filterOption);
     // DeserializationError error = deserializeJson(doc, response);
     if (error) {
-        DEBUG_PRINTF("Error deserializing LibreLinkUp glucose response: %s\nFailed on string: %s\n", error.c_str(),
-                     response.c_str());
+        DEBUG_PRINTF(
+            "Error deserializing LibreLinkUp glucose response: %s\nFailed on string: %s\n",
+            error.c_str(), response.c_str());
         DisplayManager.showFatalError(String("Invalid LibreLinkUp glucose response: ") + error.c_str());
     }
 
@@ -344,15 +365,17 @@ std::list<GlucoseReading> BGSourceLibreLinkUp::getReadings(unsigned long long la
         String dateString = v["FactoryTimestamp"].as<String>();
         reading.epoch = libreFactoryTimestampToEpoch(dateString);
         if (reading.getSecondsAgo() < 0) {
-            DEBUG_PRINTF("Reading from the future: %s: %s: %lu\n", dateString.c_str(), reading.toString().c_str(),
-                         time(NULL));
+            DEBUG_PRINTF(
+                "Reading from the future: %s: %s: %lu\n", dateString.c_str(), reading.toString().c_str(),
+                time(NULL));
         }
 
         glucoseReadings.push_front(reading);
     }
     String debug_read_values = "Read values: ";
 
-    glucoseReadings.sort([](const GlucoseReading& a, const GlucoseReading& b) { return a.epoch < b.epoch; });
+    glucoseReadings.sort(
+        [](const GlucoseReading& a, const GlucoseReading& b) { return a.epoch < b.epoch; });
     for (auto& reading : glucoseReadings) {
         debug_read_values += String(reading.sgv) + ":(" + String(reading.getSecondsAgo()) + "), ";
     }

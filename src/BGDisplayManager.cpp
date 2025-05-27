@@ -23,13 +23,17 @@ void BGDisplayManager_::setup() {
     /// TODO: Add urgent values to settings
 
     glucoseIntervals.addInterval(1, SettingsManager.settings.bg_low_urgent_limit, BG_LEVEL::URGENT_LOW);
-    glucoseIntervals.addInterval(SettingsManager.settings.bg_low_urgent_limit + 1,
-                                 SettingsManager.settings.bg_low_warn_limit - 1, BG_LEVEL::WARNING_LOW);
-    glucoseIntervals.addInterval(SettingsManager.settings.bg_low_warn_limit,
-                                 SettingsManager.settings.bg_high_warn_limit, BG_LEVEL::NORMAL);
-    glucoseIntervals.addInterval(SettingsManager.settings.bg_high_warn_limit,
-                                 SettingsManager.settings.bg_high_urgent_limit - 1, BG_LEVEL::WARNING_HIGH);
-    glucoseIntervals.addInterval(SettingsManager.settings.bg_high_urgent_limit, 401, BG_LEVEL::URGENT_HIGH);
+    glucoseIntervals.addInterval(
+        SettingsManager.settings.bg_low_urgent_limit + 1, SettingsManager.settings.bg_low_warn_limit - 1,
+        BG_LEVEL::WARNING_LOW);
+    glucoseIntervals.addInterval(
+        SettingsManager.settings.bg_low_warn_limit, SettingsManager.settings.bg_high_warn_limit,
+        BG_LEVEL::NORMAL);
+    glucoseIntervals.addInterval(
+        SettingsManager.settings.bg_high_warn_limit, SettingsManager.settings.bg_high_urgent_limit - 1,
+        BG_LEVEL::WARNING_HIGH);
+    glucoseIntervals.addInterval(
+        SettingsManager.settings.bg_high_urgent_limit, 401, BG_LEVEL::URGENT_HIGH);
 
     faces.push_back(new BGDisplayFaceSimple());
     facesNames[0] = "Simple";
@@ -82,7 +86,8 @@ void BGDisplayManager_::maybeRrefreshScreen(bool force) {
         lastRefreshEpoch = currentEpoch;
     } else {
         // We refresh the display every minue trying to match the exact :00 second
-        if (force || timeInfo.tm_sec == 0 && currentEpoch > lastRefreshEpoch || currentEpoch - lastRefreshEpoch > 60) {
+        if (force || timeInfo.tm_sec == 0 && currentEpoch > lastRefreshEpoch ||
+            currentEpoch - lastRefreshEpoch > 60) {
             lastRefreshEpoch = currentEpoch;
             if (displayedReadings.size() > 0) {
                 bool dataIsOld = displayedReadings.back().getSecondsAgo() >
@@ -123,7 +128,8 @@ void BGDisplayManager_::showData(std::list<GlucoseReading> glucoseReadings) {
 // @param width - the width of the available space in pixels
 // @param yPosition - the y position of the lines
 // @param xPosition - the x position of the lines
-void BGDisplayManager_::drawTimerBlocks(GlucoseReading lastReading, int width, int xPosition, int yPosition) {
+void BGDisplayManager_::drawTimerBlocks(
+    GlucoseReading lastReading, int width, int xPosition, int yPosition) {
     const int MAX_BLOXCS = 5;  // maximum number of blocks to draw
     // minimal block size is 1 pixel, size between blocks is 1 pixel, so we get width, subtract spaces
     // between lines and divide by the maximum number of lines
@@ -147,8 +153,9 @@ void BGDisplayManager_::drawTimerBlocks(GlucoseReading lastReading, int width, i
         color = COLOR_DARK_ORANGE;  // warning data
     }
 #ifdef DEBUG_DISPLAY
-    DEBUG_PRINTF("Drawing %d blocks of size %d at position (%d, %d) with color %04X", blocksCount, blockSize, xPosition,
-                 yPosition, color);
+    DEBUG_PRINTF(
+        "Drawing %d blocks of size %d at position (%d, %d) with color %04X", blocksCount, blockSize,
+        xPosition, yPosition, color);
 #endif
 
     for (int i = 0; i < blocksCount; i++) {

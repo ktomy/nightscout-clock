@@ -6,7 +6,8 @@
 #include "enums.h"
 #include "globals.h"
 
-void BGDisplayFaceGraphAndBG::showReadings(const std::list<GlucoseReading>& readings, bool dataIsOld) const {
+void BGDisplayFaceGraphAndBG::showReadings(
+    const std::list<GlucoseReading>& readings, bool dataIsOld) const {
     GlucoseReading reading = readings.back();
     String printableReading = getPrintableReading(reading.sgv);
     uint8_t textWidth = DisplayManager.getTextWidth(printableReading.c_str(), 2);
@@ -17,8 +18,9 @@ void BGDisplayFaceGraphAndBG::showReadings(const std::list<GlucoseReading>& read
     auto lastReading = readings.back();
 
 #ifdef DEBUG_DISPLAY
-    DEBUG_PRINTF("For the value %d, printable is: %s, text width: %u, graph width: %u\n", reading.sgv,
-                 printableReading.c_str(), textWidth, graphWidth);
+    DEBUG_PRINTF(
+        "For the value %d, printable is: %s, text width: %u, graph width: %u\n", reading.sgv,
+        printableReading.c_str(), textWidth, graphWidth);
 #endif
 
     showGraph(0, graphWidth, minutesToShow, readings);

@@ -40,7 +40,8 @@ struct GlucoseIntervals {
     String toString() const {
         String ss = "ColorIntervals:\n";
         for (const GlucoseInterval& interval : intervals) {
-            ss += "  Low: " + String(interval.low_boundary) + ", High: " + String(interval.high_boundary) + ", Level: ";
+            ss += "  Low: " + String(interval.low_boundary) +
+                  ", High: " + String(interval.high_boundary) + ", Level: ";
             switch (interval.intarval_type) {
                 case BG_LEVEL::URGENT_HIGH:
                     ss += "URGENT_HIGH";

@@ -5,8 +5,9 @@
 #include "BGDisplayManager.h"
 #include "globals.h"
 
-void BGDisplayFaceTextBase::showReading(const GlucoseReading reading, int16_t x, int16_t y, TEXT_ALIGNMENT alignment,
-                                        FONT_TYPE font, bool isOld) const {
+void BGDisplayFaceTextBase::showReading(
+    const GlucoseReading reading, int16_t x, int16_t y, TEXT_ALIGNMENT alignment, FONT_TYPE font,
+    bool isOld) const {
     String readingToDisplay = getPrintableReading(reading.sgv);
     if (!isOld) {
         SetDisplayColorByBGValue(reading);

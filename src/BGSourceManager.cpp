@@ -35,16 +35,20 @@ void BGSourceManager_::setup(BG_SOURCE bgSourceType) {
             bgSource = new BGSourceMedtronic();
             break;
         default:
-            DEBUG_PRINTLN("BGSourceManager_::setup: Unknown BG_SOURCE: " + toString(bgSourceType) + " (" +
-                          String((int)bgSourceType) + ")");
-            DisplayManager.showFatalError("Unknown data source: " + toString(bgSourceType) + " (" +
-                                          String((int)bgSourceType) + ")");
+            DEBUG_PRINTLN(
+                "BGSourceManager_::setup: Unknown BG_SOURCE: " + toString(bgSourceType) + " (" +
+                String((int)bgSourceType) + ")");
+            DisplayManager.showFatalError(
+                "Unknown data source: " + toString(bgSourceType) + " (" + String((int)bgSourceType) +
+                ")");
     }
     bgSource->setup();
 }
 
 void BGSourceManager_::tick() { bgSource->tick(); }
 
-bool BGSourceManager_::hasNewData(unsigned long long epochToCompare) { return bgSource->hasNewData(epochToCompare); }
+bool BGSourceManager_::hasNewData(unsigned long long epochToCompare) {
+    return bgSource->hasNewData(epochToCompare);
+}
 
 std::list<GlucoseReading> BGSourceManager_::getGlucoseData() { return bgSource->getGlucoseData(); }

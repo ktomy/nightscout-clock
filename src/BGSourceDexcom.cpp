@@ -14,9 +14,9 @@ std::list<GlucoseReading> BGSourceDexcom::updateReadings(std::list<GlucoseReadin
     return updateReadings(dexcomServer, dexcomUsername, dexcomPassword, existingReadings);
 }
 
-std::list<GlucoseReading> BGSourceDexcom::updateReadings(DEXCOM_SERVER dexcomServer, String dexcomUsername,
-                                                         String dexcomPassword,
-                                                         std::list<GlucoseReading> existingReadings) {
+std::list<GlucoseReading> BGSourceDexcom::updateReadings(
+    DEXCOM_SERVER dexcomServer, String dexcomUsername, String dexcomPassword,
+    std::list<GlucoseReading> existingReadings) {
     // set last epoch to now - 3 hours (we don't want to get too many readings)
     unsigned long long lastReadingEpoch = time(NULL) - BG_BACKFILL_SECONDS;
     // get last epoch from existing readings if it is newer than default one
@@ -26,26 +26,30 @@ std::list<GlucoseReading> BGSourceDexcom::updateReadings(DEXCOM_SERVER dexcomSer
 
     int forMinutes = (time(NULL) - lastReadingEpoch) / 60;
     int readingsCount = forMinutes / 5 + 2;  // 2 is just for safety :)
-    DEBUG_PRINTLN("Updating Dexcom values since epoch: " + String(lastReadingEpoch) + " (-" + String(forMinutes) +
-                  "m), readings count: " + String(readingsCount));
+    DEBUG_PRINTLN(
+        "Updating Dexcom values since epoch: " + String(lastReadingEpoch) + " (-" + String(forMinutes) +
+        "m), readings count: " + String(readingsCount));
 
-    auto retrievedReadings = retrieveReadings(dexcomServer, dexcomUsername, dexcomPassword, forMinutes, readingsCount);
+    auto retrievedReadings =
+        retrieveReadings(dexcomServer, dexcomUsername, dexcomPassword, forMinutes, readingsCount);
 
 #ifdef DEBUG_BG_SOURCE
-    DEBUG_PRINTLN("Retrieved readings: " + String(retrievedReadings.size()) +
-                  ", last reading epoch: " + String(retrievedReadings.back().epoch) + " (-" +
-                  String((time(NULL) - retrievedReadings.back().epoch) / 60) + "m)" +
-                  " Difference between first reading and last reading in minutes: " +
-                  String((retrievedReadings.back().epoch - retrievedReadings.front().epoch) / 60));
+    DEBUG_PRINTLN(
+        "Retrieved readings: " + String(retrievedReadings.size()) +
+        ", last reading epoch: " + String(retrievedReadings.back().epoch) + " (-" +
+        String((time(NULL) - retrievedReadings.back().epoch) / 60) + "m)" +
+        " Difference between first reading and last reading in minutes: " +
+        String((retrievedReadings.back().epoch - retrievedReadings.front().epoch) / 60));
 #endif
 
     // remove readings from retrievedReadings which are already present in existingReadings
     // to eliminate duplicate readins
     retrievedReadings.remove_if([&existingReadings](const GlucoseReading& reading) {
-        return std::find_if(existingReadings.begin(), existingReadings.end(),
-                            [&reading](const GlucoseReading& existingReading) {
-                                return existingReading.epoch == reading.epoch;
-                            }) != existingReadings.end();
+        return std::find_if(
+                   existingReadings.begin(), existingReadings.end(),
+                   [&reading](const GlucoseReading& existingReading) {
+                       return existingReading.epoch == reading.epoch;
+                   }) != existingReadings.end();
     });
 
     if (retrievedReadings.size() == 0) {
@@ -60,16 +64,18 @@ std::list<GlucoseReading> BGSourceDexcom::updateReadings(DEXCOM_SERVER dexcomSer
     lastReadingEpoch = retrievedReadings.back().epoch;
 
 #ifdef DEBUG_BG_SOURCE
-    DEBUG_PRINTLN("Existing readings: " + String(existingReadings.size()) +
-                  ", last reading epoch: " + String(lastReadingEpoch) +
-                  " Difference to now is: " + String((time(NULL) - lastReadingEpoch) / 60) + " minutes");
+    DEBUG_PRINTLN(
+        "Existing readings: " + String(existingReadings.size()) +
+        ", last reading epoch: " + String(lastReadingEpoch) +
+        " Difference to now is: " + String((time(NULL) - lastReadingEpoch) / 60) + " minutes");
 #endif
 
     return existingReadings;
 }
 
-std::list<GlucoseReading> BGSourceDexcom::retrieveReadings(DEXCOM_SERVER dexcomServer, String dexcomUsername,
-                                                           String dexcomPassword, int forMinutes, int readingsCount) {
+std::list<GlucoseReading> BGSourceDexcom::retrieveReadings(
+    DEXCOM_SERVER dexcomServer, String dexcomUsername, String dexcomPassword, int forMinutes,
+    int readingsCount) {
     std::list<GlucoseReading> readings;
     if (accountId.length() == 0) {
         accountId = getAccountId(dexcomServer, dexcomUsername, dexcomPassword);
@@ -105,8 +111,9 @@ std::list<GlucoseReading> BGSourceDexcom::retrieveReadings(DEXCOM_SERVER dexcomS
     LCBUrl url;
     url.setUrl(readingsUrl);
 
-    client->begin(*wifiSecureClient, url.getHost(), url.getPort(), String("/") + url.getPath() + url.getAfterPath(),
-                  true);
+    client->begin(
+        *wifiSecureClient, url.getHost(), url.getPort(),
+        String("/") + url.getPath() + url.getAfterPath(), true);
     client->setFollowRedirects(HTTPC_FORCE_FOLLOW_REDIRECTS);
     client->addHeader("Accept", "application/json");
     client->addHeader("User-Agent", "Nightscout-clock");
@@ -123,8 +130,9 @@ std::list<GlucoseReading> BGSourceDexcom::retrieveReadings(DEXCOM_SERVER dexcomS
 #endif
 
         if (error) {
-            DEBUG_PRINTF("Error deserializing dexcom response: %s\nFailed on string: %s\n", error.c_str(),
-                         responseContent.c_str());
+            DEBUG_PRINTF(
+                "Error deserializing dexcom response: %s\nFailed on string: %s\n", error.c_str(),
+                responseContent.c_str());
             if (!firstConnectionSuccess) {
                 DisplayManager.showFatalError(String("Invalid Dexcom Share response: ") + error.c_str());
             }
@@ -155,12 +163,14 @@ std::list<GlucoseReading> BGSourceDexcom::retrieveReadings(DEXCOM_SERVER dexcomS
             firstConnectionSuccess = true;
 
             // Sort readings by epoch (no idea if they come sorted from the API)
-            readings.sort([](const GlucoseReading& a, const GlucoseReading& b) -> bool { return a.epoch < b.epoch; });
+            readings.sort([](const GlucoseReading& a, const GlucoseReading& b) -> bool {
+                return a.epoch < b.epoch;
+            });
 
             String debugLog = "Received readings: ";
             for (auto& reading : readings) {
-                debugLog += " " + String(reading.sgv) + " -" + String(reading.getSecondsAgo() / 60) + "m " +
-                            toString(reading.trend) + ", ";
+                debugLog += " " + String(reading.sgv) + " -" + String(reading.getSecondsAgo() / 60) +
+                            "m " + toString(reading.trend) + ", ";
             }
 
             debugLog += "\n";
@@ -178,7 +188,8 @@ std::list<GlucoseReading> BGSourceDexcom::retrieveReadings(DEXCOM_SERVER dexcomS
             auto errorResponseString = client->getString();
             if (errorResponseString.indexOf("Session") != -1) {
                 sessionId = "";
-                return retrieveReadings(dexcomServer, dexcomUsername, dexcomPassword, forMinutes, readingsCount);
+                return retrieveReadings(
+                    dexcomServer, dexcomUsername, dexcomPassword, forMinutes, readingsCount);
             }
         }
         if (!firstConnectionSuccess) {
@@ -194,7 +205,8 @@ std::list<GlucoseReading> BGSourceDexcom::retrieveReadings(DEXCOM_SERVER dexcomS
     return readings;
 }
 
-String BGSourceDexcom::getAccountId(DEXCOM_SERVER dexcomServer, String dexcomUsername, String dexcomPassword) {
+String BGSourceDexcom::getAccountId(
+    DEXCOM_SERVER dexcomServer, String dexcomUsername, String dexcomPassword) {
     String accountId = "";
     String getAccountIdUrl = "";
     if (dexcomServer == DEXCOM_SERVER::US) {
@@ -256,7 +268,8 @@ String BGSourceDexcom::getAccountId(DEXCOM_SERVER dexcomServer, String dexcomUse
     return "";
 }
 
-String BGSourceDexcom::getSessionId(DEXCOM_SERVER dexcomServer, String accountId, String dexcomPassword) {
+String BGSourceDexcom::getSessionId(
+    DEXCOM_SERVER dexcomServer, String accountId, String dexcomPassword) {
     String sessionId = "";
     String getSessionIdUrl = "";
     if (dexcomServer == DEXCOM_SERVER::US) {

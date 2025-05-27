@@ -64,13 +64,15 @@ struct ImprovCommand {
 ImprovCommand parse_improv_data(const std::vector<uint8_t>& data, bool check_checksum = true);
 ImprovCommand parse_improv_data(const uint8_t* data, size_t length, bool check_checksum = true);
 
-bool parse_improv_serial_byte(size_t position, uint8_t byte, const uint8_t* buffer,
-                              std::function<bool(ImprovCommand)>&& callback, std::function<void(Error)>&& on_error);
+bool parse_improv_serial_byte(
+    size_t position, uint8_t byte, const uint8_t* buffer, std::function<bool(ImprovCommand)>&& callback,
+    std::function<void(Error)>&& on_error);
 
-std::vector<uint8_t> build_rpc_response(Command command, const std::vector<std::string>& datum,
-                                        bool add_checksum = true);
+std::vector<uint8_t> build_rpc_response(
+    Command command, const std::vector<std::string>& datum, bool add_checksum = true);
 #ifdef ARDUINO
-std::vector<uint8_t> build_rpc_response(Command command, const std::vector<String>& datum, bool add_checksum = true);
+std::vector<uint8_t> build_rpc_response(
+    Command command, const std::vector<String>& datum, bool add_checksum = true);
 #endif  // ARDUINO
 
 }  // namespace improv

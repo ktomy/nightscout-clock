@@ -100,12 +100,13 @@ IPAddress ServerManager_::startWifi() {
 
     IPAddress ip;
 
-    bool connected =
-        tryConnectToWiFi("wpa_psk", SettingsManager.settings.ssid, "", SettingsManager.settings.wifi_password);
+    bool connected = tryConnectToWiFi(
+        "wpa_psk", SettingsManager.settings.ssid, "", SettingsManager.settings.wifi_password);
     if (!connected && SettingsManager.settings.additional_wifi_enable) {
         connected = tryConnectToWiFi(
             SettingsManager.settings.additional_wifi_type, SettingsManager.settings.additional_wifi_ssid,
-            SettingsManager.settings.additional_wifi_username, SettingsManager.settings.additional_wifi_password);
+            SettingsManager.settings.additional_wifi_username,
+            SettingsManager.settings.additional_wifi_password);
     }
 
     if (connected) {
@@ -149,8 +150,8 @@ void ServerManager_::setupWebServer(IPAddress ip) {
     DefaultHeaders::Instance().addHeader("Access-Control-Allow-Methods", "GET, POST, PUT");
     DefaultHeaders::Instance().addHeader("Access-Control-Allow-Headers", "Content-Type");
 
-    ws->addHandler(
-        new AsyncCallbackJsonWebHandler("/api/save", [this](AsyncWebServerRequest* request, JsonVariant& json) {
+    ws->addHandler(new AsyncCallbackJsonWebHandler(
+        "/api/save", [this](AsyncWebServerRequest* request, JsonVariant& json) {
             if (not json.is<JsonObject>()) {
                 request->send(200, "application/json", "{\"status\": \"json parsing error\"}");
                 return;
@@ -163,8 +164,8 @@ void ServerManager_::setupWebServer(IPAddress ip) {
             }
         }));
 
-    ws->addHandler(
-        new AsyncCallbackJsonWebHandler("/api/alarm", [this](AsyncWebServerRequest* request, JsonVariant& json) {
+    ws->addHandler(new AsyncCallbackJsonWebHandler(
+        "/api/alarm", [this](AsyncWebServerRequest* request, JsonVariant& json) {
             if (not json.is<JsonObject>()) {
                 request->send(400, "application/json", "{\"status\": \"json parsing error\"}");
                 return;
@@ -196,8 +197,8 @@ void ServerManager_::setupWebServer(IPAddress ip) {
         ESP.restart();
     });
 
-    ws->addHandler(
-        new AsyncCallbackJsonWebHandler("/api/displaypower", [this](AsyncWebServerRequest* request, JsonVariant& json) {
+    ws->addHandler(new AsyncCallbackJsonWebHandler(
+        "/api/displaypower", [this](AsyncWebServerRequest* request, JsonVariant& json) {
             if (not json.is<JsonObject>()) {
                 request->send(400, "application/json", "{\"status\": \"json parsing error\"}");
                 return;
@@ -273,11 +274,13 @@ bool ServerManager_::initTimeIfNeeded() {
 
         timeinfo = getTimezonedTime();
 
-        DEBUG_PRINTF("Timezone is: %s, local time is: %02d.%02d.%d %02d:%02d:%02d\n",
-                     SettingsManager.settings.tz_libc_value.c_str(), timeinfo.tm_mday, timeinfo.tm_mon + 1,
-                     timeinfo.tm_year + 1900, timeinfo.tm_hour, timeinfo.tm_min, timeinfo.tm_sec);
-        Serial.printf("Local time is: %02d.%02d.%d %02d:%02d:%02d\n", timeinfo.tm_mday, timeinfo.tm_mon + 1,
-                      timeinfo.tm_year + 1900, timeinfo.tm_hour, timeinfo.tm_min, timeinfo.tm_sec);
+        DEBUG_PRINTF(
+            "Timezone is: %s, local time is: %02d.%02d.%d %02d:%02d:%02d\n",
+            SettingsManager.settings.tz_libc_value.c_str(), timeinfo.tm_mday, timeinfo.tm_mon + 1,
+            timeinfo.tm_year + 1900, timeinfo.tm_hour, timeinfo.tm_min, timeinfo.tm_sec);
+        Serial.printf(
+            "Local time is: %02d.%02d.%d %02d:%02d:%02d\n", timeinfo.tm_mday, timeinfo.tm_mon + 1,
+            timeinfo.tm_year + 1900, timeinfo.tm_hour, timeinfo.tm_min, timeinfo.tm_sec);
     }
 
     return true;

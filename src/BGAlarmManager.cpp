@@ -127,7 +127,8 @@ bool isInSilentInterval(String silenceInterval) {
 void BGAlarmManager_::tick() {
     auto glucoseReading = bgDisplayManager.getLastDisplayedGlucoseReading();
     if (glucoseReading == nullptr ||
-        glucoseReading->getSecondsAgo() > SettingsManager.settings.bg_data_too_old_threshold_minutes * 60) {
+        glucoseReading->getSecondsAgo() >
+            SettingsManager.settings.bg_data_too_old_threshold_minutes * 60) {
         activeAlarm = NULL;
 
 #ifdef DEBUG_ALARMS
@@ -184,9 +185,10 @@ void BGAlarmManager_::tick() {
 #ifdef DEBUG_ALARMS
 
                         if (debounceTicks8 % 5000 == 0) {
-                            DEBUG_PRINTLN("Alarms: snoozed, too early to sound: " +
-                                          String(ServerManager.getUtcEpoch() - activeAlarm->lastAlarmTime) +
-                                          ", snooze interval: " + String(activeAlarm->snoozeTimeMinutes));
+                            DEBUG_PRINTLN(
+                                "Alarms: snoozed, too early to sound: " +
+                                String(ServerManager.getUtcEpoch() - activeAlarm->lastAlarmTime) +
+                                ", snooze interval: " + String(activeAlarm->snoozeTimeMinutes));
                         }
                         debounceTicks8++;
                         if (debounceTicks8 > 5000) {
@@ -195,7 +197,8 @@ void BGAlarmManager_::tick() {
 #endif
                     }
                 } else {
-                    if (ServerManager.getUtcEpoch() - activeAlarm->lastAlarmTime > ALARM_REPEAT_INTERVAL_SECONDS) {
+                    if (ServerManager.getUtcEpoch() - activeAlarm->lastAlarmTime >
+                        ALARM_REPEAT_INTERVAL_SECONDS) {
                         activeAlarm->lastAlarmTime = ServerManager.getUtcEpoch();
                         PeripheryManager.playRTTTLString(alarmData.alarmSound);
                         DEBUG_PRINTLN("Playing alarm sound (alarm already active, not snoozed)");
@@ -203,8 +206,9 @@ void BGAlarmManager_::tick() {
 #ifdef DEBUG_ALARMS
 
                         if (debounceTicks7 % 5000 == 0) {
-                            DEBUG_PRINTLN("Alarms: not snoozed, too early to sound: " +
-                                          String(ServerManager.getUtcEpoch() - activeAlarm->lastAlarmTime));
+                            DEBUG_PRINTLN(
+                                "Alarms: not snoozed, too early to sound: " +
+                                String(ServerManager.getUtcEpoch() - activeAlarm->lastAlarmTime));
                         }
                         debounceTicks7++;
                         if (debounceTicks7 > 5000) {

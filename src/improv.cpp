@@ -48,8 +48,9 @@ ImprovCommand parse_improv_data(const uint8_t* data, size_t length, bool check_c
     return improv_command;
 }
 
-bool parse_improv_serial_byte(size_t position, uint8_t byte, const uint8_t* buffer,
-                              std::function<bool(ImprovCommand)>&& callback, std::function<void(Error)>&& on_error) {
+bool parse_improv_serial_byte(
+    size_t position, uint8_t byte, const uint8_t* buffer, std::function<bool(ImprovCommand)>&& callback,
+    std::function<void(Error)>&& on_error) {
     if (position == 0)
         return byte == 'I';
     if (position == 1)
@@ -94,7 +95,8 @@ bool parse_improv_serial_byte(size_t position, uint8_t byte, const uint8_t* buff
     return false;
 }
 
-std::vector<uint8_t> build_rpc_response(Command command, const std::vector<std::string>& datum, bool add_checksum) {
+std::vector<uint8_t> build_rpc_response(
+    Command command, const std::vector<std::string>& datum, bool add_checksum) {
     std::vector<uint8_t> out;
     uint32_t length = 0;
     out.push_back(command);
@@ -118,7 +120,8 @@ std::vector<uint8_t> build_rpc_response(Command command, const std::vector<std::
 }
 
 #ifdef ARDUINO
-std::vector<uint8_t> build_rpc_response(Command command, const std::vector<String>& datum, bool add_checksum) {
+std::vector<uint8_t> build_rpc_response(
+    Command command, const std::vector<String>& datum, bool add_checksum) {
     std::vector<uint8_t> out;
     uint32_t length = 0;
     out.push_back(command);
