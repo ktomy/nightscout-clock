@@ -147,7 +147,15 @@ bool SettingsManager_::loadSettingsFromFile() {
     // Custom No Data Timer
     settings.custom_nodatatimer_enable = (*doc)["custom_nodatatimer_enable"].as<bool>();
     settings.custom_nodatatimer = (*doc)["custom_nodatatimer"].as<int>();
-    BG_DATA_OLD_OFFSET_MINUTES = settings.custom_nodatatimer;  // Update global variable
+    if (settings.custom_nodatatimer_enable == true && settings.custom_nodatatimer > 5 &&
+        settings.custom_nodatatimer <= 60) {
+        settings.bg_data_too_old_threshold_minutes = settings.custom_nodatatimer;
+    } else {
+        settings.bg_data_too_old_threshold_minutes = 20;  // default value
+        if (settings.custom_nodatatimer_enable == true) {
+            DEBUG_PRINTLN("Custom No Data Timer value is invalid, using default value of 20 minutes.");
+        }
+    }
     
     delete doc;
 

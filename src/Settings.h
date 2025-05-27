@@ -46,4 +46,5 @@ class Settings {
     String custom_hostname;
     bool custom_nodatatimer_enable;
     int custom_nodatatimer;
+    int bg_data_too_old_threshold_minutes = 20;
 };

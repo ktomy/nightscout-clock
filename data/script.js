@@ -19,7 +19,7 @@
         time_format: /^(12|24)$/,
         email_format: /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/,
         not_empty: /^.{1,}$/,
-        custom_nodatatimer: /^(?:[6-9]|[1-5][0-9]|60)$/,
+        custom_nodatatimer: /^(?:[6-9]|[1-5][0-9]|60)?$/,
 
     };
 
