@@ -88,7 +88,7 @@ class BGDisplayManager_ {
 
     void setFace(int id);
 
-    static void drawTimerBlocks(int elapsedMinutes, int maxBlocks, bool dataIsOld);
+    static void drawTimerBlocks(GlucoseReading lastReading, int width, int xPosition, int yPosition);
 
   private:
     unsigned long long lastRefreshEpoch;

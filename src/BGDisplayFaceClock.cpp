@@ -9,6 +9,14 @@ void BGDisplayFaceClock::showReadings(const std::list<GlucoseReading> &readings,
     showClock();
 
     showReading(readings.back(), 33, 6, TEXT_ALIGNMENT::RIGHT, FONT_TYPE::MEDIUM, dataIsOld);
+
+    switch (SettingsManager.settings.time_format) {
+        case TIME_FORMAT::HOURS_12:
+            BGDisplayManager_::drawTimerBlocks(readings.back(), MATRIX_WIDTH - 17, 18, 7);
+            break;
+        default:
+            BGDisplayManager_::drawTimerBlocks(readings.back(), MATRIX_WIDTH, 0, 7);
+            break;}
 }
 
 void BGDisplayFaceClock::showClock() const {

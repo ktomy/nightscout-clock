@@ -114,21 +114,53 @@ void BGDisplayManager_::showData(std::list<GlucoseReading> glucoseReadings) {
     displayedReadings = glucoseReadings;
 }
 
+// We draw the horizontal blocks equal to the number of minutes since last reading
+// maximum numer of lines is 5
+// Depending on the face we draw the lines in different places having different sizes
+// The idea is to fit that maximum of 5 lines in the available space
+// We can draw lines in 3 colors:
+// - dark green if reading is less than 6 minutes old
+// - dark orange if reading is between 6 and old_data_threshold_minutes threshold
+// - gray if reading is older than old_data_threshold_minutes threshold
+// @param lastReading - the last reading to draw the lines for
+// @param width - the width of the available space in pixels
+// @param yPosition - the y position of the lines
+// @param xPosition - the x position of the lines
+void BGDisplayManager_::drawTimerBlocks(GlucoseReading lastReading, int width, int xPosition, int yPosition) {
+    const int MAX_BLOXCS = 5; // maximum number of blocks to draw
+    // minimal block size is 1 pixel, size between blocks is 1 pixel, so we get width, subtract spaces
+    // between lines and divide by the maximum number of lines
+    int blockSize = blockSize = (width - 4) / MAX_BLOXCS;
+    if (blockSize < 1) {
+        DEBUG_PRINTLN("Block size is less than 1, not drawing timer blocks");
+        return;
+    }
+    int blocksCount = lastReading.getSecondsAgo() / 60;
+    if (blocksCount > MAX_BLOXCS) {
+        blocksCount = MAX_BLOXCS; // we draw maximum 5 lines
+    }
 
-void BGDisplayManager_::drawTimerBlocks(int elapsedMinutes, int maxBlocks, bool dataIsOld) {
-    const int blockSpacing = 1; // Space between blocks
-    const int totalSpacing = blockSpacing * (maxBlocks - 1);
-    const int blockWidth = (MATRIX_WIDTH - totalSpacing) / maxBlocks; // Dynamically calculate block width
+    //Now let's alter xPosition to center the blocks in the available space
+    xPosition += (width - (blockSize * MAX_BLOXCS + (MAX_BLOXCS - 1))) / 2; 
 
-    int blockCount = elapsedMinutes > maxBlocks ? maxBlocks : elapsedMinutes;
-    int startX = 1; // Start 1 pixel over to the right
+    uint16_t color = COLOR_DARK_GREEN;
+    if (lastReading.getSecondsAgo() >= 60 * SettingsManager.settings.bg_data_too_old_threshold_minutes) {
+        color = COLOR_GRAY; // old data
+    } else if (lastReading.getSecondsAgo() >= (MAX_BLOXCS + 1) * 60) {
+        color = COLOR_DARK_ORANGE; // warning data
+    }
+#ifdef DEBUG_DISPLAY
+    DEBUG_PRINTF("Drawing %d blocks of size %d at position (%d, %d) with color %04X", blocksCount, blockSize, xPosition, yPosition, color);
+#endif
 
-    for (int i = 0; i < blockCount; ++i) {
-        int blockStartX = startX + i * (blockWidth + blockSpacing); // Calculate starting position for each block
-        for (int x = blockStartX; x < blockStartX + blockWidth; ++x) {
-            DisplayManager.drawPixel(x, MATRIX_HEIGHT - 1, dataIsOld ? COLOR_RED : COLOR_GREEN);
+    for (int i = 0; i < blocksCount; i++) {
+        int x = xPosition + i * (blockSize + 1); // +1 for the space between blocks
+        for (int j = 0; j < blockSize; j++) {
+            DisplayManager.drawPixel(x + j, yPosition, color, false);
         }
     }
+
+
 }
 
 GlucoseReading *BGDisplayManager_::getLastDisplayedGlucoseReading() {

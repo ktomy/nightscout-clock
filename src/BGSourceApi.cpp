@@ -78,6 +78,11 @@ void BGSourceApi::HandleEntriesPost(AsyncWebServerRequest *request, JsonVariant 
     hasNewDataFlag = true;
 
     request->send(200, "application/json", "{\"status\": \"ok\"}");
+    
+    // Sort readings by epoch
+    glucoseReadings.sort([](const GlucoseReading &a, const GlucoseReading &b) {
+        return a.epoch < b.epoch;
+    });
 }
 
 std::list<GlucoseReading> BGSourceApi::updateReadings(std::list<GlucoseReading> existingReadings) {
