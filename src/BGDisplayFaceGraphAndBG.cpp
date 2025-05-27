@@ -30,7 +30,6 @@ void BGDisplayFaceGraphAndBG::showReadings(const std::list<GlucoseReading> &read
     // Call timer block function
     BGDisplayManager_::drawTimerBlocks(elapsedMinutes, 5, dataIsOld);
 
-    DisplayManager.update();
 }
 
 void BGDisplayFaceGraphAndBG::showTrendVerticalLine(int x, BG_TREND trend) const {

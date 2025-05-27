@@ -14,6 +14,5 @@ void BGDisplayFaceGraph::showReadings(const std::list<GlucoseReading> &readings,
     // Call timer block function
     BGDisplayManager_::drawTimerBlocks(elapsedMinutes, 5, dataIsOld);
 
-    DisplayManager.update();
     
 }

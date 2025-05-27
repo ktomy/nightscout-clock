@@ -157,7 +157,6 @@ void DisplayManager_::printText(int16_t x, int16_t y, const char *text, TEXT_ALI
 void DisplayManager_::drawBitmap(int16_t x, int16_t y, const uint8_t bitmap[], int16_t w, int16_t h, uint16_t color) {
     matrix->setCursor(x, y);
     matrix->drawBitmap(x, y, bitmap, w, h, color);
-    matrix->show();
 }
 
 void DisplayManager_::scrollColorfulText(String message) {

@@ -5,7 +5,6 @@
 
 void BGDisplayFaceClock::showReadings(const std::list<GlucoseReading> &readings, bool dataIsOld) const {
 
-    DisplayManager.clearMatrix();
 
     showClock();
 

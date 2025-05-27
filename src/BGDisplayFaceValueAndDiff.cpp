@@ -4,8 +4,6 @@
 
 void BGDisplayFaceValueAndDiff::showReadings(const std::list<GlucoseReading> &readings, bool dataIsOld) const {
 
-    DisplayManager.clearMatrix();
-
     auto lastReading = readings.back();
 
     // treating special casse where the value representation is too wide, so we move it one pixel to the right
@@ -34,7 +32,6 @@ void BGDisplayFaceValueAndDiff::showReadings(const std::list<GlucoseReading> &re
     // Call timer block function
     BGDisplayManager_::drawTimerBlocks(elapsedMinutes, 5, dataIsOld);
 
-    DisplayManager.update();
 }
 
 String BGDisplayFaceValueAndDiff::getDiff(const std::list<GlucoseReading> &readings) const {

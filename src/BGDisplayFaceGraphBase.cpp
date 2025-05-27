@@ -44,7 +44,6 @@ int getNormalIntervalYPosition(int value, GlucoseInterval interval) {
 
 void BGDisplayFaceGraphBase::showGraph(uint8_t x_position, uint8_t length, uint16_t forMinutes,
                                        const std::list<GlucoseReading> &readings) const {
-    DisplayManager.clearMatrixPart(x_position, 0, length, 8);
     auto pixelSizeSeconds = (forMinutes * 60) / length;
 
     auto intervals = bgDisplayManager.getGlucoseIntervals();
@@ -124,8 +123,6 @@ void BGDisplayFaceGraphBase::showGraph(uint8_t x_position, uint8_t length, uint1
 
         DisplayManager.drawPixel(x_position + length - 1 - i, y, color);
     }
-
-    DisplayManager.update();
 
 #ifdef DEBUG_DISPLAY
     DEBUG_PRINTLN(pixels);

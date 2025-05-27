@@ -4,8 +4,6 @@
 
 void BGDisplayFaceSimple::showReadings(const std::list<GlucoseReading> &readings, bool dataIsOld) const {
 
-    DisplayManager.clearMatrix();
-
     showReading(readings.back(), 0, 6, TEXT_ALIGNMENT::CENTER, FONT_TYPE::MEDIUM, dataIsOld);
 
     // show arrow in the right part of the screen
@@ -18,7 +16,5 @@ void BGDisplayFaceSimple::showReadings(const std::list<GlucoseReading> &readings
 
     // Call timer block function
     BGDisplayManager_::drawTimerBlocks(elapsedMinutes, 5, dataIsOld);
-
-    DisplayManager.update();
     
 }
