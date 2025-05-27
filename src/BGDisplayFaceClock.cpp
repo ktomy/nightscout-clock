@@ -1,11 +1,10 @@
 #include "BGDisplayFaceClock.h"
+
 #include "BGDisplayManager.h"
 #include "ServerManager.h"
 #include "globals.h"
 
-void BGDisplayFaceClock::showReadings(const std::list<GlucoseReading> &readings, bool dataIsOld) const {
-
-
+void BGDisplayFaceClock::showReadings(const std::list<GlucoseReading>& readings, bool dataIsOld) const {
     showClock();
 
     showReading(readings.back(), 33, 6, TEXT_ALIGNMENT::RIGHT, FONT_TYPE::MEDIUM, dataIsOld);
@@ -16,7 +15,8 @@ void BGDisplayFaceClock::showReadings(const std::list<GlucoseReading> &readings,
             break;
         default:
             BGDisplayManager_::drawTimerBlocks(readings.back(), MATRIX_WIDTH, 0, 7);
-            break;}
+            break;
+    }
 }
 
 void BGDisplayFaceClock::showClock() const {

@@ -1,15 +1,16 @@
 #include "improv_consume.h"
+
 #include <WiFi.h>
+
 #include "DisplayManager.h"
-#include "SettingsManager.h"
 #include "ServerManager.h"
+#include "SettingsManager.h"
 #include "globals.h"
 
 uint8_t x_buffer[16];
 uint8_t x_position = 0;
 
 void set_state(improv::State state) {
-
     std::vector<uint8_t> data = {'I', 'M', 'P', 'R', 'O', 'V'};
     data.resize(11);
     data[6] = improv::IMPROV_SERIAL_VERSION;
@@ -25,7 +26,7 @@ void set_state(improv::State state) {
     Serial.write(data.data(), data.size());
 }
 
-void send_response(std::vector<uint8_t> &response) {
+void send_response(std::vector<uint8_t>& response) {
     std::vector<uint8_t> data = {'I', 'M', 'P', 'R', 'O', 'V'};
     data.resize(9);
     data[6] = improv::IMPROV_SERIAL_VERSION;
@@ -60,7 +61,6 @@ void set_error(improv::Error error) {
 void onErrorCallback(improv::Error err) { DisplayManager.showFatalError("ImprovWifi error: " + String(err)); }
 
 void getAvailableWifiNetworks() {
-
     WiFi.mode(WIFI_STA);
     WiFi.disconnect();
     int networkNum = WiFi.scanNetworks();
@@ -73,7 +73,8 @@ void getAvailableWifiNetworks() {
         delay(1);
     }
     // final response
-    std::vector<uint8_t> data = improv::build_rpc_response(improv::GET_WIFI_NETWORKS, std::vector<std::string>{}, false);
+    std::vector<uint8_t> data =
+        improv::build_rpc_response(improv::GET_WIFI_NETWORKS, std::vector<std::string>{}, false);
     send_response(data);
 }
 
@@ -84,7 +85,6 @@ std::vector<std::string> getLocalUrl() {
 }
 
 bool onCommandCallback(improv::ImprovCommand cmd) {
-
     switch (cmd.command) {
         case improv::Command::GET_CURRENT_STATE: {
             if ((WiFi.status() == WL_CONNECTED && !ServerManager.isInAPMode)) {
@@ -115,7 +115,6 @@ bool onCommandCallback(improv::ImprovCommand cmd) {
             ServerManager.setup();
 
             if (!ServerManager.isInAPMode) {
-
                 set_state(improv::STATE_PROVISIONED);
                 std::vector<uint8_t> data = improv::build_rpc_response(improv::WIFI_SETTINGS, getLocalUrl(), false);
                 send_response(data);

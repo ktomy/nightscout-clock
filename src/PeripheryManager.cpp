@@ -1,14 +1,15 @@
-#include <PeripheryManager.h>
-#include "Adafruit_SHT31.h"
-#include "globals.h"
-#include "DisplayManager.h"
 #include <ArduinoJson.h>
-#include <LittleFS.h>
-#include <LightDependentResistor.h>
-#include "SettingsManager.h"
-#include <MelodyPlayer/melody_player.h>
-#include <MelodyPlayer/melody_factory.h>
 #include <BGAlarmManager.h>
+#include <LightDependentResistor.h>
+#include <LittleFS.h>
+#include <MelodyPlayer/melody_factory.h>
+#include <MelodyPlayer/melody_player.h>
+#include <PeripheryManager.h>
+
+#include "Adafruit_SHT31.h"
+#include "DisplayManager.h"
+#include "SettingsManager.h"
+#include "globals.h"
 
 // Pinouts für das ULANZI-Environment
 #define BATTERY_PIN 34
@@ -49,13 +50,13 @@ float brightnessPercent = 0.0;
 int lastBrightness = 0;
 
 // The getter for the instantiated singleton instance
-PeripheryManager_ &PeripheryManager_::getInstance() {
+PeripheryManager_& PeripheryManager_::getInstance() {
     static PeripheryManager_ instance;
     return instance;
 }
 
 // Initialize the global shared instance
-PeripheryManager_ &PeripheryManager = PeripheryManager.getInstance();
+PeripheryManager_& PeripheryManager = PeripheryManager.getInstance();
 
 void left_button_pressed() {
     DEBUG_PRINTLN(F("Left button clicked"));
@@ -118,7 +119,6 @@ void PeripheryManager_::setup() {
 }
 
 void PeripheryManager_::tick() {
-
     button_select.read();
     button_left.read();
     button_right.read();
@@ -157,8 +157,8 @@ void PeripheryManager_::tick() {
     }
 }
 
-const char *PeripheryManager_::readUptime() {
-    static char uptime[25]; // Make the array static to keep it from being destroyed when the function returns
+const char* PeripheryManager_::readUptime() {
+    static char uptime[25];  // Make the array static to keep it from being destroyed when the function returns
     unsigned long currentTime = millis();
     unsigned long elapsedTime = currentTime - startTime;
     unsigned long uptimeSeconds = elapsedTime / 1000;

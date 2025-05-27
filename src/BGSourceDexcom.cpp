@@ -1,8 +1,9 @@
+#include "BGSourceDexcom.h"
+
 #include <ArduinoJson.h>
 #include <LCBUrl.h>
 #include <StreamUtils.h>
 
-#include "BGSourceDexcom.h"
 #include "SettingsManager.h"
 
 std::list<GlucoseReading> BGSourceDexcom::updateReadings(std::list<GlucoseReading> existingReadings) {
@@ -13,7 +14,8 @@ std::list<GlucoseReading> BGSourceDexcom::updateReadings(std::list<GlucoseReadin
     return updateReadings(dexcomServer, dexcomUsername, dexcomPassword, existingReadings);
 }
 
-std::list<GlucoseReading> BGSourceDexcom::updateReadings(DEXCOM_SERVER dexcomServer, String dexcomUsername, String dexcomPassword,
+std::list<GlucoseReading> BGSourceDexcom::updateReadings(DEXCOM_SERVER dexcomServer, String dexcomUsername,
+                                                         String dexcomPassword,
                                                          std::list<GlucoseReading> existingReadings) {
     // set last epoch to now - 3 hours (we don't want to get too many readings)
     unsigned long long lastReadingEpoch = time(NULL) - BG_BACKFILL_SECONDS;
@@ -23,25 +25,27 @@ std::list<GlucoseReading> BGSourceDexcom::updateReadings(DEXCOM_SERVER dexcomSer
     }
 
     int forMinutes = (time(NULL) - lastReadingEpoch) / 60;
-    int readingsCount = forMinutes / 5 + 2; // 2 is just for safety :)
+    int readingsCount = forMinutes / 5 + 2;  // 2 is just for safety :)
     DEBUG_PRINTLN("Updating Dexcom values since epoch: " + String(lastReadingEpoch) + " (-" + String(forMinutes) +
                   "m), readings count: " + String(readingsCount));
 
     auto retrievedReadings = retrieveReadings(dexcomServer, dexcomUsername, dexcomPassword, forMinutes, readingsCount);
 
 #ifdef DEBUG_BG_SOURCE
-    DEBUG_PRINTLN("Retrieved readings: " + String(retrievedReadings.size()) + ", last reading epoch: " +
-                  String(retrievedReadings.back().epoch) + " (-" + String((time(NULL) - retrievedReadings.back().epoch) / 60) +
-                  "m)" + " Difference between first reading and last reading in minutes: " +
+    DEBUG_PRINTLN("Retrieved readings: " + String(retrievedReadings.size()) +
+                  ", last reading epoch: " + String(retrievedReadings.back().epoch) + " (-" +
+                  String((time(NULL) - retrievedReadings.back().epoch) / 60) + "m)" +
+                  " Difference between first reading and last reading in minutes: " +
                   String((retrievedReadings.back().epoch - retrievedReadings.front().epoch) / 60));
 #endif
 
     // remove readings from retrievedReadings which are already present in existingReadings
     // to eliminate duplicate readins
-    retrievedReadings.remove_if([&existingReadings](const GlucoseReading &reading) {
-        return std::find_if(existingReadings.begin(), existingReadings.end(), [&reading](const GlucoseReading &existingReading) {
-                   return existingReading.epoch == reading.epoch;
-               }) != existingReadings.end();
+    retrievedReadings.remove_if([&existingReadings](const GlucoseReading& reading) {
+        return std::find_if(existingReadings.begin(), existingReadings.end(),
+                            [&reading](const GlucoseReading& existingReading) {
+                                return existingReading.epoch == reading.epoch;
+                            }) != existingReadings.end();
     });
 
     if (retrievedReadings.size() == 0) {
@@ -56,7 +60,8 @@ std::list<GlucoseReading> BGSourceDexcom::updateReadings(DEXCOM_SERVER dexcomSer
     lastReadingEpoch = retrievedReadings.back().epoch;
 
 #ifdef DEBUG_BG_SOURCE
-    DEBUG_PRINTLN("Existing readings: " + String(existingReadings.size()) + ", last reading epoch: " + String(lastReadingEpoch) +
+    DEBUG_PRINTLN("Existing readings: " + String(existingReadings.size()) +
+                  ", last reading epoch: " + String(lastReadingEpoch) +
                   " Difference to now is: " + String((time(NULL) - lastReadingEpoch) / 60) + " minutes");
 #endif
 
@@ -100,7 +105,8 @@ std::list<GlucoseReading> BGSourceDexcom::retrieveReadings(DEXCOM_SERVER dexcomS
     LCBUrl url;
     url.setUrl(readingsUrl);
 
-    client->begin(*wifiSecureClient, url.getHost(), url.getPort(), String("/") + url.getPath() + url.getAfterPath(), true);
+    client->begin(*wifiSecureClient, url.getHost(), url.getPort(), String("/") + url.getPath() + url.getAfterPath(),
+                  true);
     client->setFollowRedirects(HTTPC_FORCE_FOLLOW_REDIRECTS);
     client->addHeader("Accept", "application/json");
     client->addHeader("User-Agent", "Nightscout-clock");
@@ -149,10 +155,10 @@ std::list<GlucoseReading> BGSourceDexcom::retrieveReadings(DEXCOM_SERVER dexcomS
             firstConnectionSuccess = true;
 
             // Sort readings by epoch (no idea if they come sorted from the API)
-            readings.sort([](const GlucoseReading &a, const GlucoseReading &b) -> bool { return a.epoch < b.epoch; });
+            readings.sort([](const GlucoseReading& a, const GlucoseReading& b) -> bool { return a.epoch < b.epoch; });
 
             String debugLog = "Received readings: ";
-            for (auto &reading : readings) {
+            for (auto& reading : readings) {
                 debugLog += " " + String(reading.sgv) + " -" + String(reading.getSecondsAgo() / 60) + "m " +
                             toString(reading.trend) + ", ";
             }
@@ -165,7 +171,7 @@ std::list<GlucoseReading> BGSourceDexcom::retrieveReadings(DEXCOM_SERVER dexcomS
 
         doc.clear();
 
-        ServerManager.failedAttempts = 0; // Reset failed attempts counter
+        ServerManager.failedAttempts = 0;  // Reset failed attempts counter
     } else {
         DEBUG_PRINTF("Error getting readings %d\n", responseCode);
         if (responseCode == HTTP_CODE_INTERNAL_SERVER_ERROR) {

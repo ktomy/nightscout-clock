@@ -1,12 +1,13 @@
 #ifndef BGSOURCENIGHTSCOUT_H
 #define BGSOURCENIGHTSCOUT_H
 
-#include "BGSource.h"
 #include <LCBUrl.h>
 
+#include "BGSource.h"
+
 class BGSourceNightscout : public BGSource {
-  public:
-  private:
+public:
+private:
     std::list<GlucoseReading> updateReadings(String baseUrl, String apiKey, std::list<GlucoseReading> existingReadings);
     std::list<GlucoseReading> retrieveReadings(String baseUrl, String apiKey, unsigned long long lastReadingEpoch,
                                                unsigned long long readingToEpoch, int numberOfvalues);
@@ -16,4 +17,4 @@ class BGSourceNightscout : public BGSource {
     int initiateCall(LCBUrl url, bool ssl, String apiKey);
 };
 
-#endif // BGSOURCENIGHTSCOUT_H
+#endif  // BGSOURCENIGHTSCOUT_H

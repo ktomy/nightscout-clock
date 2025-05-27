@@ -18,11 +18,13 @@
  *   along with this library; if not, see <http://www.gnu.org/licenses/>   *
  ***************************************************************************/
 #include "melody_player.h"
+
 #include "../globals.h"
 /**
  * https://stackoverflow.com/questions/24609271/errormake-unique-is-not-a-member-of-std
  */
-template <typename T, typename... Args> std::unique_ptr<T> make_unique(Args &&...args) {
+template <typename T, typename... Args>
+std::unique_ptr<T> make_unique(Args&&... args) {
     return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
 }
 
@@ -38,7 +40,8 @@ void MelodyPlayer::play() {
     while (melodyState->getIndex() + melodyState->isSilence() < melodyState->melody.getLength()) {
         NoteDuration computedNote = melodyState->getCurrentComputedNote();
         if (debug)
-            Serial.println(String("Playing: frequency:") + computedNote.frequency + " duration:" + computedNote.duration);
+            Serial.println(String("Playing: frequency:") + computedNote.frequency +
+                           " duration:" + computedNote.duration);
         if (melodyState->isSilence()) {
 #ifdef ESP32
             ledcWriteTone(pwmChannel, 0);
@@ -59,7 +62,7 @@ void MelodyPlayer::play() {
     stop();
 }
 
-void MelodyPlayer::play(Melody &melody) {
+void MelodyPlayer::play(Melody& melody) {
     if (!melody) {
         return;
     }
@@ -67,7 +70,7 @@ void MelodyPlayer::play(Melody &melody) {
     play();
 }
 
-void changeTone(MelodyPlayer *player) {
+void changeTone(MelodyPlayer* player) {
     // The last silence is not reproduced
     player->melodyState->advance();
     if (player->melodyState->getIndex() + player->melodyState->isSilence() < player->melodyState->melody.getLength()) {
@@ -122,7 +125,7 @@ void changeTone(MelodyPlayer *player) {
     } else {
         // End of the melody
         player->stop();
-        if (player->loop) { // Loop mode => start over
+        if (player->loop) {  // Loop mode => start over
             player->playAsync();
         } else if (player->stopCallback != NULL) {
             player->stopCallback();
@@ -146,7 +149,7 @@ void MelodyPlayer::playAsync() {
 #endif
 }
 
-void MelodyPlayer::playAsync(Melody &melody, bool loopMelody, void (*callback)(void)) {
+void MelodyPlayer::playAsync(Melody& melody, bool loopMelody, void (*callback)(void)) {
     if (!melody) {
         return;
     }
@@ -176,7 +179,7 @@ void MelodyPlayer::pause() {
     melodyState->saveRemainingNoteDuration(supportSemiNote);
 }
 
-void MelodyPlayer::transferMelodyTo(MelodyPlayer &destPlayer) {
+void MelodyPlayer::transferMelodyTo(MelodyPlayer& destPlayer) {
     if (melodyState == nullptr) {
         return;
     }
@@ -197,7 +200,7 @@ void MelodyPlayer::transferMelodyTo(MelodyPlayer &destPlayer) {
     }
 }
 
-void MelodyPlayer::duplicateMelodyTo(MelodyPlayer &destPlayer) {
+void MelodyPlayer::duplicateMelodyTo(MelodyPlayer& destPlayer) {
     if (melodyState == nullptr) {
         return;
     }

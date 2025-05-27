@@ -1,8 +1,9 @@
 #include <Arduino.h>
+
 #include "enums.h"
 
 class Settings {
-  public:
+public:
     String ssid;
     String wifi_password;
     String hostname;

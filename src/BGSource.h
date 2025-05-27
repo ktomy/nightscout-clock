@@ -4,17 +4,18 @@
 #include <Arduino.h>
 #include <HTTPClient.h>
 #include <WiFiClientSecure.h>
+
 #include <list>
 
-#include "enums.h"
-#include "globals.h"
 #include "DisplayManager.h"
 #include "ServerManager.h"
+#include "enums.h"
+#include "globals.h"
 
-#define BG_BACKFILL_SECONDS 3 * 60 * 60 + 1 // 3 hours one second (to overcome the "after last reading" read)
+#define BG_BACKFILL_SECONDS 3 * 60 * 60 + 1  // 3 hours one second (to overcome the "after last reading" read)
 
 struct GlucoseReading {
-  public:
+public:
     int sgv;
     BG_TREND trend;
     unsigned long long epoch;
@@ -27,15 +28,15 @@ struct GlucoseReading {
 };
 
 class BGSource {
-  public:
+public:
     virtual void setup();
     virtual void tick();
     virtual bool hasNewData(unsigned long long epochToCompare);
     virtual std::list<GlucoseReading> getGlucoseData() const;
 
-  protected:
-    HTTPClient *client;
-    WiFiClientSecure *wifiSecureClient;
+protected:
+    HTTPClient* client;
+    WiFiClientSecure* wifiSecureClient;
     unsigned long long lastCallAttemptEpoch = 0;
     bool firstConnectionSuccess = false;
     std::list<GlucoseReading> glucoseReadings;
@@ -45,4 +46,4 @@ class BGSource {
     void handleFailedAttempt();
 };
 
-#endif // BGSOURCE_H
+#endif  // BGSOURCE_H

@@ -5,7 +5,7 @@
 #include <EasyButton.h>
 
 class PeripheryManager_ {
-  private:
+private:
     PeripheryManager_() = default;
     const int BatReadings = 10;
     uint16_t TotalBatReadings[10];
@@ -18,13 +18,13 @@ class PeripheryManager_ {
     unsigned long previousMillis = 0;
     const unsigned long interval = 1000;
 
-  public:
-    static PeripheryManager_ &getInstance();
+public:
+    static PeripheryManager_& getInstance();
     void setup();
     void tick();
-    const char *readUptime();
+    const char* readUptime();
     const void playRTTTLString(String rtttl);
 };
 
-extern PeripheryManager_ &PeripheryManager;
+extern PeripheryManager_& PeripheryManager;
 #endif

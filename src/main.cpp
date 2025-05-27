@@ -1,20 +1,19 @@
 #include <Arduino.h>
 #include <esp32-hal.h>
-#include "SettingsManager.h"
-#include "ServerManager.h"
+
+#include "BGAlarmManager.h"
+#include "BGDisplayManager.h"
 #include "BGSourceManager.h"
 #include "DisplayManager.h"
-#include "BGDisplayManager.h"
 #include "PeripheryManager.h"
-#include "BGAlarmManager.h"
+#include "ServerManager.h"
+#include "SettingsManager.h"
 #include "globals.h"
-
 #include "improv_consume.h"
 
-float apModeHintPosition = MATRIX_WIDTH; // Start the scrolling right after the screen
+float apModeHintPosition = MATRIX_WIDTH;  // Start the scrolling right after the screen
 
 void setup() {
-
     pinMode(15, OUTPUT);
     digitalWrite(15, LOW);
     delay(2000);
@@ -48,8 +47,8 @@ void setup() {
 }
 
 void showJoinAP() {
-    String hint =
-        "Join " + SettingsManager.settings.hostname + " Wi-fi network and go to http://" + ServerManager.myIP.toString() + "/";
+    String hint = "Join " + SettingsManager.settings.hostname + " Wi-fi network and go to http://" +
+                  ServerManager.myIP.toString() + "/";
 
     if (apModeHintPosition < -240) {
         apModeHintPosition = 32;
@@ -63,13 +62,12 @@ void showJoinAP() {
 // int getFreeMemory() { return ESP.getFreeHeap(); }
 
 void loop() {
-
 #ifdef DEBUG_MEMORY
 
     static unsigned long lastMemoryCheck = 0;
     unsigned long currentMillis = millis();
 
-    if (currentMillis - lastMemoryCheck >= 10000) { // Check memory every second
+    if (currentMillis - lastMemoryCheck >= 10000) {  // Check memory every second
         lastMemoryCheck = currentMillis;
         auto freeMemory = getFreeMemory();
         DEBUG_PRINTLN("Free memory: " + String(freeMemory));

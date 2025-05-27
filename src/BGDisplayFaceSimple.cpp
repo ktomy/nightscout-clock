@@ -1,10 +1,9 @@
 #include "BGDisplayFaceSimple.h"
+
 #include "BGDisplayManager.h"
 #include "globals.h"
 
-void BGDisplayFaceSimple::showReadings(const std::list<GlucoseReading> &readings, bool dataIsOld) const {
-
-
+void BGDisplayFaceSimple::showReadings(const std::list<GlucoseReading>& readings, bool dataIsOld) const {
     auto lastReading = readings.back();
     showReading(lastReading, 0, 6, TEXT_ALIGNMENT::CENTER, FONT_TYPE::MEDIUM, dataIsOld);
 
@@ -13,5 +12,4 @@ void BGDisplayFaceSimple::showReadings(const std::list<GlucoseReading> &readings
 
     // Call timer block function
     BGDisplayManager_::drawTimerBlocks(lastReading, MATRIX_WIDTH, 0, 7);
-    
 }

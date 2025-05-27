@@ -1,18 +1,19 @@
 #ifndef SettingsManager_H
 #define SettingsManager_H
 
-#include "enums.h"
 #include <ArduinoJson.h>
 #include <IPAddress.h>
 #include <Settings.h>
 
-class SettingsManager_ {
-  private:
-    SettingsManager_() = default;
-    JsonDocument *readConfigJsonFile();
+#include "enums.h"
 
-  public:
-    static SettingsManager_ &getInstance();
+class SettingsManager_ {
+private:
+    SettingsManager_() = default;
+    JsonDocument* readConfigJsonFile();
+
+public:
+    static SettingsManager_& getInstance();
     void setup();
     bool loadSettingsFromFile();
     bool saveSettingsToFile();
@@ -22,6 +23,6 @@ class SettingsManager_ {
     Settings settings;
 };
 
-extern SettingsManager_ &SettingsManager;
+extern SettingsManager_& SettingsManager;
 
 #endif

@@ -1,21 +1,23 @@
 #include "SettingsManager.h"
-#include "globals.h"
+
 #include <Arduino.h>
 #include <ArduinoJson.h>
 #include <LittleFS.h>
 
+#include "globals.h"
+
 // The getter for the instantiated singleton instance
-SettingsManager_ &SettingsManager_::getInstance() {
+SettingsManager_& SettingsManager_::getInstance() {
     static SettingsManager_ instance;
     return instance;
 }
 
 // Initialize the global shared instance
-SettingsManager_ &SettingsManager = SettingsManager.getInstance();
+SettingsManager_& SettingsManager = SettingsManager.getInstance();
 
 void SettingsManager_::setup() { LittleFS.begin(); }
 
-bool copyFile(const char *srcPath, const char *destPath) {
+bool copyFile(const char* srcPath, const char* destPath) {
     File srcFile = LittleFS.open(srcPath, "r");
     if (!srcFile) {
         DEBUG_PRINTLN("Failed to open source file");
@@ -47,8 +49,8 @@ void SettingsManager_::factoryReset() {
     ESP.restart();
 }
 
-JsonDocument *SettingsManager_::readConfigJsonFile() {
-    JsonDocument *doc;
+JsonDocument* SettingsManager_::readConfigJsonFile() {
+    JsonDocument* doc;
     if (LittleFS.exists(CONFIG_JSON)) {
         auto settings = Settings();
         File file = LittleFS.open(CONFIG_JSON);
@@ -156,7 +158,7 @@ bool SettingsManager_::loadSettingsFromFile() {
             DEBUG_PRINTLN("Custom No Data Timer value is invalid, using default value of 20 minutes.");
         }
     }
-    
+
     delete doc;
 
     this->settings = settings;
@@ -244,10 +246,10 @@ bool SettingsManager_::saveSettingsToFile() {
     (*doc)["custom_hostname_enable"] = settings.custom_hostname_enable;
     (*doc)["custom_hostname"] = settings.custom_hostname;
 
-     // Custom No Data Timer
-     (*doc)["custom_nodatatimer_enable"] = settings.custom_nodatatimer_enable;
-     (*doc)["custom_nodatatimer"] = settings.custom_nodatatimer;
-    
+    // Custom No Data Timer
+    (*doc)["custom_nodatatimer_enable"] = settings.custom_nodatatimer_enable;
+    (*doc)["custom_nodatatimer"] = settings.custom_nodatatimer;
+
     if (trySaveJsonAsSettings(*doc) == false)
         return false;
 

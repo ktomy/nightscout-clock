@@ -1,8 +1,9 @@
 #include "BGSourceManager.h"
+
 #include "ServerManager.h"
 
 // Define the static getInstance method
-BGSourceManager_ &BGSourceManager_::getInstance() {
+BGSourceManager_& BGSourceManager_::getInstance() {
     static BGSourceManager_ instance;
     return instance;
 }
@@ -14,7 +15,7 @@ BGSourceManager_::BGSourceManager_() {}
 BGSourceManager_::~BGSourceManager_() {}
 
 // Define the extern variable
-BGSourceManager_ &bgSourceManager = BGSourceManager_::getInstance();
+BGSourceManager_& bgSourceManager = BGSourceManager_::getInstance();
 
 void BGSourceManager_::setup(BG_SOURCE bgSourceType) {
     switch (bgSourceType) {
@@ -36,8 +37,8 @@ void BGSourceManager_::setup(BG_SOURCE bgSourceType) {
         default:
             DEBUG_PRINTLN("BGSourceManager_::setup: Unknown BG_SOURCE: " + toString(bgSourceType) + " (" +
                           String((int)bgSourceType) + ")");
-            DisplayManager.showFatalError("Unknown data source: " + toString(bgSourceType) + " (" + String((int)bgSourceType) +
-                                          ")");
+            DisplayManager.showFatalError("Unknown data source: " + toString(bgSourceType) + " (" +
+                                          String((int)bgSourceType) + ")");
     }
     bgSource->setup();
 }

@@ -28,18 +28,18 @@
  */
 struct StringView {
     StringView() = delete;
-    constexpr StringView(const char *s) : str(s), lenght(__builtin_strlen(s)) {}
+    constexpr StringView(const char* s) : str(s), lenght(__builtin_strlen(s)) {}
 
-    constexpr bool operator==(const StringView &other) const {
+    constexpr bool operator==(const StringView& other) const {
         return lenght == other.lenght && (__builtin_memcmp(str, other.str, lenght) == 0);
     }
 
     constexpr size_t length() const { return lenght; }
 
-    constexpr const char *data() const { return str; }
+    constexpr const char* data() const { return str; }
 
-  private:
-    const char *str;
+private:
+    const char* str;
     size_t lenght;
 };
 
@@ -140,4 +140,4 @@ constexpr std::array<std::pair<StringView, unsigned short>, 92> noteMapping{{
 }};
 // clang-format on
 
-#endif // END PITCHES_UNORDERED_MAP_H
+#endif  // END PITCHES_UNORDERED_MAP_H

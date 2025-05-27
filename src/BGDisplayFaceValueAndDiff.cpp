@@ -1,9 +1,9 @@
 #include "BGDisplayFaceValueAndDiff.h"
+
 #include "BGDisplayManager.h"
 #include "globals.h"
 
-void BGDisplayFaceValueAndDiff::showReadings(const std::list<GlucoseReading> &readings, bool dataIsOld) const {
-
+void BGDisplayFaceValueAndDiff::showReadings(const std::list<GlucoseReading>& readings, bool dataIsOld) const {
     auto lastReading = readings.back();
 
     // treating special casse where the value representation is too wide, so we move it one pixel to the right
@@ -26,15 +26,14 @@ void BGDisplayFaceValueAndDiff::showReadings(const std::list<GlucoseReading> &re
 
     DisplayManager.printText(33, 6, diff.c_str(), TEXT_ALIGNMENT::RIGHT, 2);
 
-     // Calculate time since last data update
+    // Calculate time since last data update
     int elapsedMinutes = (ServerManager.getUtcEpoch() - lastReading.epoch) / 60;
 
     // Call timer block function
     BGDisplayManager_::drawTimerBlocks(lastReading, MATRIX_WIDTH, 0, 7);
-
 }
 
-String BGDisplayFaceValueAndDiff::getDiff(const std::list<GlucoseReading> &readings) const {
+String BGDisplayFaceValueAndDiff::getDiff(const std::list<GlucoseReading>& readings) const {
     if (readings.size() < 2) {
 #ifdef DEBUG_DISPLAY
         DEBUG_PRINTLN("Not enough readings to calculate diff");
@@ -44,8 +43,8 @@ String BGDisplayFaceValueAndDiff::getDiff(const std::list<GlucoseReading> &readi
 
     auto last = readings.back();
     std::list<GlucoseReading> foundReadings;
-    // cycle through reading starting from the last one until the time of reading is less than 6.5 minutes prior to the last
-    // reading. Store the found readings
+    // cycle through reading starting from the last one until the time of reading is less than 6.5 minutes prior to the
+    // last reading. Store the found readings
     for (auto it = readings.rbegin(); it != readings.rend(); ++it) {
         if (last.epoch - it->epoch > (6 * 60 + 30)) {
             break;
@@ -55,7 +54,7 @@ String BGDisplayFaceValueAndDiff::getDiff(const std::list<GlucoseReading> &readi
     // cucle through found readings, get min and max SGVs
     int minSGV = 9999;
     int maxSGV = 0;
-    for (const auto &reading : foundReadings) {
+    for (const auto& reading : foundReadings) {
         if (reading.sgv < minSGV) {
             minSGV = reading.sgv;
         }

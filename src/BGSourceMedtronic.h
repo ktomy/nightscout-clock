@@ -4,10 +4,10 @@
 #include "BGSource.h"
 
 class BGSourceMedtronic : public BGSource {
-  public:
+public:
     std::list<GlucoseReading> updateReadings(std::list<GlucoseReading> existingReadings) override;
 
-  private:
+private:
 };
 
-#endif // BGSOURCEMEDTRONIC_H
+#endif  // BGSOURCEMEDTRONIC_H

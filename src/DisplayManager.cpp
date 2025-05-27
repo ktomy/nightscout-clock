@@ -1,15 +1,18 @@
 #include "DisplayManager.h"
-#include "ClockFont.h"
-#include "AwtrixFont.h"
-#include "MuFont.h"
-#include "BGDisplayManager.h"
-#include "globals.h"
-#include "improv_consume.h"
+
 #include <FastLED_NeoMatrix.h>
+
 #include <map>
 
+#include "AwtrixFont.h"
+#include "BGDisplayManager.h"
+#include "ClockFont.h"
+#include "MuFont.h"
+#include "globals.h"
+#include "improv_consume.h"
+
 // The getter for the instantiated singleton instance
-DisplayManager_ &DisplayManager_::getInstance() {
+DisplayManager_& DisplayManager_::getInstance() {
     static DisplayManager_ instance;
     return instance;
 }
@@ -17,7 +20,7 @@ DisplayManager_ &DisplayManager_::getInstance() {
 ClockFont currentFont = AwtrixFont;
 
 // Initialize the global shared instance
-DisplayManager_ &DisplayManager = DisplayManager.getInstance();
+DisplayManager_& DisplayManager = DisplayManager.getInstance();
 
 #define MATRIX_WIDTH 32
 #define MATRIX_HEIGHT 8
@@ -26,8 +29,8 @@ bool UPPERCASE_LETTERS = true;
 
 CRGB leds[MATRIX_WIDTH * MATRIX_HEIGHT];
 
-FastLED_NeoMatrix *matrix =
-    new FastLED_NeoMatrix(leds, 8, 8, 4, 1, NEO_MATRIX_TOP + NEO_MATRIX_LEFT + NEO_MATRIX_ROWS + NEO_MATRIX_PROGRESSIVE);
+FastLED_NeoMatrix* matrix = new FastLED_NeoMatrix(
+    leds, 8, 8, 4, 1, NEO_MATRIX_TOP + NEO_MATRIX_LEFT + NEO_MATRIX_ROWS + NEO_MATRIX_PROGRESSIVE);
 
 void DisplayManager_::setFont(FONT_TYPE fontType) {
     switch (fontType) {
@@ -46,19 +49,20 @@ void DisplayManager_::setFont(FONT_TYPE fontType) {
 }
 
 void setMatrixLayout(int layout) {
-    delete matrix; // Free memory from the current matrix object
+    delete matrix;  // Free memory from the current matrix object
     DEBUG_PRINTF("Set matrix layout to %i", layout);
     switch (layout) {
         case 0:
-            matrix = new FastLED_NeoMatrix(leds, MATRIX_WIDTH, 8, NEO_MATRIX_TOP + NEO_MATRIX_LEFT + NEO_MATRIX_ROWS + NEO_MATRIX_ZIGZAG);
+            matrix = new FastLED_NeoMatrix(leds, MATRIX_WIDTH, 8,
+                                           NEO_MATRIX_TOP + NEO_MATRIX_LEFT + NEO_MATRIX_ROWS + NEO_MATRIX_ZIGZAG);
             break;
         case 1:
             matrix = new FastLED_NeoMatrix(leds, 8, 8, 4, 1,
                                            NEO_MATRIX_TOP + NEO_MATRIX_LEFT + NEO_MATRIX_ROWS + NEO_MATRIX_PROGRESSIVE);
             break;
         case 2:
-            matrix =
-                new FastLED_NeoMatrix(leds, MATRIX_WIDTH, 8, NEO_MATRIX_TOP + NEO_MATRIX_LEFT + NEO_MATRIX_COLUMNS + NEO_MATRIX_ZIGZAG);
+            matrix = new FastLED_NeoMatrix(leds, MATRIX_WIDTH, 8,
+                                           NEO_MATRIX_TOP + NEO_MATRIX_LEFT + NEO_MATRIX_COLUMNS + NEO_MATRIX_ZIGZAG);
             break;
         default:
             break;
@@ -98,9 +102,9 @@ uint32_t hsvToRgb(uint8_t h, uint8_t s, uint8_t v) {
     return ((uint16_t)(rgb.r & 0xF8) << 8) | ((uint16_t)(rgb.g & 0xFC) << 3) | (rgb.b >> 3);
 }
 
-float DisplayManager_::getTextWidth(const char *text, byte textCase) {
+float DisplayManager_::getTextWidth(const char* text, byte textCase) {
     float width = 0;
-    for (const char *c = text; *c != '\0'; ++c) {
+    for (const char* c = text; *c != '\0'; ++c) {
         char current_char = *c;
         if ((UPPERCASE_LETTERS && textCase == 0) || textCase == 1) {
             current_char = toupper(current_char);
@@ -123,8 +127,7 @@ void DisplayManager_::clearMatrix() {
 // DisplayManager_::printText(int16_t x, int16_t y, const char *text, TEXT_ALIGNMENT alignment, byte textCase) {
 // }
 
-void DisplayManager_::printText(int16_t x, int16_t y, const char *text, TEXT_ALIGNMENT alignment, byte textCase) {
-
+void DisplayManager_::printText(int16_t x, int16_t y, const char* text, TEXT_ALIGNMENT alignment, byte textCase) {
     if (alignment == TEXT_ALIGNMENT::LEFT) {
         matrix->setCursor(x, y);
     } else if (alignment == TEXT_ALIGNMENT::RIGHT) {
@@ -139,13 +142,13 @@ void DisplayManager_::printText(int16_t x, int16_t y, const char *text, TEXT_ALI
 
     if ((UPPERCASE_LETTERS && textCase == 0) || textCase == 1) {
         size_t length = strlen(text);
-        char upperText[length + 1]; // +1 for the null terminator
+        char upperText[length + 1];  // +1 for the null terminator
 
         for (size_t i = 0; i < length; ++i) {
             upperText[i] = toupper(text[i]);
         }
 
-        upperText[length] = '\0'; // Null terminator
+        upperText[length] = '\0';  // Null terminator
         matrix->print(upperText);
     } else {
         matrix->print(text);
@@ -170,7 +173,7 @@ void DisplayManager_::scrollColorfulText(String message) {
     }
 }
 
-void DisplayManager_::HSVtext(int16_t x, int16_t y, const char *text, bool clear, byte textCase) {
+void DisplayManager_::HSVtext(int16_t x, int16_t y, const char* text, bool clear, byte textCase) {
     if (clear)
         matrix->clear();
     static uint8_t hueOffset = 0;
@@ -179,7 +182,7 @@ void DisplayManager_::HSVtext(int16_t x, int16_t y, const char *text, bool clear
         uint8_t hue = map(i, 0, strlen(text), 0, 255) + hueOffset;
         uint32_t textColor = hsvToRgb(hue, 255, 255);
         matrix->setTextColor(textColor);
-        const char *myChar = &text[i];
+        const char* myChar = &text[i];
 
         matrix->setCursor(xpos + x, y);
         if ((UPPERCASE_LETTERS && textCase == 0) || textCase == 1) {
@@ -203,7 +206,6 @@ void DisplayManager_::showFatalError(String errorMessage) {
     auto startMills = millis();
 
     while (true) {
-
         if (millis() - startMills > 16 * 1000 * 10) {
             ESP.restart();
         }
@@ -232,7 +234,6 @@ void DisplayManager_::setBrightness(int bri) {
     if (MATRIX_OFF) {
         matrix->setBrightness(0);
     } else {
-
         matrix->setBrightness(bri);
     }
 

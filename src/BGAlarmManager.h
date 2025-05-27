@@ -3,6 +3,7 @@
 
 #include <Arduino.h>
 #include <EasyButton.h>
+
 #include <vector>
 
 struct AlarmData {
@@ -16,17 +17,17 @@ struct AlarmData {
 };
 
 class BGAlarmManager_ {
-  private:
+private:
     BGAlarmManager_() = default;
     std::vector<AlarmData> enabledAlarms;
-    AlarmData *activeAlarm;
+    AlarmData* activeAlarm;
 
-  public:
-    static BGAlarmManager_ &getInstance();
+public:
+    static BGAlarmManager_& getInstance();
     void setup();
     void tick();
     void snoozeAlarm();
 };
 
-extern BGAlarmManager_ &bgAlarmManager;
+extern BGAlarmManager_& bgAlarmManager;
 #endif

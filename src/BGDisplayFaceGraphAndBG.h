@@ -6,11 +6,11 @@
 #include "BGDisplayFaceTextBase.h"
 
 class BGDisplayFaceGraphAndBG : public BGDisplayFaceGraphBase, public BGDisplayFaceTextBase {
-  public:
-    void showReadings(const std::list<GlucoseReading> &readings, bool dataIsOld = false) const override;
+public:
+    void showReadings(const std::list<GlucoseReading>& readings, bool dataIsOld = false) const override;
 
-  private:
+private:
     void showTrendVerticalLine(int x, BG_TREND trend) const;
 };
 
-#endif // BGDISPLAYFACEGRAPHANDBG_H
+#endif  // BGDISPLAYFACEGRAPHANDBG_H

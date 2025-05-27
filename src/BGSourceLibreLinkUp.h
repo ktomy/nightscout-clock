@@ -1,19 +1,22 @@
 #ifndef BGSOURCELIBRELINKUP_H
 #define BGSOURCELIBRELINKUP_H
 
+#include <mbedtls/sha256.h>
+
+#include <map>
+
 #include "BGSource.h"
 #include "SettingsManager.h"
-#include <map>
-#include <mbedtls/sha256.h>
 
 #define LIBRE_LINK_UP_VERSION "4.12.0"
 #define LIBRE_LINK_UP_PRODUCT "llu.ios"
-#define USER_AGENT                                                                                                               \
-    "Mozilla/5.0 (iPhone; CPU OS 17_4.1 like Mac OS X) AppleWebKit/536.26 (KHTML, like Gecko) Version/17.4.1 Mobile/10A5355d "   \
+#define USER_AGENT                                                                                             \
+    "Mozilla/5.0 (iPhone; CPU OS 17_4.1 like Mac OS X) AppleWebKit/536.26 (KHTML, like Gecko) Version/17.4.1 " \
+    "Mobile/10A5355d "                                                                                         \
     "Safari/8536.25"
 
 class AuthTicket {
-  public:
+public:
     AuthTicket() = default;
     AuthTicket(String token, unsigned long long expires, unsigned long long duration, String accountId)
         : token(token), expires(expires), duration(duration), accountId(accountId) {}
@@ -25,11 +28,10 @@ class AuthTicket {
 };
 
 class BGSourceLibreLinkUp : public BGSource {
-
-  public:
+public:
     std::list<GlucoseReading> updateReadings(std::list<GlucoseReading> existingReadings) override;
 
-  private:
+private:
     bool hasValidAuthentication();
     void deleteAuthTicket();
     AuthTicket login();
@@ -50,4 +52,4 @@ class BGSourceLibreLinkUp : public BGSource {
         {"US", "api-us.libreview.io"},   {"LA", "api-la.libreview.io"}, {"RU", "api.libreview.ru"}};
 };
 
-#endif // BGSOURCELIBRELINKUP_H
+#endif  // BGSOURCELIBRELINKUP_H

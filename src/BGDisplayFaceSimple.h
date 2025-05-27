@@ -5,8 +5,8 @@
 #include "BGSource.h"
 
 class BGDisplayFaceSimple : public BGDisplayFaceTextBase {
-  public:
-    void showReadings(const std::list<GlucoseReading> &readings, bool dataIsOld = false) const override;
+public:
+    void showReadings(const std::list<GlucoseReading>& readings, bool dataIsOld = false) const override;
 };
 
 #endif

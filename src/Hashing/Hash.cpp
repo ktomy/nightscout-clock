@@ -22,13 +22,11 @@
  *
  */
 
-#include <Arduino.h>
-
 #include "Hash.h"
 
 extern "C" {
-#include "sha1/sha1.h"
 #include "sha1/sha1.c"
+#include "sha1/sha1.h"
 }
 
 /**
@@ -37,18 +35,17 @@ extern "C" {
  * @param size uint32_t
  * @param hash uint8_t[20]
  */
-void sha1(uint8_t * data, uint32_t size, uint8_t hash[20]) {
-
+void sha1(uint8_t* data, uint32_t size, uint8_t hash[20]) {
     SHA1_CTX ctx;
 
 #ifdef DEBUG_SHA1
     os_printf("DATA:");
-    for(uint16_t i = 0; i < size; i++) {
+    for (uint16_t i = 0; i < size; i++) {
         os_printf("%02X", data[i]);
     }
     os_printf("\n");
     os_printf("DATA:");
-    for(uint16_t i = 0; i < size; i++) {
+    for (uint16_t i = 0; i < size; i++) {
         os_printf("%c", data[i]);
     }
     os_printf("\n");
@@ -60,28 +57,20 @@ void sha1(uint8_t * data, uint32_t size, uint8_t hash[20]) {
 
 #ifdef DEBUG_SHA1
     os_printf("SHA1:");
-    for(uint16_t i = 0; i < 20; i++) {
+    for (uint16_t i = 0; i < 20; i++) {
         os_printf("%02X", hash[i]);
     }
     os_printf("\n\n");
 #endif
 }
 
-void sha1(char * data, uint32_t size, uint8_t hash[20]) {
-    sha1((uint8_t *) data, size, hash);
-}
+void sha1(char* data, uint32_t size, uint8_t hash[20]) { sha1((uint8_t*)data, size, hash); }
 
-void sha1(const uint8_t * data, uint32_t size, uint8_t hash[20]) {
-    sha1((uint8_t *) data, size, hash);
-}
+void sha1(const uint8_t* data, uint32_t size, uint8_t hash[20]) { sha1((uint8_t*)data, size, hash); }
 
-void sha1(const char * data, uint32_t size, uint8_t hash[20]) {
-    sha1((uint8_t *) data, size, hash);
-}
+void sha1(const char* data, uint32_t size, uint8_t hash[20]) { sha1((uint8_t*)data, size, hash); }
 
-void sha1(String data, uint8_t hash[20]) {
-    sha1(data.c_str(), data.length(), hash);
-}
+void sha1(String data, uint8_t hash[20]) { sha1(data.c_str(), data.length(), hash); }
 
 String sha1(uint8_t* data, uint32_t size) {
     uint8_t hash[20];
@@ -89,9 +78,9 @@ String sha1(uint8_t* data, uint32_t size) {
 
     sha1(&data[0], size, &hash[0]);
 
-    for(uint16_t i = 0; i < 20; i++) {
+    for (uint16_t i = 0; i < 20; i++) {
         String hex = String(hash[i], HEX);
-        if(hex.length() < 2) {
+        if (hex.length() < 2) {
             hex = "0" + hex;
         }
         hashStr += hex;
@@ -100,19 +89,10 @@ String sha1(uint8_t* data, uint32_t size) {
     return hashStr;
 }
 
-String sha1(char* data, uint32_t size) {
-    return sha1((uint8_t*) data, size);
-}
+String sha1(char* data, uint32_t size) { return sha1((uint8_t*)data, size); }
 
-String sha1(const uint8_t* data, uint32_t size) {
-    return sha1((uint8_t*) data, size);
-}
+String sha1(const uint8_t* data, uint32_t size) { return sha1((uint8_t*)data, size); }
 
-String sha1(const char* data, uint32_t size) {
-    return sha1((uint8_t*) data, size);
-}
+String sha1(const char* data, uint32_t size) { return sha1((uint8_t*)data, size); }
 
-String sha1(String data) {
-    return sha1(data.c_str(), data.length());
-}
-
+String sha1(String data) { return sha1(data.c_str(), data.length()); }

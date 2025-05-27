@@ -1,34 +1,34 @@
 #include "BGDisplayManager.h"
-#include "DisplayManager.h"
-#include "BGSourceManager.h"
-#include "BGSource.h"
-#include "SettingsManager.h"
-#include "ServerManager.h"
-#include "globals.h"
 
 #include <list>
 
+#include "BGSource.h"
+#include "BGSourceManager.h"
+#include "DisplayManager.h"
+#include "ServerManager.h"
+#include "SettingsManager.h"
+#include "globals.h"
+
 // The getter for the instantiated singleton instance
-BGDisplayManager_ &BGDisplayManager_::getInstance() {
+BGDisplayManager_& BGDisplayManager_::getInstance() {
     static BGDisplayManager_ instance;
     return instance;
 }
 
 // Initialize the global shared instance
-BGDisplayManager_ &bgDisplayManager = bgDisplayManager.getInstance();
+BGDisplayManager_& bgDisplayManager = bgDisplayManager.getInstance();
 
 void BGDisplayManager_::setup() {
-
     glucoseIntervals = GlucoseIntervals();
     /// TODO: Add urgent values to settings
 
     glucoseIntervals.addInterval(1, SettingsManager.settings.bg_low_urgent_limit, BG_LEVEL::URGENT_LOW);
-    glucoseIntervals.addInterval(SettingsManager.settings.bg_low_urgent_limit + 1, SettingsManager.settings.bg_low_warn_limit - 1,
-                                 BG_LEVEL::WARNING_LOW);
-    glucoseIntervals.addInterval(SettingsManager.settings.bg_low_warn_limit, SettingsManager.settings.bg_high_warn_limit,
-                                 BG_LEVEL::NORMAL);
-    glucoseIntervals.addInterval(SettingsManager.settings.bg_high_warn_limit, SettingsManager.settings.bg_high_urgent_limit - 1,
-                                 BG_LEVEL::WARNING_HIGH);
+    glucoseIntervals.addInterval(SettingsManager.settings.bg_low_urgent_limit + 1,
+                                 SettingsManager.settings.bg_low_warn_limit - 1, BG_LEVEL::WARNING_LOW);
+    glucoseIntervals.addInterval(SettingsManager.settings.bg_low_warn_limit,
+                                 SettingsManager.settings.bg_high_warn_limit, BG_LEVEL::NORMAL);
+    glucoseIntervals.addInterval(SettingsManager.settings.bg_high_warn_limit,
+                                 SettingsManager.settings.bg_high_urgent_limit - 1, BG_LEVEL::WARNING_HIGH);
     glucoseIntervals.addInterval(SettingsManager.settings.bg_high_urgent_limit, 401, BG_LEVEL::URGENT_HIGH);
 
     faces.push_back(new BGDisplayFaceSimple());
@@ -68,12 +68,9 @@ void BGDisplayManager_::setFace(int id) {
     }
 }
 
-void BGDisplayManager_::tick() {
-    maybeRrefreshScreen();
-}
+void BGDisplayManager_::tick() { maybeRrefreshScreen(); }
 
 void BGDisplayManager_::maybeRrefreshScreen(bool force) {
-
     auto currentEpoch = ServerManager.getUtcEpoch();
     tm timeInfo = ServerManager.getTimezonedTime();
 
@@ -85,10 +82,11 @@ void BGDisplayManager_::maybeRrefreshScreen(bool force) {
         lastRefreshEpoch = currentEpoch;
     } else {
         // We refresh the display every minue trying to match the exact :00 second
-        if ( force || timeInfo.tm_sec == 0 && currentEpoch > lastRefreshEpoch || currentEpoch - lastRefreshEpoch > 60) {
+        if (force || timeInfo.tm_sec == 0 && currentEpoch > lastRefreshEpoch || currentEpoch - lastRefreshEpoch > 60) {
             lastRefreshEpoch = currentEpoch;
             if (displayedReadings.size() > 0) {
-                bool dataIsOld = displayedReadings.back().getSecondsAgo() > 60 * SettingsManager.settings.bg_data_too_old_threshold_minutes;
+                bool dataIsOld = displayedReadings.back().getSecondsAgo() >
+                                 60 * SettingsManager.settings.bg_data_too_old_threshold_minutes;
                 DisplayManager.clearMatrix();
                 currentFace->showReadings(displayedReadings, dataIsOld);
                 DisplayManager.update();
@@ -102,7 +100,6 @@ void BGDisplayManager_::maybeRrefreshScreen(bool force) {
 }
 
 void BGDisplayManager_::showData(std::list<GlucoseReading> glucoseReadings) {
-
     if (glucoseReadings.size() == 0) {
         currentFace->showNoData();
         return;
@@ -127,7 +124,7 @@ void BGDisplayManager_::showData(std::list<GlucoseReading> glucoseReadings) {
 // @param yPosition - the y position of the lines
 // @param xPosition - the x position of the lines
 void BGDisplayManager_::drawTimerBlocks(GlucoseReading lastReading, int width, int xPosition, int yPosition) {
-    const int MAX_BLOXCS = 5; // maximum number of blocks to draw
+    const int MAX_BLOXCS = 5;  // maximum number of blocks to draw
     // minimal block size is 1 pixel, size between blocks is 1 pixel, so we get width, subtract spaces
     // between lines and divide by the maximum number of lines
     int blockSize = blockSize = (width - 4) / MAX_BLOXCS;
@@ -137,33 +134,32 @@ void BGDisplayManager_::drawTimerBlocks(GlucoseReading lastReading, int width, i
     }
     int blocksCount = lastReading.getSecondsAgo() / 60;
     if (blocksCount > MAX_BLOXCS) {
-        blocksCount = MAX_BLOXCS; // we draw maximum 5 lines
+        blocksCount = MAX_BLOXCS;  // we draw maximum 5 lines
     }
 
-    //Now let's alter xPosition to center the blocks in the available space
-    xPosition += (width - (blockSize * MAX_BLOXCS + (MAX_BLOXCS - 1))) / 2; 
+    // Now let's alter xPosition to center the blocks in the available space
+    xPosition += (width - (blockSize * MAX_BLOXCS + (MAX_BLOXCS - 1))) / 2;
 
     uint16_t color = COLOR_DARK_GREEN;
     if (lastReading.getSecondsAgo() >= 60 * SettingsManager.settings.bg_data_too_old_threshold_minutes) {
-        color = COLOR_GRAY; // old data
+        color = COLOR_GRAY;  // old data
     } else if (lastReading.getSecondsAgo() >= (MAX_BLOXCS + 1) * 60) {
-        color = COLOR_DARK_ORANGE; // warning data
+        color = COLOR_DARK_ORANGE;  // warning data
     }
 #ifdef DEBUG_DISPLAY
-    DEBUG_PRINTF("Drawing %d blocks of size %d at position (%d, %d) with color %04X", blocksCount, blockSize, xPosition, yPosition, color);
+    DEBUG_PRINTF("Drawing %d blocks of size %d at position (%d, %d) with color %04X", blocksCount, blockSize, xPosition,
+                 yPosition, color);
 #endif
 
     for (int i = 0; i < blocksCount; i++) {
-        int x = xPosition + i * (blockSize + 1); // +1 for the space between blocks
+        int x = xPosition + i * (blockSize + 1);  // +1 for the space between blocks
         for (int j = 0; j < blockSize; j++) {
             DisplayManager.drawPixel(x + j, yPosition, color, false);
         }
     }
-
-
 }
 
-GlucoseReading *BGDisplayManager_::getLastDisplayedGlucoseReading() {
+GlucoseReading* BGDisplayManager_::getLastDisplayedGlucoseReading() {
     if (displayedReadings.size() > 0) {
         return &displayedReadings.back();
     } else {

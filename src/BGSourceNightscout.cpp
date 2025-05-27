@@ -1,10 +1,11 @@
 #include "BGSourceNightscout.h"
-#include "SettingsManager.h"
-#include "globals.h"
 
 #include <ArduinoJson.h>
-#include <StreamUtils.h>
 #include <Hashing/Hash.h>
+#include <StreamUtils.h>
+
+#include "SettingsManager.h"
+#include "globals.h"
 
 std::list<GlucoseReading> BGSourceNightscout::updateReadings(std::list<GlucoseReading> existingReadings) {
     auto baseUrl = SettingsManager.settings.nightscout_url;
@@ -35,7 +36,8 @@ std::list<GlucoseReading> BGSourceNightscout::updateReadings(String baseUrl, Str
         }
 
         // retrieve readings starting from the last reading plus one second (to not include the existing reading)
-        std::list<GlucoseReading> retrievedReadings = retrieveReadings(baseUrl, apiKey, lastReadingEpoch + 1, readToEpoch, 30);
+        std::list<GlucoseReading> retrievedReadings =
+            retrieveReadings(baseUrl, apiKey, lastReadingEpoch + 1, readToEpoch, 30);
 
         // if we didn't get any readings and the last reading is older than now, try to get the last readings
         // this is the case when there are gaps in readings for more than one hour for e.g. sensor change
@@ -58,9 +60,9 @@ std::list<GlucoseReading> BGSourceNightscout::updateReadings(String baseUrl, Str
 
         // remove readings from retrievedReadings which are already present in existingReadings
         // because some servers (Gluroo) don't process from-to in an expected way
-        retrievedReadings.remove_if([&existingReadings](const GlucoseReading &reading) {
+        retrievedReadings.remove_if([&existingReadings](const GlucoseReading& reading) {
             return std::find_if(existingReadings.begin(), existingReadings.end(),
-                                [&reading](const GlucoseReading &existingReading) {
+                                [&reading](const GlucoseReading& existingReading) {
                                     return existingReading.epoch == reading.epoch;
                                 }) != existingReadings.end();
         });
@@ -86,7 +88,6 @@ std::list<GlucoseReading> BGSourceNightscout::updateReadings(String baseUrl, Str
 std::list<GlucoseReading> BGSourceNightscout::retrieveReadings(String baseUrl, String apiKey,
                                                                unsigned long long readingSinceEpoch,
                                                                unsigned long long readingToEpoch, int numberOfvalues) {
-
     std::list<GlucoseReading> lastReadings;
 
     LCBUrl url = prepareUrl(baseUrl, readingSinceEpoch, readingToEpoch, numberOfvalues);
@@ -115,7 +116,8 @@ std::list<GlucoseReading> BGSourceNightscout::retrieveReadings(String baseUrl, S
         DeserializationError error = deserializeJson(doc, responseContent, DeserializationOption::Filter(filter));
 
         if (error) {
-            DEBUG_PRINTF("Error deserializing NS response: %s\nFailed on string: %s\n", error.c_str(), responseContent.c_str());
+            DEBUG_PRINTF("Error deserializing NS response: %s\nFailed on string: %s\n", error.c_str(),
+                         responseContent.c_str());
             if (!firstConnectionSuccess) {
                 DisplayManager.showFatalError(String("Invalid Nightscout response: ") + error.c_str());
             }
@@ -144,13 +146,14 @@ std::list<GlucoseReading> BGSourceNightscout::retrieveReadings(String baseUrl, S
             firstConnectionSuccess = true;
 
             // Sort readings by epoch (no idea if they come sorted from the API)
-            lastReadings.sort([](const GlucoseReading &a, const GlucoseReading &b) -> bool { return a.epoch < b.epoch; });
+            lastReadings.sort(
+                [](const GlucoseReading& a, const GlucoseReading& b) -> bool { return a.epoch < b.epoch; });
 
             if (lastReadings.size() == 0) {
                 DEBUG_PRINTLN("No readings received");
             } else {
                 String debugLog = "Received readings: ";
-                for (auto &reading : lastReadings) {
+                for (auto& reading : lastReadings) {
                     debugLog += " " + String(reading.sgv) + " -" + String(reading.getSecondsAgo() / 60) + "m " +
                                 toString(reading.trend) + ", ";
                 }
@@ -159,7 +162,7 @@ std::list<GlucoseReading> BGSourceNightscout::retrieveReadings(String baseUrl, S
                 DEBUG_PRINTLN(debugLog);
             }
         }
-        ServerManager.failedAttempts = 0; // Reset failed attempts counter
+        ServerManager.failedAttempts = 0;  // Reset failed attempts counter
     } else {
         DEBUG_PRINTF("Error getting readings %d\n", responseCode);
         if (!firstConnectionSuccess) {
@@ -174,20 +177,20 @@ std::list<GlucoseReading> BGSourceNightscout::retrieveReadings(String baseUrl, S
     return lastReadings;
 }
 
-LCBUrl BGSourceNightscout::prepareUrl(String baseUrl, unsigned long long readingSinceEpoch, unsigned long long readingToEpoch,
-                                      int numberOfvalues) {
-
+LCBUrl BGSourceNightscout::prepareUrl(String baseUrl, unsigned long long readingSinceEpoch,
+                                      unsigned long long readingToEpoch, int numberOfvalues) {
     unsigned long long currentEpoch = ServerManager.getUtcEpoch();
 
 #ifdef DEBUG_BG_SOURCE
     DEBUG_PRINTLN("Getting NS values. Reading since epoch: " + String(readingSinceEpoch) + " (-" +
-                  String((currentEpoch - readingSinceEpoch) / 60) + "m)" + ", number of values: " + String(numberOfvalues) +
-                  ", reading to epoch: " + String(readingToEpoch) + " (-" + String((currentEpoch - readingToEpoch) / 60) + "m)");
+                  String((currentEpoch - readingSinceEpoch) / 60) + "m)" +
+                  ", number of values: " + String(numberOfvalues) + ", reading to epoch: " + String(readingToEpoch) +
+                  " (-" + String((currentEpoch - readingToEpoch) / 60) + "m)");
 #endif
 
     if (baseUrl == "") {
-        DisplayManager.showFatalError("Nightscout clock is not configured, please go to http://" + ServerManager.myIP.toString() +
-                                      "/ and configure the device");
+        DisplayManager.showFatalError("Nightscout clock is not configured, please go to http://" +
+                                      ServerManager.myIP.toString() + "/ and configure the device");
     }
 
     LCBUrl url;
@@ -195,8 +198,8 @@ LCBUrl BGSourceNightscout::prepareUrl(String baseUrl, unsigned long long reading
     String sinceEpoch = String(readingSinceEpoch * 1000);
     String toEpoch = String(readingToEpoch * 1000);
 
-    String urlString = String(baseUrl + "api/v1/entries?find[date][$gt]=" + sinceEpoch + "&find[date][$lte]=" + toEpoch +
-                              "&count=" + numberOfvalues);
+    String urlString = String(baseUrl + "api/v1/entries?find[date][$gt]=" + sinceEpoch +
+                              "&find[date][$lte]=" + toEpoch + "&count=" + numberOfvalues);
 
 #ifdef DEBUG_BG_SOURCE
     DEBUG_PRINTLN("URL: " + urlString)
@@ -211,7 +214,8 @@ LCBUrl BGSourceNightscout::prepareUrl(String baseUrl, unsigned long long reading
 
 int BGSourceNightscout::initiateCall(LCBUrl url, bool ssl, String apiKey) {
     if (ssl) {
-        client->begin(*wifiSecureClient, url.getHost(), url.getPort(), String("/") + url.getPath() + url.getAfterPath(), true);
+        client->begin(*wifiSecureClient, url.getHost(), url.getPort(), String("/") + url.getPath() + url.getAfterPath(),
+                      true);
     } else {
         client->begin(url.getHost(), url.getPort(), String("/") + url.getPath() + url.getAfterPath());
     }

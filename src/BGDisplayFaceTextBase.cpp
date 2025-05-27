@@ -1,11 +1,12 @@
 #include "BGDisplayFaceTextBase.h"
+
+#include <map>
+
 #include "BGDisplayManager.h"
 #include "globals.h"
-#include <map>
 
 void BGDisplayFaceTextBase::showReading(const GlucoseReading reading, int16_t x, int16_t y, TEXT_ALIGNMENT alignment,
                                         FONT_TYPE font, bool isOld) const {
-
     String readingToDisplay = getPrintableReading(reading.sgv);
     if (!isOld) {
         SetDisplayColorByBGValue(reading);
@@ -18,8 +19,7 @@ void BGDisplayFaceTextBase::showReading(const GlucoseReading reading, int16_t x,
     DisplayManager.printText(x, y, readingToDisplay.c_str(), alignment, 2);
 }
 
-void BGDisplayFaceTextBase::SetDisplayColorByBGValue(const GlucoseReading &reading) const {
-
+void BGDisplayFaceTextBase::SetDisplayColorByBGValue(const GlucoseReading& reading) const {
     auto bgLevel = bgDisplayManager.getGlucoseIntervals().getBGLevel(reading.sgv);
     auto textColor = COLOR_GRAY;
 
@@ -81,7 +81,7 @@ const uint8_t symbol_empty[] PROGMEM = {
     0x00, 0x00, 0x00, 0x00, 0x00,
 };
 
-const std::map<BG_TREND, const uint8_t *> glucoseTrendSymbols = {
+const std::map<BG_TREND, const uint8_t*> glucoseTrendSymbols = {
     {BG_TREND::NONE, symbol_empty},
     {BG_TREND::DOUBLE_UP, symbol_doubleUp},
     {BG_TREND::SINGLE_UP, symbol_singleUp},
@@ -95,7 +95,6 @@ const std::map<BG_TREND, const uint8_t *> glucoseTrendSymbols = {
 };
 
 void BGDisplayFaceTextBase::showTrendArrow(const GlucoseReading reading, int16_t x, int16_t y) const {
-
     DisplayManager.drawBitmap(x, y, glucoseTrendSymbols.at(reading.trend), 5, 5, COLOR_WHITE);
 }
 

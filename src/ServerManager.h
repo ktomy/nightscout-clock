@@ -2,15 +2,15 @@
 #define ServerManager_h
 
 #include <Arduino.h>
-#include <DNSServer.h>
 #include <AsyncTCP.h>
+#include <DNSServer.h>
 #include <ESPAsyncWebServer.h>
 
 class ServerManager_ {
-  private:
+private:
     bool apMode;
-    AsyncWebServer *ws;
-    AsyncStaticWebHandler *staticFilesHandler = nullptr;
+    AsyncWebServer* ws;
+    AsyncStaticWebHandler* staticFilesHandler = nullptr;
     ServerManager_() = default;
     unsigned long lastTimeSync = 0;
 
@@ -22,8 +22,8 @@ class ServerManager_ {
     void setTimezone();
     String getHostname();
 
-  public:
-    static ServerManager_ &getInstance();
+public:
+    static ServerManager_& getInstance();
     void setup();
     void tick();
     void stop();
@@ -33,13 +33,13 @@ class ServerManager_ {
     DNSServer dnsServer;
     unsigned long getUtcEpoch();
     tm getTimezonedTime();
-    AsyncWebHandler addHandler(AsyncWebHandler *handler);
+    AsyncWebHandler addHandler(AsyncWebHandler* handler);
     void removeStaticFileHandler();
     void addStaticFileHandler();
     int failedAttempts = 0;
     void reconnectWifi();
 };
 
-extern ServerManager_ &ServerManager;
+extern ServerManager_& ServerManager;
 
 #endif

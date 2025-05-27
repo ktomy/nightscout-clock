@@ -1,8 +1,8 @@
-#include <Arduino.h>
 #include "BGSourceLibreLinkUp.h"
 
-bool BGSourceLibreLinkUp::hasValidAuthentication() {
+#include <Arduino.h>
 
+bool BGSourceLibreLinkUp::hasValidAuthentication() {
 #ifdef DEBUG_BG_SOURCE
     DEBUG_PRINTF("Checking if authentication is valid, token: %s, expires: %llu, now: %llu\n", authTicket.token.c_str(),
                  authTicket.expires, time(NULL));
@@ -26,7 +26,6 @@ void BGSourceLibreLinkUp::deleteAuthTicket() {
 }
 
 AuthTicket BGSourceLibreLinkUp::login() {
-
     if (libreEndpoints.find(SettingsManager.settings.librelinkup_region) == libreEndpoints.end()) {
         DEBUG_PRINTF("Invalid region %s\n", SettingsManager.settings.librelinkup_region.c_str());
         DisplayManager.showFatalError("Invalid LibreLinkUp region, please check settings");
@@ -35,8 +34,8 @@ AuthTicket BGSourceLibreLinkUp::login() {
     String url = "https://" + libreEndpoints[SettingsManager.settings.librelinkup_region] + "/llu/auth/login";
 
     client->begin(*wifiSecureClient, url);
-    client->setTimeout(15000); // Set timeout to 15 seconds (15000 milliseconds)
-    for (auto &header : standardHeaders) {
+    client->setTimeout(15000);  // Set timeout to 15 seconds (15000 milliseconds)
+    for (auto& header : standardHeaders) {
         client->addHeader(header.first, header.second);
     }
 
@@ -90,8 +89,8 @@ AuthTicket BGSourceLibreLinkUp::login() {
     auto authTicket = AuthTicket(token, expires, duration, accountId);
 
 #ifdef DEBUG_BG_SOURCE
-    DEBUG_PRINTF("Logged in to LibreLinkUp, token: %s, expires: %llu, duration: %llu, accountId %s\n", token.c_str(), expires,
-                 duration, accountId.c_str());
+    DEBUG_PRINTF("Logged in to LibreLinkUp, token: %s, expires: %llu, duration: %llu, accountId %s\n", token.c_str(),
+                 expires, duration, accountId.c_str());
 #endif
 
     return authTicket;
@@ -126,11 +125,10 @@ BG_TREND trendFromLibreTrend(int trend) {
 }
 
 GlucoseReading BGSourceLibreLinkUp::getLibreLinkUpConnection() {
-
     String url = "https://" + libreEndpoints[SettingsManager.settings.librelinkup_region] + "/llu/connections";
 
     client->begin(url);
-    for (auto &header : standardHeaders) {
+    for (auto& header : standardHeaders) {
         client->addHeader(header.first, header.second);
     }
 
@@ -181,8 +179,8 @@ GlucoseReading BGSourceLibreLinkUp::getLibreLinkUpConnection() {
     reading.trend = trendFromLibreTrend(doc["data"][0]["glucoseMeasurement"]["TrendArrow"].as<int>());
 
 #ifdef DEBUG_BG_SOURCE
-    DEBUG_PRINTF("Got LibreLinkUp connection, patientId: %s, firstName: %s, lastName: %s, last reading: %s\n", patientId.c_str(),
-                 firstName.c_str(), lastName.c_str(), reading.toString().c_str());
+    DEBUG_PRINTF("Got LibreLinkUp connection, patientId: %s, firstName: %s, lastName: %s, last reading: %s\n",
+                 patientId.c_str(), firstName.c_str(), lastName.c_str(), reading.toString().c_str());
 #endif
 
     return reading;
@@ -192,7 +190,7 @@ GlucoseReading BGSourceLibreLinkUp::getLibreLinkUpConnection() {
 
 String BGSourceLibreLinkUp::encodeSHA256(String toEncode) {
     unsigned char hash[SHA256_DIGEST_SIZE];
-    mbedtls_sha256((const unsigned char *)toEncode.c_str(), toEncode.length(), hash, 0);
+    mbedtls_sha256((const unsigned char*)toEncode.c_str(), toEncode.length(), hash, 0);
     String encoded = "";
     for (int i = 0; i < SHA256_DIGEST_SIZE; i++) {
         char buf[3];
@@ -203,7 +201,6 @@ String BGSourceLibreLinkUp::encodeSHA256(String toEncode) {
 }
 
 std::list<GlucoseReading> BGSourceLibreLinkUp::updateReadings(std::list<GlucoseReading> existingReadings) {
-
     if (!hasValidAuthentication()) {
         deleteAuthTicket();
         auto newAuthTicket = login();
@@ -219,14 +216,15 @@ std::list<GlucoseReading> BGSourceLibreLinkUp::updateReadings(std::list<GlucoseR
     auto glucoseReadings = getReadings(lastReadingEpoch);
 
     // sort the readings by epoch
-    glucoseReadings.sort([](const GlucoseReading &a, const GlucoseReading &b) { return a.epoch < b.epoch; });
+    glucoseReadings.sort([](const GlucoseReading& a, const GlucoseReading& b) { return a.epoch < b.epoch; });
 
     // remove readings from retrievedReadings which are already present in existingReadings
     // because some servers (Gluroo) don't process from-to in an expected way
-    glucoseReadings.remove_if([&existingReadings](const GlucoseReading &reading) {
-        return std::find_if(existingReadings.begin(), existingReadings.end(), [&reading](const GlucoseReading &existingReading) {
-                   return existingReading.epoch == reading.epoch;
-               }) != existingReadings.end();
+    glucoseReadings.remove_if([&existingReadings](const GlucoseReading& reading) {
+        return std::find_if(existingReadings.begin(), existingReadings.end(),
+                            [&reading](const GlucoseReading& existingReading) {
+                                return existingReading.epoch == reading.epoch;
+                            }) != existingReadings.end();
     });
 
     if (glucoseReadings.size() == 0) {
@@ -247,7 +245,8 @@ std::list<GlucoseReading> BGSourceLibreLinkUp::updateReadings(std::list<GlucoseR
         String debugLog = "Received readings: ";
         int count = 0;
         for (auto it = existingReadings.rbegin(); it != existingReadings.rend() && count < 5; ++it, ++count) {
-            debugLog += " " + String(it->sgv) + " -" + String(it->getSecondsAgo() / 60) + "m " + toString(it->trend) + ", ";
+            debugLog +=
+                " " + String(it->sgv) + " -" + String(it->getSecondsAgo() / 60) + "m " + toString(it->trend) + ", ";
         }
 
         debugLog += "\n";
@@ -259,7 +258,6 @@ std::list<GlucoseReading> BGSourceLibreLinkUp::updateReadings(std::list<GlucoseR
 }
 
 std::list<GlucoseReading> BGSourceLibreLinkUp::getReadings(unsigned long long lastReadingEpoch) {
-
     auto readingFromConnection = getLibreLinkUpConnection();
 
     if (lastCallAttemptEpoch >= readingFromConnection.epoch) {
@@ -285,8 +283,8 @@ std::list<GlucoseReading> BGSourceLibreLinkUp::getReadings(unsigned long long la
 #endif
 
     client->begin(*wifiSecureClient, url);
-    client->setTimeout(15000); // Set timeout to 15 seconds (15000 milliseconds)
-    for (auto &header : standardHeaders) {
+    client->setTimeout(15000);  // Set timeout to 15 seconds (15000 milliseconds)
+    for (auto& header : standardHeaders) {
         client->addHeader(header.first, header.second);
     }
 
@@ -346,15 +344,16 @@ std::list<GlucoseReading> BGSourceLibreLinkUp::getReadings(unsigned long long la
         String dateString = v["FactoryTimestamp"].as<String>();
         reading.epoch = libreFactoryTimestampToEpoch(dateString);
         if (reading.getSecondsAgo() < 0) {
-            DEBUG_PRINTF("Reading from the future: %s: %s: %lu\n", dateString.c_str(), reading.toString().c_str(), time(NULL));
+            DEBUG_PRINTF("Reading from the future: %s: %s: %lu\n", dateString.c_str(), reading.toString().c_str(),
+                         time(NULL));
         }
 
         glucoseReadings.push_front(reading);
     }
     String debug_read_values = "Read values: ";
 
-    glucoseReadings.sort([](const GlucoseReading &a, const GlucoseReading &b) { return a.epoch < b.epoch; });
-    for (auto &reading : glucoseReadings) {
+    glucoseReadings.sort([](const GlucoseReading& a, const GlucoseReading& b) { return a.epoch < b.epoch; });
+    for (auto& reading : glucoseReadings) {
         debug_read_values += String(reading.sgv) + ":(" + String(reading.getSecondsAgo()) + "), ";
     }
 

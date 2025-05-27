@@ -5,11 +5,11 @@
 #include "BGSource.h"
 
 class BGDisplayFaceValueAndDiff : public BGDisplayFaceTextBase {
-  public:
-    void showReadings(const std::list<GlucoseReading> &readings, bool dataIsOld = false) const override;
+public:
+    void showReadings(const std::list<GlucoseReading>& readings, bool dataIsOld = false) const override;
 
-  private:
-    String getDiff(const std::list<GlucoseReading> &readings) const;
+private:
+    String getDiff(const std::list<GlucoseReading>& readings) const;
 };
 
 #endif

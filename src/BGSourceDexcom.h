@@ -11,8 +11,8 @@
 #define DEXCOM_US_SERVER "https://share1.dexcom.com"
 
 class BGSourceDexcom : public BGSource {
-  public:
-  private:
+public:
+private:
     std::list<GlucoseReading> updateReadings(std::list<GlucoseReading> existingReadings) override;
     std::list<GlucoseReading> updateReadings(DEXCOM_SERVER dexcomServer, String dexcomUsername, String dexcomPassword,
                                              std::list<GlucoseReading> existingReadings);
@@ -24,4 +24,4 @@ class BGSourceDexcom : public BGSource {
     String getSessionId(DEXCOM_SERVER dexcomServer, String accountId, String dexcomPassword);
 };
 
-#endif // BGSOURCEDEXCOM_H
+#endif  // BGSOURCEDEXCOM_H

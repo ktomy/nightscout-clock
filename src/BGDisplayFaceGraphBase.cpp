@@ -1,7 +1,9 @@
 #include "BGDisplayFaceGraphBase.h"
+
+#include <Arduino.h>
+
 #include "BGDisplayManager.h"
 #include "globals.h"
-#include <Arduino.h>
 
 int getAverageValueForPeriod(uint16_t fromSecondsAgo, uint16_t toSecondsAgo, std::list<GlucoseReading> readings) {
     unsigned long long fromEpoch = time(NULL) - fromSecondsAgo;
@@ -10,7 +12,7 @@ int getAverageValueForPeriod(uint16_t fromSecondsAgo, uint16_t toSecondsAgo, std
 
     long sum = 0;
     int count = 0;
-    for (const GlucoseReading &reading : readings) {
+    for (const GlucoseReading& reading : readings) {
         if (reading.epoch >= toEpoch && reading.epoch < fromEpoch) {
             sum += reading.sgv;
             count++;
@@ -43,7 +45,7 @@ int getNormalIntervalYPosition(int value, GlucoseInterval interval) {
 }
 
 void BGDisplayFaceGraphBase::showGraph(uint8_t x_position, uint8_t length, uint16_t forMinutes,
-                                       const std::list<GlucoseReading> &readings) const {
+                                       const std::list<GlucoseReading>& readings) const {
     auto pixelSizeSeconds = (forMinutes * 60) / length;
 
     auto intervals = bgDisplayManager.getGlucoseIntervals();
@@ -53,7 +55,7 @@ void BGDisplayFaceGraphBase::showGraph(uint8_t x_position, uint8_t length, uint1
     DEBUG_PRINTF("Pixel size: %d seconds\n", pixelSizeSeconds);
 
     String readingsDebug = "Readings: ";
-    for (const GlucoseReading &reading : readings) {
+    for (const GlucoseReading& reading : readings) {
         readingsDebug += reading.toString() + " | ";
     }
 
@@ -63,7 +65,7 @@ void BGDisplayFaceGraphBase::showGraph(uint8_t x_position, uint8_t length, uint1
 
     GlucoseInterval normalInterval = GlucoseInterval();
 
-    for (const GlucoseInterval &interval : intervals.intervals) {
+    for (const GlucoseInterval& interval : intervals.intervals) {
         if (interval.intarval_type == BG_LEVEL::NORMAL) {
             normalInterval = interval;
             break;

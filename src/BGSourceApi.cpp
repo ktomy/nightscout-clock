@@ -1,6 +1,7 @@
+#include "BGSourceApi.h"
+
 #include <Arduino.h>
 
-#include "BGSourceApi.h"
 #include "ServerManager.h"
 
 void BGSourceApi::setup() {
@@ -8,11 +9,11 @@ void BGSourceApi::setup() {
     DEBUG_PRINTLN("BGSourceApi::setup");
 #endif
 
-    // To be able to add handlers we need to remove the default handler, this is kinda dirty hack, but there is no other way
-    // (known to me)
+    // To be able to add handlers we need to remove the default handler, this is kinda dirty hack, but there is no other
+    // way (known to me)
     ServerManager.removeStaticFileHandler();
 
-    ArJsonRequestHandlerFunction entriesPostHandler = [this](AsyncWebServerRequest *request, JsonVariant &json) {
+    ArJsonRequestHandlerFunction entriesPostHandler = [this](AsyncWebServerRequest* request, JsonVariant& json) {
         this->HandleEntriesPost(request, json);
     };
 
@@ -24,11 +25,11 @@ void BGSourceApi::setup() {
     ServerManager.addStaticFileHandler();
 }
 
-AsyncCallbackWebHandler *BGSourceApi::createDeleteEntriesHandler() {
+AsyncCallbackWebHandler* BGSourceApi::createDeleteEntriesHandler() {
     auto handler = new AsyncCallbackWebHandler();
     handler->setUri("/api/v1/entries");
     handler->setMethod(HTTP_DELETE);
-    handler->onRequest([this](AsyncWebServerRequest *request) {
+    handler->onRequest([this](AsyncWebServerRequest* request) {
 #ifdef DEBUG_BG_SOURCE
         DEBUG_PRINTLN("BGSourceApi::HandleEntriesDelete");
 #endif
@@ -39,8 +40,7 @@ AsyncCallbackWebHandler *BGSourceApi::createDeleteEntriesHandler() {
     return handler;
 }
 
-void BGSourceApi::HandleEntriesPost(AsyncWebServerRequest *request, JsonVariant &json) {
-
+void BGSourceApi::HandleEntriesPost(AsyncWebServerRequest* request, JsonVariant& json) {
 #ifdef DEBUG_BG_SOURCE
     DEBUG_PRINTLN("BGSourceApi::HandleEntriesPost");
 #endif
@@ -49,13 +49,13 @@ void BGSourceApi::HandleEntriesPost(AsyncWebServerRequest *request, JsonVariant 
         request->send(400, "application/json", "{\"status\": \"json parsing error\"}");
         return;
     }
-    auto &&data = json.as<JsonArray>();
-    for (auto &&entry : data) {
+    auto&& data = json.as<JsonArray>();
+    for (auto&& entry : data) {
         if (not entry.is<JsonObject>()) {
             request->send(400, "application/json", "{\"status\": \"json parsing error\"}");
             return;
         }
-        auto &&entryObj = entry.as<JsonObject>();
+        auto&& entryObj = entry.as<JsonObject>();
         if (entryObj["dateString"].isNull() || entryObj["sgv"].isNull()) {
             request->send(400, "application/json", "{\"status\": \"json parsing error\"}");
             return;
@@ -78,11 +78,9 @@ void BGSourceApi::HandleEntriesPost(AsyncWebServerRequest *request, JsonVariant 
     hasNewDataFlag = true;
 
     request->send(200, "application/json", "{\"status\": \"ok\"}");
-    
+
     // Sort readings by epoch
-    glucoseReadings.sort([](const GlucoseReading &a, const GlucoseReading &b) {
-        return a.epoch < b.epoch;
-    });
+    glucoseReadings.sort([](const GlucoseReading& a, const GlucoseReading& b) { return a.epoch < b.epoch; });
 }
 
 std::list<GlucoseReading> BGSourceApi::updateReadings(std::list<GlucoseReading> existingReadings) {

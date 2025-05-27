@@ -6,21 +6,21 @@
 #define VERSION "0.19"
 
 #ifdef DEBUG
-#define DEBUG_PRINTLN(x)                                                                                                         \
-    {                                                                                                                            \
-        Serial.print("[");                                                                                                       \
-        Serial.print(millis());                                                                                                  \
-        Serial.print("] [");                                                                                                     \
-        Serial.print(__func__);                                                                                                  \
-        Serial.print("]: ");                                                                                                     \
-        Serial.println(x);                                                                                                       \
+#define DEBUG_PRINTLN(x)        \
+    {                           \
+        Serial.print("[");      \
+        Serial.print(millis()); \
+        Serial.print("] [");    \
+        Serial.print(__func__); \
+        Serial.print("]: ");    \
+        Serial.println(x);      \
     }
-#define DEBUG_PRINTF(format, ...)                                                                                                \
-    {                                                                                                                            \
-        String formattedMessage = "[" + String(millis()) + "] [" + String(__func__) + "]: ";                                     \
-        Serial.print(formattedMessage);                                                                                          \
-        Serial.printf(format, ##__VA_ARGS__);                                                                                    \
-        Serial.println();                                                                                                        \
+#define DEBUG_PRINTF(format, ...)                                                            \
+    {                                                                                        \
+        String formattedMessage = "[" + String(millis()) + "] [" + String(__func__) + "]: "; \
+        Serial.print(formattedMessage);                                                      \
+        Serial.printf(format, ##__VA_ARGS__);                                                \
+        Serial.println();                                                                    \
     }
 #else
 #define DEBUG_PRINTLN(x)
@@ -48,7 +48,6 @@
 #define COLOR_DARK_GREEN 0x0500
 #define COLOR_DARK_ORANGE 0xa500
 
-
 #define BG_COLOR_OLD COLOR_GRAY
 #define BG_COLOR_NORMAL COLOR_GREEN
 #define BG_COLOR_WARNING COLOR_YELLOW
@@ -74,4 +73,4 @@ extern const String sound_urgent_low PROGMEM;
 extern const String sound_low PROGMEM;
 extern const String sound_high PROGMEM;
 extern const String sound_boot PROGMEM;
-#endif // Globals_H
+#endif  // Globals_H

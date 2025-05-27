@@ -1,5 +1,6 @@
-#include <Arduino.h>
 #include <Adafruit_GFX.h>
+#include <Arduino.h>
+
 #include "ClockFont.h"
 
 /**
@@ -491,4 +492,4 @@ static const std::map<char, uint16_t> CharMap1 PROGMEM = {
     {253, 4},  {254, 4},  {255, 4},  {285, 2},  {338, 4},  {339, 4},  {352, 4}, {353, 4}, {376, 4}, {381, 4}, {382, 4},
     {3748, 2}, {5024, 2}, {8226, 2}, {8230, 4}, {8364, 4}, {65533, 4}};
 
-const ClockFont AwtrixFont PROGMEM = {(uint8_t *)AwtrixBitmaps, (GFXglyph *)AwtrixFontGlyphs, 0x20, 0xFF, 6, CharMap1};
+const ClockFont AwtrixFont PROGMEM = {(uint8_t*)AwtrixBitmaps, (GFXglyph*)AwtrixFontGlyphs, 0x20, 0xFF, 6, CharMap1};
