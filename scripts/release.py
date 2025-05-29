@@ -73,12 +73,13 @@ if version_file_name not in modified_file_names or globals_file_name not in modi
     print("No changes detected. Nothing to do.")
 
 subprocess.run(["git", "commit", "-m", commit_message])
-subprocess.run(["git", "push"])
 
 # Create git tag
 tag_name = f"v-{version}"
 subprocess.run(["git", "tag", tag_name])
-subprocess.run(["git", "push", "--tags"])
+
+# Push changes and tags to the remote repository
+subprocess.run(["git", "push", "--follow-tags"])
 
 
 

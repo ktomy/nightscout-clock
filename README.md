@@ -67,6 +67,7 @@ Nightscout CLock is a custom firmware for Ulanzi TC001. It can also run (with mi
 - [Improv WiFi](https://github.com/improv-wifi) compatibility (setting up WiFi during the installation)
 - [Gluroo](https://gluroo.com/) data source (API_SECRET within the URL parameters)
 - Dexcom Share data source
+- LibreLinkUp (libreview) data source
 - Brightness adjustment
   - Brightness can be adjusted within the Web UI
   - Automatic brightness adjustment based on the ambient light
@@ -100,6 +101,11 @@ Nightscout CLock is a custom firmware for Ulanzi TC001. It can also run (with mi
   - ...more... (if you are the author of a CGM data collecting app/service nad you want your data to be displayed on the Nightscout Clock, please contact me)
 
 ## Changes
+
+### 0.22
+
+- Fixed delta for LibreLinkUp source
+- Now I can consider LibreLinkUp as being functioning. So closing [#9](https://github.com/ktomy/nightscout-clock/issues/9) and [#27](https://github.com/ktomy/nightscout-clock/issues/27)
 
 ### 0.21
 
