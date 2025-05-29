@@ -51,8 +51,18 @@ String BGDisplayFaceValueAndDiff::getDiff(const std::list<GlucoseReading>& readi
         if (last.epoch - it->epoch > (6 * 60 + 30)) {
             break;
         }
-        foundReadings.push_front(*it);
+        foundReadings.push_back(*it);
     }
+
+    // If we have a lot of readings, we are probably on Libre, so we just compare 2 last readings
+    if (foundReadings.size() > 5) {
+#ifdef DEBUG_DISPLAY
+        DEBUG_PRINTLN("Too many readings found, using only last 2");
+#endif
+        // truncate the list to keep only the last 2 readings
+        foundReadings.resize(2);
+    }
+
     // cucle through found readings, get min and max SGVs
     int minSGV = 9999;
     int maxSGV = 0;
