@@ -47,10 +47,16 @@ AuthTicket BGSourceLibreLinkUp::login() {
                   SettingsManager.settings.librelinkup_password + "\"}";
 
     auto responseCode = client->POST(body);
-    if (responseCode != HTTP_CODE_OK) {
+    if (responseCode != HTTP_CODE_OK &&
+        (firstConnectionSuccess == false || retryCount > MAX_RETRY_COUNT)) {
         DEBUG_PRINTF("Error logging in to LibreLinkUp %d\n", responseCode);
         DisplayManager.showFatalError(
             String("Error logging in to LibreLinkUp: ") + String(responseCode));
+    }
+    if (responseCode != HTTP_CODE_OK) {
+        retryCount += 1;
+    } else {
+        retryCount = 0;
     }
 
     String response = client->getString();
@@ -166,10 +172,16 @@ GlucoseReading BGSourceLibreLinkUp::getLibreLinkUpConnection() {
 
     auto responseCode = client->GET();
 
-    if (responseCode != HTTP_CODE_OK) {
+    if (responseCode != HTTP_CODE_OK &&
+        (firstConnectionSuccess == false || retryCount > MAX_RETRY_COUNT)) {
         DEBUG_PRINTF("Error getting connections from LibreLinkUp %d\n", responseCode);
         DisplayManager.showFatalError(
             String("Error getting connections from LibreLinkUp: ") + String(responseCode));
+    }
+    if (responseCode != HTTP_CODE_OK) {
+        retryCount += 1;
+    } else {
+        retryCount = 0;
     }
 
     String response = client->getString();
@@ -181,6 +193,13 @@ GlucoseReading BGSourceLibreLinkUp::getLibreLinkUpConnection() {
     JsonDocument doc;
     DeserializationError error = deserializeJson(doc, response);
     if (error) {
+        if (error == DeserializationError::EmptyInput) {
+            DEBUG_PRINTLN("Empty response from LibreLinkUp, no data to process");
+            retryCount += 1;
+            if (retryCount <= MAX_RETRY_COUNT) {
+                return GlucoseReading();  // return empty reading to indicate no data
+            }
+        }
         DEBUG_PRINTF(
             "Error deserializing LibreLinkUp connections response: %s\nFailed on string: %s\n",
             error.c_str(), response.c_str());
@@ -300,7 +319,7 @@ std::list<GlucoseReading> BGSourceLibreLinkUp::updateReadings(
 std::list<GlucoseReading> BGSourceLibreLinkUp::getReadings(unsigned long long lastReadingEpoch) {
     auto readingFromConnection = getLibreLinkUpConnection();
 
-    if (lastCallAttemptEpoch >= readingFromConnection.epoch) {
+    if (readingFromConnection.isEmpty() || lastCallAttemptEpoch >= readingFromConnection.epoch) {
 #ifdef DEBUG_BG_SOURCE
         DEBUG_PRINTF(
             "No readings needed, last reading epoch %llu is already in\n", lastCallAttemptEpoch);
@@ -334,7 +353,8 @@ std::list<GlucoseReading> BGSourceLibreLinkUp::getReadings(unsigned long long la
     client->addHeader("account-id", encodeSHA256(authTicket.accountId));
 
     auto responseCode = client->GET();
-    if (responseCode != HTTP_CODE_OK && firstConnectionSuccess == false) {
+    if (responseCode != HTTP_CODE_OK &&
+        (firstConnectionSuccess == false || retryCount > MAX_RETRY_COUNT)) {
         DEBUG_PRINTF("Error getting graph from LibreLinkUp %d\n", responseCode);
         DisplayManager.showFatalError(
             String("Error getting graph from LibreLinkUp: ") + String(responseCode));
@@ -346,7 +366,11 @@ std::list<GlucoseReading> BGSourceLibreLinkUp::getReadings(unsigned long long la
         }
     }
 #endif
-
+    if (responseCode != HTTP_CODE_OK) {
+        retryCount += 1;
+    } else {
+        retryCount = 0;
+    }
     String response = client->getString();
 
 #ifdef DEBUG_BG_SOURCE
@@ -371,6 +395,13 @@ std::list<GlucoseReading> BGSourceLibreLinkUp::getReadings(unsigned long long la
     DeserializationError error = deserializeJson(doc, response, filterOption);
     // DeserializationError error = deserializeJson(doc, response);
     if (error) {
+        if (error == DeserializationError::EmptyInput) {
+            DEBUG_PRINTLN("Empty response from LibreLinkUp, no data to process");
+            retryCount += 1;
+            if (retryCount <= MAX_RETRY_COUNT) {
+                return std::list<GlucoseReading>{readingFromConnection};
+            }
+        }
         DEBUG_PRINTF(
             "Error deserializing LibreLinkUp glucose response: %s\nFailed on string: %s\n",
             error.c_str(), response.c_str());

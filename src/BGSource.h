@@ -23,6 +23,8 @@ public:
 
     int getSecondsAgo() const { return time(NULL) - epoch; }
 
+    bool isEmpty() const { return sgv == 0 && trend == BG_TREND::NONE && epoch == 0; }
+
     String toString() const {
         return String(sgv) + "," + ::toString(trend) + "," + String(epoch) + "(" +
                String(getSecondsAgo()) + ")";

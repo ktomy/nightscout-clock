@@ -16,6 +16,8 @@
     "Mobile/10A5355d "                                                                          \
     "Safari/8536.25"
 
+#define MAX_RETRY_COUNT 10
+
 class AuthTicket {
 public:
     AuthTicket() = default;
@@ -33,6 +35,7 @@ public:
     std::list<GlucoseReading> updateReadings(std::list<GlucoseReading> existingReadings) override;
 
 private:
+    int retryCount = 0;
     bool hasValidAuthentication();
     void deleteAuthTicket();
     AuthTicket login();
