@@ -59,8 +59,6 @@ void showJoinAP() {
     apModeHintPosition -= 0.18;
 }
 
-// int getFreeMemory() { return ESP.getFreeHeap(); }
-
 void loop() {
 #ifdef DEBUG_MEMORY
 
@@ -69,7 +67,7 @@ void loop() {
 
     if (currentMillis - lastMemoryCheck >= 10000) {  // Check memory every second
         lastMemoryCheck = currentMillis;
-        auto freeMemory = getFreeMemory();
+        auto freeMemory = ESP.getFreeHeap();
         DEBUG_PRINTLN("Free memory: " + String(freeMemory));
     }
 #endif
