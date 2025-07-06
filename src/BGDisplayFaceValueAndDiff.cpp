@@ -20,12 +20,16 @@ void BGDisplayFaceValueAndDiff::showReadings(
 
     String diff = getDiff(readings);
 
-    if (dataIsOld) {
-        DisplayManager.setTextColor(BG_COLOR_OLD);
+     if (dataIsOld) {
+        if (SettingsManager.settings.dimmer_mode_enable) {
+            DisplayManager.setTextColor(DIMMER_BG_COLOR_OLD);
+        } else {
+            DisplayManager.setTextColor(BG_COLOR_OLD);
+        }
     } else {
         DisplayManager.setTextColor(COLOR_WHITE);
     }
-
+    
     DisplayManager.printText(33, 6, diff.c_str(), TEXT_ALIGNMENT::RIGHT, 2);
 
     // Calculate time since last data update
