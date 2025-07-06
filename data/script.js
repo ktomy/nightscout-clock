@@ -43,6 +43,17 @@
         $('#custom_hostname_enable').on('change', toggleCustomHostnameSettings);
         $('#custom_nodatatimer_enable').on('change', toggleCustomNoDataSettings);
 
+         $('#dimmer_mode_enable, #brighter_mode_enable').on('change', function() {
+        if ($('#dimmer_mode_enable').is(':checked') && $('#brighter_mode_enable').is(':checked')) {
+            $('#dimmer_mode_enable').prop('checked', false);
+            $('#brighter_mode_enable').prop('checked', false);
+            $('#mode-warning').removeClass('d-none');
+            setTimeout(function() {
+                $('#mode-warning').addClass('d-none');
+            }, 5000);
+        }
+    });
+
     }
 
     function addAdditionalWifiTypeHandler() {
@@ -486,6 +497,10 @@
         json['custom_nodatatimer_enable'] = $('#custom_nodatatimer_enable').is(':checked');
         json['custom_nodatatimer'] = $('#custom_nodatatimer').val();
 
+        //Brightness Modes
+        json['dimmer_mode_enable'] = $('#dimmer_mode_enable').is(':checked');
+        json['brighter_mode_enable'] = $('#brighter_mode_enable').is(':checked');
+
         return JSON.stringify(json);
     }
 
@@ -767,6 +782,10 @@
         $('#custom_nodatatimer_enable').prop('checked', json['custom_nodatatimer_enable']);
         $('#custom_nodatatimer').val(json['custom_nodatatimer']);
         toggleCustomNoDataSettings();
+
+        //Brightness Modes
+        $('#dimmer_mode_enable').prop('checked', json['dimmer_mode_enable']);
+        $('#brighter_mode_enable').prop('checked', json['brighter_mode_enable']);
         
     }
 
