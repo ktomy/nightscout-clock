@@ -33,6 +33,8 @@
 
     loadConfiguration();
 
+    displayVersionInfo();
+
     function addButtonsHandlers() {
         $('#btn_high_alarm_try').on('click', tryAlarm);
         $('#btn_low_alarm_try').on('click', tryAlarm);
@@ -631,8 +633,8 @@
         var tzJson = "tzdata.json";
 
         if (window.location.href.indexOf("127.0.0.1") > 0) {
-            configJsonUrl = "http://192.168.86.24/config.json";
-            tzJson = "http://192.168.86.24/tzdata.json";
+            configJsonUrl = "http://192.168.86.24/config.json?" + Date.now();
+            tzJson = "http://192.168.86.24/tzdata.json?" + Date.now();
 
         }
 
@@ -798,6 +800,65 @@
         $('#toast_failure').toast('show');
     }
 
+    function displayVersionInfo() {
 
+    // Version info logic
+
+    let versionUrl = "/version.txt?";
+    if (window.location.href.indexOf("127.0.0.1") !== -1) {
+        versionUrl = "http://192.168.86.24/version.txt?";
+    }
+
+    fetch(versionUrl + Date.now())
+        .then(res => {
+            if (!res.ok) throw new Error('Failed to fetch current version');
+            return res.text();
+        })
+        .then(currentVersion => {
+            currentVersion = currentVersion.trim();
+            if (!currentVersion) throw new Error('Current version is empty');
+            $('#current_version').text(currentVersion);
+            fetch('https://raw.githubusercontent.com/ktomy/nightscout-clock/refs/heads/main/data/version.txt?' + Date.now())
+                .then(res => {
+                    if (!res.ok) throw new Error('Failed to fetch latest version');
+                    return res.text();
+                })
+                .then(latestVersion => {
+                    latestVersion = latestVersion.trim();
+                    if (!latestVersion) throw new Error('Latest version is empty');
+                    $('#latest_version').text(latestVersion);
+                    if (compareVersions(currentVersion, latestVersion) < 0) {
+                        $('#update_status').text('Update available!');
+                        $('#update_link').removeClass('d-none');
+                    } else {
+                        $('#update_status').text('You are using the latest version.');
+                        $('#update_link').addClass('d-none');
+                    }
+                })
+                .catch((err) => {
+                    $('#latest_version').text('Error');
+                    $('#update_status').text('Could not check for updates: ' + err.message);
+                    $('#update_link').addClass('d-none');
+                });
+        })
+        .catch((err) => {
+            $('#current_version').text('Error');
+            $('#latest_version').text('-');
+            $('#update_status').text('Could not read current version: ' + err.message);
+            $('#update_link').addClass('d-none');
+        });
+    }
+    // Simple version comparison: returns -1 if v1 < v2, 0 if equal, 1 if v1 > v2
+    function compareVersions(v1, v2) {
+        const a = v1.trim().split('.').map(Number);
+        const b = v2.trim().split('.').map(Number);
+        for (let i = 0; i < Math.max(a.length, b.length); i++) {
+            const n1 = a[i] || 0;
+            const n2 = b[i] || 0;
+            if (n1 < n2) return -1;
+            if (n1 > n2) return 1;
+        }
+        return 0;
+    }
 
 })()

@@ -1,16 +1,48 @@
 import os
 import json
 import subprocess
+import sys
+
+# Determine which part to increment
+if len(sys.argv) > 1:
+    bump_type = sys.argv[1].lower()
+    if bump_type not in ("major", "minor", "patch"):
+        print("Usage: release.py [major|minor|patch]")
+        sys.exit(1)
+else:
+    bump_type = "patch"
 
 # Load contents of version.txt
-version_file_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "version.txt"))
+version_file_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "data", "version.txt"))
 with open(version_file_path, "r") as version_file:
     version = version_file.read().strip()
 
-# Increment the minor version
-major, minor = version.split(".")
-minor = int(minor) + 1
-version = f"{major}.{minor}"
+# Parse version as major.minor.patch (default patch to 0 if missing)
+version_parts = version.split(".")
+if len(version_parts) == 2:
+    major, minor = version_parts
+    patch = 0
+elif len(version_parts) == 3:
+    major, minor, patch = version_parts
+    patch = int(patch)
+else:
+    raise ValueError("Invalid version format in version.txt")
+
+major = int(major)
+minor = int(minor)
+patch = int(patch)
+
+if bump_type == "major":
+    major += 1
+    minor = 0
+    patch = 0
+elif bump_type == "minor":
+    minor += 1
+    patch = 0
+else:  # patch
+    patch += 1
+
+version = f"{major}.{minor}.{patch}"
 
 # Update version file
 with open(version_file_path, "w") as version_file:
@@ -75,6 +107,7 @@ if version_file_name not in modified_file_names or globals_file_name not in modi
 subprocess.run(["git", "commit", "-m", commit_message])
 
 # Create git tag
+# Use v-major.minor.patch format
 tag_name = f"v-{version}"
 subprocess.run(["git", "tag", tag_name])
 
