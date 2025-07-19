@@ -163,6 +163,16 @@ bool SettingsManager_::loadSettingsFromFile() {
         }
     }
 
+    // Brightness Modes
+    settings.dimmer_mode_enable = (*doc)["dimmer_mode_enable"].as<bool>();
+    settings.brighter_mode_enable = (*doc)["brighter_mode_enable"].as<bool>();
+
+    // Ensure only one brightness mode is enabled at a time: if both are enabled, disable both
+    if (settings.dimmer_mode_enable && settings.brighter_mode_enable) {
+    settings.dimmer_mode_enable = false;
+    settings.brighter_mode_enable = false;
+    }
+
     delete doc;
 
     this->settings = settings;
@@ -253,6 +263,10 @@ bool SettingsManager_::saveSettingsToFile() {
     // Custom No Data Timer
     (*doc)["custom_nodatatimer_enable"] = settings.custom_nodatatimer_enable;
     (*doc)["custom_nodatatimer"] = settings.custom_nodatatimer;
+
+    // Brightness Modes
+    (*doc)["dimmer_mode_enable"] = settings.dimmer_mode_enable;
+    (*doc)["brighter_mode_enable"] = settings.brighter_mode_enable;
 
     if (trySaveJsonAsSettings(*doc) == false)
         return false;

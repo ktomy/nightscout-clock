@@ -84,18 +84,32 @@ void DisplayManager_::setup() {
 }
 
 void DisplayManager_::applySettings() {
-    int displayBrightness = 70;
-
+    int min_brightness = MIN_BRIGHTNESS;
+    int max_brightness = MAX_BRIGHTNESS;
+    
+    if (SettingsManager.settings.dimmer_mode_enable) {
+        min_brightness = DIMMER_MIN_BRIGHTNESS;
+        max_brightness = DIMMER_MAX_BRIGHTNESS;
+    }
+    
+    if (SettingsManager.settings.brighter_mode_enable) {
+        min_brightness = BRIGHTER_MIN_BRIGHTNESS;
+        max_brightness = BRIGHTER_MAX_BRIGHTNESS;
+    }
+    
     if (!SettingsManager.settings.auto_brightness) {
-        displayBrightness =
-            map(SettingsManager.settings.brightness_level, 0, 10, MIN_BRIGHTNESS, MAX_BRIGHTNESS);
+        DisplayManager.setBrightness(
+        map(SettingsManager.settings.brightness_level, 0, 10, min_brightness, max_brightness)
+    );
     }
 
     DEBUG_PRINTLN(
         "Setting brightness to " + String(displayBrightness) +
         " auto brightness: " + String(SettingsManager.settings.auto_brightness) +
         " and brightness level: " + String(SettingsManager.settings.brightness_level));
-    DisplayManager.setBrightness(displayBrightness);
+    DisplayManager.setBrightness(
+    map(SettingsManager.settings.brightness_level, 0, 10, min_brightness, max_brightness)
+);
 }
 
 void DisplayManager_::tick() {}
