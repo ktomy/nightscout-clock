@@ -102,6 +102,12 @@ Nightscout CLock is a custom firmware for Ulanzi TC001. It can also run (with mi
 
 ## Changes
 
+### 0.23
+
+- Added version number, update check and link to the updating page to the WebUI. [#10](https://github.com/ktomy/nightscout-clock/issues/10)
+- Added development environment setup instructions. [#26](https://github.com/ktomy/nightscout-clock/issues/26)
+- Fixed LibreLink Up Server label. [#50](https://github.com/ktomy/nightscout-clock/issues/50)
+
 ### 0.22
 
 - Fixed delta for LibreLinkUp source
