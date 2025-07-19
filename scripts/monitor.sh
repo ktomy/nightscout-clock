@@ -6,4 +6,6 @@ else
     PROJECTDIR=$PWD
 fi
 
-platformio device monitor  --project-dir $PROJECTDIR --environment ulanzi_debug
+LOGFILE="$PROJECTDIR/monitor_$(date +'%Y%m%d_%H%M%S').log"
+
+platformio device monitor --project-dir "$PROJECTDIR" --environment ulanzi_debug | tee "$LOGFILE"

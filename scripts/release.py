@@ -78,8 +78,8 @@ subprocess.run(["git", "commit", "-m", commit_message])
 tag_name = f"v-{version}"
 subprocess.run(["git", "tag", tag_name])
 
-# Push changes and tags to the remote repository
-subprocess.run(["git", "push", "--follow-tags"])
+subprocess.run(["git", "push"])
+subprocess.run(["git", "push", "--tags"])
 
 
 
