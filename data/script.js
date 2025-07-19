@@ -828,7 +828,7 @@
                     if (!latestVersion) throw new Error('Latest version is empty');
                     $('#latest_version').text(latestVersion);
                     if (compareVersions(currentVersion, latestVersion) < 0) {
-                        $('#update_status').text('Update available!');
+                        $('#update_status').text('');
                         $('#update_link').removeClass('d-none');
                     } else {
                         $('#update_status').text('You are using the latest version.');
