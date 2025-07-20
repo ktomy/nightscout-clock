@@ -150,7 +150,12 @@ void PeripheryManager_::tick() {
         LDR_RAW = sampleAverage;
         CURRENT_LUX = (roundf(photocell.getSmoothedLux() * 1000) / 1000);
         if (SettingsManager.settings.auto_brightness && !MATRIX_OFF) {
-            brightnessPercent = sampleAverage / 4095.0 * 100.0;
+            brightnessPercent = sampleAverage / 4095.0 * 100.0 * 4;
+#ifdef DEBUG_BRIGHTNESS
+            DEBUG_PRINTF(
+                "LDR: %d, Lux: %.3f, Brightness Percent: %.2f\n", analogRead(LDR_PIN),
+                photocell.getSmoothedLux(), brightnessPercent);
+#endif
             int brightness = map(brightnessPercent, 0, 100, MIN_BRIGHTNESS, MAX_BRIGHTNESS);
             DisplayManager.setBrightness(brightness);
         }
