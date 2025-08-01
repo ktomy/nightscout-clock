@@ -9,4 +9,5 @@ void BGDisplayFaceBigText::showReadings(
 
     // show arrow in the right part of the screen
     showTrendArrow(readings.back(), MATRIX_WIDTH - 5, 1);
+    DisplayManager.update();
 }
