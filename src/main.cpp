@@ -28,7 +28,7 @@ void setup() {
 
     DisplayManager.applySettings();
 
-    DisplayManager.HSVtext(2, 6, String("Ver " + String(VERSION)).c_str(), true, 0);
+    DisplayManager.HSVtext(0, 6, String("Ver" + String(VERSION)).c_str(), true, 0);
 
     ServerManager.setup();
     bgSourceManager.setup(SettingsManager.settings.bg_source);
