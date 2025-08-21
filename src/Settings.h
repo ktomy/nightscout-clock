@@ -24,6 +24,8 @@ public:
     String librelinkup_email;
     String librelinkup_password;
     String librelinkup_region;
+    String medtronic_country;
+    String medtronic_token_json;
     String tz_libc_value;
     TIME_FORMAT time_format;
     bool alarm_urgent_low_enabled;
