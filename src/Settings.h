@@ -76,6 +76,8 @@ public:
     // Medtrum Easy Follow
     String medtrum_email;
     String medtrum_password;
+    String medtronic_country;
+    String medtronic_token_json;
     String tz_libc_value;
     TIME_FORMAT time_format;
     bool alarm_urgent_low_enabled;

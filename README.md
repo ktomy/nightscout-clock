@@ -155,6 +155,7 @@ High, low, and urgent-low alarms each have their own threshold, snooze duration,
 - LibreLinkUp (libreview) data source
 - Medtrum EasyFollow data source
 - Medtronic users can bridge data through xDrip+ to Nightscout, then connect the clock to that Nightscout site. See [discussion #53](https://github.com/ktomy/nightscout-clock/discussions/53)
+- Medtronic Carelink data source (requires token generation)
 - Brightness adjustment
   - Brightness can be adjusted within the Web UI
   - Automatic brightness adjustment based on the ambient light
