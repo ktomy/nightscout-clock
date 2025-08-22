@@ -69,12 +69,12 @@ fieldset.off input, fieldset.off select, fieldset.off .windows { opacity: .55; }
 .field > label, .label { font-weight: 500; }
 .help { color: var(--muted); }
 .err { color: #fca5a5; }
-.field.invalid input, .field.invalid select, .band.invalid > select { border-color: #f87171; }
-input[type=text], input[type=password], input[type=email], input[type=time], select {
+.field.invalid input, .field.invalid textarea, .field.invalid select, .band.invalid > select { border-color: #f87171; }
+input[type=text], input[type=password], input[type=email], input[type=time], select, textarea {
   width: 100%; min-width: 0; min-height: 44px; font: 16px/22px var(--sans); color: var(--text); background: var(--surface-sunk);
   border: 1px solid var(--line-2); border-radius: var(--radius); padding: 10px 12px; outline: none;
 }
-input:focus-visible, select:focus-visible, button:focus-visible { outline: 2px solid var(--cyan); outline-offset: 1px; }
+input:focus-visible, textarea:focus-visible, select:focus-visible, button:focus-visible { outline: 2px solid var(--cyan); outline-offset: 1px; }
 select { appearance: none; background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%), linear-gradient(135deg, var(--muted) 50%, transparent 50%); background-position: calc(100% - 18px) 50%, calc(100% - 13px) 50%; background-size: 5px 5px; background-repeat: no-repeat; padding-right: 32px; }
 input:disabled, select:disabled, button:disabled { opacity: .5; cursor: not-allowed; }
 .input-group { display: flex; min-width: 0; }

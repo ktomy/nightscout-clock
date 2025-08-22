@@ -8,6 +8,7 @@
     "gateway": "",
     "dns1": "",
     "dns2": "",
+    "medtronic_token_json": "",
     "data_source": "nightscout",
     "dexcom_username": "",
     "dexcom_password": "",

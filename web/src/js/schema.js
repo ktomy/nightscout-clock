@@ -84,7 +84,8 @@ const SOURCES = [
     ["dexcom", "Dexcom"],
     ["nightscout", "Nightscout"],
     ["librelinkup", "LibreLinkUp"],
-    ["carelink", "Medtronic CareLink"],
+    ["carelink", "Medtronic via Nightscout"],
+    ["medtronic", "Medtronic CareLink (token JSON)"],
     ["medtrum", "Medtrum Easy Follow"],
     ["api", "API (see project documentation)"],
 ]
@@ -331,6 +332,14 @@ function validateConfig(c, ctx) {
         need("medtrum_password", RX.password.test(text(c.medtrum_password)), "Medtrum password is required (8 to 20 characters).")
     }
 
+    if (src === "medtronic") {
+        let token = null
+        try { token = JSON.parse(text(c.medtronic_token_json)) } catch (e) { /* invalid JSON */ }
+        need("medtronic_token_json", isBlock(token) &&
+            ["access_token", "refresh_token", "client_id", "client_secret", "mag-identifier"].every(k => typeof token[k] === "string" && token[k].trim()),
+            "Enter token JSON containing access_token, refresh_token, client_id, client_secret and mag-identifier.")
+    }
+
     // Glucose
     need("units", inOptions(units, UNITS), "Please select blood glucose units type.")
     for (const k of LIMIT_KEYS) need(k, isGlucose(c[k], units), units === "mmol" ? "Enter 2.0 to 29.9." : "Enter 30 to 399.")
@@ -458,7 +467,7 @@ function normalizeLoaded(c) {
 function tabOfKey(key) {
     if (/^(ssid|password|additional_|custom_hostname|custom_mac|web_auth)/.test(key)) return "system"
     if (/^alarm_/.test(key)) return "alarms"
-    if (/^(data_source|ns_|api_secret|nightscout|dexcom|librelinkup|medtrum|units|low_|high_|bg_color)/.test(key)) return "glucose"
+    if (/^(data_source|ns_|api_secret|nightscout|dexcom|librelinkup|medtrum|medtronic|units|low_|high_|bg_color)/.test(key)) return "glucose"
     return "display"
 }
 

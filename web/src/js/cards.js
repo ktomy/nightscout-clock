@@ -591,8 +591,18 @@ function sourceCard() {
         if (src === "medtrum") parts.push(el("div.grid",
             field("medtrum_email", "Medtrum email", textInput("medtrum_email", { type: "email", autocomplete: "username" })),
             field("medtrum_password", "Medtrum password", textInput("medtrum_password", { type: "password", autocomplete: "current-password" }))))
+        if (src === "medtronic") {
+            const token = el("textarea", { id: idFor("medtronic_token_json"), rows: 5, spellcheck: "false", autocomplete: "off" })
+            token.value = form.get("medtronic_token_json") || ""
+            token.addEventListener("input", () => form.set("medtronic_token_json", token.value))
+            token.addEventListener("change", () => form.touch("medtronic_token_json"))
+            parts.push(field("medtronic_token_json", "Authentication token JSON", token,
+                el("span", "Obtain the token JSON with ", el("a", {
+                    href: "https://github.com/ondrej1024/carelink-python-client", target: "_blank", rel: "noopener noreferrer",
+                }, "carelink-python-client"), ".")))
+        }
         if (src === "carelink") parts.push(el("div.notice.info",
-            "Medtronic CareLink is not configured directly on the clock. Install xDrip+ on the phone connected to the sensor, connect xDrip+ to a Nightscout site, then connect the clock to that same Nightscout site by selecting the Nightscout source here. More details: ",
+            "To connect Medtronic through Nightscout, install xDrip+ on the phone connected to the sensor, connect xDrip+ to a Nightscout site, then connect the clock to that same Nightscout site by selecting the Nightscout source here. More details: ",
             el("a", { href: "https://github.com/ktomy/nightscout-clock/discussions/53", target: "_blank", rel: "noopener noreferrer" }, "GitHub discussion #53"), "."))
         if (src === "api") parts.push(el("div.notice.info", "Send readings to the clock with POST ", el("code", `${location.origin}/api/v1/entries`), " (see the project documentation)."))
         return el("div.stack", ...parts)
