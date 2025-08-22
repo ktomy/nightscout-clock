@@ -19,6 +19,8 @@
         time_format: /^(12|24)$/,
         email_format: /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/,
         not_empty: /^.{1,}$/,
+        medtronic_country: /^(us|eu)$/,
+        medtronic_token_json: /^\s*\{[\s\S]*\}\s*$/,
         custom_nodatatimer: /^(?:[6-9]|[1-5][0-9]|60)?$/,
 
     };
@@ -185,6 +187,7 @@
         $('#nightscout_settings_card').toggleClass("d-none", value !== "nightscout");
         $('#dexcom_settings_card').toggleClass("d-none", value !== "dexcom");
         $('#librelinkup_settings_card').toggleClass("d-none", value !== "librelinkup");
+        $('#medtronic_settings_card').toggleClass("d-none", value !== "carelink");
 
         removeFocusOutValidation('ns_hostname');
         removeFocusOutValidation('ns_port');
@@ -195,6 +198,8 @@
         removeFocusOutValidation('librelinkup_email');
         removeFocusOutValidation('librelinkup_password');
         removeFocusOutValidation('librelinkup_region');
+        removeFocusOutValidation('medtronic_country');
+        removeFocusOutValidation('medtronic_token_json');
 
         switch (value) {
             case "nightscout":
@@ -217,6 +222,11 @@
                 addFocusOutValidation('librelinkup_email');
                 addFocusOutValidation('librelinkup_password');
                 addFocusOutValidation('librelinkup_region');
+                break;
+            case "carelink":
+                setElementValidity(glucoseSource, true);
+                addFocusOutValidation('medtronic_country');
+                addFocusOutValidation('medtronic_token_json');
                 break;
             default:
                 setElementValidity(glucoseSource, false);
@@ -398,6 +408,10 @@
             isValid &= validate($('#librelinkup_email'), patterns.email_format);
             isValid &= validate($('#librelinkup_password'), patterns.dexcom_password);
             isValid &= validate($('#librelinkup_region'), patterns.not_empty);
+        } else if (value === "carelink") {
+            setElementValidity(glucoseSource, true);
+            isValid &= validate($('#medtronic_country'), patterns.medtronic_country);
+            isValid &= validate($('#medtronic_token_json'), patterns.medtronic_token_json);
         } else if (value === "api") {
             // No validation needed
         } else {
@@ -425,6 +439,10 @@
         json['librelinkup_email'] = $('#librelinkup_email').val();
         json['librelinkup_password'] = $('#librelinkup_password').val();
         json['librelinkup_region'] = $('#librelinkup_region').val();
+
+        //Medtronic CareLink
+        json['medtronic_country'] = $('#medtronic_country').val();
+        json['medtronic_token_json'] = $('#medtronic_token_json').val();
 
         //Nightscout
         json['api_secret'] = $('#api_secret').val();
@@ -704,6 +722,10 @@
         $('#librelinkup_email').val(json['librelinkup_email']);
         $('#librelinkup_password').val(json['librelinkup_password']);
         $('#librelinkup_region').val(json['librelinkup_region']);
+
+        //Medtronic CareLink
+        $('#medtronic_country').val(json['medtronic_country']);
+        $('#medtronic_token_json').val(json['medtronic_token_json']);
 
         //Nightscout        
         $('#api_secret').val(json['api_secret']);
