@@ -119,18 +119,7 @@
                         </h5>
                         <div class="card-body">
                             <div class="row">
-                                <div class="col-lg-3 col-md-6 col-12 mb-3 mb-md-0">
-                                    <label for="medtronic_country" class="form-label">CareLink server</label>
-                                    <select class="form-select" id="medtronic_country" required>
-                                        <option value="">Choose...</option>
-                                        <option value="us">United States</option>
-                                        <option value="eu">Europe/International</option>
-                                    </select>
-                                    <div class="invalid-feedback">
-                                        Please select CareLink server region
-                                    </div>
-                                </div>
-                                <div class="col-lg-9 col-md-6 col-12 mb-3 mb-md-0">
+                                <div class="col-12 mb-3">
                                     <label for="medtronic_token_json" class="form-label">Authentication Token JSON <span
                                             class="text-body-secondary">(Advanced - see documentation)</span></label>
                                     <textarea class="form-control" id="medtronic_token_json" rows="3"
@@ -141,7 +130,8 @@
                                     <div class="form-text">
                                         <small>Token JSON must be obtained through the <a
                                                 href="https://github.com/ondrej1024/carelink-python-client"
-                                                target="_blank">carelink-python-client</a> library.</small>
+                                                target="_blank">carelink-python-client</a> library.
+                                            Country/region is automatically detected from the JWT token.</small>
                                     </div>
                                 </div>
                             </div>
