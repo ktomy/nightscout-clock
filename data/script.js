@@ -186,7 +186,7 @@
         $('#nightscout_settings_card').toggleClass("d-none", value !== "nightscout");
         $('#dexcom_settings_card').toggleClass("d-none", value !== "dexcom");
         $('#librelinkup_settings_card').toggleClass("d-none", value !== "librelinkup");
-        $('#medtronic_settings_card').toggleClass("d-none", value !== "carelink");
+        $('#medtronic_settings_card').toggleClass("d-none", value !== "medtronic");
 
         removeFocusOutValidation('ns_hostname');
         removeFocusOutValidation('ns_port');
@@ -221,7 +221,7 @@
                 addFocusOutValidation('librelinkup_password');
                 addFocusOutValidation('librelinkup_region');
                 break;
-            case "carelink":
+            case "medtronic":
                 setElementValidity(glucoseSource, true);
                 addFocusOutValidation('medtronic_token_json');
                 break;
@@ -405,7 +405,7 @@
             isValid &= validate($('#librelinkup_email'), patterns.email_format);
             isValid &= validate($('#librelinkup_password'), patterns.dexcom_password);
             isValid &= validate($('#librelinkup_region'), patterns.not_empty);
-        } else if (value === "carelink") {
+        } else if (value === "medtronic") {
             setElementValidity(glucoseSource, true);
             isValid &= validate($('#medtronic_token_json'), patterns.medtronic_token_json);
         } else if (value === "api") {
