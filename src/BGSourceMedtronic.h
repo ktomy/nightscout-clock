@@ -3,6 +3,7 @@
 
 #include <ArduinoJson.h>
 #include <HTTPClient.h>
+#include <LCBUrl.h>
 #include <WiFiClientSecure.h>
 
 #include <optional>
@@ -156,7 +157,7 @@ public:
 
 private:
     // Token management
-    std::optional<MedtronicTokenData> getTokenData();
+    std::optional<MedtronicTokenData> getTokenData(bool refresh = true);
     bool saveTokenToSettings(const MedtronicTokenData& tokenData);
     std::optional<MedtronicTokenData> refreshToken(const MedtronicTokenData& expiredToken);
 
@@ -179,6 +180,7 @@ private:
     // Helper functions
     BG_TREND parseTrendArrow(const String& trend) const;
     void setCommonHeaders(HTTPClient* client) const;
+    void initiateHttpsCall(HTTPClient* client, const String& url);
 
     // Parse JSON token data from settings and create complete MedtronicTokenData object
     std::optional<MedtronicTokenData> parseTokenFromSettings() const;

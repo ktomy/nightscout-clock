@@ -26,7 +26,8 @@ std::list<GlucoseReading> BGSourceMedtronic::updateReadings(std::list<GlucoseRea
     std::optional<MedtronicTokenData> tokenData = getTokenData();
     if (!tokenData) {
         DEBUG_PRINTLN("Medtronic: No valid token data found. Please authenticate first.");
-        return existingReadings;
+        DisplayManager.showFatalError(
+            String("Medtronic: No valid token data found. Please authenticate first."));
     }
 
     // Fetch recent data
@@ -68,7 +69,7 @@ std::list<GlucoseReading> BGSourceMedtronic::updateReadings(std::list<GlucoseRea
     return existingReadings;
 }
 
-std::optional<MedtronicTokenData> BGSourceMedtronic::getTokenData() {
+std::optional<MedtronicTokenData> BGSourceMedtronic::getTokenData(bool refresh) {
     // First, ensure we have token data - load from settings if we don't have it
     if (!staticTokenData) {
         DEBUG_PRINTLN("Medtronic: Loading token from settings");
@@ -79,8 +80,8 @@ std::optional<MedtronicTokenData> BGSourceMedtronic::getTokenData() {
         }
     }
 
-    // Now check if the token is expired and refresh if needed
-    if (staticTokenData->isExpired()) {
+    // Now check if the token is expired and refresh if needed (only if refresh is enabled)
+    if (refresh && staticTokenData->isExpired()) {
         DEBUG_PRINTLN("Medtronic: Token expired, refreshing");
         staticTokenData = refreshToken(staticTokenData.value());
         if (!staticTokenData) {
@@ -156,20 +157,16 @@ std::optional<MedtronicTokenData> BGSourceMedtronic::refreshToken(
     }
 
     // Prepare refresh request
-    client->begin(*wifiSecureClient, config->token_url);
-    client->setTimeout(REQUEST_TIMEOUT_MS);
+    initiateHttpsCall(client, config->token_url);
+    client->addHeader("Content-Type", "application/x-www-form-urlencoded");
+    client->addHeader("Accept", "application/json");
     client->addHeader("mag-identifier", expiredToken.getMagIdentifier());
-    setCommonHeaders(client);
+    client->setUserAgent("Dalvik/2.1.0 (Linux; U; Android 10; Nexus 5X Build/QQ3A.200805.001)");
 
-    // Build refresh request payload
-    JsonDocument postDoc;
-    postDoc["refresh_token"] = expiredToken.getRefreshToken();
-    postDoc["client_id"] = expiredToken.getClientId();
-    postDoc["client_secret"] = expiredToken.getClientSecret();
-    postDoc["grant_type"] = "refresh_token";
-
-    String postData;
-    serializeJson(postDoc, postData);
+    // Build form-encoded refresh request payload
+    String postData = "refresh_token=" + expiredToken.getRefreshToken() +
+                      "&client_id=" + expiredToken.getClientId() +
+                      "&client_secret=" + expiredToken.getClientSecret() + "&grant_type=refresh_token";
 
     // Execute refresh request
     int httpCode = client->POST(postData);
@@ -222,7 +219,7 @@ std::optional<MedtronicConfig> BGSourceMedtronic::getConfig() {
     }
 
     // Get country from token data for region-specific configuration
-    std::optional<MedtronicTokenData> tokenData = getTokenData();
+    std::optional<MedtronicTokenData> tokenData = getTokenData(false);
     if (!tokenData) {
         DEBUG_PRINTLN("Medtronic: No valid token data available for configuration");
         return std::nullopt;
@@ -321,12 +318,10 @@ std::optional<JsonDocument> BGSourceMedtronic::fetchDiscoveryDocument() {
     DEBUG_PRINTLN("Medtronic: Fetching configuration from discovery endpoint");
 
     // Always use the EU discovery endpoint
-    String discoveryUrl = "https://clcloud.minimed.eu/connect/carepartner/v11/discover/android/3.2";
+    String discoveryUrl = "https://clcloud.minimed.eu/connect/carepartner/v11/discover/android/3.3";
     DEBUG_PRINTLN("Medtronic: Discovery URL: " + discoveryUrl);
 
-    // Make request to discovery endpoint
-    client->begin(*wifiSecureClient, discoveryUrl);
-    client->setTimeout(REQUEST_TIMEOUT_MS);
+    initiateHttpsCall(client, discoveryUrl);
     setCommonHeaders(client);
 
     int httpCode = client->GET();
@@ -353,9 +348,7 @@ std::optional<JsonDocument> BGSourceMedtronic::fetchDiscoveryDocument() {
 std::optional<String> BGSourceMedtronic::fetchRefreshTokenUrl(const String& ssoConfigUrl) {
     DEBUG_PRINTLN("Medtronic: Fetching refresh token URL from SSO configuration: " + ssoConfigUrl);
 
-    // Make request to SSO configuration endpoint
-    client->begin(*wifiSecureClient, ssoConfigUrl);
-    client->setTimeout(REQUEST_TIMEOUT_MS);
+    initiateHttpsCall(client, ssoConfigUrl);
     setCommonHeaders(client);
 
     int httpCode = client->GET();
@@ -502,11 +495,7 @@ std::optional<JsonDocument> BGSourceMedtronic::fetchUserData(
     String url = config.base_url_carelink + "/users/me";
     DEBUG_PRINTLN("Medtronic: Fetching user data from: " + url);
 
-    // Make authenticated request
-    client->begin(*wifiSecureClient, url);
-    client->setTimeout(REQUEST_TIMEOUT_MS);
-
-    // Set authentication headers
+    initiateHttpsCall(client, url);
     setCommonHeaders(client);
     client->addHeader("Authorization", "Bearer " + tokenData.getAccessToken());
     client->addHeader("mag-identifier", tokenData.getMagIdentifier());
@@ -539,11 +528,7 @@ std::optional<JsonDocument> BGSourceMedtronic::fetchPatientData(
     String url = config.base_url_carelink + "/links/patients";
     DEBUG_PRINTLN("Medtronic: Fetching patient data from: " + url);
 
-    // Make authenticated request
-    client->begin(*wifiSecureClient, url);
-    client->setTimeout(REQUEST_TIMEOUT_MS);
-
-    // Set authentication headers
+    initiateHttpsCall(client, url);
     setCommonHeaders(client);
     client->addHeader("Authorization", "Bearer " + tokenData.getAccessToken());
     client->addHeader("mag-identifier", tokenData.getMagIdentifier());
@@ -585,14 +570,14 @@ std::optional<String> BGSourceMedtronic::fetchRecentData(const MedtronicTokenDat
     std::optional<MedtronicConfig> config = getConfig();
     if (!config) {
         DEBUG_PRINTLN("Medtronic: Failed to get configuration for data fetch");
-        return std::nullopt;
+        DisplayManager.showFatalError(String("Medtronic: Could not load config."));
     }
 
     // Get user info (will use cached user info if available)
     std::optional<MedtronicUserInfo> userInfo = getUserInfo();
     if (!userInfo) {
         DEBUG_PRINTLN("Medtronic: Failed to get user info for data fetch");
-        return std::nullopt;
+        DisplayManager.showFatalError(String("Medtronic: Could not load user info."));
     }
 
     // Build the API endpoint URL using discovered configuration
@@ -613,11 +598,7 @@ std::optional<String> BGSourceMedtronic::fetchRecentData(const MedtronicTokenDat
     serializeJson(postData, postDataString);
     DEBUG_PRINTLN("Medtronic: POST data: " + postDataString);
 
-    // Make authenticated POST request
-    client->begin(*wifiSecureClient, url);
-    client->setTimeout(REQUEST_TIMEOUT_MS);
-
-    // Set authentication headers
+    initiateHttpsCall(client, url);
     setCommonHeaders(client);
     client->addHeader("Authorization", "Bearer " + tokenData.getAccessToken());
     client->addHeader("mag-identifier", tokenData.getMagIdentifier());
@@ -721,6 +702,18 @@ void BGSourceMedtronic::setCommonHeaders(HTTPClient* client) const {
     client->addHeader("Accept", "application/json");
     client->addHeader("Content-Type", "application/json");
     client->setUserAgent("Dalvik/2.1.0 (Linux; U; Android 10; Nexus 5X Build/QQ3A.200805.001)");
+}
+
+void BGSourceMedtronic::initiateHttpsCall(HTTPClient* client, const String& url) {
+    LCBUrl parsedUrl;
+    if (parsedUrl.setUrl(url)) {
+        client->begin(
+            *wifiSecureClient, parsedUrl.getHost(), parsedUrl.getPort(),
+            String("/") + parsedUrl.getPath() + parsedUrl.getAfterPath(), true);
+    } else {
+        // Fallback to direct URL if parsing fails
+        client->begin(*wifiSecureClient, url);
+    }
 }
 
 BG_TREND BGSourceMedtronic::parseTrendArrow(const String& trend) const {
