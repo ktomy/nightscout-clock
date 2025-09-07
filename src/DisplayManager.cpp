@@ -87,16 +87,8 @@ void DisplayManager_::applySettings() {
     int displayBrightness = 70;
 
     if (!SettingsManager.settings.auto_brightness) {
-        // brightness_level is 0..10; bias so low levels are genuinely dim
-        float t = constrain(SettingsManager.settings.brightness_level / 10.0f, 0.0f, 1.0f);
-        const float gamma = 2.2f;       // raise to 2.4–2.6 for darker lows
-        float curved = powf(t, gamma);  // 0..1, biased toward 0
-
-        displayBrightness = (int)lroundf(MIN_BRIGHTNESS + curved * (MAX_BRIGHTNESS - MIN_BRIGHTNESS));
-
-        if (displayBrightness < MIN_BRIGHTNESS) {
-            displayBrightness = MIN_BRIGHTNESS;
-        }
+        displayBrightness =
+            map(SettingsManager.settings.brightness_level, 0, 10, MIN_BRIGHTNESS, MAX_BRIGHTNESS);
     }
 
     DEBUG_PRINTLN(
@@ -247,13 +239,12 @@ void DisplayManager_::drawPixel(uint8_t x, uint8_t y, uint16_t color, bool updat
 }
 
 void DisplayManager_::setBrightness(int bri) {
-    BRIGHTNESS = bri;  // remember last command
-
     if (MATRIX_OFF) {
         matrix->setBrightness(0);
     } else {
         matrix->setBrightness(bri);
     }
+
     matrix->show();
 }
 
