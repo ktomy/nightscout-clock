@@ -192,10 +192,13 @@ void PeripheryManager_::tick() {
                         "LDR: %d, Lux: %.3f, lin=%.3f, curved=%.3f -> bri=%d\n", analogRead(LDR_PIN),
                         photocell.getSmoothedLux(), lin, curved, resultingBrightness);
 #endif
+                    break;
                 }
                 default:
                     // Unknown mode
-                    DEBUG_PRINTLN("Unknown brightness mode, should not happen");
+                    DEBUG_PRINTLN(
+                        "Unsupported brightness mode: " +
+                        toString(SettingsManager.settings.brightness_mode));
                     break;
             }
 

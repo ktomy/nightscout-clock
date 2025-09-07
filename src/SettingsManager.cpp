@@ -98,7 +98,8 @@ bool SettingsManager_::loadSettingsFromFile() {
     } else if (brightness_mode == "auto_dimmed") {
         settings.brightness_mode = BRIGHTNES_MODE::AUTO_DIMMED;
     } else {
-        DEBUG_PRINTLN("Unknown brightness mode in config, defaulting to AUTO_LINEAR");
+        DEBUG_PRINTLN(
+            "Unknown brightness mode in config: " + brightness_mode + ", defaulting to AUTO_LINEAR");
         settings.brightness_mode = BRIGHTNES_MODE::AUTO_LINEAR;
     }
 
