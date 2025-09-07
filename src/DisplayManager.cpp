@@ -86,15 +86,23 @@ void DisplayManager_::setup() {
 void DisplayManager_::applySettings() {
     int displayBrightness = 70;
 
-    if (!SettingsManager.settings.auto_brightness) {
-        displayBrightness =
-            map(SettingsManager.settings.brightness_level, 0, 10, MIN_BRIGHTNESS, MAX_BRIGHTNESS);
+    if (SettingsManager.settings.brightness_mode == BRIGHTNES_MODE::MANUAL) {
+
+        // make brightness grow logarithmically
+        float t = constrain(SettingsManager.settings.brightness_level / 10.0f, 0.0f, 1.0f);
+        const float gamma = 2.2f;       // raise to 2.4–2.6 for darker lows
+        float curved = powf(t, gamma);  // 0..1, biased toward 0
+
+        displayBrightness = (int)lroundf(MIN_BRIGHTNESS + curved * (MAX_BRIGHTNESS - MIN_BRIGHTNESS));
     }
 
+#ifdef DEBUG_BRIGHTNESS
     DEBUG_PRINTLN(
         "Setting brightness to " + String(displayBrightness) +
-        " auto brightness: " + String(SettingsManager.settings.auto_brightness) +
+        " brightness mode: " + toString(SettingsManager.settings.brightness_mode) +
         " and brightness level: " + String(SettingsManager.settings.brightness_level));
+#endif
+
     DisplayManager.setBrightness(displayBrightness);
 }
 

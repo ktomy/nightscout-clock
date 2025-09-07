@@ -90,7 +90,18 @@ bool SettingsManager_::loadSettingsFromFile() {
     settings.bg_high_urgent_limit = (*doc)["high_urgent_mgdl"].as<int>();
     settings.bg_units = (*doc)["units"].as<String>() == "mmol" ? BG_UNIT::MMOLL : BG_UNIT::MGDL;
 
-    settings.auto_brightness = (*doc)["auto_brightness"].as<bool>();
+    String brightness_mode = (*doc)["brightness_mode"].as<String>();
+    if (brightness_mode == "manual") {
+        settings.brightness_mode = BRIGHTNES_MODE::MANUAL;
+    } else if (brightness_mode == "auto_linear") {
+        settings.brightness_mode = BRIGHTNES_MODE::AUTO_LINEAR;
+    } else if (brightness_mode == "auto_dimmed") {
+        settings.brightness_mode = BRIGHTNES_MODE::AUTO_DIMMED;
+    } else {
+        DEBUG_PRINTLN("Unknown brightness mode in config, defaulting to AUTO_LINEAR");
+        settings.brightness_mode = BRIGHTNES_MODE::AUTO_LINEAR;
+    }
+
     settings.brightness_level = (*doc)["brightness_level"].as<int>() - 1;
     settings.default_clockface = (*doc)["default_face"].as<int>();
 
@@ -184,7 +195,9 @@ bool SettingsManager_::saveSettingsToFile() {
 
     (*doc)["units"] = settings.bg_units == BG_UNIT::MMOLL ? "mmol" : "mgdl";
 
-    (*doc)["auto_brightness"] = settings.auto_brightness;
+    (*doc)["brightness_mode"] = settings.brightness_mode == BRIGHTNES_MODE::AUTO_LINEAR   ? "auto_linear"
+                                : settings.brightness_mode == BRIGHTNES_MODE::AUTO_DIMMED ? "auto_dimmed"
+                                                                                          : "manual";
     (*doc)["brightness_level"] = settings.brightness_level + 1;
     (*doc)["default_face"] = settings.default_clockface;
 

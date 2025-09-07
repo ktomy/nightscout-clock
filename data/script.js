@@ -460,7 +460,19 @@
 
         //Device settings
         var brightness = parseInt($('#brightness_level').val());
-        json['auto_brightness'] = brightness == 0;
+        var brightnessMode = "manual";
+        if (brightness == 0) (brightness = 100); // treat 0 as 100
+        if (brightness < 100) {
+            brightnessMode = "manual";
+        } else if (brightness == 100) {
+            brightnessMode = "auto_linear";
+        } else if (brightness == 101) {
+            brightnessMode = "auto_dimmed";
+        } else {
+            brightnessMode = "unknown";
+        }
+
+        json['brightness_mode'] = brightnessMode;
         json['brightness_level'] = brightness;
         json['default_face'] = parseInt($('#default_clock_face').val());
         json['tz_libc'] = $('#clock_timezone').val();

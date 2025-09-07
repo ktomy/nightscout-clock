@@ -22,33 +22,6 @@ enum class BG_TREND : uint8_t {
     RATE_OUT_OF_RANGE = 9,
 };
 
-inline String toString(BG_TREND trend) {
-    switch (trend) {
-        case BG_TREND::NONE:
-            return "NONE";
-        case BG_TREND::DOUBLE_UP:
-            return "DOUBLE_UP";
-        case BG_TREND::SINGLE_UP:
-            return "SINGLE_UP";
-        case BG_TREND::FORTY_FIVE_UP:
-            return "FORTY_FIVE_UP";
-        case BG_TREND::FLAT:
-            return "FLAT";
-        case BG_TREND::FORTY_FIVE_DOWN:
-            return "FORTY_FIVE_DOWN";
-        case BG_TREND::SINGLE_DOWN:
-            return "SINGLE_DOWN";
-        case BG_TREND::DOUBLE_DOWN:
-            return "DOUBLE_DOWN";
-        case BG_TREND::NOT_COMPUTABLE:
-            return "NOT_COMPUTABLE";
-        case BG_TREND::RATE_OUT_OF_RANGE:
-            return "RATE_OUT_OF_RANGE";
-        default:
-            return "unknown";
-    }
-}
-
 enum class TEXT_ALIGNMENT : uint8_t {
     LEFT = 0,
     CENTER = 1,
@@ -90,6 +63,82 @@ enum class TIME_FORMAT : uint8_t {
     HOURS_12 = 1,
     HOURS_24 = 2,
 };
+
+enum class BRIGHTNES_MODE : uint8_t {
+    MANUAL = 0,
+    AUTO_LINEAR = 100,
+    AUTO_DIMMED = 101,
+};
+
+inline String toString(BG_TREND trend) {
+    switch (trend) {
+        case BG_TREND::NONE:
+            return "NONE";
+        case BG_TREND::DOUBLE_UP:
+            return "DOUBLE_UP";
+        case BG_TREND::SINGLE_UP:
+            return "SINGLE_UP";
+        case BG_TREND::FORTY_FIVE_UP:
+            return "FORTY_FIVE_UP";
+        case BG_TREND::FLAT:
+            return "FLAT";
+        case BG_TREND::FORTY_FIVE_DOWN:
+            return "FORTY_FIVE_DOWN";
+        case BG_TREND::SINGLE_DOWN:
+            return "SINGLE_DOWN";
+        case BG_TREND::DOUBLE_DOWN:
+            return "DOUBLE_DOWN";
+        case BG_TREND::NOT_COMPUTABLE:
+            return "NOT_COMPUTABLE";
+        case BG_TREND::RATE_OUT_OF_RANGE:
+            return "RATE_OUT_OF_RANGE";
+        default:
+            return "unknown";
+    }
+}
+
+inline String toString(BRIGHTNES_MODE mode) {
+    switch (mode) {
+        case BRIGHTNES_MODE::MANUAL:
+            return "MANUAL";
+        case BRIGHTNES_MODE::AUTO_LINEAR:
+            return "AUTO_LINEAR";
+        case BRIGHTNES_MODE::AUTO_DIMMED:
+            return "AUTO_DIMMED";
+        default:
+            return "unknown";
+    }
+}
+
+inline String toString(BG_UNIT unit) {
+    switch (unit) {
+        case BG_UNIT::MGDL:
+            return "MGDL";
+        case BG_UNIT::MMOLL:
+            return "MMOLL";
+        default:
+            return "unknown";
+    }
+}
+
+inline String toString(BG_LEVEL level) {
+    switch (level) {
+        case BG_LEVEL::INVALID:
+            return "INVALID";
+        case BG_LEVEL::URGENT_LOW:
+            return "URGENT_LOW";
+        case BG_LEVEL::WARNING_LOW:
+            return "WARNING_LOW";
+        case BG_LEVEL::NORMAL:
+            return "NORMAL";
+        case BG_LEVEL::WARNING_HIGH:
+            return "WARNING_HIGH";
+        case BG_LEVEL::URGENT_HIGH:
+            return "URGENT_HIGH";
+        default:
+            return "unknown";
+    }
+}
 
 inline String toString(BG_SOURCE source) {
     switch (source) {

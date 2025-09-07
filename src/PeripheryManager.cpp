@@ -149,15 +149,57 @@ void PeripheryManager_::tick() {
         sampleAverage = sampleSum / (float)LDRReadings;
         LDR_RAW = sampleAverage;
         CURRENT_LUX = (roundf(photocell.getSmoothedLux() * 1000) / 1000);
-        if (SettingsManager.settings.auto_brightness && !MATRIX_OFF) {
-            brightnessPercent = sampleAverage / 4095.0 * 100.0 * 4;
+
+        if (!MATRIX_OFF && SettingsManager.settings.brightness_mode != BRIGHTNES_MODE::MANUAL) {
+            auto resultingBrightness = MIN_BRIGHTNESS;
+
+            switch (SettingsManager.settings.brightness_mode) {
+                case BRIGHTNES_MODE::MANUAL: {
+                    // Handled above
+                    break;
+                }
+                case BRIGHTNES_MODE::AUTO_LINEAR: {
+                    brightnessPercent = sampleAverage / 4095.0 * 100.0 * 4;
+
 #ifdef DEBUG_BRIGHTNESS
-            DEBUG_PRINTF(
-                "LDR: %d, Lux: %.3f, Brightness Percent: %.2f\n", analogRead(LDR_PIN),
-                photocell.getSmoothedLux(), brightnessPercent);
+                    DEBUG_PRINTF(
+                        "LDR: %d, Lux: %.3f, Brightness Percent: %.2f\n", analogRead(LDR_PIN),
+                        photocell.getSmoothedLux(), brightnessPercent);
 #endif
-            int brightness = map(brightnessPercent, 0, 100, MIN_BRIGHTNESS, MAX_BRIGHTNESS);
-            DisplayManager.setBrightness(brightness);
+
+                    resultingBrightness = map(brightnessPercent, 0, 100, MIN_BRIGHTNESS, MAX_BRIGHTNESS);
+                    break;
+                }
+                case BRIGHTNES_MODE::AUTO_DIMMED: {
+                    // Normalize raw ADC average to 0..1
+                    float lin = sampleAverage / 4095.0f;
+
+                    // Gentle gamma to hold brightness very low in dark rooms,
+                    // yet keep a non-zero floor. Increase to 2.4–2.6 for even dimmer lows.
+                    const float gamma = 2.2f;
+                    float curved = powf(lin, gamma);  // 0..1, biased toward 0
+
+                    // Map 0..1 onto MIN..MAX, enforcing the non-zero floor
+                    resultingBrightness =
+                        (int)lroundf(MIN_BRIGHTNESS + curved * (MAX_BRIGHTNESS - MIN_BRIGHTNESS));
+
+                    // Extra safety: never fall below the floor
+                    if (resultingBrightness < MIN_BRIGHTNESS)
+                        resultingBrightness = MIN_BRIGHTNESS;
+
+#ifdef DEBUG_BRIGHTNESS
+                    DEBUG_PRINTF(
+                        "LDR: %d, Lux: %.3f, lin=%.3f, curved=%.3f -> bri=%d\n", analogRead(LDR_PIN),
+                        photocell.getSmoothedLux(), lin, curved, resultingBrightness);
+#endif
+                }
+                default:
+                    // Unknown mode
+                    DEBUG_PRINTLN("Unknown brightness mode, should not happen");
+                    break;
+            }
+
+            DisplayManager.setBrightness(resultingBrightness);
         }
     }
 }

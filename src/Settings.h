@@ -14,7 +14,7 @@ public:
     int bg_high_warn_limit;
     int bg_low_urgent_limit;
     int bg_high_urgent_limit;
-    bool auto_brightness;
+    BRIGHTNES_MODE brightness_mode;
     int brightness_level;
     int default_clockface;
     BG_SOURCE bg_source;
