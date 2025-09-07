@@ -104,7 +104,7 @@ Nightscout CLock is a custom firmware for Ulanzi TC001. It can also run (with mi
 
 ### 0.24
 
-- Added "dark rooms" brightness mode and changed curve for the manual brightness. Thanks @unxmaal for [#67](https://github.com/ktomy/nightscout-clock/pull/67)
+- Added "dark rooms" brightness mode and changed curve for the manual brightness. Thanks [@unxmaal](https://github.com/unxmaal) for [#67](https://github.com/ktomy/nightscout-clock/pull/67)
 
 ### 0.23.1
 
