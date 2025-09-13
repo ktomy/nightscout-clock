@@ -171,27 +171,53 @@ void PeripheryManager_::tick() {
                     break;
                 }
                 case BRIGHTNES_MODE::AUTO_DIMMED: {
-                    // Normalize raw ADC average to 0..1
-                    float lin = sampleAverage / 4095.0f;
+                    // Use lux (already smoothed) for a more human-perceived response
+                    const float lux =
+                        CURRENT_LUX;  // e.g., ~0.1 moonlit, 5–50 indoor, 200+ very bright indoor
+                    // Knee bends (may need to tweak here depending on individual devices)
+                    const float LUX_KNEE_DARK = 1.0f;   // <=1 lux → stay near MIN_BRIGHTNESS
+                    const float LUX_KNEE_ROOM = 30.0f;  // ~30 lux = typical indoor
+                    const float LUX_MAX_REF = 300.0f;   // treat this as “very bright indoor”; cap above
 
-                    // Gentle gamma to hold brightness very low in dark rooms,
-                    // yet keep a non-zero floor. Increase to 2.4–2.6 for even dimmer lows.
-                    const float gamma = 2.2f;
-                    float curved = powf(lin, gamma);  // 0..1, biased toward 0
+                    float t;  // 0..1 brightness control
 
-                    // Map 0..1 onto MIN..MAX, enforcing the non-zero floor
-                    resultingBrightness =
-                        (int)lroundf(MIN_BRIGHTNESS + curved * (MAX_BRIGHTNESS - MIN_BRIGHTNESS));
+                    if (lux <= LUX_KNEE_DARK) {
+                        // In very dark rooms, keep a non-zero, comfortable floor
+                        t = 0.0f;
+                    } else if (lux < LUX_KNEE_ROOM) {
+                        // Between dark and indoor: gentle ramp (gamma slightly > 1 to hold dim
+                        // lower-end)
+                        float u = (lux - LUX_KNEE_DARK) / (LUX_KNEE_ROOM - LUX_KNEE_DARK);  // 0..1
+                        const float gamma_low = 1.6f;
+                        t = powf(u, gamma_low) * 0.45f;  // tops at ~45% of the range by indoor
+                    } else {
+                        // Above indoor, go logarithmic so it gets obviously brighter in bright rooms
+                        float v = (lux > LUX_MAX_REF) ? LUX_MAX_REF : lux;
+                        float w = log10f(v / LUX_KNEE_ROOM + 1.0f) /
+                                  log10f(LUX_MAX_REF / LUX_KNEE_ROOM + 1.0f);  // 0..1
+                        t = 0.45f + w * 0.55f;  // fill the remaining 55% up to MAX
+                    }
 
-                    // Extra safety: never fall below the floor
-                    if (resultingBrightness < MIN_BRIGHTNESS)
-                        resultingBrightness = MIN_BRIGHTNESS;
+                    // Convert 0..1 → MIN..MAX
+                    int target = (int)lroundf(MIN_BRIGHTNESS + t * (MAX_BRIGHTNESS - MIN_BRIGHTNESS));
+
+                    // Light smoothing to avoid flicker when people move near the sensor
+                    static int prev = -1;
+                    if (prev < 0)
+                        prev = target;
+                    resultingBrightness = (prev * 3 + target) / 4;
+                    prev = resultingBrightness;
 
 #ifdef DEBUG_BRIGHTNESS
                     DEBUG_PRINTF(
                         "LDR: %d, Lux: %.3f, lin=%.3f, curved=%.3f -> bri=%d\n", analogRead(LDR_PIN),
                         photocell.getSmoothedLux(), lin, curved, resultingBrightness);
 #endif
+                    // Safety clamp
+                    if (resultingBrightness < (int)MIN_BRIGHTNESS)
+                        resultingBrightness = MIN_BRIGHTNESS;
+                    if (resultingBrightness > (int)MAX_BRIGHTNESS)
+                        resultingBrightness = MAX_BRIGHTNESS;
                     break;
                 }
                 default:
