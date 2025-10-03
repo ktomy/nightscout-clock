@@ -30,43 +30,35 @@ std::list<GlucoseReading> BGSourceMedtronic::updateReadings(std::list<GlucoseRea
             String("Medtronic: No valid token data found. Please authenticate first."));
     }
 
-    // Fetch recent data
-    std::optional<String> jsonDataOptional = fetchRecentData(tokenData.value());
-    if (!jsonDataOptional) {
-        DEBUG_PRINTLN("Medtronic: Failed to fetch recent data");
-        return existingReadings;
-    }
-
-    // Parse glucose readings
-    std::optional<std::list<GlucoseReading>> newReadingsOptional =
-        parseGlucoseReadings(jsonDataOptional.value());
+    // Fetch recent data / parse glucose readings
+    std::optional<std::list<GlucoseReading>> newReadingsOptional = fetchRecentData(tokenData.value());
     if (!newReadingsOptional) {
-        DEBUG_PRINTLN("Medtronic: Failed to parse glucose readings");
+        DEBUG_PRINTLN("Medtronic: Failed to fetch recent data");
         return existingReadings;
     }
 
     std::list<GlucoseReading> newReadings = newReadingsOptional.value();
 
-    // Merge with existing readings (remove duplicates and keep chronological order)
-    for (const auto& newReading : newReadings) {
-        bool found = false;
-        for (const auto& existingReading : existingReadings) {
-            if (abs((long long)existingReading.epoch - (long long)newReading.epoch) <= 60) {
-                found = true;
-                break;
-            }
-        }
-        if (!found) {
-            existingReadings.push_back(newReading);
-        }
-    }
+    // // Merge with existing readings (remove duplicates and keep chronological order)
+    // for (const auto& newReading : newReadings) {
+    //     bool found = false;
+    //     for (const auto& existingReading : existingReadings) {
+    //         if (abs((long long)existingReading.epoch - (long long)newReading.epoch) <= 60) {
+    //             found = true;
+    //             break;
+    //         }
+    //     }
+    //     if (!found) {
+    //         existingReadings.push_front(newReading);
+    //     }
+    // }
 
-    // Sort by epoch and remove old readings
-    existingReadings.sort(
-        [](const GlucoseReading& a, const GlucoseReading& b) { return a.epoch < b.epoch; });
+    // // Sort by epoch and remove old readings
+    // existingReadings.sort(
+    //     [](const GlucoseReading& a, const GlucoseReading& b) { return a.epoch < b.epoch; });
 
     DEBUG_PRINTLN("Medtronic: Successfully updated " + String(newReadings.size()) + " new readings");
-    return existingReadings;
+    return newReadings;
 }
 
 std::optional<MedtronicTokenData> BGSourceMedtronic::getTokenData(bool refresh) {
@@ -218,16 +210,16 @@ std::optional<MedtronicConfig> BGSourceMedtronic::getConfig() {
         return cachedConfig.value();
     }
 
-    // Get country from token data for region-specific configuration
-    std::optional<MedtronicTokenData> tokenData = getTokenData(false);
-    if (!tokenData) {
-        DEBUG_PRINTLN("Medtronic: No valid token data available for configuration");
-        return std::nullopt;
-    }
-
-    String country = tokenData->getAccessTokenCountry();
-    DEBUG_PRINTLN(
-        "Medtronic: No cached configuration or expired, fetching fresh config for country: " + country);
+    // // Get country from token data for region-specific configuration
+    // std::optional<MedtronicTokenData> tokenData = getTokenData(false);
+    // if (!tokenData) {
+    //     DEBUG_PRINTLN("Medtronic: No valid token data available for configuration");
+    //     return std::nullopt;
+    // }
+    //
+    // String country = tokenData->getAccessTokenCountry();
+    // DEBUG_PRINTLN(
+    //     "Medtronic: No cached configuration or expired, fetching fresh config for country: " + country);
 
     std::optional<JsonDocument> discoveryDocOptional = fetchDiscoveryDocument();
     if (!discoveryDocOptional) {
@@ -239,18 +231,19 @@ std::optional<MedtronicConfig> BGSourceMedtronic::getConfig() {
     // Find region for the country - default to EU region
     String region = "EU";
 
-    if (!country.isEmpty()) {
-        JsonArray supportedCountries = discoveryDoc["supportedCountries"];
-        for (JsonVariant countryVariant : supportedCountries) {
-            JsonObject countryObj = countryVariant.as<JsonObject>();
-            String upperCountry = country;
-            upperCountry.toUpperCase();
-            if (countryObj[upperCountry.c_str()].is<JsonObject>()) {
-                region = countryObj[upperCountry.c_str()]["region"].as<String>();
-                break;
-            }
-        }
-    }
+    // String country = "";
+    // if (!country.isEmpty()) {
+    //     JsonArray supportedCountries = discoveryDoc["supportedCountries"];
+    //     for (JsonVariant countryVariant : supportedCountries) {
+    //         JsonObject countryObj = countryVariant.as<JsonObject>();
+    //         String upperCountry = country;
+    //         upperCountry.toUpperCase();
+    //         if (countryObj[upperCountry.c_str()].is<JsonObject>()) {
+    //             region = countryObj[upperCountry.c_str()]["region"].as<String>();
+    //             break;
+    //         }
+    //     }
+    // }
 
     DEBUG_PRINTLN("Medtronic: Found region: " + region);
 
@@ -278,12 +271,6 @@ std::optional<MedtronicConfig> BGSourceMedtronic::getConfig() {
     config.base_url_pde = regionConfig["baseUrlPde"].as<String>();
     config.base_url_aem = regionConfig["baseUrlAem"].as<String>();
 
-    // Set CareLink server URL based on region
-    config.carelink_server_url = "https://carelink.minimed.eu";  // Default to EU
-    if (region.equalsIgnoreCase("US")) {
-        config.carelink_server_url = "https://carelink.minimed.com";
-    }
-
     // Fetch SSO configuration to get token URL
     String ssoConfigUrl = regionConfig["SSOConfiguration"].as<String>();
     if (ssoConfigUrl.isEmpty()) {
@@ -308,7 +295,6 @@ std::optional<MedtronicConfig> BGSourceMedtronic::getConfig() {
     DEBUG_PRINTLN("Medtronic: Cumulus Base URL: " + config.base_url_cumulus);
     DEBUG_PRINTLN("Medtronic: PDE Base URL: " + config.base_url_pde);
     DEBUG_PRINTLN("Medtronic: AEM Base URL: " + config.base_url_aem);
-    DEBUG_PRINTLN("Medtronic: CareLink Server URL: " + config.carelink_server_url);
     DEBUG_PRINTLN("Medtronic: Token URL: " + config.token_url);
 
     return config;
@@ -334,8 +320,14 @@ std::optional<JsonDocument> BGSourceMedtronic::fetchDiscoveryDocument() {
     String discoveryResponse = client->getString();
     client->end();
 
+    // Create a filter to only parse the specific fields you need
+    JsonDocument filter;
+    filter["supportedCountries"] = true;
+    filter["CP"] = true;
+
     // Parse discovery response
     JsonDocument discoveryDoc;
+
     DeserializationError error = deserializeJson(discoveryDoc, discoveryResponse);
     if (error) {
         DEBUG_PRINTLN("Medtronic: Failed to parse discovery response: " + String(error.c_str()));
@@ -358,16 +350,19 @@ std::optional<String> BGSourceMedtronic::fetchRefreshTokenUrl(const String& ssoC
         return std::nullopt;
     }
 
-    String ssoResponse = client->getString();
-    client->end();
+    DEBUG_PRINTLN("Medtronic: SSO config request successful");
+
+    WiFiClient* stream = client->getStreamPtr();
 
     // Parse SSO configuration response
     JsonDocument ssoDoc;
-    DeserializationError error = deserializeJson(ssoDoc, ssoResponse);
+    DeserializationError error = deserializeJson(ssoDoc, *stream);
     if (error) {
+        client->end();
         DEBUG_PRINTLN("Medtronic: Failed to parse SSO config response: " + String(error.c_str()));
         return std::nullopt;
     }
+    client->end();
 
     // Extract server configuration
     if (!ssoDoc["server"].is<JsonObject>() || !ssoDoc["system_endpoints"].is<JsonObject>()) {
@@ -564,25 +559,33 @@ std::optional<JsonDocument> BGSourceMedtronic::fetchPatientData(
     return std::nullopt;
 }
 
-std::optional<String> BGSourceMedtronic::fetchRecentData(const MedtronicTokenData& tokenData) {
+std::optional<std::list<GlucoseReading>> BGSourceMedtronic::fetchRecentData(const MedtronicTokenData& tokenData) {
+#ifdef DEBUG_BG_SOURCE
     DEBUG_PRINTLN("Medtronic: Fetching recent data");
+#endif
 
     std::optional<MedtronicConfig> config = getConfig();
     if (!config) {
+#ifdef DEBUG_BG_SOURCE
         DEBUG_PRINTLN("Medtronic: Failed to get configuration for data fetch");
+#endif
         DisplayManager.showFatalError(String("Medtronic: Could not load config."));
     }
 
     // Get user info (will use cached user info if available)
     std::optional<MedtronicUserInfo> userInfo = getUserInfo();
     if (!userInfo) {
+#ifdef DEBUG_BG_SOURCE
         DEBUG_PRINTLN("Medtronic: Failed to get user info for data fetch");
+#endif
         DisplayManager.showFatalError(String("Medtronic: Could not load user info."));
     }
 
     // Build the API endpoint URL using discovered configuration
     String url = config->base_url_cumulus + "/display/message";
+#ifdef DEBUG_BG_SOURCE
     DEBUG_PRINTLN("Medtronic: API URL: " + url);
+#endif
 
     // Build POST data
     JsonDocument postData;
@@ -596,7 +599,9 @@ std::optional<String> BGSourceMedtronic::fetchRecentData(const MedtronicTokenDat
 
     String postDataString;
     serializeJson(postData, postDataString);
+#ifdef DEBUG_BG_SOURCE
     DEBUG_PRINTLN("Medtronic: POST data: " + postDataString);
+#endif
 
     initiateHttpsCall(client, url);
     setCommonHeaders(client);
@@ -605,91 +610,67 @@ std::optional<String> BGSourceMedtronic::fetchRecentData(const MedtronicTokenDat
 
     int httpCode = client->POST(postDataString);
 
-    if (httpCode == HTTP_CODE_OK) {
-        String jsonData = client->getString();
+    if (httpCode != HTTP_CODE_OK) {
+#ifdef DEBUG_BG_SOURCE
+        if (httpCode == HTTP_CODE_UNAUTHORIZED) {
+            DEBUG_PRINTLN("Medtronic: Unauthorized - token may be invalid");
+        } else {
+            DEBUG_PRINTLN("Medtronic: HTTP request failed with code: " + String(httpCode));
+        }
+#endif
+
         client->end();
-        DEBUG_PRINTLN("Medtronic: Successfully fetched data (" + String(jsonData.length()) + " bytes)");
-        return jsonData;
+        return std::nullopt;
     }
 
-    if (httpCode == HTTP_CODE_UNAUTHORIZED) {
-        DEBUG_PRINTLN("Medtronic: Unauthorized - token may be invalid");
-    } else {
-        DEBUG_PRINTLN("Medtronic: HTTP request failed with code: " + String(httpCode));
-    }
+    // Get the stream instead of loading entire JSON into memory
+    WiFiClient* stream = client->getStreamPtr();
 
-    client->end();
-    return std::nullopt;
-}
-
-std::optional<std::list<GlucoseReading>> BGSourceMedtronic::parseGlucoseReadings(
-    const String& jsonData) const {
-    std::list<GlucoseReading> readings;
+    JsonDocument filter;
+    filter["patientData"]["sgs"][0]["sg"] = true;
+    filter["patientData"]["sgs"][0]["timestamp"] = true;
 
     JsonDocument doc;
-    DeserializationError error = deserializeJson(doc, jsonData);
+    DeserializationError error = deserializeJson(doc, *stream, DeserializationOption::Filter(filter));
 
     if (error) {
-        DEBUG_PRINTLN("Medtronic: Failed to parse response JSON: " + String(error.c_str()));
+        Serial.print(F("JSON parsing failed: "));
+        Serial.println(error.c_str());
+        client->end();
         return std::nullopt;
     }
 
-    // Navigate to the glucose data in the response
-    if (!doc["patientData"].is<JsonObject>()) {
-        DEBUG_PRINTLN("Medtronic: No patientData found in response");
-        return std::nullopt;
-    }
+    std::list<GlucoseReading> readings;
 
-    JsonObject patientData = doc["patientData"];
-
-    // Parse sensor glucose data
-    if (patientData["sgs"].is<JsonArray>()) {
-        JsonArray sgsArray = patientData["sgs"];
-
-        for (JsonVariant sgValue : sgsArray) {
-            JsonObject sg = sgValue.as<JsonObject>();
-
-            if (sg["sg"].is<float>() && sg["datetime"].is<unsigned long long>()) {
-                GlucoseReading reading;
-
-                // Extract glucose value (convert from mmol/L to mg/dL if needed)
-                float sgValue = sg["sg"].as<float>();
-                reading.sgv = (int)(sgValue * 18.0182);  // Convert mmol/L to mg/dL
-
-                // Extract timestamp - Medtronic uses milliseconds since epoch
-                unsigned long long timestamp = sg["datetime"].as<unsigned long long>();
-                reading.epoch = timestamp / 1000;  // Convert to seconds
-
-                // Extract trend
-                String trendStr = sg["trendArrow"].as<String>();
-                reading.trend = parseTrendArrow(trendStr);
-
-                // Only add valid readings (not older than 24 hours)
-                unsigned long long currentTime = ServerManager.getUtcEpoch();
-                if (reading.sgv > 0 && reading.epoch > (currentTime - 86400)) {
-                    readings.push_back(reading);
-                }
-            }
+    unsigned long long currentTime = ServerManager.getUtcEpoch();
+    for (JsonVariant sg : doc["patientData"]["sgs"].as<JsonArray>()) {
+#ifdef DEBUG_BG_SOURCE
+        DEBUG_PRINTLN("Medtronic: Parsing SG entry:");
+        for (JsonPair keyValue : sg.as<JsonObject>()) {
+            DEBUG_PRINTLN("  " + String(keyValue.key().c_str()) + ": " + String(keyValue.value().as<String>()));
         }
-    }
+#endif
 
-    // Also parse CGM data if available
-    if (patientData["cgmInfo"].is<JsonObject>()) {
-        JsonObject cgmInfo = patientData["cgmInfo"];
-
-        if (cgmInfo["calibrationStatus"].is<String>() && cgmInfo["lastSGTrend"].is<JsonObject>() &&
-            cgmInfo["lastSG"].is<JsonObject>()) {
-            GlucoseReading reading;
-            reading.sgv = cgmInfo["lastSG"]["sg"].as<int>();
-            reading.epoch = cgmInfo["lastSG"]["datetime"].as<unsigned long long>() / 1000;
-            reading.trend = parseTrendArrow(cgmInfo["lastSGTrend"]["direction"].as<String>());
-
-            unsigned long long currentTime = ServerManager.getUtcEpoch();
-            if (reading.sgv > 0 && reading.epoch > (currentTime - 86400)) {
-                readings.push_back(reading);
-            }
+        GlucoseReading reading;
+        reading.sgv = sg["sg"].as<int>();
+        if (reading.sgv <= 0) {
+            continue;
         }
+
+        reading.trend = BG_TREND::NONE;
+        reading.epoch = timestampToEpoch(sg["timestamp"]);  // Convert to seconds
+
+        // Only add readings of last 3 hours
+        if (reading.epoch < (currentTime - BG_BACKFILL_SECONDS)) {
+            continue;
+        }
+
+        readings.push_front(reading);
     }
+    doc.clear();
+    client->end();
+
+    firstConnectionSuccess = true;
 
     // Sort readings by timestamp
     readings.sort([](const GlucoseReading& a, const GlucoseReading& b) { return a.epoch < b.epoch; });
@@ -706,32 +687,30 @@ void BGSourceMedtronic::setCommonHeaders(HTTPClient* client) const {
 
 void BGSourceMedtronic::initiateHttpsCall(HTTPClient* client, const String& url) {
     LCBUrl parsedUrl;
-    if (parsedUrl.setUrl(url)) {
-        client->begin(
-            *wifiSecureClient, parsedUrl.getHost(), parsedUrl.getPort(),
-            String("/") + parsedUrl.getPath() + parsedUrl.getAfterPath(), true);
-    } else {
+    // if (parsedUrl.setUrl(url)) {
+    //     DEBUG_PRINTLN("Medtronic: Initiating HTTPS call to " + parsedUrl.getHost() + ":" +
+    //                    String(parsedUrl.getPort()) + String("/") + parsedUrl.getPath() + parsedUrl.getAfterPath());
+    //     client->begin(
+    //         *wifiSecureClient, parsedUrl.getHost(), parsedUrl.getPort(),
+    //         String("/") + parsedUrl.getPath() + parsedUrl.getAfterPath(), true);
+    // } else {
         // Fallback to direct URL if parsing fails
         client->begin(*wifiSecureClient, url);
-    }
+    // }
 }
 
-BG_TREND BGSourceMedtronic::parseTrendArrow(const String& trend) const {
-    if (trend == "UP_FAST" || trend == "DoubleUp" || trend == "2") {
-        return BG_TREND::DOUBLE_UP;
-    } else if (trend == "UP" || trend == "SingleUp" || trend == "1") {
-        return BG_TREND::SINGLE_UP;
-    } else if (trend == "UP_SLOW" || trend == "FortyFiveUp" || trend == "3") {
-        return BG_TREND::FORTY_FIVE_UP;
-    } else if (trend == "FLAT" || trend == "Flat" || trend == "4") {
-        return BG_TREND::FLAT;
-    } else if (trend == "DOWN_SLOW" || trend == "FortyFiveDown" || trend == "5") {
-        return BG_TREND::FORTY_FIVE_DOWN;
-    } else if (trend == "DOWN" || trend == "SingleDown" || trend == "6") {
-        return BG_TREND::SINGLE_DOWN;
-    } else if (trend == "DOWN_FAST" || trend == "DoubleDown" || trend == "7") {
-        return BG_TREND::DOUBLE_DOWN;
-    } else {
-        return BG_TREND::NONE;
+unsigned long long BGSourceMedtronic::timestampToEpoch(String timestamp) const {
+    if (timestamp.c_str() == nullptr) {
+        return 0;
     }
+
+    tm tm;
+    strptime(timestamp.c_str(), "%Y-%m-%dT%H:%M:%S", &tm);
+#ifdef DEBUG_BG_SOURCE
+    DEBUG_PRINTF(
+        "Value to parse: %s, Parsed time: %02d:%02d:%02d, date: %02d/%02d/%04d\n", timestamp.c_str(),
+        tm.tm_hour, tm.tm_min, tm.tm_sec, tm.tm_mday, tm.tm_mon + 1, tm.tm_year + 1900);
+#endif
+    time_t t = mktime(&tm);
+    return t;
 }
