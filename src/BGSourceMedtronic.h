@@ -174,11 +174,10 @@ private:
         const MedtronicTokenData& tokenData, const MedtronicConfig& config);
 
     // Data fetching
-    std::optional<String> fetchRecentData(const MedtronicTokenData& tokenData);
-    std::optional<std::list<GlucoseReading>> parseGlucoseReadings(const String& jsonData) const;
+    std::optional<std::list<GlucoseReading>> fetchRecentData(const MedtronicTokenData& tokenData);
+    unsigned long long timestampToEpoch(String timestamp) const;
 
     // Helper functions
-    BG_TREND parseTrendArrow(const String& trend) const;
     void setCommonHeaders(HTTPClient* client) const;
     void initiateHttpsCall(HTTPClient* client, const String& url);
 
