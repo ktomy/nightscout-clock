@@ -8,7 +8,7 @@
 
 _Nightscout Clock (or NSClock) is an open-source product aimed to help caregivers of people with type 1 diabetes have more piece of mind by being able to better glance at their loved onve blood glucose values._
 
-![resized_IMG_0217](https://github.com/user-attachments/assets/9c5d810a-76c0-414b-8d93-d46a6afa8bf6)
+![Photo of the NSClock](https://github.com/user-attachments/assets/9c5d810a-76c0-414b-8d93-d46a6afa8bf6)
 
 ## Here is what it can do
 
@@ -22,6 +22,11 @@ _Nightscout Clock (or NSClock) is an open-source product aimed to help caregiver
 - Notifies of stall data
 - ...and more
 
+### YouTube review
+
+[![YouTube video](https://img.youtube.com/vi/7GmDflLxqLs/0.jpg)](https://www.youtube.com/watch?v=7GmDflLxqLs)
+Thanks [@TheBeardedTechGuy](https://github.com/TheBeardedTechGuy)
+
 ## How to install
 
 1. Buy [Ulanzi TC001](https://www.ulanzi.com/products/ulanzi-pixel-smart-clock-2882?aff=1191), it is about $50, so you don't have to sell a kidney, it is available both in US and Europe (Aliexpress sells it as well, for the same price)
@@ -33,6 +38,11 @@ _Nightscout Clock (or NSClock) is an open-source product aimed to help caregiver
 7. Once the clock installed, take out your phone and join `nsclock` wi-fi network. Then go to `http://192.168.4.1/`
 8. Set up your device, provide the Wi-Fi network details, your Dexcom or Nightscout credentials, glucose warning limits and other parameters
 9. You're all set, enjoy!
+
+## How to update
+
+[![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/7mFZJ7_EFN4/0.jpg)](https://www.youtube.com/watch?v=7mFZJ7_EFN4)
+Thanks [@TheBeardedTechGuy](https://github.com/TheBeardedTechGuy)
 
 ## More information for people who needs it
 
@@ -62,10 +72,10 @@ Nightscout CLock is a custom firmware for Ulanzi TC001. It can also run (with mi
   - Ability to set custom hostname in in case you have multiple NSClocks on the same network
 - Simple glucose value display with trend arrow
 - Changing color based on limits
-- Nightscout data source, the clock gett units type and value boundaries from Nightscout
+- Nightscout data source, the clock gett units type and value boundaries from Nightscout (see [how to](https://youtu.be/GGiep2gdx_o) set up using [Nightscout.pro](https://www.nightscout.pro/) as data source)
 - [Juggluco](https://www.juggluco.nl/) data source (support for HTTP Nightscout endpoints)
 - [Improv WiFi](https://github.com/improv-wifi) compatibility (setting up WiFi during the installation)
-- [Gluroo](https://gluroo.com/) data source (API_SECRET within the URL parameters)
+- [Gluroo](https://gluroo.com/) data source (API_SECRET within the URL parameters) (see how to setup [video](https://youtu.be/unG-l6XXWxw))
 - Dexcom Share data source
 - LibreLinkUp (libreview) data source
 - Brightness adjustment
@@ -94,8 +104,6 @@ Nightscout CLock is a custom firmware for Ulanzi TC001. It can also run (with mi
 - Add more clock faces
   - Battery, humidity and temperature
 - Smooth color change (rainbow) based on the value and boundaries
-- Create installation/configuration video
-- Create a guide for setting up the development environment and code walkthrough for contributions
 - Add more data sources
   - Medtronic
   - ...more... (if you are the author of a CGM data collecting app/service nad you want your data to be displayed on the Nightscout Clock, please contact me)
