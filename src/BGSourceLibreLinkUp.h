@@ -8,7 +8,7 @@
 #include "BGSource.h"
 #include "SettingsManager.h"
 
-#define LIBRE_LINK_UP_VERSION "4.12.0"
+#define LIBRE_LINK_UP_VERSION "4.16.0"
 #define LIBRE_LINK_UP_PRODUCT "llu.ios"
 #define USER_AGENT                                                                              \
     "Mozilla/5.0 (iPhone; CPU OS 17_4.1 like Mac OS X) AppleWebKit/536.26 (KHTML, like Gecko) " \
