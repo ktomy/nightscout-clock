@@ -25,6 +25,7 @@ _Nightscout Clock (or NSClock) is an open-source product aimed to help caregiver
 ### YouTube review
 
 [![YouTube video](https://img.youtube.com/vi/7GmDflLxqLs/0.jpg)](https://www.youtube.com/watch?v=7GmDflLxqLs)
+
 Thanks [@TheBeardedTechGuy](https://github.com/TheBeardedTechGuy)
 
 ## How to install
@@ -42,6 +43,7 @@ Thanks [@TheBeardedTechGuy](https://github.com/TheBeardedTechGuy)
 ## How to update
 
 [![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/7mFZJ7_EFN4/0.jpg)](https://www.youtube.com/watch?v=7mFZJ7_EFN4)
+
 Thanks [@TheBeardedTechGuy](https://github.com/TheBeardedTechGuy)
 
 ## More information for people who needs it
