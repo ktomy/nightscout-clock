@@ -1,6 +1,6 @@
 # Nightscout Clock
 
-![Nihtscout clock logo](https://github.com/ktomy/nightscout-clock/assets/1446257/1198c06d-b017-409d-aca3-2bca63581ecb)
+![Nightscout clock logo](https://github.com/ktomy/nightscout-clock/assets/1446257/1198c06d-b017-409d-aca3-2bca63581ecb)
 
 ### Current version: 0.24.2
 
@@ -18,7 +18,7 @@ _Nightscout Clock (or NSClock) is an open-source product aimed to help caregiver
 - 10 minutes setup through web browser
 - Configurable low/high limits
 - Audible alarms in case the blood sugar is too low or too high
-- Automatic brightness adjuistment
+- Automatic brightness adjustment
 - Notifies of stall data
 - ...and more
 
@@ -26,7 +26,7 @@ _Nightscout Clock (or NSClock) is an open-source product aimed to help caregiver
 
 [![YouTube video](https://img.youtube.com/vi/7GmDflLxqLs/0.jpg)](https://www.youtube.com/watch?v=7GmDflLxqLs)
 
-Thanks [@TheBeardedTechGuy](https://github.com/TheBeardedTechGuy)
+Thanks [@CallumMcK](https://github.com/CallumMcK)
 
 ## How to install
 
@@ -44,7 +44,7 @@ Thanks [@TheBeardedTechGuy](https://github.com/TheBeardedTechGuy)
 
 [![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/7mFZJ7_EFN4/0.jpg)](https://www.youtube.com/watch?v=7mFZJ7_EFN4)
 
-Thanks [@TheBeardedTechGuy](https://github.com/TheBeardedTechGuy)
+Thanks [@CallumMcK](https://github.com/CallumMcK)
 
 ## More information for people who needs it
 
@@ -76,7 +76,7 @@ Nightscout CLock is a custom firmware for Ulanzi TC001. It can also run (with mi
 - Changing color based on limits
 - Nightscout data source, the clock gett units type and value boundaries from Nightscout (see [how to](https://youtu.be/GGiep2gdx_o) set up using [Nightscout.pro](https://www.nightscout.pro/) as data source)
 - [Juggluco](https://www.juggluco.nl/) data source (support for HTTP Nightscout endpoints)
-- [Improv WiFi](https://github.com/improv-wifi) compatibility (setting up WiFi during the installation)
+- [Improve WiFi](https://github.com/improv-wifi) compatibility (setting up WiFi during the installation)
 - [Gluroo](https://gluroo.com/) data source (API_SECRET within the URL parameters) (see how to setup [video](https://youtu.be/unG-l6XXWxw))
 - Dexcom Share data source
 - LibreLinkUp (libreview) data source
