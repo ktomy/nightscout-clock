@@ -129,6 +129,9 @@ bool SettingsManager_::loadSettingsFromFile() {
     settings.librelinkup_password = (*doc)["librelinkup_password"].as<String>();
     settings.librelinkup_region = (*doc)["librelinkup_region"].as<String>();
 
+    settings.medtronic_country = (*doc)["medtronic_country"].as<String>();
+    settings.medtronic_token_json = (*doc)["medtronic_token_json"].as<String>();
+
     settings.nightscout_url = (*doc)["nightscout_url"].as<String>();
     settings.nightscout_api_key = (*doc)["api_secret"].as<String>();
 
@@ -232,6 +235,9 @@ bool SettingsManager_::saveSettingsToFile() {
     (*doc)["librelinkup_email"] = settings.librelinkup_email;
     (*doc)["librelinkup_password"] = settings.librelinkup_password;
     (*doc)["librelinkup_region"] = settings.librelinkup_region;
+
+    (*doc)["medtronic_country"] = settings.medtronic_country;
+    (*doc)["medtronic_token_json"] = settings.medtronic_token_json;
 
     (*doc)["nightscout_url"] = settings.nightscout_url;
     (*doc)["api_secret"] = settings.nightscout_api_key;

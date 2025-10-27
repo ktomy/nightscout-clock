@@ -19,6 +19,7 @@
         time_format: /^(12|24)$/,
         email_format: /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/,
         not_empty: /^.{1,}$/,
+        medtronic_token_json: /^\s*\{[\s\S]*\}\s*$/,
         custom_nodatatimer: /^(?:[6-9]|[1-5][0-9]|60)?$/,
 
     };
@@ -81,7 +82,7 @@
         const isChecked = $('#custom_hostname_enable').is(':checked');
         $('#custom_hostname_settings').toggleClass('d-none', !isChecked);
     }
-    
+
     function toggleCustomNoDataSettings() {
         const isChecked = $('#custom_nodatatimer_enable').is(':checked');
         $('#custom_nodatatimer_settings').toggleClass('d-none', !isChecked);
@@ -185,6 +186,7 @@
         $('#nightscout_settings_card').toggleClass("d-none", value !== "nightscout");
         $('#dexcom_settings_card').toggleClass("d-none", value !== "dexcom");
         $('#librelinkup_settings_card').toggleClass("d-none", value !== "librelinkup");
+        $('#medtronic_settings_card').toggleClass("d-none", value !== "medtronic");
 
         removeFocusOutValidation('ns_hostname');
         removeFocusOutValidation('ns_port');
@@ -195,6 +197,7 @@
         removeFocusOutValidation('librelinkup_email');
         removeFocusOutValidation('librelinkup_password');
         removeFocusOutValidation('librelinkup_region');
+        removeFocusOutValidation('medtronic_token_json');
 
         switch (value) {
             case "nightscout":
@@ -217,6 +220,10 @@
                 addFocusOutValidation('librelinkup_email');
                 addFocusOutValidation('librelinkup_password');
                 addFocusOutValidation('librelinkup_region');
+                break;
+            case "medtronic":
+                setElementValidity(glucoseSource, true);
+                addFocusOutValidation('medtronic_token_json');
                 break;
             default:
                 setElementValidity(glucoseSource, false);
@@ -398,6 +405,9 @@
             isValid &= validate($('#librelinkup_email'), patterns.email_format);
             isValid &= validate($('#librelinkup_password'), patterns.dexcom_password);
             isValid &= validate($('#librelinkup_region'), patterns.not_empty);
+        } else if (value === "medtronic") {
+            setElementValidity(glucoseSource, true);
+            isValid &= validate($('#medtronic_token_json'), patterns.medtronic_token_json);
         } else if (value === "api") {
             // No validation needed
         } else {
@@ -425,6 +435,9 @@
         json['librelinkup_email'] = $('#librelinkup_email').val();
         json['librelinkup_password'] = $('#librelinkup_password').val();
         json['librelinkup_region'] = $('#librelinkup_region').val();
+
+        //Medtronic CareLink
+        json['medtronic_token_json'] = $('#medtronic_token_json').val();
 
         //Nightscout
         json['api_secret'] = $('#api_secret').val();
@@ -496,7 +509,7 @@
         json['custom_hostname_enable'] = $('#custom_hostname_enable').is(':checked');
         json['custom_hostname'] = $('#custom_hostname').val();
 
-         // Custom No Data Timer
+        // Custom No Data Timer
         json['custom_nodatatimer_enable'] = $('#custom_nodatatimer_enable').is(':checked');
         json['custom_nodatatimer'] = $('#custom_nodatatimer').val();
 
@@ -705,6 +718,9 @@
         $('#librelinkup_password').val(json['librelinkup_password']);
         $('#librelinkup_region').val(json['librelinkup_region']);
 
+        //Medtronic CareLink
+        $('#medtronic_token_json').val(json['medtronic_token_json']);
+
         //Nightscout        
         $('#api_secret').val(json['api_secret']);
         var url = undefined;
@@ -777,11 +793,11 @@
         $('#custom_hostname').val(json['custom_hostname']);
         toggleCustomHostnameSettings();
 
-         // Custom No Data Timer
+        // Custom No Data Timer
         $('#custom_nodatatimer_enable').prop('checked', json['custom_nodatatimer_enable']);
         $('#custom_nodatatimer').val(json['custom_nodatatimer']);
         toggleCustomNoDataSettings();
-        
+
     }
 
     function loadAlarmDataFromJson(json, alarmType) {
@@ -814,51 +830,51 @@
 
     function displayVersionInfo() {
 
-    // Version info logic
+        // Version info logic
 
-    let versionUrl = "/version.txt?";
-    if (window.location.href.indexOf("127.0.0.1") !== -1) {
-        versionUrl = "http://192.168.86.24/version.txt?";
-    }
+        let versionUrl = "/version.txt?";
+        if (window.location.href.indexOf("127.0.0.1") !== -1) {
+            versionUrl = "http://192.168.86.24/version.txt?";
+        }
 
-    fetch(versionUrl + Date.now())
-        .then(res => {
-            if (!res.ok) throw new Error('Failed to fetch current version');
-            return res.text();
-        })
-        .then(currentVersion => {
-            currentVersion = currentVersion.trim();
-            if (!currentVersion) throw new Error('Current version is empty');
-            $('#current_version').text(currentVersion);
-            fetch('https://raw.githubusercontent.com/ktomy/nightscout-clock/refs/heads/main/data/version.txt?' + Date.now())
-                .then(res => {
-                    if (!res.ok) throw new Error('Failed to fetch latest version');
-                    return res.text();
-                })
-                .then(latestVersion => {
-                    latestVersion = latestVersion.trim();
-                    if (!latestVersion) throw new Error('Latest version is empty');
-                    $('#latest_version').text(latestVersion);
-                    if (compareVersions(currentVersion, latestVersion) < 0) {
-                        $('#update_status').html(' <a href="https://github.com/ktomy/nightscout-clock/tree/main?tab=readme-ov-file#changes" target="_blank">Changes</a>');
-                        $('#update_link').removeClass('d-none');
-                    } else {
-                        $('#update_status').text('You are using the latest version.');
+        fetch(versionUrl + Date.now())
+            .then(res => {
+                if (!res.ok) throw new Error('Failed to fetch current version');
+                return res.text();
+            })
+            .then(currentVersion => {
+                currentVersion = currentVersion.trim();
+                if (!currentVersion) throw new Error('Current version is empty');
+                $('#current_version').text(currentVersion);
+                fetch('https://raw.githubusercontent.com/ktomy/nightscout-clock/refs/heads/main/data/version.txt?' + Date.now())
+                    .then(res => {
+                        if (!res.ok) throw new Error('Failed to fetch latest version');
+                        return res.text();
+                    })
+                    .then(latestVersion => {
+                        latestVersion = latestVersion.trim();
+                        if (!latestVersion) throw new Error('Latest version is empty');
+                        $('#latest_version').text(latestVersion);
+                        if (compareVersions(currentVersion, latestVersion) < 0) {
+                            $('#update_status').html(' <a href="https://github.com/ktomy/nightscout-clock/tree/main?tab=readme-ov-file#changes" target="_blank">Changes</a>');
+                            $('#update_link').removeClass('d-none');
+                        } else {
+                            $('#update_status').text('You are using the latest version.');
+                            $('#update_link').addClass('d-none');
+                        }
+                    })
+                    .catch((err) => {
+                        $('#latest_version').text('Error');
+                        $('#update_status').text('Could not check for updates: ' + err.message);
                         $('#update_link').addClass('d-none');
-                    }
-                })
-                .catch((err) => {
-                    $('#latest_version').text('Error');
-                    $('#update_status').text('Could not check for updates: ' + err.message);
-                    $('#update_link').addClass('d-none');
-                });
-        })
-        .catch((err) => {
-            $('#current_version').text('Error');
-            $('#latest_version').text('-');
-            $('#update_status').text('Could not read current version: ' + err.message);
-            $('#update_link').addClass('d-none');
-        });
+                    });
+            })
+            .catch((err) => {
+                $('#current_version').text('Error');
+                $('#latest_version').text('-');
+                $('#update_status').text('Could not read current version: ' + err.message);
+                $('#update_link').addClass('d-none');
+            });
     }
     // Simple version comparison: returns -1 if v1 < v2, 0 if equal, 1 if v1 > v2
     function compareVersions(v1, v2) {

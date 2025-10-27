@@ -80,6 +80,7 @@ Nightscout CLock is a custom firmware for Ulanzi TC001. It can also run (with mi
 - [Gluroo](https://gluroo.com/) data source (API_SECRET within the URL parameters) (see how to setup [video](https://youtu.be/unG-l6XXWxw))
 - Dexcom Share data source
 - LibreLinkUp (libreview) data source
+- Medtronic Carelink data source (requires token generation)
 - Brightness adjustment
   - Brightness can be adjusted within the Web UI
   - Automatic brightness adjustment based on the ambient light
