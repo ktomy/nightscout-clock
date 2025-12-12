@@ -3,9 +3,11 @@
 (() => {
     'use strict'
 
+    const clockHost = "http://192.168.4.1";
+
     const patterns = {
         ssid: /^[\x20-\x7E]{1,32}$/,
-        wifi_password: /(^$)|(^.{8,}$)/,
+        wifi_password: /^.{8,}$/,
         dexcom_username: /^.{6,}$/,
         dexcom_password: /^.{8,20}$/,
         ns_hostname: /(^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$)|(^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9][a-z0-9-]{0,61}[a-z0-9]$)/,
@@ -99,6 +101,7 @@
             // Re-enable the password field when unchecked
             passwordField.prop('disabled', false);
         }
+        validate(passwordField, wifiPasswordValidationPatternSelector());
     }
 
     function tryAlarm(e) {
@@ -109,7 +112,7 @@
         let tryAlarmUrl = "/api/alarm";
         if (window.location.href.indexOf("127.0.0.1") > 0) {
             console.log("Trying on local ESP..");
-            tryAlarmUrl = "http://192.168.86.24/api/alarm";
+            tryAlarmUrl = clockHost + "/api/alarm";
         }
         fetch(tryAlarmUrl, {
             method: "POST",
@@ -143,7 +146,7 @@
 
     function addValidationHandlers() {
         addFocusOutValidation('ssid');
-        addFocusOutValidation('wifi_password');
+        addFocusOutValidation('wifi_password', wifiPasswordValidationPatternSelector);
 
         addFocusOutValidation('clock_timezone');
         addFocusOutValidation('time_format');
@@ -357,7 +360,15 @@
             return patterns.bg_mmol;
         } else {
             console.error("No BG units selected");
-            return undefined;
+            return /^(invalid_pattern)$/;
+        }
+    }
+
+    function wifiPasswordValidationPatternSelector() {
+        if ($('#open_wifi_network').is(':checked')) {
+            return /^$/;
+        } else {
+            return patterns.wifi_password;
         }
     }
 
@@ -542,8 +553,8 @@
         let resetUrl = "/api/reset";
         if (window.location.href.indexOf("127.0.0.1") > 0) {
             console.log("Uploading to local ESP..");
-            saveUrl = "http://192.168.86.24/api/save";
-            resetUrl = "http://192.168.86.24/api/reset";
+            saveUrl = clockHost + saveUrl;
+            resetUrl = clockHost + resetUrl;
         }
         fetch(saveUrl, {
             method: "POST",
@@ -607,7 +618,12 @@
     }
 
     function validate(field, regex) {
-        return setElementValidity(field, regex.test(field.val()));
+        try {
+        var result = setElementValidity(field, regex.test(field.val()));
+        return result;
+        } catch (ex) {
+            console.error(ex);
+        }
     }
 
     function removeFocusOutValidation(fieldName) {
@@ -659,8 +675,8 @@
         var tzJson = "tzdata.json";
 
         if (window.location.href.indexOf("127.0.0.1") > 0) {
-            configJsonUrl = "http://192.168.86.24/config.json?" + Date.now();
-            tzJson = "http://192.168.86.24/tzdata.json?" + Date.now();
+            configJsonUrl = clockHost + "/config.json?" + Date.now();
+            tzJson = clockHost + "/tzdata.json?" + Date.now();
 
         }
 
@@ -706,8 +722,9 @@
         $('#wifi_password').val(json['password']);
         
         // Check open_wifi_network if password is empty
-        if (!json['password'] || json['password'].trim() === '') {
+        if ((!json['password'] || json['password'].trim() === '') && json['ssid'] && json['ssid'].length > 0) {
             $('#open_wifi_network').prop('checked', true);
+            $('#warning_open_network').removeClass('collapse');
             toggleWifiPasswordField();
         }
 
@@ -838,7 +855,7 @@
 
     let versionUrl = "/version.txt?";
     if (window.location.href.indexOf("127.0.0.1") !== -1) {
-        versionUrl = "http://192.168.86.24/version.txt?";
+        versionUrl = clockHost + "/version.txt?";
     }
 
     fetch(versionUrl + Date.now())
