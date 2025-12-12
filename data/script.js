@@ -704,6 +704,12 @@
         //WiFi
         $('#ssid').val(json['ssid']);
         $('#wifi_password').val(json['password']);
+        
+        // Check open_wifi_network if password is empty
+        if (!json['password'] || json['password'].trim() === '') {
+            $('#open_wifi_network').prop('checked', true);
+            toggleWifiPasswordField();
+        }
 
         // glucose source
         $('#glucose_source').val(json['data_source']);
