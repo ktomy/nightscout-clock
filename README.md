@@ -115,6 +115,7 @@ Nightscout CLock is a custom firmware for Ulanzi TC001. It can also run (with mi
 ### 0.24.3
 
 - Implemented open WiFi connectivity, closing [#105](https://github.com/ktomy/nightscout-clock/issues/105)
+- Changed age bars colors so that they do not disappear when the brightness is minimal. [#101](https://github.com/ktomy/nightscout-clock/discussions/101)
 
 ### 0.24.2
 
