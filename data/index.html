@@ -1,39 +1,33 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en" data-bs-theme="dark">
 
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link href="bootstrap.min.css" rel="stylesheet">
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link href="bootstrap.min.css" rel="stylesheet" />
     <!-- <link href="all.min.css" rel="stylesheet"> -->
-    <link href="../data_dev/bootstrap.css" rel="stylesheet">
+    <link href="../data_dev/bootstrap.css" rel="stylesheet" />
     <!-- <link href="../data_dev/all.css" rel="stylesheet"> -->
     <title>Nightscout clock</title>
 </head>
 
 <body class="bg-body-tertiary">
-
-
     <div class="container-md">
         <div class="pt-5 pb-2 text-center">
             <h2>Nightscout clock</h2>
         </div>
         <form class="needs-validation" novalidate>
             <div class="card" id="loading_block">
-                <div class="card-body">
-                    Loading data...
-                </div>
+                <div class="card-body">Loading data...</div>
             </div>
             <div class="collapse" id="main_block">
                 <div class="card" id="wifi_setup_card">
-                    <h5 class="card-header" id="headingOne">
-                        Wireless network
-                    </h5>
+                    <h5 class="card-header" id="headingOne">Wireless network</h5>
                     <div class="card-body">
                         <div class="row g-3">
                             <div class="col-sm-6">
                                 <label for="ssid" class="form-label">WiFi network name (SSID)</label>
-                                <input type="text" class="form-control" id="ssid" placeholder="" value="" required>
+                                <input type="text" class="form-control" id="ssid" placeholder="" value="" required />
                                 <div class="invalid-feedback">
                                     Valid network name (SSID) is required
                                 </div>
@@ -42,632 +36,669 @@
                             <div class="col-sm-6">
                                 <label for="wifi_password" class="form-label">WiFi password</label>
                                 <input type="password" class="form-control" id="wifi_password" placeholder="" value=""
-                                    required>
+                                    required />
                                 <div class="invalid-feedback">
                                     Password is required and must be at least 8 characters long
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </div>
-                <br />
-                <div class="card" id="glucose_source_card">
-                    <h5 class="card-header">
-                        Glucose data source
-                    </h5>
-                    <div class="card-body">
-                        <div class="row">
+                        <div class="row mt-3">
                             <div class="col-12">
-                                <label for="glucose_source" class="form-label">Please select glucose data source</label>
-                                <select class="form-select" id="glucose_source" required>
-                                    <option value="">Choose...</option>
-                                    <option value="dexcom">Dexcom</option>
-                                    <option value="nightscout">Nightscout</option>
-                                    <option value="librelinkup">LibreLinkUp</option>
-                                    <option value="carelink">Medtronic CareLink</option>
-                                    <option value="api">API (see project documentation)</option>
-                                </select>
-                                <div class="invalid-feedback">
-                                    Please select glucose data source
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="open_wifi_network"
+                                        data-bs-toggle="collapse" data-bs-target="#warning_open_network" />
+                                    <label class="form-check-label" for="open_wifi_network">
+                                        Open WiFi network (no password)
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mt-3 collapse" id="warning_open_network">
+                            <div class="col-12">
+                                <div class="alert alert-warning" role="alert">
+                                    You have selected an open WiFi network. This is not secure
+                                    and not recommended.
+                                    <br />
+                                    Moreover, if your network has captive portal (a web page
+                                    which automatically opens when connecting to the network to
+                                    enter e.g. email), the clock will not be able to connect to
+                                    the internet
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
-                <br />
-                <div id="dexcom_settings_card" class="d-none">
-                    <div class="card">
-                        <h5 class="card-header" id="headingTwo">
-                            Dexcom connection
-                        </h5>
+                    <br />
+                    <div class="card" id="glucose_source_card">
+                        <h5 class="card-header">Glucose data source</h5>
                         <div class="card-body">
                             <div class="row">
-                                <div class="col-lg-5 col-md-6 col-12 mb-3 mb-md-0">
-                                    <label for="dexcom_username" class="form-label">Dexcom username</label>
-                                    <input type="text" class="form-control" id="dexcom_username">
-                                    <div class="invalid-feedback">
-                                        Dexcom username is required
-                                    </div>
-                                </div>
-                                <div class="col-lg-5 col-md-6 col-12 mb-3 mb-md-0">
-                                    <label for="dexcom_password" class="form-label">Dexcom password</label>
-                                    <input type="password" class="form-control" id="dexcom_password">
-                                    <div class="invalid-feedback">
-                                        Dexcom password is required
-                                    </div>
-                                </div>
-                                <div class="col-lg-2 col-md-6 col-12 mb-3 mb-md-0">
-                                    <label for="dexcom_server" class="form-label">Dexcom server</label>
-                                    <select class="form-select" id="dexcom_server" required>
+                                <div class="col-12">
+                                    <label for="glucose_source" class="form-label">Please select glucose data
+                                        source</label>
+                                    <select class="form-select" id="glucose_source" required>
                                         <option value="">Choose...</option>
-                                        <option value="us">US</option>
-                                        <option value="ous">Non-US</option>
+                                        <option value="dexcom">Dexcom</option>
+                                        <option value="nightscout">Nightscout</option>
+                                        <option value="librelinkup">LibreLinkUp</option>
+                                        <option value="carelink">Medtronic CareLink</option>
+                                        <option value="api">
+                                            API (see project documentation)
+                                        </option>
                                     </select>
                                     <div class="invalid-feedback">
-                                        Please select Dexcom server
+                                        Please select glucose data source
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                     <br />
-                </div>
-                <div class="d-none" id="nightscout_settings_card">
-                    <div class="card">
-                        <h5 class="card-header" id="headingThree">
-                            Nightscout connection
-                        </h5>
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-lg-3 col-md-6 col-12 mb-3 mb-md-0">
-                                    <label for="ns_protocol" class="form-label">Protocol</label>
-                                    <select class="form-select" id="ns_protocol" required>
-                                        <option value="">Choose...</option>
-                                        <option value="http">HTTP</option>
-                                        <option value="https">HTTPS</option>
-                                    </select>
-                                    <div class="invalid-feedback">
-                                        Please select communication protocol
+                    <div id="dexcom_settings_card" class="d-none">
+                        <div class="card">
+                            <h5 class="card-header" id="headingTwo">Dexcom connection</h5>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-lg-5 col-md-6 col-12 mb-3 mb-md-0">
+                                        <label for="dexcom_username" class="form-label">Dexcom username</label>
+                                        <input type="text" class="form-control" id="dexcom_username" />
+                                        <div class="invalid-feedback">
+                                            Dexcom username is required
+                                        </div>
                                     </div>
-                                </div>
-                                <div class="col-lg-6 col-md-6 col-12 mb-3 mb-md-0">
-                                    <label for="ns_hostname" class="form-label">Nightscout hostname <span
-                                            class="text-body-secondary">(Hostname, not URL)</span></label>
-                                    <input type="text" class="form-control" id="ns_hostname"
-                                        placeholder="mybloodsugar.heroku.com" required>
-                                    <div class="invalid-feedback">
-                                        Please enter a valid hostname
+                                    <div class="col-lg-5 col-md-6 col-12 mb-3 mb-md-0">
+                                        <label for="dexcom_password" class="form-label">Dexcom password</label>
+                                        <input type="password" class="form-control" id="dexcom_password" />
+                                        <div class="invalid-feedback">
+                                            Dexcom password is required
+                                        </div>
                                     </div>
-                                </div>
-                                <div class="col-lg-3 col-md-6 col-12">
-                                    <label for="ns_port" class="form-label">Port <span
-                                            class="text-body-secondary">(Optional)</span></label>
-                                    <input type="text" class="form-control" id="ns_port">
-                                    <div class="invalid-feedback">
-                                        Port must be either empty or a valid TCP port
+                                    <div class="col-lg-2 col-md-6 col-12 mb-3 mb-md-0">
+                                        <label for="dexcom_server" class="form-label">Dexcom server</label>
+                                        <select class="form-select" id="dexcom_server" required>
+                                            <option value="">Choose...</option>
+                                            <option value="us">US</option>
+                                            <option value="ous">Non-US</option>
+                                        </select>
+                                        <div class="invalid-feedback">
+                                            Please select Dexcom server
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                            <br />
-                            <div class="col-12">
-                                <label for="api_secret" class="form-label">API secret <span
-                                        class="text-body-secondary">(Only needed when viewing Nightscout data is
-                                        protected)</span></label>
-                                <input type="password" class="form-control" id="api_secret" />
-                                <div class="invalid-feedback">
-                                    API secret must be at least 12 characters long
+                        </div>
+                        <br />
+                    </div>
+                    <div class="d-none" id="nightscout_settings_card">
+                        <div class="card">
+                            <h5 class="card-header" id="headingThree">
+                                Nightscout connection
+                            </h5>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-lg-3 col-md-6 col-12 mb-3 mb-md-0">
+                                        <label for="ns_protocol" class="form-label">Protocol</label>
+                                        <select class="form-select" id="ns_protocol" required>
+                                            <option value="">Choose...</option>
+                                            <option value="http">HTTP</option>
+                                            <option value="https">HTTPS</option>
+                                        </select>
+                                        <div class="invalid-feedback">
+                                            Please select communication protocol
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-6 col-md-6 col-12 mb-3 mb-md-0">
+                                        <label for="ns_hostname" class="form-label">Nightscout hostname
+                                            <span class="text-body-secondary">(Hostname, not URL)</span></label>
+                                        <input type="text" class="form-control" id="ns_hostname"
+                                            placeholder="mybloodsugar.heroku.com" required />
+                                        <div class="invalid-feedback">
+                                            Please enter a valid hostname
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-3 col-md-6 col-12">
+                                        <label for="ns_port" class="form-label">Port
+                                            <span class="text-body-secondary">(Optional)</span></label>
+                                        <input type="text" class="form-control" id="ns_port" />
+                                        <div class="invalid-feedback">
+                                            Port must be either empty or a valid TCP port
+                                        </div>
+                                    </div>
+                                </div>
+                                <br />
+                                <div class="col-12">
+                                    <label for="api_secret" class="form-label">API secret
+                                        <span class="text-body-secondary">(Only needed when viewing Nightscout data is
+                                            protected)</span></label>
+                                    <input type="password" class="form-control" id="api_secret" />
+                                    <div class="invalid-feedback">
+                                        API secret must be at least 12 characters long
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <br />
+                    </div>
+                    <div id="librelinkup_settings_card" class="d-none">
+                        <div class="card">
+                            <h5 class="card-header" id="headingTwo">
+                                LibreLink Up connection
+                            </h5>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-lg-5 col-md-6 col-12 mb-3 mb-md-0">
+                                        <label for="librelinkup_email" class="form-label">LibreLink Up email</label>
+                                        <input type="text" class="form-control" id="librelinkup_email" />
+                                        <div class="invalid-feedback">
+                                            LibreLink Up email is required
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-5 col-md-6 col-12 mb-3 mb-md-0">
+                                        <label for="librelinkup_password" class="form-label">LibreLink Up
+                                            password</label>
+                                        <input type="password" class="form-control" id="librelinkup_password" />
+                                        <div class="invalid-feedback">
+                                            LibreLink Up password is required
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-2 col-md-6 col-12 mb-3 mb-md-0">
+                                        <label for="librelinkup_region" class="form-label">LibreLink Up server</label>
+                                        <select class="form-select" id="librelinkup_region" required>
+                                            <option value="">Choose...</option>
+                                            <option value="AE">United Arab Emirates</option>
+                                            <option value="AP">Asia Pacific</option>
+                                            <option value="AU">Australia</option>
+                                            <option value="CA">Canada</option>
+                                            <option value="DE">Germany</option>
+                                            <option value="EU">Europe</option>
+                                            <option value="EU2">Europe 2</option>
+                                            <option value="FR">France</option>
+                                            <option value="JP">Japan</option>
+                                            <option value="US">United States</option>
+                                            <option value="LA">Latin America</option>
+                                            <option value="RU">Russia</option>
+                                        </select>
+                                        <div class="invalid-feedback">
+                                            Please select Dexcom server
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <br />
+                    </div>
+                    <div class="card" id="glucode_related_settings_card">
+                        <h5 class="card-header d-flex justify-content-between align-items-center">
+                            Glucose-related settings
+                            <button type="button" id="btn_load_limits_from_ns" class="btn btn-sm btn-primary">
+                                Load from Nightscout
+                            </button>
+                        </h5>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-sm-2">
+                                    <label for="bg_units" class="form-label">Blood glucose units</label>
+                                    <select class="form-select" id="bg_units" required>
+                                        <option value="">Choose...</option>
+                                        <option value="mgdl">mg/dl</option>
+                                        <option value="mmol">mmol/l</option>
+                                    </select>
+                                    <div class="invalid-feedback">
+                                        Please select blood glucose units type
+                                    </div>
+                                </div>
+                                <div class="col-sm-2">
+                                    <label for="bg_urgent_low" class="form-label">
+                                        BG Urgent Low value
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="darkred"
+                                            class="bi bi-square-fill" viewBox="0 0 16 16">
+                                            <path
+                                                d="M0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2z" />
+                                        </svg>
+                                    </label>
+
+                                    <input type="text" class="form-control" id="bg_urgent_low" placeholder=""
+                                        required />
+                                    <div class="invalid-feedback">
+                                        BG Urgent Low value is required
+                                    </div>
+                                </div>
+                                <div class="col-sm-2">
+                                    <label for="bg_low" class="form-label">
+                                        BG Low value
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#8B8000"
+                                            class="bi bi-square-fill" viewBox="0 0 16 16">
+                                            <path
+                                                d="M0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2z" />
+                                        </svg>
+                                    </label>
+                                    <input type="text" class="form-control" id="bg_low" placeholder="" required />
+                                    <div class="invalid-feedback">BG Low value is required</div>
+                                </div>
+                                <div class="col-sm-2">
+                                    <label for="bg_normal" class="form-label">
+                                        Normal interval
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#008000"
+                                            class="bi bi-square-fill" viewBox="0 0 16 16">
+                                            <path
+                                                d="M0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2z" />
+                                        </svg>
+                                    </label>
+                                    <input type="text" class="form-control" id="bg_normal" placeholder="" disabled />
+                                </div>
+                                <div class="col-sm-2">
+                                    <label for="bg_high" class="form-label">
+                                        BG High value
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#8B8000"
+                                            class="bi bi-square-fill" viewBox="0 0 16 16">
+                                            <path
+                                                d="M0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2z" />
+                                        </svg>
+                                    </label>
+                                    <input type="text" class="form-control" id="bg_high" placeholder="" required />
+                                    <div class="invalid-feedback">
+                                        BG High value is required
+                                    </div>
+                                </div>
+                                <div class="col-sm-2">
+                                    <label for="bg_urgent_high" class="form-label">
+                                        BG Urgent High value
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="darkred"
+                                            class="bi bi-square-fill" viewBox="0 0 16 16">
+                                            <path
+                                                d="M0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2z" />
+                                        </svg>
+                                    </label>
+                                    <input type="text" class="form-control" id="bg_urgent_high" placeholder=""
+                                        required />
+                                    <div class="invalid-feedback">
+                                        BG Urgent High value is required
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                     <br />
-                </div>
-                <div id="librelinkup_settings_card" class="d-none">
-                    <div class="card">
-                        <h5 class="card-header" id="headingTwo">
-                            LibreLink Up connection
-                        </h5>
+                    <div class="card" id="alarms_settings_card">
+                        <h5 class="card-header">Glucose levels alerts</h5>
                         <div class="card-body">
                             <div class="row">
-                                <div class="col-lg-5 col-md-6 col-12 mb-3 mb-md-0">
-                                    <label for="librelinkup_email" class="form-label">LibreLink Up email</label>
-                                    <input type="text" class="form-control" id="librelinkup_email">
-                                    <div class="invalid-feedback">
-                                        LibreLink Up email is required
+                                <div class="col-sm-2">
+                                    <br class="d-none d-sm-block" />
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" value=""
+                                            id="alarm_high_enable" />
+                                        <label class="form-check-label" for="alarm_high_enable">
+                                            High alert
+                                        </label>
                                     </div>
                                 </div>
-                                <div class="col-lg-5 col-md-6 col-12 mb-3 mb-md-0">
-                                    <label for="librelinkup_password" class="form-label">LibreLink Up password</label>
-                                    <input type="password" class="form-control" id="librelinkup_password">
+                                <div class="col-sm-1 align-content-center">
+                                    <button id="btn_high_alarm_try" class="btn btn-outline-primary w-100" type="button">
+                                        Try
+                                    </button>
+                                </div>
+                                <div class="col-sm-3">
+                                    <label for="alarm_high_value" class="form-label">Alert when above</label>
+                                    <input type="text" class="form-control" id="alarm_high_value" placeholder=""
+                                        required disabled />
                                     <div class="invalid-feedback">
-                                        LibreLink Up password is required
+                                        High alert threshold value is required
                                     </div>
                                 </div>
-                                <div class="col-lg-2 col-md-6 col-12 mb-3 mb-md-0">
-                                    <label for="librelinkup_region" class="form-label">LibreLink Up server</label>
-                                    <select class="form-select" id="librelinkup_region" required>
+                                <div class="col-sm-3">
+                                    <label for="alarm_high_snooze" class="form-label">Snooze for</label>
+                                    <select class="form-select" id="alarm_high_snooze" required disabled>
                                         <option value="">Choose...</option>
-                                        <option value="AE">United Arab Emirates</option>
-                                        <option value="AP">Asia Pacific</option>
-                                        <option value="AU">Australia</option>
-                                        <option value="CA">Canada</option>
-                                        <option value="DE">Germany</option>
-                                        <option value="EU">Europe</option>
-                                        <option value="EU2">Europe 2</option>
-                                        <option value="FR">France</option>
-                                        <option value="JP">Japan</option>
-                                        <option value="US">United States</option>
-                                        <option value="LA">Latin America</option>
-                                        <option value="RU">Russia</option>
+                                        <option value="5">5 minutes</option>
+                                        <option value="10">10 minutes</option>
+                                        <option value="15">15 minutes</option>
+                                        <option value="30">30 minutes</option>
+                                        <option value="60">1 hour</option>
+                                        <option value="120">2 hours</option>
+                                        <option value="0">Until next trigger</option>
                                     </select>
                                     <div class="invalid-feedback">
-                                        Please select Dexcom server
+                                        Please select high alert snooze interval
+                                    </div>
+                                </div>
+                                <div class="col-sm-3">
+                                    <label for="alarm_high_silence" class="form-label">Silence interval</label>
+                                    <select class="form-select" id="alarm_high_silence" required disabled>
+                                        <option value="">Choose...</option>
+                                        <option value="0">No silence</option>
+                                        <option value="22_8">22:00 - 8:00</option>
+                                        <option value="8_22">08:00 - 22:00</option>
+                                    </select>
+                                    <div class="invalid-feedback">
+                                        Please choose High alert silence interval
+                                    </div>
+                                </div>
+                            </div>
+                            <hr />
+                            <div class="row">
+                                <div class="col-sm-2">
+                                    <br class="d-none d-sm-block" />
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" value=""
+                                            id="alarm_low_enable" />
+                                        <label class="form-check-label" for="alarm_low_enable">
+                                            Low alert
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-sm-1 align-content-center">
+                                    <button id="btn_low_alarm_try" class="btn btn-outline-primary w-100" type="button">
+                                        Try
+                                    </button>
+                                </div>
+                                <div class="col-sm-3">
+                                    <label for="alarm_low_value" class="form-label">Alert when below</label>
+                                    <input type="text" class="form-control" id="alarm_low_value" placeholder="" required
+                                        disabled />
+                                    <div class="invalid-feedback">
+                                        Low alert threshold value is required
+                                    </div>
+                                </div>
+                                <div class="col-sm-3">
+                                    <label for="alarm_low_snooze" class="form-label">Snooze for</label>
+                                    <select class="form-select" id="alarm_low_snooze" required disabled>
+                                        <option value="">Choose...</option>
+                                        <option value="5">5 minutes</option>
+                                        <option value="10">10 minutes</option>
+                                        <option value="15">15 minutes</option>
+                                        <option value="30">30 minutes</option>
+                                        <option value="60">1 hour</option>
+                                        <option value="120">2 hours</option>
+                                        <option value="0">Until next trigger</option>
+                                    </select>
+                                    <div class="invalid-feedback">
+                                        Please select Low alert snooze interval
+                                    </div>
+                                </div>
+                                <div class="col-sm-3">
+                                    <label for="alarm_low_silence" class="form-label">Silence interval</label>
+                                    <select class="form-select" id="alarm_low_silence" required disabled>
+                                        <option value="">Choose...</option>
+                                        <option value="0">No silence</option>
+                                        <option value="22_8">22:00 - 8:00</option>
+                                        <option value="8_22">08:00 - 22:00</option>
+                                    </select>
+                                    <div class="invalid-feedback">
+                                        Please choose Low alert silence interval
+                                    </div>
+                                </div>
+                            </div>
+                            <hr />
+                            <div class="row">
+                                <div class="col-sm-2">
+                                    <br class="d-none d-sm-block" />
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" value=""
+                                            id="alarm_urgent_low_enable" />
+                                        <label class="form-check-label" for="alarm_urgent_low_enable">
+                                            Urgent Low alert
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-sm-1 align-content-center">
+                                    <button id="btn_urgent_low_alarm_try" class="btn btn-outline-primary w-100"
+                                        type="button">
+                                        Try
+                                    </button>
+                                </div>
+                                <div class="col-sm-3">
+                                    <label for="alarm_urgent_low_value" class="form-label">Alert when below</label>
+                                    <input type="text" class="form-control" id="alarm_urgent_low_value" placeholder=""
+                                        required disabled />
+                                    <div class="invalid-feedback">
+                                        Urgent Low alert threshold value is required
+                                    </div>
+                                </div>
+                                <div class="col-sm-3">
+                                    <label for="alarm_urgent_low_snooze" class="form-label">Snooze for</label>
+                                    <select class="form-select" id="alarm_urgent_low_snooze" required disabled>
+                                        <option value="">Choose...</option>
+                                        <option value="5">5 minutes</option>
+                                        <option value="10">10 minutes</option>
+                                        <option value="15">15 minutes</option>
+                                        <option value="30">30 minutes</option>
+                                        <option value="60">1 hour</option>
+                                        <option value="120">2 hours</option>
+                                        <option value="0">Until next trigger</option>
+                                    </select>
+                                    <div class="invalid-feedback">
+                                        Please select Urgent Low alert snooze interval
+                                    </div>
+                                </div>
+                                <div class="col-sm-3">
+                                    <label for="alarm_urgent_low_silence" class="form-label">Silence interval</label>
+                                    <select class="form-select" id="alarm_urgent_low_silence" required disabled>
+                                        <option value="">Choose...</option>
+                                        <option value="0">No silence</option>
+                                        <option value="22_8">22:00 - 8:00</option>
+                                        <option value="8_22">08:00 - 22:00</option>
+                                    </select>
+                                    <div class="invalid-feedback">
+                                        Please choose Urgent Low alert silence interval
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                     <br />
-                </div>
-                <div class="card" id="glucode_related_settings_card">
-                    <h5 class="card-header d-flex justify-content-between align-items-center">
-                        Glucose-related settings
-                        <button type="button" id="btn_load_limits_from_ns" class="btn btn-sm btn-primary">Load
-                            from Nightscout</button>
-                    </h5>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-sm-2">
-                                <label for="bg_units" class="form-label">Blood glucose units</label>
-                                <select class="form-select" id="bg_units" required>
-                                    <option value="">Choose...</option>
-                                    <option value="mgdl">mg/dl</option>
-                                    <option value="mmol">mmol/l</option>
-                                </select>
-                                <div class="invalid-feedback">
-                                    Please select blood glucose units type
+                    <div class="card" id="device_settings_card">
+                        <h5 class="card-header">Device settings</h5>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-3 col-lg-3">
+                                    <label for="brightness_level" class="form-label">Brightness level</label>
+                                    <select class="form-select" id="brightness_level" required>
+                                        <option value="100">Auto: balanced</option>
+                                        <option value="101">Auto: for darker rooms</option>
+                                        <option value="1">1</option>
+                                        <option value="2">2</option>
+                                        <option value="3">3</option>
+                                        <option value="4">4</option>
+                                        <option value="5">5</option>
+                                        <option value="6">6</option>
+                                        <option value="7">7</option>
+                                        <option value="8">8</option>
+                                        <option value="9">9</option>
+                                        <option value="10">10</option>
+                                    </select>
+                                    <div class="invalid-feedback">
+                                        Please select display brightness level
+                                    </div>
+                                </div>
+                                <div class="col-md-3 col-lg-3">
+                                    <label for="default_clock_face" class="form-label">Default clock face</label>
+                                    <select class="form-select" id="default_clock_face" required>
+                                        <option value="0">Simple</option>
+                                        <option value="1">Full glucose graph</option>
+                                        <option value="2">Glucose graph and value</option>
+                                        <option value="3">Big text</option>
+                                        <option value="4">Value and delta</option>
+                                        <option value="5">Current time and BG value</option>
+                                    </select>
+                                    <div class="invalid-feedback">
+                                        Please select default clock face
+                                    </div>
+                                </div>
+                                <div class="col-md-3 col-lg-3">
+                                    <label for="clock_timezone" class="form-label">Clock time zone</label>
+                                    <select class="form-select" id="clock_timezone" required>
+                                        <option value="">Choose...</option>
+                                    </select>
+                                    <div class="invalid-feedback">
+                                        Please select your time zone
+                                    </div>
+                                </div>
+                                <div class="col-md-3 col-lg-3">
+                                    <label for="time_format" class="form-label">Time format</label>
+                                    <select class="form-select" id="time_format" required>
+                                        <option value="">Choose...</option>
+                                        <option value="12">AM/PM</option>
+                                        <option value="24">24h</option>
+                                    </select>
+                                    <div class="invalid-feedback">
+                                        Please select the time format (AM/PM or 24h)
+                                    </div>
                                 </div>
                             </div>
-                            <div class="col-sm-2">
-                                <label for="bg_urgent_low" class="form-label">
-                                    BG Urgent Low value
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="darkred"
-                                        class="bi bi-square-fill" viewBox="0 0 16 16">
-                                        <path
-                                            d="M0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2z" />
-                                    </svg> </label>
+                        </div>
+                    </div>
+                    <br />
+                    <div class="card" id="advanced_settings_card">
+                        <h5 class="card-header">
+                            Advanced settings &nbsp;&nbsp;
+                            <span class="card-subtitle text-muted small">
+                                You probably don't need to change anything here</span>
+                        </h5>
+                        <button class="btn btn-sm btn-outline-secondary float-end" data-bs-toggle="collapse"
+                            data-bs-target="#advanced_settings" type="button">
+                            Show / hide
+                        </button>
 
-                                <input type="text" class="form-control" id="bg_urgent_low" placeholder="" required>
-                                <div class="invalid-feedback">
-                                    BG Urgent Low value is required
+                        <div class="card-body collapse" id="advanced_settings">
+                            <div class="row">
+                                <div class="col-12">
+                                    <table>
+                                        <tr>
+                                            <td>
+                                                <div class="form-check form-switch">
+                                                    <input class="form-check-input" type="checkbox" value=""
+                                                        id="additional_wifi_enable" />
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <h5>Additional WiFi Network</h5>
+                                            </td>
+                                        </tr>
+                                    </table>
                                 </div>
                             </div>
-                            <div class="col-sm-2">
-                                <label for="bg_low" class="form-label">
-                                    BG Low value
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#8B8000"
-                                        class="bi bi-square-fill" viewBox="0 0 16 16">
-                                        <path
-                                            d="M0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2z" />
-                                    </svg>
-                                </label>
-                                <input type="text" class="form-control" id="bg_low" placeholder="" required>
-                                <div class="invalid-feedback">
-                                    BG Low value is required
+
+                            <div class="row d-none" id="additional_wifi_settings">
+                                <div class="col-3">
+                                    <label for="additional_wifi_type" class="form-label">WiFi Type</label>
+                                    <select class="form-select" id="additional_wifi_type" required>
+                                        <option value="">Choose...</option>
+                                        <option value="wpa_psk">WPA-PSK</option>
+                                        <option value="wpa_eap">WPA-EAP</option>
+                                    </select>
+                                    <div class="invalid-feedback">Please select WiFi type</div>
+                                </div>
+                                <div class="col-3 d-none" id="additional_ssid_cell">
+                                    <label for="additional_ssid" class="form-label">WiFi network name (SSID)</label>
+                                    <input type="text" class="form-control" id="additional_ssid" placeholder=""
+                                        required />
+                                    <div class="invalid-feedback">
+                                        Valid network name (SSID) is required
+                                    </div>
+                                </div>
+                                <div class="col-3 d-none" id="additional_wifi_username_cell">
+                                    <label for="additional_wifi_username" class="form-label">WiFi username</label>
+                                    <input type="text" class="form-control" id="additional_wifi_username" placeholder=""
+                                        required />
+                                    <div class="invalid-feedback">Username is required</div>
+                                </div>
+                                <div class="col-3 d-none" id="additional_wifi_password_cell">
+                                    <label for="additional_wifi_password" class="form-label">WiFi password</label>
+                                    <input type="password" class="form-control" id="additional_wifi_password"
+                                        placeholder="" required />
+                                    <div class="invalid-feedback">
+                                        Password is required and must be at least 8 characters
+                                        long
+                                    </div>
                                 </div>
                             </div>
-                            <div class="col-sm-2">
-                                <label for="bg_normal" class="form-label">
-                                    Normal interval
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#008000"
-                                        class="bi bi-square-fill" viewBox="0 0 16 16">
-                                        <path
-                                            d="M0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2z" />
-                                    </svg>
-                                </label>
-                                <input type="text" class="form-control" id="bg_normal" placeholder="" disabled>
-                            </div>
-                            <div class="col-sm-2">
-                                <label for="bg_high" class="form-label">
-                                    BG High value
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#8B8000"
-                                        class="bi bi-square-fill" viewBox="0 0 16 16">
-                                        <path
-                                            d="M0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2z" />
-                                    </svg>
-                                </label>
-                                <input type="text" class="form-control" id="bg_high" placeholder="" required>
-                                <div class="invalid-feedback">
-                                    BG High value is required
+                            <hr />
+                            <div class="row">
+                                <div class="col-12">
+                                    <table>
+                                        <tr>
+                                            <td>
+                                                <div class="form-check form-switch">
+                                                    <input class="form-check-input" type="checkbox" value=""
+                                                        id="custom_hostname_enable" />
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <h5>Custom hostname</h5>
+                                            </td>
+                                        </tr>
+                                    </table>
                                 </div>
                             </div>
-                            <div class="col-sm-2">
-                                <label for="bg_urgent_high" class="form-label">
-                                    BG Urgent High value
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="darkred"
-                                        class="bi bi-square-fill" viewBox="0 0 16 16">
-                                        <path
-                                            d="M0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2z" />
-                                    </svg> </label>
-                                <input type="text" class="form-control" id="bg_urgent_high" placeholder="" required>
-                                <div class="invalid-feedback">
-                                    BG Urgent High value is required
+                            <div class="row d-none" id="custom_hostname_settings">
+                                <div class="col-6" id="custom_hostname_cell">
+                                    <label for="custom_hostname" class="form-label">Custom hostname</label>
+                                    <input type="text" class="form-control" id="custom_hostname" placeholder=""
+                                        required />
+                                    <div class="invalid-feedback">
+                                        Valid hostname is required
+                                    </div>
                                 </div>
                             </div>
+                            <hr />
+                            <div class="row">
+                                <div class="col-12">
+                                    <table>
+                                        <tr>
+                                            <td>
+                                                <div class="form-check form-switch">
+                                                    <input class="form-check-input" type="checkbox" value=""
+                                                        id="custom_nodatatimer_enable" />
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <h5>Custom No Data Timer</h5>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="row d-none" id="custom_nodatatimer_settings">
+                                <div class="col-6" id="custom_nodatatimer_cell">
+                                    <label for="custom_nodatatimer" class="form-label">Custom No Data Timer (in
+                                        minutes)</label>
+                                    <input type="text" class="form-control" id="custom_nodatatimer" placeholder=""
+                                        required />
+                                    <div class="invalid-feedback">
+                                        A valid time between 6 and 60 minutes is required
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <br />
+                    <div class="card mb-3" id="version_info_card">
+                        <div class="card-body">
+                            <!-- <h5 class="card-title">Version Information</h5> -->
+                            <p class="card-text mb-1">
+                                Current version: <span id="current_version">...</span>.
+                                <a href="https://ktomy.github.io/nightscout-clock/" id="update_link"
+                                    class="btn btn-secondary d-none btn-sm" target="_blank">Update to <span
+                                        id="latest_version">...</span></a>
+                                <span id="update_status">Checking for updates...</span>
+                            </p>
                         </div>
                     </div>
                 </div>
                 <br />
-                <div class="card" id="alarms_settings_card">
-                    <h5 class="card-header">Glucose levels alerts</h5>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-sm-2">
-                                <br class="d-none d-sm-block" />
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" value="" id="alarm_high_enable">
-                                    <label class="form-check-label" for="alarm_high_enable">
-                                        High alert
-                                    </label>
-                                </div>
-                            </div>
-                            <div class="col-sm-1 align-content-center">
-                                <button id="btn_high_alarm_try" class="btn btn-outline-primary w-100"
-                                    type="button">Try</button>
-                            </div>
-                            <div class="col-sm-3">
-                                <label for="alarm_high_value" class="form-label">Alert when above</label>
-                                <input type="text" class="form-control" id="alarm_high_value" placeholder="" required
-                                    disabled>
-                                <div class="invalid-feedback">
-                                    High alert threshold value is required
-                                </div>
-                            </div>
-                            <div class="col-sm-3">
-                                <label for="alarm_high_snooze" class="form-label">Snooze for</label>
-                                <select class="form-select" id="alarm_high_snooze" required disabled>
-                                    <option value="">Choose...</option>
-                                    <option value="5">5 minutes</option>
-                                    <option value="10">10 minutes</option>
-                                    <option value="15">15 minutes</option>
-                                    <option value="30">30 minutes</option>
-                                    <option value="60">1 hour</option>
-                                    <option value="120">2 hours</option>
-                                    <option value="0">Until next trigger</option>
-                                </select>
-                                <div class="invalid-feedback">
-                                    Please select high alert snooze interval
-                                </div>
-                            </div>
-                            <div class="col-sm-3">
-                                <label for="alarm_high_silence" class="form-label">Silence interval</label>
-                                <select class="form-select" id="alarm_high_silence" required disabled>
-                                    <option value="">Choose...</option>
-                                    <option value="0">No silence</option>
-                                    <option value="22_8">22:00 - 8:00</option>
-                                    <option value="8_22">08:00 - 22:00</option>
-                                </select>
-                                <div class="invalid-feedback">
-                                    Please choose High alert silence interval
-                                </div>
-                            </div>
-                        </div>
-                        <hr />
-                        <div class="row">
-                            <div class="col-sm-2">
-                                <br class="d-none d-sm-block" />
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" value="" id="alarm_low_enable">
-                                    <label class="form-check-label" for="alarm_low_enable">
-                                        Low alert
-                                    </label>
-                                </div>
-                            </div>
-                            <div class="col-sm-1 align-content-center">
-                                <button id="btn_low_alarm_try" class="btn btn-outline-primary w-100"
-                                    type="button">Try</button>
-                            </div>
-                            <div class="col-sm-3">
-                                <label for="alarm_low_value" class="form-label">Alert when below</label>
-                                <input type="text" class="form-control" id="alarm_low_value" placeholder="" required
-                                    disabled>
-                                <div class="invalid-feedback">
-                                    Low alert threshold value is required
-                                </div>
-                            </div>
-                            <div class="col-sm-3">
-                                <label for="alarm_low_snooze" class="form-label">Snooze for</label>
-                                <select class="form-select" id="alarm_low_snooze" required disabled>
-                                    <option value="">Choose...</option>
-                                    <option value="5">5 minutes</option>
-                                    <option value="10">10 minutes</option>
-                                    <option value="15">15 minutes</option>
-                                    <option value="30">30 minutes</option>
-                                    <option value="60">1 hour</option>
-                                    <option value="120">2 hours</option>
-                                    <option value="0">Until next trigger</option>
-                                </select>
-                                <div class="invalid-feedback">
-                                    Please select Low alert snooze interval
-                                </div>
-                            </div>
-                            <div class="col-sm-3">
-                                <label for="alarm_low_silence" class="form-label">Silence interval</label>
-                                <select class="form-select" id="alarm_low_silence" required disabled>
-                                    <option value="">Choose...</option>
-                                    <option value="0">No silence</option>
-                                    <option value="22_8">22:00 - 8:00</option>
-                                    <option value="8_22">08:00 - 22:00</option>
-                                </select>
-                                <div class="invalid-feedback">
-                                    Please choose Low alert silence interval
-                                </div>
-                            </div>
-                        </div>
-                        <hr />
-                        <div class="row">
-                            <div class="col-sm-2">
-                                <br class="d-none d-sm-block" />
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" value=""
-                                        id="alarm_urgent_low_enable">
-                                    <label class="form-check-label" for="alarm_urgent_low_enable">
-                                        Urgent Low alert
-                                    </label>
-                                </div>
-                            </div>
-                            <div class="col-sm-1 align-content-center">
-                                <button id="btn_urgent_low_alarm_try" class="btn btn-outline-primary w-100"
-                                    type="button">Try</button>
-                            </div>
-                            <div class="col-sm-3">
-                                <label for="alarm_urgent_low_value" class="form-label">Alert when below</label>
-                                <input type="text" class="form-control" id="alarm_urgent_low_value" placeholder=""
-                                    required disabled>
-                                <div class="invalid-feedback">
-                                    Urgent Low alert threshold value is required
-                                </div>
-                            </div>
-                            <div class="col-sm-3">
-                                <label for="alarm_urgent_low_snooze" class="form-label">Snooze for</label>
-                                <select class="form-select" id="alarm_urgent_low_snooze" required disabled>
-                                    <option value="">Choose...</option>
-                                    <option value="5">5 minutes</option>
-                                    <option value="10">10 minutes</option>
-                                    <option value="15">15 minutes</option>
-                                    <option value="30">30 minutes</option>
-                                    <option value="60">1 hour</option>
-                                    <option value="120">2 hours</option>
-                                    <option value="0">Until next trigger</option>
-                                </select>
-                                <div class="invalid-feedback">
-                                    Please select Urgent Low alert snooze interval
-                                </div>
-                            </div>
-                            <div class="col-sm-3">
-                                <label for="alarm_urgent_low_silence" class="form-label">Silence interval</label>
-                                <select class="form-select" id="alarm_urgent_low_silence" required disabled>
-                                    <option value="">Choose...</option>
-                                    <option value="0">No silence</option>
-                                    <option value="22_8">22:00 - 8:00</option>
-                                    <option value="8_22">08:00 - 22:00</option>
-                                </select>
-                                <div class="invalid-feedback">
-                                    Please choose Urgent Low alert silence interval
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <br />
-                <div class="card" id="device_settings_card">
-                    <h5 class="card-header">Device settings</h5>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-3 col-lg-3">
-                                <label for="brightness_level" class="form-label">Brightness level</label>
-                                <select class="form-select" id="brightness_level" required>
-                                    <option value="100">Auto: balanced</option>
-                                    <option value="101">Auto: for darker rooms</option>
-                                    <option value="1">1</option>
-                                    <option value="2">2</option>
-                                    <option value="3">3</option>
-                                    <option value="4">4</option>
-                                    <option value="5">5</option>
-                                    <option value="6">6</option>
-                                    <option value="7">7</option>
-                                    <option value="8">8</option>
-                                    <option value="9">9</option>
-                                    <option value="10">10</option>
-                                </select>
-                                <div class="invalid-feedback">
-                                    Please select display brightness level
-                                </div>
-                            </div>
-                            <div class="col-md-3 col-lg-3">
-                                <label for="default_clock_face" class="form-label">Default clock face</label>
-                                <select class="form-select" id="default_clock_face" required>
-                                    <option value="0">Simple</option>
-                                    <option value="1">Full glucose graph</option>
-                                    <option value="2">Glucose graph and value</option>
-                                    <option value="3">Big text</option>
-                                    <option value="4">Value and delta</option>
-                                    <option value="5">Current time and BG value</option>
-                                </select>
-                                <div class="invalid-feedback">
-                                    Please select default clock face
-                                </div>
-                            </div>
-                            <div class="col-md-3 col-lg-3">
-                                <label for="clock_timezone" class="form-label">Clock time zone</label>
-                                <select class="form-select" id="clock_timezone" required>
-                                    <option value="">Choose...</option>
-                                </select>
-                                <div class="invalid-feedback">
-                                    Please select your time zone
-                                </div>
-                            </div>
-                            <div class="col-md-3 col-lg-3">
-                                <label for="time_format" class="form-label">Time format</label>
-                                <select class="form-select" id="time_format" required>
-                                    <option value="">Choose...</option>
-                                    <option value="12">AM/PM</option>
-                                    <option value="24">24h</option>
-                                </select>
-                                <div class="invalid-feedback">
-                                    Please select the time format (AM/PM or 24h)
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <br />
-                <div class="card" id="advanced_settings_card">
-                    <h5 class="card-header">Advanced settings &nbsp;&nbsp; <span class="card-subtitle text-muted small">
-                            You probably don't need to change anything here</span>
-                    </h5>
-                    <button class="btn btn-sm btn-outline-secondary float-end" data-bs-toggle="collapse"
-                        data-bs-target="#advanced_settings" type="button">Show / hide</button>
 
-                    <div class="card-body collapse" id="advanced_settings">
-                        <div class="row">
-                            <div class="col-12">
-                                <table>
-                                    <tr>
-                                        <td>
-                                            <div class="form-check form-switch">
-                                                <input class="form-check-input" type="checkbox" value=""
-                                                    id="additional_wifi_enable">
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <h5>Additional WiFi Network</h5>
-                                        </td>
-                                    </tr>
-                                </table>
-                            </div>
-                        </div>
+                <div class="mt-2"></div>
 
-                        <div class="row d-none" id="additional_wifi_settings">
-                            <div class="col-3">
-                                <label for="additional_wifi_type" class="form-label">WiFi Type</label>
-                                <select class="form-select" id="additional_wifi_type" required>
-                                    <option value="">Choose...</option>
-                                    <option value="wpa_psk">WPA-PSK</option>
-                                    <option value="wpa_eap">WPA-EAP</option>
-                                </select>
-                                <div class="invalid-feedback">
-                                    Please select WiFi type
-                                </div>
-                            </div>
-                            <div class="col-3 d-none" id="additional_ssid_cell">
-                                <label for="additional_ssid" class="form-label">WiFi network name (SSID)</label>
-                                <input type="text" class="form-control" id="additional_ssid" placeholder="" required>
-                                <div class="invalid-feedback">
-                                    Valid network name (SSID) is required
-                                </div>
-                            </div>
-                            <div class="col-3 d-none" id="additional_wifi_username_cell">
-                                <label for="additional_wifi_username" class="form-label">WiFi username</label>
-                                <input type="text" class="form-control" id="additional_wifi_username" placeholder=""
-                                    required>
-                                <div class="invalid-feedback">
-                                    Username is required
-                                </div>
-                            </div>
-                            <div class="col-3 d-none" id="additional_wifi_password_cell">
-                                <label for="additional_wifi_password" class="form-label">WiFi password</label>
-                                <input type="password" class="form-control" id="additional_wifi_password" placeholder=""
-                                    required>
-                                <div class="invalid-feedback">
-                                    Password is required and must be at least 8 characters long
-                                </div>
-                            </div>
-                        </div>
-                        <hr />
-                        <div class="row">
-                            <div class="col-12">
-                                <table>
-                                    <tr>
-                                        <td>
-                                            <div class="form-check form-switch">
-                                                <input class="form-check-input" type="checkbox" value=""
-                                                    id="custom_hostname_enable">
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <h5>Custom hostname</h5>
-                                        </td>
-                                    </tr>
-                                </table>
-                            </div>
-                        </div>
-                        <div class="row d-none" id="custom_hostname_settings">
-
-                            <div class="col-6" id="custom_hostname_cell">
-                                <label for="custom_hostname" class="form-label">Custom hostname</label>
-                                <input type="text" class="form-control" id="custom_hostname" placeholder="" required>
-                                <div class="invalid-feedback">
-                                    Valid hostname is required
-                                </div>
-                            </div>
-                        </div>
-                        <hr />
-                        <div class="row">
-                            <div class="col-12">
-                                <table>
-                                    <tr>
-                                        <td>
-                                            <div class="form-check form-switch">
-                                                <input class="form-check-input" type="checkbox" value=""
-                                                    id="custom_nodatatimer_enable">
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <h5>Custom No Data Timer</h5>
-                                        </td>
-                                    </tr>
-                                </table>
-                            </div>
-                        </div>
-                        <div class="row d-none" id="custom_nodatatimer_settings">
-                            <div class="col-6" id="custom_nodatatimer_cell">
-                                <label for="custom_nodatatimer" class="form-label">Custom No Data Timer (in minutes)</label>
-                                <input type="text" class="form-control" id="custom_nodatatimer" placeholder="" required>
-                                <div class="invalid-feedback">
-                                    A valid time between 6 and 60 minutes is required
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                <div class="float-end mb-lg-5" id="save_button">
+                    <button class="btn btn-primary btn-lg" type="button" id="btn_save">
+                        Validate, save and restart
+                    </button>
                 </div>
-                <br />
-                <div class="card mb-3" id="version_info_card">
-                    <div class="card-body">
-                        <!-- <h5 class="card-title">Version Information</h5> -->
-                        <p class="card-text mb-1">Current version:
-                            <span id="current_version">...</span>.
-                            <a href="https://ktomy.github.io/nightscout-clock/" id="update_link" class="btn btn-secondary d-none btn-sm"
-                                target="_blank">Update to <span id="latest_version">...</span></a>
-                            <span id="update_status">Checking for updates...</span>
-                        </p>
-                    </div>
-                </div>
+                <br class="pb-5 my-4" />
             </div>
-            <br />
-
-            <div class="mt-2"></div>
-
-            <div class="float-end mb-lg-5" id="save_button">
-                <button class="btn btn-primary btn-lg" type="button" id="btn_save">Validate, save and
-                    restart</button>
-            </div>
-            <br class="pb-5 my-4" />
+        </form>
     </div>
-    </form>
-
-    </div>
-    <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+    <svg xmlns="http://www.w3.org/2000/svg" style="display: none">
         <symbol id="check-circle-fill" fill="currentColor" viewBox="0 0 16 16">
             <path
                 d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z" />
@@ -719,7 +750,6 @@
             </div>
         </div>
     </div>
-
 
     <script src="bootstrap.bundle.min.js"></script>
     <script src="../data_dev/bootstrap.bundle.js"></script>

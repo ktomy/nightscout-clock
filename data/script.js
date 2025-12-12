@@ -5,7 +5,7 @@
 
     const patterns = {
         ssid: /^[\x20-\x7E]{1,32}$/,
-        wifi_password: /^.{8,}$/,
+        wifi_password: /(^$)|(^.{8,}$)/,
         dexcom_username: /^.{6,}$/,
         dexcom_password: /^.{8,20}$/,
         ns_hostname: /(^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$)|(^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9][a-z0-9-]{0,61}[a-z0-9]$)/,
@@ -44,6 +44,7 @@
         $('#additional_wifi_enable').on('change', toggleAdditionalWifiSettings);
         $('#custom_hostname_enable').on('change', toggleCustomHostnameSettings);
         $('#custom_nodatatimer_enable').on('change', toggleCustomNoDataSettings);
+        $('#open_wifi_network').on('change', toggleWifiPasswordField);
 
     }
 
@@ -85,6 +86,19 @@
     function toggleCustomNoDataSettings() {
         const isChecked = $('#custom_nodatatimer_enable').is(':checked');
         $('#custom_nodatatimer_settings').toggleClass('d-none', !isChecked);
+    }
+
+    function toggleWifiPasswordField() {
+        const isChecked = $('#open_wifi_network').is(':checked');
+        const passwordField = $('#wifi_password');
+        
+        if (isChecked) {
+            // Clear and disable the password field when open network is selected
+            passwordField.val('').prop('disabled', true).removeClass('is-invalid').addClass('is-valid');
+        } else {
+            // Re-enable the password field when unchecked
+            passwordField.prop('disabled', false);
+        }
     }
 
     function tryAlarm(e) {
