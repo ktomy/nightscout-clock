@@ -70,15 +70,16 @@ void initiateWiFiConnection(String wifi_type, String ssid, String username, Stri
 
 bool tryConnectToWiFi(String wifi_type, String ssid, String username, String password) {
     if (ssid == "") {
+        DEBUG_PRINTLN("SSID is empty, cannot connect to WiFi");
         return false;
     }
     int timeout = WIFI_CONNECT_TIMEOUT;
 
     WiFi.mode(WIFI_STA);
 
-    initiateWiFiConnection(wifi_type, ssid, username, password);
-
     DEBUG_PRINTF("Connecting to %s (%s)\n", ssid.c_str(), wifi_type.c_str());
+
+    initiateWiFiConnection(wifi_type, ssid, username, password);
 
     auto startTime = millis();
     while (WiFi.status() != WL_CONNECTED) {
@@ -119,6 +120,8 @@ IPAddress ServerManager_::startWifi() {
         failedAttempts = 0;  // Reset failed API call attempts counter
         return ip;
     }
+
+    DEBUG_PRINTLN("Failed to connect to WiFi, starting AP mode");
 
     ip = setAPmode(getHostname(), AP_MODE_PASSWORD);
     this->isInAPMode = true;

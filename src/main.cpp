@@ -28,25 +28,39 @@ void setup() {
 
     DisplayManager.applySettings();
 
-    DisplayManager.HSVtext(0, 6, String("Ver" + String(VERSION)).c_str(), true, 0);
+    DisplayManager.HSVtext(0, 6, String("V " + String(VERSION)).c_str(), true, 0);
+    delay(2000);
+
+    PeripheryManager.setup();
+
+    if (PeripheryManager.isButtonSelectPressed()) {
+        DEBUG_PRINTLN("Center button pressed, resetting to factory defaults...");
+        DisplayManager.scrollColorfulText("Factory reset initiated...");
+        DEBUG_PRINTLN("Performing factory reset...");
+        SettingsManager.factoryReset();
+        DEBUG_PRINTLN("Factory reset done");
+    }
 
     ServerManager.setup();
     bgSourceManager.setup(SettingsManager.settings.bg_source);
     bgDisplayManager.setup();
-    PeripheryManager.setup();
     bgAlarmManager.setup();
     // PeripheryManager.playRTTTLString(sound_boot);
 
     DEBUG_PRINTLN("Setup done");
-    String welcomeMessage = "Nightscout clock   " + ServerManager.myIP.toString();
-    DisplayManager.scrollColorfulText(welcomeMessage);
+    if (ServerManager.isConnected) {
+        String welcomeMessage = "Nightscout clock   " + ServerManager.myIP.toString();
+        DisplayManager.scrollColorfulText(welcomeMessage);
 
-    DisplayManager.clearMatrix();
-    DisplayManager.setTextColor(COLOR_WHITE);
-    DisplayManager.printText(0, 6, "Connect", TEXT_ALIGNMENT::CENTER, 2);
+        DisplayManager.clearMatrix();
+        DisplayManager.setTextColor(COLOR_WHITE);
+        DisplayManager.printText(0, 6, "Connect", TEXT_ALIGNMENT::CENTER, 2);
+    }
 }
 
 void showJoinAP() {
+    SettingsManager.settings.brightness_mode = BRIGHTNES_MODE::MANUAL;
+    DisplayManager.setBrightness(70);
     String hint = "Join " + SettingsManager.settings.hostname + " Wi-fi network and go to http://" +
                   ServerManager.myIP.toString() + "/";
 

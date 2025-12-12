@@ -98,6 +98,11 @@ void select_button_double() {
     }
 }
 
+const bool PeripheryManager_::isButtonSelectPressed() {
+    DEBUG_PRINTLN(F("Checking if select button is pressed"));
+    return button_select.isPressed();
+}
+
 void PeripheryManager_::setup() {
     DEBUG_PRINTLN(F("Setup periphery"));
     startTime = millis();
