@@ -100,6 +100,8 @@ Nightscout CLock is a custom firmware for Ulanzi TC001. It can also run (with mi
   - /api/v1/entries DELETE endpoint deleted all entries no matter the payload
 - Firmware versioning
 - Alarms with configurable Thresholds, snooze times and silence intervals
+- To turn the device on or off press both arrow buttons for 3 seconds
+- To reset the device to factory defaults (hard reset) during boot sequence (when version number is displayed) keep the center (select) button pressed.
 
 ### My TODO list
 
@@ -111,6 +113,12 @@ Nightscout CLock is a custom firmware for Ulanzi TC001. It can also run (with mi
   - ...more... (if you are the author of a CGM data collecting app/service nad you want your data to be displayed on the Nightscout Clock, please contact me)
 
 ## Changes
+
+### 0.24.4
+
+- Fixed WiFi password validation for Open WiFi networks
+- Added possibility of factory resetting the device on start-up (when version string is displaying press the select button)
+- Better AP mode handling
 
 ### 0.24.3
 
