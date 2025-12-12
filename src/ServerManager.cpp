@@ -61,6 +61,8 @@ IPAddress ServerManager_::setAPmode(String ssid, String psk) {
 void initiateWiFiConnection(String wifi_type, String ssid, String username, String password) {
     if (wifi_type == "wpa_eap") {
         WiFi.begin(ssid, WPA2_AUTH_PEAP, username, username, password);
+    } else if (password == "") {
+        WiFi.begin(ssid);
     } else {
         WiFi.begin(ssid, password);
     }
