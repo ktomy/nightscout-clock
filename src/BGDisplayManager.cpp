@@ -156,11 +156,11 @@ void BGDisplayManager_::drawTimerBlocks(
     // Now let's alter xPosition to center the blocks in the available space
     xPosition += (width - (blockSize * MAX_BLOXCS + (MAX_BLOXCS - 1))) / 2;
 
-    uint16_t color = COLOR_DARK_GREEN;
+    uint16_t color = COLOR_GREEN;
     if (lastReading.getSecondsAgo() >= 60 * SettingsManager.settings.bg_data_too_old_threshold_minutes) {
         color = COLOR_GRAY;  // old data
     } else if (lastReading.getSecondsAgo() >= (MAX_BLOXCS + 1) * 60) {
-        color = COLOR_DARK_ORANGE;  // warning data
+        color = COLOR_YELLOW;  // warning data
     }
 #ifdef DEBUG_DISPLAY
     DEBUG_PRINTF(
