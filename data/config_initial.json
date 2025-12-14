@@ -36,7 +36,7 @@
     "alarm_high_silence_interval": "0",
     "alarm_low_silence_interval": "0",
     "alarm_urgent_low_silence_interval": "0",
-    "test_variable": "test_value",
+    "alarm_intensive_mode": false,
     "librelinkup_email": "",
     "librelinkup_password": "",
     "librelinkup_region": "EU",

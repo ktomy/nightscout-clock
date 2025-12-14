@@ -3,7 +3,7 @@
 (() => {
     'use strict'
 
-    const clockHost = "http://192.168.4.1";
+    const clockHost = "http://192.168.86.24";
 
     const patterns = {
         ssid: /^[\x20-\x7E]{1,32}$/,
@@ -509,6 +509,7 @@
         setAlarmDataToJson(json, 'high');
         setAlarmDataToJson(json, 'low');
         setAlarmDataToJson(json, 'urgent_low');
+        json['alarm_intensive_mode'] = $('#alarm_intensive_mode').is(':checked');
 
         // Additional WiFi
         json['additional_wifi_enable'] = $('#additional_wifi_enable').is(':checked');
@@ -800,6 +801,7 @@
         loadAlarmDataFromJson(json, 'high');
         loadAlarmDataFromJson(json, 'low');
         loadAlarmDataFromJson(json, 'urgent_low');
+        $('#alarm_intensive_mode').prop('checked', json['alarm_intensive_mode']);
 
         // Additional WiFi
         $('#additional_wifi_enable').prop('checked', json['additional_wifi_enable']);

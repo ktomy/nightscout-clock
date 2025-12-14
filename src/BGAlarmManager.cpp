@@ -7,6 +7,7 @@
 #include "globals.h"
 
 #define ALARM_REPEAT_INTERVAL_SECONDS 300
+#define ALARM_REPEAT_INTERVAL_INTENSIVE_SECONDS 2
 
 // The getter for the instantiated singleton instance
 BGAlarmManager_& BGAlarmManager_::getInstance() {
@@ -26,6 +27,7 @@ int debounceTicks4 = 0;
 int debounceTicks5 = 0;
 int debounceTicks6 = 0;
 int debounceTicks7 = 0;
+int debounceTicks8 = 0;
 
 #endif
 
@@ -59,6 +61,12 @@ void BGAlarmManager_::setup() {
         alarmData.lastAlarmTime = 0;
         alarmData.alarmSound = sound_high;
         enabledAlarms.push_back(alarmData);
+    }
+
+    if (SettingsManager.settings.alarm_intensive_mode) {
+        alarmIntervalSeconds = ALARM_REPEAT_INTERVAL_INTENSIVE_SECONDS;  // repeat every 2 seconds
+    } else {
+        alarmIntervalSeconds = ALARM_REPEAT_INTERVAL_SECONDS;
     }
 }
 
@@ -198,7 +206,7 @@ void BGAlarmManager_::tick() {
                     }
                 } else {
                     if (ServerManager.getUtcEpoch() - activeAlarm->lastAlarmTime >
-                        ALARM_REPEAT_INTERVAL_SECONDS) {
+                        alarmIntervalSeconds) {
                         activeAlarm->lastAlarmTime = ServerManager.getUtcEpoch();
                         PeripheryManager.playRTTTLString(alarmData.alarmSound);
                         DEBUG_PRINTLN("Playing alarm sound (alarm already active, not snoozed)");
@@ -229,7 +237,7 @@ void BGAlarmManager_::tick() {
 }
 
 void BGAlarmManager_::snoozeAlarm() {
-    if (activeAlarm != NULL) {
+    if (activeAlarm != NULL && !activeAlarm->isSnoozed) {
         DEBUG_PRINTLN("Snoozing alarm");
         DisplayManager.clearMatrix();
         DisplayManager.setTextColor(COLOR_CYAN);
