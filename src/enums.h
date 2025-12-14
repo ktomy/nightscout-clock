@@ -56,6 +56,7 @@ enum class DEXCOM_SERVER : uint8_t {
     INVALID = 0,
     US = 1,
     NON_US = 2,
+    JAPAN = 3,
 };
 
 enum class TIME_FORMAT : uint8_t {

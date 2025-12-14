@@ -10,6 +10,7 @@
     "/ShareWebServices/Services/Publisher/ReadPublisherLatestGlucoseValues"
 #define DEXCOM_NON_US_SERVER "https://shareous1.dexcom.com"
 #define DEXCOM_US_SERVER "https://share1.dexcom.com"
+#define DEXCOM_JAPAN_SERVER "https://share1.dexcom.jp"
 
 class BGSourceDexcom : public BGSource {
 public:

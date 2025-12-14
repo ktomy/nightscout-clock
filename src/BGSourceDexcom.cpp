@@ -93,10 +93,19 @@ std::list<GlucoseReading> BGSourceDexcom::retrieveReadings(
     }
 
     String readingsUrl = "";
-    if (dexcomServer == DEXCOM_SERVER::US) {
-        readingsUrl += DEXCOM_US_SERVER;
-    } else {
-        readingsUrl += DEXCOM_NON_US_SERVER;
+    switch (dexcomServer) {
+        case DEXCOM_SERVER::US:
+            readingsUrl += DEXCOM_US_SERVER;
+            break;
+        case DEXCOM_SERVER::NON_US:
+            readingsUrl += DEXCOM_NON_US_SERVER;
+            break;
+        case DEXCOM_SERVER::JAPAN:
+            readingsUrl += DEXCOM_JAPAN_SERVER;
+            break;
+        default:
+            DisplayManager.showFatalError("Invalid Dexcom server " + String((uint8_t)dexcomServer));
+            return readings;
     }
 
     readingsUrl += DEXCOM_GET_GLUCOSE_READINGS_PATH;

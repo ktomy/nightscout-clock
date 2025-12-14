@@ -15,7 +15,7 @@
         api_secret: /(^$)|(.{12,})/,
         bg_mgdl: /^[3-9][0-9]$|^[1-3][0-9][0-9]$/,
         bg_mmol: /^(([2-9])|([1-2][0-9]))(\.[0-9])?$/,
-        dexcom_server: /^(us|ous)$/,
+        dexcom_server: /^(us|ous|jp)$/,
         ns_protocol: /^(http|https)$/,
         clock_timezone: /^.{2,}$/,
         time_format: /^(12|24)$/,
