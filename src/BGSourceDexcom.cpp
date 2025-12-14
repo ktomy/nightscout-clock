@@ -250,7 +250,9 @@ String BGSourceDexcom::getAccountId(
         if (responseCode == HTTP_CODE_INTERNAL_SERVER_ERROR) {
             auto errorResponseString = client->getString();
             if (errorResponseString.indexOf("AccountPasswordInvalid") != -1) {
-                DisplayManager.showFatalError("Dexcom username of password invalid");
+                DisplayManager.showFatalError(
+                    "Invalid Dexcom username/email or password. Go to http://" +
+                    ServerManager.myIP.toString() + "/ to fix.");
             }
         }
         if (!firstConnectionSuccess) {
