@@ -234,6 +234,7 @@ My computer is running linux, but you can use Windows or MacOS as well, there ar
   - install python as a PlatformIO dependency
 - clone the project using Visual Studio Code
 - PlatformIO should detect the project
+- Comment out (place `#` in the beginning of) [this](https://github.com/ktomy/nightscout-clock/blob/main/platformio.ini#L38) line
 - You should be able to see PlatformIO tab in the sidebar
   - Select `ulanzi_debug` -> `General` -> `Build`
   - `ulanzi_debug` -> `Platform` -> `Build Filesystem image`
