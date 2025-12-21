@@ -63,7 +63,7 @@ Nightscout CLock is a custom firmware for Ulanzi TC001. It can also run (with mi
 
 ### Configuration web interface
 
-## ![copped](https://github.com/user-attachments/assets/6a04b1f2-6c07-49ee-8c63-e145d3823ee9)
+<img alt="webUI" src="https://github.com/user-attachments/assets/94222c87-3f96-46f9-a773-02f7cdb16e6b" />
 
 ### Features (technical stuff, feel free to ignore)
 
