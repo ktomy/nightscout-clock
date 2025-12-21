@@ -95,8 +95,60 @@ const std::map<BG_TREND, const uint8_t*> glucoseTrendSymbols = {
     {BG_TREND::RATE_OUT_OF_RANGE, symbol_doubleUp},
 };
 
-void BGDisplayFaceTextBase::showTrendArrow(const GlucoseReading reading, int16_t x, int16_t y) const {
-    DisplayManager.drawBitmap(x, y, glucoseTrendSymbols.at(reading.trend), 5, 5, COLOR_WHITE);
+void BGDisplayFaceTextBase::showTrendArrow(
+    const GlucoseReading reading, int16_t x, int16_t y, bool dataIsOld) const {
+    uint16_t color = COLOR_WHITE;
+    if (dataIsOld) {
+        color = BG_COLOR_OLD;
+    }
+
+    DisplayManager.drawBitmap(x, y, glucoseTrendSymbols.at(reading.trend), 5, 5, color);
 }
 
 #pragma endregion Show arrow
+
+void BGDisplayFaceTextBase::showTrendVerticalLine(int x, BG_TREND trend, bool dataIsOld) const {
+    if (dataIsOld) {
+        trend = BG_TREND::NONE;
+    }
+    switch (trend) {
+        case BG_TREND::DOUBLE_UP:
+            DisplayManager.drawPixel(x, 0, COLOR_RED);
+            DisplayManager.drawPixel(x, 1, COLOR_YELLOW);
+            DisplayManager.drawPixel(x, 2, COLOR_GREEN);
+            DisplayManager.drawPixel(x, 3, COLOR_WHITE);
+            break;
+        case BG_TREND::DOUBLE_DOWN:
+            DisplayManager.drawPixel(x, 4, COLOR_WHITE);
+            DisplayManager.drawPixel(x, 5, COLOR_GREEN);
+            DisplayManager.drawPixel(x, 6, COLOR_YELLOW);
+            DisplayManager.drawPixel(x, 7, COLOR_RED);
+            break;
+        case BG_TREND::SINGLE_UP:
+            DisplayManager.drawPixel(x, 1, COLOR_YELLOW);
+            DisplayManager.drawPixel(x, 2, COLOR_GREEN);
+            DisplayManager.drawPixel(x, 3, COLOR_WHITE);
+            break;
+        case BG_TREND::SINGLE_DOWN:
+            DisplayManager.drawPixel(x, 4, COLOR_WHITE);
+            DisplayManager.drawPixel(x, 5, COLOR_GREEN);
+            DisplayManager.drawPixel(x, 6, COLOR_YELLOW);
+            break;
+        case BG_TREND::FORTY_FIVE_UP:
+            DisplayManager.drawPixel(x, 2, COLOR_GREEN);
+            DisplayManager.drawPixel(x, 3, COLOR_WHITE);
+            break;
+        case BG_TREND::FORTY_FIVE_DOWN:
+            DisplayManager.drawPixel(x, 4, COLOR_WHITE);
+            DisplayManager.drawPixel(x, 5, COLOR_GREEN);
+            break;
+        case BG_TREND::FLAT:
+            DisplayManager.drawPixel(x, 3, COLOR_WHITE);
+            DisplayManager.drawPixel(x, 4, COLOR_WHITE);
+            break;
+        default:
+            DisplayManager.setTextColor(COLOR_BLACK);
+            break;
+    }
+    DisplayManager.update();
+}

@@ -16,7 +16,7 @@ void BGDisplayFaceValueAndDiff::showReadings(
         showReading(lastReading, 13, 6, TEXT_ALIGNMENT::RIGHT, FONT_TYPE::MEDIUM, dataIsOld);
     }
 
-    showTrendArrow(lastReading, 13, 1);
+    showTrendArrow(lastReading, 13, 1, dataIsOld);
 
     String diff = getDiff(readings);
 
