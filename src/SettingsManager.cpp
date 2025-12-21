@@ -150,6 +150,9 @@ bool SettingsManager_::loadSettingsFromFile() {
     settings.alarm_high_mgdl = (*doc)["alarm_high_value"].as<int>();
     settings.alarm_high_snooze_minutes = (*doc)["alarm_high_snooze_interval"].as<int>();
     settings.alarm_high_silence_interval = (*doc)["alarm_high_silence_interval"].as<String>();
+    settings.alarm_high_melody = (*doc)["alarm_high_melody"].as<String>();
+    settings.alarm_low_melody = (*doc)["alarm_low_melody"].as<String>();
+    settings.alarm_urgent_low_melody = (*doc)["alarm_urgent_low_melody"].as<String>();
     settings.alarm_intensive_mode = (*doc)["alarm_intensive_mode"].as<bool>();
 
     // Additional WiFi
@@ -253,6 +256,9 @@ bool SettingsManager_::saveSettingsToFile() {
     (*doc)["alarm_high_value"] = settings.alarm_high_mgdl;
     (*doc)["alarm_high_snooze_interval"] = settings.alarm_high_snooze_minutes;
     (*doc)["alarm_high_silence_interval"] = settings.alarm_high_silence_interval;
+    (*doc)["alarm_high_melody"] = settings.alarm_high_melody;
+    (*doc)["alarm_low_melody"] = settings.alarm_low_melody;
+    (*doc)["alarm_urgent_low_melody"] = settings.alarm_urgent_low_melody;
     (*doc)["alarm_intensive_mode"] = settings.alarm_intensive_mode;
 
     // Additional WiFi

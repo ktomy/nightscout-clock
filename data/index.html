@@ -375,6 +375,16 @@
                                     </div>
                                 </div>
                             </div>
+                            <div class="row mt-2">
+                                <div class="col-12">
+                                    <label for="alarm_high_melody" class="form-label">Custom melody (RTTTL) (optional)</label>
+                                    <input type="text" class="form-control" id="alarm_high_melody"
+                                        placeholder="high:d=4,o=5,b=125:4e7,p,4e7" disabled />
+                                    <div class="form-text">Leave empty to use the default high alert sound.</div>
+                                    <div class="invalid-feedback">Enter a valid RTTTL string (e.g.,
+                                        name:d=4,o=5,b=125:c6,g,4p).</div>
+                                </div>
+                            </div>
                             <hr />
                             <div class="row">
                                 <div class="col-sm-2">
@@ -427,6 +437,16 @@
                                     <div class="invalid-feedback">
                                         Please choose Low alert silence interval
                                     </div>
+                                </div>
+                            </div>
+                            <div class="row mt-2">
+                                <div class="col-12">
+                                    <label for="alarm_low_melody" class="form-label">Custom melody (RTTTL) (optional)</label>
+                                    <input type="text" class="form-control" id="alarm_low_melody"
+                                        placeholder="low:d=4,o=5,b=200:4e5,4p,4e5" disabled />
+                                    <div class="form-text">Leave empty to use the default low alert sound.</div>
+                                    <div class="invalid-feedback">Enter a valid RTTTL string (e.g.,
+                                        name:d=4,o=5,b=160:c6,8g,8p).</div>
                                 </div>
                             </div>
                             <hr />
@@ -482,6 +502,17 @@
                                     <div class="invalid-feedback">
                                         Please choose Urgent Low alert silence interval
                                     </div>
+                                </div>
+                            </div>
+                            <div class="row mt-2">
+                                <div class="col-12">
+                                    <label for="alarm_urgent_low_melody" class="form-label">Custom melody
+                                        (RTTTL) (optional)</label>
+                                    <input type="text" class="form-control" id="alarm_urgent_low_melody"
+                                        placeholder="urgent_low:d=4,o=5,b=230:4e6,4p,4e6,4p" disabled />
+                                    <div class="form-text">Leave empty to use the default urgent low alert sound.</div>
+                                    <div class="invalid-feedback">Enter a valid RTTTL string (e.g.,
+                                        name:d=4,o=5,b=200:c6,g,8p).</div>
                                 </div>
                             </div>
                             <div class="row mt-3">

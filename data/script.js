@@ -107,20 +107,33 @@
     function tryAlarm(e) {
         const alarmType = $(e.target).attr('id').replace('_alarm_try', '').replace('btn_', '');
 
-        let json = JSON.stringify({ "alarmType": alarmType });
+        const melodyField = $(`#alarm_${alarmType}_melody`);
+        const customMelody = (melodyField.val() || "").trim();
 
+        let requestBody = { "alarmType": alarmType };
         let tryAlarmUrl = "/api/alarm";
+
+        if (customMelody.length > 0) {
+            if (!validateRtttlField(melodyField)) {
+                showToastFailure("Error", "Please enter a valid RTTTL melody before testing.");
+                return;
+            }
+            requestBody = { "rtttl": customMelody };
+            tryAlarmUrl = "/api/alarm/custom";
+        }
+
         if (window.location.href.indexOf("127.0.0.1") > 0) {
             console.log("Trying on local ESP..");
-            tryAlarmUrl = clockHost + "/api/alarm";
+            tryAlarmUrl = clockHost + tryAlarmUrl;
         }
+
         fetch(tryAlarmUrl, {
             method: "POST",
             headers: {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json',
             },
-            body: json,
+            body: JSON.stringify(requestBody),
         })
             .then(function (res) {
                 if (res?.ok) {
@@ -326,18 +339,22 @@
         $(`#alarm_${alarmType}_value`).prop('disabled', !alarmState);
         $(`#alarm_${alarmType}_snooze`).prop('disabled', !alarmState);
         $(`#alarm_${alarmType}_silence`).prop('disabled', !alarmState);
+        $(`#alarm_${alarmType}_melody`).prop('disabled', !alarmState);
 
         if (alarmState) {
             addFocusOutValidation(`alarm_${alarmType}_value`, bgValidationPattternSelector);
             addFocusOutValidationDropDown(`alarm_${alarmType}_snooze`);
             addFocusOutValidationDropDown(`alarm_${alarmType}_silence`);
+            addFocusOutValidationRtttl(`alarm_${alarmType}_melody`);
         } else {
             removeFocusOutValidation(`alarm_${alarmType}_value`);
             removeFocusOutValidationDropDown(`alarm_${alarmType}_snooze`);
             removeFocusOutValidationDropDown(`alarm_${alarmType}_silence`);
+            removeFocusOutValidationRtttl(`alarm_${alarmType}_melody`);
             clearValidationStatus(`alarm_${alarmType}_value`);
             clearValidationStatus(`alarm_${alarmType}_snooze`);
             clearValidationStatus(`alarm_${alarmType}_silence`);
+            clearValidationStatus(`alarm_${alarmType}_melody`);
         }
     }
 
@@ -349,6 +366,18 @@
     }
 
     function removeFocusOutValidationDropDown(fieldName) {
+        const field = $(`#${fieldName}`);
+        field.off('focusout');
+    }
+
+    function addFocusOutValidationRtttl(fieldName) {
+        const field = $(`#${fieldName}`);
+        field.on('focusout', (e) => {
+            validateRtttlField($(e.target));
+        });
+    }
+
+    function removeFocusOutValidationRtttl(fieldName) {
         const field = $(`#${fieldName}`);
         field.off('focusout');
     }
@@ -390,6 +419,7 @@
         let isValid = validate(valueField, bgValidationPattternSelector());
         isValid &= validateDropDown($(`#alarm_${alarmType}_snooze`));
         isValid &= validateDropDown($(`#alarm_${alarmType}_silence`));
+        isValid &= validateRtttlField($(`#alarm_${alarmType}_melody`));
         return isValid;
     }
 
@@ -402,6 +432,34 @@
             setElementValidity(dropDown, true);
             return true;
         }
+    }
+
+    function isValidRtttlString(value) {
+        const trimmed = (value || "").trim();
+        if (trimmed === "") {
+            return true; // optional
+        }
+
+        const parts = trimmed.split(":");
+        if (parts.length !== 3) {
+            return false;
+        }
+
+        const name = parts[0].trim();
+        const defaults = parts[1].toLowerCase();
+        const melody = parts[2].trim();
+
+        const hasDefaults = /d=\d+/.test(defaults) && /o=\d+/.test(defaults) && /b=\d+/.test(defaults);
+        const nameOk = /^[a-zA-Z0-9 _-]{1,20}$/.test(name);
+        const melodyOk = /^[a-grpA-GRP0-9#.,]+$/.test(melody);
+
+        return nameOk && hasDefaults && melodyOk;
+    }
+
+    function validateRtttlField(field) {
+        const valid = isValidRtttlString(field.val());
+        setElementValidity(field, valid);
+        return valid;
     }
 
     function validateGlucoseSource() {
@@ -532,6 +590,10 @@
     function setAlarmDataToJson(json, alarmType) {
         const alarmEnabled = $(`#alarm_${alarmType}_enable`).is(':checked');
         json[`alarm_${alarmType}_enabled`] = alarmEnabled;
+
+        const melody = ($(`#alarm_${alarmType}_melody`).val() || "").trim();
+        json[`alarm_${alarmType}_melody`] = melody;
+
         if (!alarmEnabled) {
             return;
         }
@@ -833,8 +895,9 @@
             alarmValue = ((Math.round(alarmValue / 1.8) / 10) + "").replace(",", ".")
         }
         $(`#alarm_${alarmType}_value`).val(alarmValue);
-        $(`#alarm_${alarmType}_snooze`).val(json[`alarm_${alarmType}_snooze_interval` || ""]);
-        $(`#alarm_${alarmType}_silence`).val(json[`alarm_${alarmType}_silence_interval` || ""]);
+        $(`#alarm_${alarmType}_snooze`).val(json[`alarm_${alarmType}_snooze_interval`] || "");
+        $(`#alarm_${alarmType}_silence`).val(json[`alarm_${alarmType}_silence_interval`] || "");
+        $(`#alarm_${alarmType}_melody`).val(json[`alarm_${alarmType}_melody`] || "");
 
         changeAlarmState($(`#alarm_${alarmType}_enable`));
     }

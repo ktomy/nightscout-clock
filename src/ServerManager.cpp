@@ -18,6 +18,29 @@ ServerManager_& ServerManager_::getInstance() {
     return instance;
 }
 
+static String resolveAlarmMelody(const String& alarmType) {
+    if (alarmType == "high") {
+        if (SettingsManager.settings.alarm_high_melody.length() > 0) {
+            return SettingsManager.settings.alarm_high_melody;
+        }
+        return sound_high;
+    }
+    if (alarmType == "low") {
+        if (SettingsManager.settings.alarm_low_melody.length() > 0) {
+            return SettingsManager.settings.alarm_low_melody;
+        }
+        return sound_low;
+    }
+    if (alarmType == "urgent_low") {
+        if (SettingsManager.settings.alarm_urgent_low_melody.length() > 0) {
+            return SettingsManager.settings.alarm_urgent_low_melody;
+        }
+        return sound_urgent_low;
+    }
+
+    return "";
+}
+
 // Initialize the global shared instance
 ServerManager_& ServerManager = ServerManager.getInstance();
 
@@ -170,6 +193,31 @@ void ServerManager_::setupWebServer(IPAddress ip) {
         }));
 
     ws->addHandler(new AsyncCallbackJsonWebHandler(
+        "/api/alarm/custom", [](AsyncWebServerRequest* request, JsonVariant& json) {
+            if (not json.is<JsonObject>()) {
+                request->send(400, "application/json", "{\"status\": \"json parsing error\"}");
+                return;
+            }
+
+            auto&& data = json.as<JsonObject>();
+            if (!data["rtttl"].is<String>()) {
+                request->send(400, "application/json", "{\"status\": \"rtttl key not found\"}");
+                return;
+            }
+
+            auto melody = data["rtttl"].as<String>();
+            melody.trim();
+
+            if (melody.length() == 0 || melody.indexOf(':') < 0) {
+                request->send(400, "application/json", "{\"status\": \"invalid melody\"}");
+                return;
+            }
+
+            PeripheryManager.playRTTTLString(melody);
+            request->send(200, "application/json", "{\"status\": \"ok\"}");
+        }));
+
+    ws->addHandler(new AsyncCallbackJsonWebHandler(
         "/api/alarm", [this](AsyncWebServerRequest* request, JsonVariant& json) {
             if (not json.is<JsonObject>()) {
                 request->send(400, "application/json", "{\"status\": \"json parsing error\"}");
@@ -178,16 +226,13 @@ void ServerManager_::setupWebServer(IPAddress ip) {
             auto&& data = json.as<JsonObject>();
             if (data["alarmType"].is<String>()) {
                 auto alarmType = data["alarmType"].as<String>();
-                if (alarmType == "high") {
-                    PeripheryManager.playRTTTLString(sound_high);
-                } else if (alarmType == "low") {
-                    PeripheryManager.playRTTTLString(sound_low);
-                } else if (alarmType == "urgent_low") {
-                    PeripheryManager.playRTTTLString(sound_urgent_low);
-                } else {
+                auto melody = resolveAlarmMelody(alarmType);
+                if (melody == "") {
                     request->send(400, "application/json", "{\"status\": \"alarm type not found\"}");
                     return;
                 }
+
+                PeripheryManager.playRTTTLString(melody);
 
                 request->send(200, "application/json", "{\"status\": \"ok\"}");
             } else {

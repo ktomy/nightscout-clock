@@ -38,6 +38,9 @@ public:
     int alarm_high_mgdl;
     int alarm_high_snooze_minutes;
     String alarm_high_silence_interval;
+    String alarm_high_melody;
+    String alarm_low_melody;
+    String alarm_urgent_low_melody;
     bool additional_wifi_enable;
     String additional_wifi_type;
     String additional_wifi_ssid;
