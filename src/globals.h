@@ -3,7 +3,7 @@
 #include <Arduino.h>
 #include <IPAddress.h>
 
-#define VERSION "0.25.2"
+#define VERSION "0.26.0"
 
 #ifdef DEBUG
 #define DEBUG_PRINTLN(x)        \
