@@ -17,14 +17,14 @@ void BGDisplayFaceClock::showReadings(const std::list<GlucoseReading>& readings,
             BGDisplayManager_::drawTimerBlocks(readings.back(), MATRIX_WIDTH, 0, 7);
             break;
     }
+
+    showTrendVerticalLine(17, readings.back().trend, dataIsOld);
 }
 
 void BGDisplayFaceClock::showClock() const {
     // Show current time
 
     tm timeinfo = ServerManager.getTimezonedTime();
-
-    char timeStr[6];
 
     auto time_format = SettingsManager.settings.time_format;
     if (time_format == TIME_FORMAT::HOURS_12) {
@@ -40,10 +40,13 @@ void BGDisplayFaceClock::showClock() const {
         }
     }
 
-    sprintf(timeStr, "%02d:%02d", timeinfo.tm_hour, timeinfo.tm_min);
+    char hour[3], minute[3];
+    snprintf(hour, sizeof(hour), "%02d", timeinfo.tm_hour);
+    snprintf(minute, sizeof(minute), "%02d", timeinfo.tm_min);
 
     DisplayManager.setTextColor(COLOR_WHITE);
-    DisplayManager.printText(0, 6, timeStr, TEXT_ALIGNMENT::LEFT, 2);
+    DisplayManager.printText(0, 6, hour, TEXT_ALIGNMENT::LEFT, 2);
+    DisplayManager.printText(9, 6, minute, TEXT_ALIGNMENT::LEFT, 2);
 }
 
 void BGDisplayFaceClock::showNoData() const {
