@@ -218,10 +218,19 @@ String BGSourceDexcom::getAccountId(
     DEXCOM_SERVER dexcomServer, String dexcomUsername, String dexcomPassword) {
     String accountId = "";
     String getAccountIdUrl = "";
-    if (dexcomServer == DEXCOM_SERVER::US) {
-        getAccountIdUrl += DEXCOM_US_SERVER;
-    } else {
-        getAccountIdUrl += DEXCOM_NON_US_SERVER;
+    switch (dexcomServer) {
+        case DEXCOM_SERVER::US:
+            getAccountIdUrl += DEXCOM_US_SERVER;
+            break;
+        case DEXCOM_SERVER::NON_US:
+            getAccountIdUrl += DEXCOM_NON_US_SERVER;
+            break;
+        case DEXCOM_SERVER::JAPAN:
+            getAccountIdUrl += DEXCOM_JAPAN_SERVER;
+            break;
+        default:
+            DisplayManager.showFatalError("Invalid Dexcom server " + String((uint8_t)dexcomServer));
+            return "";
     }
 
     getAccountIdUrl += DEXCOM_GET_ACCOUNT_ID_PATH;
@@ -230,7 +239,8 @@ String BGSourceDexcom::getAccountId(
     JsonDocument doc;
     doc["accountName"] = dexcomUsername;
     doc["password"] = dexcomPassword;
-    doc["applicationId"] = DEXCOM_APPLICATION_ID;
+    doc["applicationId"] =
+        (dexcomServer == DEXCOM_SERVER::JAPAN) ? DEXCOM_APPLICATION_ID_JAPAN : DEXCOM_APPLICATION_ID;
 
     String body;
     serializeJson(doc, body);
@@ -283,10 +293,19 @@ String BGSourceDexcom::getSessionId(
     DEXCOM_SERVER dexcomServer, String accountId, String dexcomPassword) {
     String sessionId = "";
     String getSessionIdUrl = "";
-    if (dexcomServer == DEXCOM_SERVER::US) {
-        getSessionIdUrl += DEXCOM_US_SERVER;
-    } else {
-        getSessionIdUrl += DEXCOM_NON_US_SERVER;
+    switch (dexcomServer) {
+        case DEXCOM_SERVER::US:
+            getSessionIdUrl += DEXCOM_US_SERVER;
+            break;
+        case DEXCOM_SERVER::NON_US:
+            getSessionIdUrl += DEXCOM_NON_US_SERVER;
+            break;
+        case DEXCOM_SERVER::JAPAN:
+            getSessionIdUrl += DEXCOM_JAPAN_SERVER;
+            break;
+        default:
+            DisplayManager.showFatalError("Invalid Dexcom server " + String((uint8_t)dexcomServer));
+            return "";
     }
 
     getSessionIdUrl += DEXCOM_GET_SESSION_ID_PATH;
@@ -295,7 +314,8 @@ String BGSourceDexcom::getSessionId(
     JsonDocument doc;
     doc["accountId"] = accountId;
     doc["password"] = dexcomPassword;
-    doc["applicationId"] = DEXCOM_APPLICATION_ID;
+    doc["applicationId"] =
+        (dexcomServer == DEXCOM_SERVER::JAPAN) ? DEXCOM_APPLICATION_ID_JAPAN : DEXCOM_APPLICATION_ID;
 
     String body;
     serializeJson(doc, body);

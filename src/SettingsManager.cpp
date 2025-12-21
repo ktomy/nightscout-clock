@@ -122,8 +122,17 @@ bool SettingsManager_::loadSettingsFromFile() {
     }
     settings.dexcom_username = (*doc)["dexcom_username"].as<String>();
     settings.dexcom_password = (*doc)["dexcom_password"].as<String>();
-    settings.dexcom_server =
-        (*doc)["dexcom_server"].as<String>() == "us" ? DEXCOM_SERVER::US : DEXCOM_SERVER::NON_US;
+    String dexcomServerStr = (*doc)["dexcom_server"].as<String>();
+    if (dexcomServerStr == "us") {
+        settings.dexcom_server = DEXCOM_SERVER::US;
+    } else if (dexcomServerStr == "ous") {
+        settings.dexcom_server = DEXCOM_SERVER::NON_US;
+    } else if (dexcomServerStr == "jp") {
+        settings.dexcom_server = DEXCOM_SERVER::JAPAN;
+    } else {
+        DEBUG_PRINTLN("Unknown Dexcom server in config, defaulting to NON_US");
+        settings.dexcom_server = DEXCOM_SERVER::NON_US;
+    }
 
     settings.librelinkup_email = (*doc)["librelinkup_email"].as<String>();
     settings.librelinkup_password = (*doc)["librelinkup_password"].as<String>();
@@ -231,7 +240,21 @@ bool SettingsManager_::saveSettingsToFile() {
 
     (*doc)["dexcom_username"] = settings.dexcom_username;
     (*doc)["dexcom_password"] = settings.dexcom_password;
-    (*doc)["dexcom_server"] = settings.dexcom_server == DEXCOM_SERVER::US ? "us" : "ous";
+    switch (settings.dexcom_server) {
+        case DEXCOM_SERVER::US:
+            (*doc)["dexcom_server"] = "us";
+            break;
+        case DEXCOM_SERVER::NON_US:
+            (*doc)["dexcom_server"] = "ous";
+            break;
+        case DEXCOM_SERVER::JAPAN:
+            (*doc)["dexcom_server"] = "jp";
+            break;
+        default:
+            DEBUG_PRINTLN("Unknown Dexcom server, defaulting to US");
+            (*doc)["dexcom_server"] = "ous";
+            break;
+    }
 
     (*doc)["librelinkup_email"] = settings.librelinkup_email;
     (*doc)["librelinkup_password"] = settings.librelinkup_password;
