@@ -28,7 +28,7 @@ void setup() {
 
     DisplayManager.applySettings();
 
-    DisplayManager.HSVtext(0, 6, String("V " + String(VERSION)).c_str(), true, 0);
+    DisplayManager.HSVtext(3, 6, String("V " + String(VERSION)).c_str(), true, 0);
     delay(2000);
 
     PeripheryManager.setup();
