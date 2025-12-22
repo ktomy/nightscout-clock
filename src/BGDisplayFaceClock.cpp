@@ -35,7 +35,7 @@ void BGDisplayFaceClock::showClock() const {
             timeinfo.tm_hour -= 12;
         }
 
-        for (int i = 0; i < 17; i++) {
+        for (int i = 0; i < 16; i++) {
             DisplayManager.drawPixel(i, 7, is_pm ? COLOR_BLUE : COLOR_CYAN);
         }
     }
