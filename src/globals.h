@@ -54,8 +54,6 @@
 extern bool BLOCK_NAVIGATION;
 extern float TEMP_OFFSET;
 extern float HUM_OFFSET;
-extern int BRIGHTNESS;
-extern int BRIGHTNESS_PERCENT;
 extern float CURRENT_TEMP;
 extern float CURRENT_HUM;
 extern float CURRENT_LUX;

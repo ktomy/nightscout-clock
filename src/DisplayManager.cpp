@@ -87,7 +87,6 @@ void DisplayManager_::applySettings() {
     int displayBrightness = 70;
 
     if (SettingsManager.settings.brightness_mode == BRIGHTNES_MODE::MANUAL) {
-
         // make brightness grow logarithmically
         float t = constrain(SettingsManager.settings.brightness_level / 10.0f, 0.0f, 1.0f);
         const float gamma = 2.2f;       // raise to 2.4–2.6 for darker lows
@@ -249,8 +248,10 @@ void DisplayManager_::drawPixel(uint8_t x, uint8_t y, uint16_t color, bool updat
 void DisplayManager_::setBrightness(int bri) {
     if (MATRIX_OFF) {
         matrix->setBrightness(0);
+        currentBrightness = 0;
     } else {
         matrix->setBrightness(bri);
+        currentBrightness = bri;
     }
 
     matrix->show();
@@ -259,7 +260,7 @@ void DisplayManager_::setBrightness(int bri) {
 void DisplayManager_::setPower(bool state) {
     if (state) {
         MATRIX_OFF = false;
-        setBrightness(BRIGHTNESS);
+        setBrightness(currentBrightness);
     } else {
         MATRIX_OFF = true;
         // showSleepAnimation();
@@ -282,6 +283,32 @@ void DisplayManager_::rightButton() {
         bgDisplayManager.setFace(0);
     } else {
         bgDisplayManager.setFace(bgDisplayManager.getCurrentFaceId() + 1);
+    }
+}
+
+// decrease brightness if not auto mode
+void DisplayManager_::leftButtonLong() {
+    if (SettingsManager.settings.brightness_mode == BRIGHTNES_MODE::MANUAL) {
+        int newBrightness = SettingsManager.settings.brightness_level - 1;
+        if (newBrightness < 1) {
+            newBrightness = 1;
+        }
+        SettingsManager.settings.brightness_level = newBrightness;
+        SettingsManager.saveSettingsToFile();
+        DisplayManager.applySettings();
+    }
+}
+
+// increase brightness if not auto mode
+void DisplayManager_::rightButtonLong() {
+    if (SettingsManager.settings.brightness_mode == BRIGHTNES_MODE::MANUAL) {
+        int newBrightness = SettingsManager.settings.brightness_level + 1;
+        if (newBrightness > 10) {
+            newBrightness = 10;
+        }
+        SettingsManager.settings.brightness_level = newBrightness;
+        SettingsManager.saveSettingsToFile();
+        DisplayManager.applySettings();
     }
 }
 
