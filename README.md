@@ -117,6 +117,7 @@ Nightscout CLock is a custom firmware for Ulanzi TC001. It can also run (with mi
 ### 0.26.0
 
 - Added trend indicator to the clock-and-value clock face. [#49](https://github.com/ktomy/nightscout-clock/issues/49)
+- Added manual brightness control from the device itself. When the brightness in manual mode, when pressing `<` or `>` for more than a second, brightness increases or decreases. Setting persists over restarts. [#74](https://github.com/ktomy/nightscout-clock/issues/74)
 
 ### 0.25.2
 
