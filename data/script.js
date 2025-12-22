@@ -889,7 +889,7 @@
          // Custom No Data Timer
         $('#custom_nodatatimer_enable').prop('checked', json['custom_nodatatimer_enable']);
         const nodatatimer = json['custom_nodatatimer'];
-        patterns.custom_nodatatimer.test(nodatatimer) ? $('#custom_nodatatimer').val(nodatimer) 
+        patterns.custom_nodatatimer.test(nodatatimer) ? $('#custom_nodatatimer').val(nodatatimer) 
             : $('#custom_nodatatimer').val();
 
         toggleCustomNoDataSettings();
