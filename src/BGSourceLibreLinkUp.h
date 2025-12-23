@@ -6,7 +6,9 @@
 #include <map>
 
 #include "BGSource.h"
-#include "SettingsManager.h"
+// Forward-declare SettingsManager to avoid circular includes
+class SettingsManager_;
+extern SettingsManager_& SettingsManager;
 
 #define LIBRE_LINK_UP_VERSION "4.16.0"
 #define LIBRE_LINK_UP_PRODUCT "llu.ios"

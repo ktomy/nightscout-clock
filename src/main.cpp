@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include <esp32-hal.h>
 
+#include <algorithm>
 #include <cstring>
 
 #include "BGAlarmManager.h"
@@ -59,7 +60,15 @@ void setup() {
             lluSource.setup();
             std::list<BGSourceLibreLinkUp::LLUPatient> patients = lluSource.GetPatients();
 
-            if (patients == clockSettings.librelinkup_patients) {
+            auto& saved = clockSettings.librelinkup_patients;
+            bool patientsSame =
+                (patients.size() == saved.size()) &&
+                std::equal(
+                    patients.begin(), patients.end(), saved.begin(),
+                    [](const BGSourceLibreLinkUp::LLUPatient& a,
+                       const BGSourceLibreLinkUp::LLUPatient& b) { return a.patientId == b.patientId; });
+
+            if (patientsSame) {
                 DEBUG_PRINTLN("LibreLinkUp patients unchanged, no update needed");
                 return;
             } else {

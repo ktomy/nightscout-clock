@@ -2,6 +2,8 @@
 
 #include <Arduino.h>
 
+#include "SettingsManager.h"
+
 #define TIMESTAMP_FIELD "FactoryTimestamp"
 
 bool BGSourceLibreLinkUp::hasValidAuthentication() {

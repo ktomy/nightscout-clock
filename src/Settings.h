@@ -1,5 +1,11 @@
+#ifndef SETTINGS_H
+#define SETTINGS_H
+
 #include <Arduino.h>
 
+#include <list>
+
+#include "BGSourceLibreLinkUp.h"
 #include "enums.h"
 
 class Settings {
@@ -55,3 +61,5 @@ public:
     int bg_data_too_old_threshold_minutes = 20;
     bool alarm_intensive_mode;
 };
+
+#endif  // SETTINGS_H
