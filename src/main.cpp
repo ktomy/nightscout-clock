@@ -1,8 +1,11 @@
 #include <Arduino.h>
 #include <esp32-hal.h>
 
+#include <cstring>
+
 #include "BGAlarmManager.h"
 #include "BGDisplayManager.h"
+#include "BGSourceLibreLinkUp.h"
 #include "BGSourceManager.h"
 #include "DisplayManager.h"
 #include "PeripheryManager.h"
@@ -49,6 +52,24 @@ void setup() {
 
     DEBUG_PRINTLN("Setup done");
     if (ServerManager.isConnected) {
+        if (SettingsManager.settings.bg_source == BG_SOURCE::LIBRELINKUP) {
+            // Update LLU patients on boot when we have WiFi connectivity
+            Settings clockSettings = SettingsManager.settings;
+            BGSourceLibreLinkUp lluSource;
+            lluSource.setup();
+            std::list<BGSourceLibreLinkUp::LLUPatient> patients = lluSource.GetPatients();
+
+            if (patients == clockSettings.librelinkup_patients) {
+                DEBUG_PRINTLN("LibreLinkUp patients unchanged, no update needed");
+                return;
+            } else {
+                clockSettings.librelinkup_patients = patients;
+
+                SettingsManager.settings = clockSettings;
+                SettingsManager.saveSettingsToFile();
+            }
+        }
+
         String welcomeMessage = "Nightscout clock   " + ServerManager.myIP.toString();
         DisplayManager.scrollColorfulText(welcomeMessage);
 

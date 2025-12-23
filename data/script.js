@@ -22,7 +22,6 @@
         email_format: /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/,
         not_empty: /^.{1,}$/,
         custom_nodatatimer: /^(?:[6-9]|[1-5][0-9]|60)?$/,
-
     };
 
     let configJson = {};
@@ -47,7 +46,6 @@
         $('#custom_hostname_enable').on('change', toggleCustomHostnameSettings);
         $('#custom_nodatatimer_enable').on('change', toggleCustomNoDataSettings);
         $('#open_wifi_network').on('change', toggleWifiPasswordField);
-
     }
 
     function addAdditionalWifiTypeHandler() {
@@ -209,6 +207,21 @@
         return allValid;
     }
 
+    function appendLLUMultiPatientWarn() {
+        $("#librelinkup_settings_card > div:nth-child(1) > div:nth-child(2)")
+            .append(
+                "<p style=\"margin-top: 18px\">Note: If you have multiple patients on your LLU account, you can select a patient after you connect to a WiFi network.</p>"
+            );
+    }
+    function appendLLUMultiPatientSelect() {
+        let opts;
+        for (let i = 0; i < configJson.librelinkup_patients; i++) {
+            opts += `<option value="${i}">${configJson.librelinkup_patients[i].firstName} ${configJson.librelinkup_patients[i].lastName}</option>`
+        }
+        $("#librelinkup_settings_card > div:nth-child(1) > div:nth-child(2)")
+            .append(`<select class="form-select" id="librelinkup_patient_select">${opts}</select>`)
+    }
+
     function glucoseDataSourceSwitch() {
         const glucoseSource = $('#glucose_source');
         const value = glucoseSource.val();
@@ -247,6 +260,11 @@
                 addFocusOutValidation('librelinkup_email');
                 addFocusOutValidation('librelinkup_password');
                 addFocusOutValidation('librelinkup_region');
+                if (!json["ssid"].length > 0) {
+                    appendLLUMultiPatientWarn();
+                } else {
+                    appendLLUMultiPatientSelect();
+                }
                 break;
             default:
                 setElementValidity(glucoseSource, false);
@@ -733,14 +751,12 @@
     }
 
     function loadConfiguration() {
-
         var configJsonUrl = 'config.json?' + Date.now();
         var tzJson = "tzdata.json";
 
         if (window.location.href.indexOf("127.0.0.1") > 0) {
             configJsonUrl = clockHost + "/config.json?" + Date.now();
             tzJson = clockHost + "/tzdata.json?" + Date.now();
-
         }
 
         Promise.all([
@@ -764,13 +780,10 @@
                 validateAll();
 
             });
-
-
         }).catch(error => {
             console.log(`Fetching error: ${error}`);
             showToastFailure("Error", "Failed to load configuration");
         });
-
     }
 
     function loadFormData() {

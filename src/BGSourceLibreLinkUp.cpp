@@ -218,17 +218,27 @@ GlucoseReading BGSourceLibreLinkUp::getLibreLinkUpConnection() {
         DisplayManager.showFatalError("No LibreLinkUp connections found");
     }
 
-    String patientId = doc["data"][0]["patientId"].as<String>();
-    String firstName = doc["data"][0]["firstName"].as<String>();
-    String lastName = doc["data"][0]["lastName"].as<String>();
+    const size_t connectionsCount = doc["data"].size();
+
+    int patientNum = SettingsManager.settings.librelinkup_patient_num;
+
+    // Treat negative as "not set" and default to first connection
+    if (patientNum < 0) {
+        patientNum = 0;
+    }
+
+    String patientId = doc["data"][patientNum]["patientId"].as<String>();
+    String firstName = doc["data"][patientNum]["firstName"].as<String>();
+    String lastName = doc["data"][patientNum]["lastName"].as<String>();
 
     authTicket.patientId = patientId;
 
     GlucoseReading reading;
-    reading.sgv = doc["data"][0]["glucoseMeasurement"]["ValueInMgPerDl"].as<int>();
-    String dateString = doc["data"][0]["glucoseMeasurement"][TIMESTAMP_FIELD].as<String>();
+    reading.sgv = doc["data"][patientNum]["glucoseMeasurement"]["ValueInMgPerDl"].as<int>();
+    String dateString = doc["data"][patientNum]["glucoseMeasurement"][TIMESTAMP_FIELD].as<String>();
     reading.epoch = libreTimestampToEpoch(dateString);
-    reading.trend = trendFromLibreTrend(doc["data"][0]["glucoseMeasurement"]["TrendArrow"].as<int>());
+    reading.trend =
+        trendFromLibreTrend(doc["data"][patientNum]["glucoseMeasurement"]["TrendArrow"].as<int>());
 
 #ifdef DEBUG_BG_SOURCE
     DEBUG_PRINTF(
@@ -453,4 +463,62 @@ std::list<GlucoseReading> BGSourceLibreLinkUp::getReadings(unsigned long long la
     client->end();
 
     return glucoseReadings;
+}
+
+std::list<BGSourceLibreLinkUp::LLUPatient> BGSourceLibreLinkUp::GetPatients() {
+    std::list<LLUPatient> patients;
+
+    if (!hasValidAuthentication()) {
+        deleteAuthTicket();
+        authTicket = login();
+    }
+
+    String url =
+        "https://" + libreEndpoints[SettingsManager.settings.librelinkup_region] + "/llu/connections";
+
+    client->begin(*wifiSecureClient, url);
+    for (auto& header : standardHeaders) {
+        client->addHeader(header.first, header.second);
+    }
+
+    client->addHeader("Authorization", "Bearer " + authTicket.token);
+    client->addHeader("account-id", encodeSHA256(authTicket.accountId));
+
+    auto responseCode = client->GET();
+
+    if (responseCode != HTTP_CODE_OK) {
+        DEBUG_PRINTF("Error getting connections from LibreLinkUp %d\n", responseCode);
+        client->end();
+        return patients;
+    }
+
+    String response = client->getString();
+
+    JsonDocument doc;
+    DeserializationError error = deserializeJson(doc, response);
+    if (error) {
+        DEBUG_PRINTF("Error deserializing LibreLinkUp connections response: %s\n", error.c_str());
+        client->end();
+        return patients;
+    }
+
+    if (doc["status"].as<int>() != 0) {
+        DEBUG_PRINTF(
+            "Failed to get connections from LibreLinkUp, non-zero status %s\n", response.c_str());
+        client->end();
+        return patients;
+    }
+
+    auto data = doc["data"].as<JsonArray>();
+    for (JsonVariant v : data) {
+        LLUPatient p;
+        p.id = v["id"].as<String>();
+        p.patientId = v["patientId"].as<String>();
+        p.firstName = v["firstName"].as<String>();
+        p.lastName = v["lastName"].as<String>();
+        patients.push_back(p);
+    }
+
+    client->end();
+    return patients;
 }

@@ -43,6 +43,8 @@
     "librelinkup_email": "",
     "librelinkup_password": "",
     "librelinkup_region": "EU",
+    "librelinkup_patients": [],
+    "librelinkup_patient_num": 0,
     "additional_wifi_enable": false,
     "additional_wifi_type": "",
     "additional_ssid": "",

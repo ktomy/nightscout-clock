@@ -4,6 +4,7 @@
 #include <ArduinoJson.h>
 #include <LittleFS.h>
 
+#include "BGSourceLibreLinkUp.h"
 #include "globals.h"
 
 // The getter for the instantiated singleton instance
@@ -138,6 +139,22 @@ bool SettingsManager_::loadSettingsFromFile() {
     settings.librelinkup_password = (*doc)["librelinkup_password"].as<String>();
     settings.librelinkup_region = (*doc)["librelinkup_region"].as<String>();
 
+    if ((*doc).containsKey("librelinkup_patients")) {
+        settings.librelinkup_patients.clear();
+        JsonArray patients = (*doc)["librelinkup_patients"].as<JsonArray>();
+        for (JsonVariant v : patients) {
+            BGSourceLibreLinkUp::LLUPatient p;
+            p.id = v["id"].as<String>();
+            p.patientId = v["patientId"].as<String>();
+            p.firstName = v["firstName"].as<String>();
+            p.lastName = v["lastName"].as<String>();
+            settings.librelinkup_patients.push_back(p);
+        }
+    }
+    if ((*doc).containsKey("librelinkup_patient_num")) {
+        settings.librelinkup_patient_num = (*doc)["librelinkup_patient_num"].as<int>();
+    }
+
     settings.nightscout_url = (*doc)["nightscout_url"].as<String>();
     settings.nightscout_api_key = (*doc)["api_secret"].as<String>();
 
@@ -259,6 +276,16 @@ bool SettingsManager_::saveSettingsToFile() {
     (*doc)["librelinkup_email"] = settings.librelinkup_email;
     (*doc)["librelinkup_password"] = settings.librelinkup_password;
     (*doc)["librelinkup_region"] = settings.librelinkup_region;
+
+    JsonArray patients = (*doc).createNestedArray("librelinkup_patients");
+    for (const auto& p : settings.librelinkup_patients) {
+        JsonObject patientObj = patients.createNestedObject();
+        patientObj["id"] = p.id;
+        patientObj["patientId"] = p.patientId;
+        patientObj["firstName"] = p.firstName;
+        patientObj["lastName"] = p.lastName;
+    }
+    (*doc)["librelinkup_patient_num"] = settings.librelinkup_patient_num;
 
     (*doc)["nightscout_url"] = settings.nightscout_url;
     (*doc)["api_secret"] = settings.nightscout_api_key;

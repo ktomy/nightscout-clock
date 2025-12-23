@@ -24,6 +24,8 @@ public:
     String librelinkup_email;
     String librelinkup_password;
     String librelinkup_region;
+    std::list<BGSourceLibreLinkUp::LLUPatient> librelinkup_patients;
+    int librelinkup_patient_num;
     String tz_libc_value;
     TIME_FORMAT time_format;
     bool alarm_urgent_low_enabled;

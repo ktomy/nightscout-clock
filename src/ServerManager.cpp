@@ -186,7 +186,9 @@ void ServerManager_::setupWebServer(IPAddress ip) {
             }
             auto&& data = json.as<JsonObject>();
             if (SettingsManager.trySaveJsonAsSettings(data)) {
-                request->send(200, "application/json", "{\"status\": \"ok\"}");
+                String response;
+                serializeJson(data, response);
+                request->send(200, "application/json", response);
             } else {
                 request->send(200, "application/json", "{\"status\": \"Settings save error\"}");
             }

@@ -4,6 +4,11 @@
 
 unsigned long lastCallAttemptMills = 0;
 
+BGSource::~BGSource() {
+    delete client;
+    delete wifiSecureClient;
+}
+
 void BGSource::setup() {
     client = new HTTPClient();
     wifiSecureClient = new WiFiClientSecure();

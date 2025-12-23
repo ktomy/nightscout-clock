@@ -33,6 +33,7 @@ public:
 
 class BGSource {
 public:
+    virtual ~BGSource();
     virtual void setup();
     virtual void tick();
     virtual bool hasNewData(unsigned long long epochToCompare);

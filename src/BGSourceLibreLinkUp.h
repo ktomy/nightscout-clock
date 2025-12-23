@@ -32,7 +32,16 @@ public:
 
 class BGSourceLibreLinkUp : public BGSource {
 public:
+    struct LLUPatient {
+    public:
+        String id;
+        String patientId;
+        String firstName;
+        String lastName;
+    };
+
     std::list<GlucoseReading> updateReadings(std::list<GlucoseReading> existingReadings) override;
+    std::list<LLUPatient> GetPatients();
 
 private:
     int retryCount = 0;
