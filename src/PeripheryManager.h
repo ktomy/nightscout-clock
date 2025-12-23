@@ -2,7 +2,7 @@
 #define PeripheryManager_h
 
 #include <Arduino.h>
-#include <EasyButton.h>
+#include <Button2.h>
 
 class PeripheryManager_ {
 private:

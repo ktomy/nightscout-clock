@@ -3,7 +3,7 @@
 #include <Arduino.h>
 #include <IPAddress.h>
 
-#define VERSION "0.25.2"
+#define VERSION "0.26.1"
 
 #ifdef DEBUG
 #define DEBUG_PRINTLN(x)        \
@@ -54,8 +54,6 @@
 extern bool BLOCK_NAVIGATION;
 extern float TEMP_OFFSET;
 extern float HUM_OFFSET;
-extern int BRIGHTNESS;
-extern int BRIGHTNESS_PERCENT;
 extern float CURRENT_TEMP;
 extern float CURRENT_HUM;
 extern float CURRENT_LUX;

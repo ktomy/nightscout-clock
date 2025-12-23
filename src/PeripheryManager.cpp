@@ -24,9 +24,9 @@
 
 Adafruit_SHT31 sht31;
 MelodyPlayer player(BUZZER_PIN, 1, LOW);
-EasyButton button_left(BUTTON_UP_PIN);
-EasyButton button_right(BUTTON_DOWN_PIN);
-EasyButton button_select(BUTTON_SELECT_PIN);
+Button2 button_left(BUTTON_UP_PIN);
+Button2 button_right(BUTTON_DOWN_PIN);
+Button2 button_select(BUTTON_SELECT_PIN);
 
 #define USED_PHOTOCELL LightDependentResistor::GL5516
 #define PHOTOCELL_SERIES_RESISTOR 10000
@@ -58,21 +58,31 @@ PeripheryManager_& PeripheryManager_::getInstance() {
 // Initialize the global shared instance
 PeripheryManager_& PeripheryManager = PeripheryManager.getInstance();
 
-void left_button_pressed() {
+void left_button_pressed(Button2& /*btn*/) {
     DEBUG_PRINTLN(F("Left button clicked"));
     if (!BLOCK_NAVIGATION) {
         DisplayManager.leftButton();
     }
 }
 
-void right_button_pressed() {
+void left_button_pressed_long(Button2& /*btn*/) {
+    DEBUG_PRINTLN(F("Left button pressed long"));
+    DisplayManager.leftButtonLong();
+}
+
+void right_button_pressed(Button2& /*btn*/) {
     DEBUG_PRINTLN(F("Right button clicked"));
     if (!BLOCK_NAVIGATION) {
         DisplayManager.rightButton();
     }
 }
 
-void select_button_pressed() {
+void right_button_pressed_long(Button2& /*btn*/) {
+    DEBUG_PRINTLN(F("Right button pressed long"));
+    DisplayManager.rightButtonLong();
+}
+
+void select_button_pressed(Button2& /*btn*/) {
     DEBUG_PRINTLN(F("Select button clicked"));
     bgAlarmManager.snoozeAlarm();
     if (!BLOCK_NAVIGATION) {
@@ -80,14 +90,14 @@ void select_button_pressed() {
     }
 }
 
-void select_button_pressed_long() {
+void select_button_pressed_long(Button2& /*btn*/) {
     DEBUG_PRINTLN(F("Select button pressed long"));
     if (!BLOCK_NAVIGATION) {
         DisplayManager.selectButtonLong();
     }
 }
 
-void select_button_double() {
+void select_button_double(Button2& /*btn*/) {
     DEBUG_PRINTLN(F("Select button double pressed"));
     if (!BLOCK_NAVIGATION) {
         if (MATRIX_OFF) {
@@ -107,16 +117,22 @@ void PeripheryManager_::setup() {
     DEBUG_PRINTLN(F("Setup periphery"));
     startTime = millis();
     pinMode(LDR_PIN, INPUT);
-    button_left.begin();
-    button_right.begin();
-    button_select.begin();
 
-    button_left.onPressed(left_button_pressed);
-    button_right.onPressed(right_button_pressed);
+    button_left.setClickHandler(left_button_pressed);
+    button_right.setClickHandler(right_button_pressed);
 
-    button_select.onPressed(select_button_pressed);
-    button_select.onPressedFor(1000, select_button_pressed_long);
-    button_select.onSequence(2, 300, select_button_double);
+    button_left.setLongClickTime(500);
+    button_right.setLongClickTime(500);
+    button_left.setLongClickDetectedHandler(left_button_pressed_long);
+    button_right.setLongClickDetectedHandler(right_button_pressed_long);
+    button_left.setLongClickDetectedRetriggerable(true);
+    button_right.setLongClickDetectedRetriggerable(true);
+
+    button_select.setClickHandler(select_button_pressed);
+    button_select.setLongClickTime(1000);
+    button_select.setLongClickHandler(select_button_pressed_long);
+    button_select.setDoubleClickTime(500);
+    button_select.setDoubleClickHandler(select_button_double);
 
     Wire.begin(I2C_SDA_PIN, I2C_SCL_PIN);
     sht31.begin(0x44);
@@ -124,9 +140,9 @@ void PeripheryManager_::setup() {
 }
 
 void PeripheryManager_::tick() {
-    button_select.read();
-    button_left.read();
-    button_right.read();
+    button_select.loop();
+    button_left.loop();
+    button_right.loop();
 
     unsigned long currentMillis_BatTempHum = millis();
     if (currentMillis_BatTempHum - previousMillis_BatTempHum >= interval_BatTempHum) {

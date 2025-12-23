@@ -197,13 +197,21 @@
     function validateAll() {
         var allValid = true;
         allValid &= validate($('#ssid'), patterns.ssid);
+        console.log("Validated ssid, result: " + allValid);
         allValid &= validate($('#wifi_password'), patterns.wifi_password);
+        console.log("Validated wifi password, result: " + allValid);
         allValid &= validateGlucoseSource();
+        console.log("Validated glucose source, result: " + allValid);
         allValid &= validateBG();
+        console.log("Validated BG, result: " + allValid);
         allValid &= validate($('#clock_timezone'), patterns.clock_timezone);
+        console.log("Validated timezone, result: " + allValid);
         allValid &= validate($('#time_format'), patterns.time_format);
+        console.log("Validated time format, result: " + allValid);
         allValid &= validateAlarms();
+        console.log("Validated alarms, result: " + allValid);
         allValid &= validate($('#custom_nodatatimer'), patterns.custom_nodatatimer);
+        console.log("Validated custom no data timer, result: " + allValid);
         return allValid;
     }
 
@@ -893,7 +901,10 @@
 
          // Custom No Data Timer
         $('#custom_nodatatimer_enable').prop('checked', json['custom_nodatatimer_enable']);
-        $('#custom_nodatatimer').val(json['custom_nodatatimer']);
+        const nodatatimer = json['custom_nodatatimer'];
+        patterns.custom_nodatatimer.test(nodatatimer) ? $('#custom_nodatatimer').val(nodatatimer) 
+            : $('#custom_nodatatimer').val();
+
         toggleCustomNoDataSettings();
         
     }

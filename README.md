@@ -2,7 +2,7 @@
 
 ![Nightscout clock logo](https://github.com/ktomy/nightscout-clock/assets/1446257/1198c06d-b017-409d-aca3-2bca63581ecb)
 
-### Current version: 0.25.2
+### Current version: 0.26.1
 
 ![Build and Release](https://github.com/ktomy/nightscout-clock/actions/workflows/build_release.yml/badge.svg)
 
@@ -52,14 +52,14 @@ Nightscout CLock is a custom firmware for Ulanzi TC001. It can also run (with mi
 
 ### Clockfaces
 
-| Name            | Look                                                                                                 |
-| --------------- | ---------------------------------------------------------------------------------------------------- |
-| SImple          | ![resized_IMG_0225](https://github.com/user-attachments/assets/79cbda6d-5c0b-47fa-b5b4-2a5a10322a7d) |
-| BIG DIGITS      | ![resized_IMG_0222](https://github.com/user-attachments/assets/59d5bea9-977b-4c40-b308-636d3d70055a) |
-| 3-hours graph   | ![resized_IMG_0220](https://github.com/user-attachments/assets/86f36885-4479-412b-95fc-9fa527e12050) |
-| Graph and value | ![resized_IMG_0221](https://github.com/user-attachments/assets/cb21ac92-a6d5-408c-b116-69726b58abc1) |
-| Delta           | ![resized_IMG_0223](https://github.com/user-attachments/assets/dce1ecd4-a51b-4596-a292-0535c66f505c) |
-| Time and value  | ![resized_IMG_0217](https://github.com/user-attachments/assets/d92832c2-8713-4ccf-9cc7-67202153d111) |
+| Name            | Look                                                                                                 | Comment |
+| --------------- | ---------------------------------------------------------------------------------------------------- |---------|
+| SImple          | ![resized_IMG_0225](https://github.com/user-attachments/assets/79cbda6d-5c0b-47fa-b5b4-2a5a10322a7d) |         |
+| BIG DIGITS      | ![resized_IMG_0222](https://github.com/user-attachments/assets/59d5bea9-977b-4c40-b308-636d3d70055a) |         |
+| 3-hours graph   | ![resized_IMG_0220](https://github.com/user-attachments/assets/86f36885-4479-412b-95fc-9fa527e12050) |         |
+| Graph and value | ![resized_IMG_0221](https://github.com/user-attachments/assets/cb21ac92-a6d5-408c-b116-69726b58abc1) |  The dots on the right side replace the trend arrow.<br>2 white dots = horizontal arrow.<br>2 colored dots (white + green) = 45° arrow.<br>3 dots = vertical arrow.<br>4 dots = double arrow.<br>Colored dots above = upward trend.<br>Colored dots below = downward trend.  |
+| Delta           | ![resized_IMG_0223](https://github.com/user-attachments/assets/dce1ecd4-a51b-4596-a292-0535c66f505c) |         |
+| Time and value  | ![resized_IMG_0217](https://github.com/user-attachments/assets/d92832c2-8713-4ccf-9cc7-67202153d111) |         |
 
 ### Configuration web interface
 
@@ -113,6 +113,15 @@ Nightscout CLock is a custom firmware for Ulanzi TC001. It can also run (with mi
   - ...more... (if you are the author of a CGM data collecting app/service nad you want your data to be displayed on the Nightscout Clock, please contact me)
 
 ## Changes
+
+### 0.26.1
+
+- Fixed a typo in the WebUI javascript
+
+### 0.26.0
+
+- Added trend indicator to the clock-and-value clock face. [#49](https://github.com/ktomy/nightscout-clock/issues/49)
+- Added manual brightness control from the device itself. When the brightness in manual mode, when pressing `<` or `>` for more than a second, brightness increases or decreases. Setting persists over restarts. [#74](https://github.com/ktomy/nightscout-clock/issues/74)
 
 ### 0.25.2
 
@@ -230,6 +239,7 @@ My computer is running linux, but you can use Windows or MacOS as well, there ar
   - install python as a PlatformIO dependency
 - clone the project using Visual Studio Code
 - PlatformIO should detect the project
+- Comment out (place `#` in the beginning of) [this](https://github.com/ktomy/nightscout-clock/blob/main/platformio.ini#L38) line
 - You should be able to see PlatformIO tab in the sidebar
   - Select `ulanzi_debug` -> `General` -> `Build`
   - `ulanzi_debug` -> `Platform` -> `Build Filesystem image`

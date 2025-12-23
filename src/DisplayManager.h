@@ -11,6 +11,8 @@
 
 class DisplayManager_ {
 private:
+    uint8_t currentBrightness = 128;
+
 public:
     static DisplayManager_& getInstance();
     void setup();
@@ -27,6 +29,8 @@ public:
     void drawPixel(uint8_t x, uint8_t y, uint16_t color, bool updateMatrix = false);
     void leftButton();
     void rightButton();
+    void leftButtonLong();
+    void rightButtonLong();
     void selectButton();
     void selectButtonLong();
     void setPower(bool power);

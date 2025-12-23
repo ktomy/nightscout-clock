@@ -2,7 +2,6 @@
 #define BGAlarmManager_h
 
 #include <Arduino.h>
-#include <EasyButton.h>
 
 #include <vector>
 
