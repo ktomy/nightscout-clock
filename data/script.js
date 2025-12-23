@@ -534,6 +534,7 @@
         json['librelinkup_email'] = $('#librelinkup_email').val();
         json['librelinkup_password'] = $('#librelinkup_password').val();
         json['librelinkup_region'] = $('#librelinkup_region').val();
+        json['librelinkup_patient_num'] = parseInt($('#librelinkup_patient_select').val()) || 0;
 
         //Nightscout
         json['api_secret'] = $('#api_secret').val();
