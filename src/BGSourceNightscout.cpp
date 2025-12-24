@@ -130,6 +130,7 @@ std::list<GlucoseReading> BGSourceNightscout::retrieveReadings(
                 "Error deserializing NS response: %s\nFailed on string: %s\n", error.c_str(),
                 responseContent.c_str());
             if (!firstConnectionSuccess) {
+                status = "deserialization_error";
                 DisplayManager.showFatalError(String("Invalid Nightscout response: ") + error.c_str());
             }
 
@@ -155,6 +156,7 @@ std::list<GlucoseReading> BGSourceNightscout::retrieveReadings(
             }
 
             firstConnectionSuccess = true;
+            status = "connected";
 
             // Sort readings by epoch (no idea if they come sorted from the API)
             lastReadings.sort([](const GlucoseReading& a, const GlucoseReading& b) -> bool {
@@ -178,6 +180,7 @@ std::list<GlucoseReading> BGSourceNightscout::retrieveReadings(
     } else {
         DEBUG_PRINTF("Error getting readings %d\n", responseCode);
         if (!firstConnectionSuccess) {
+            status = "connection_error";
             DisplayManager.showFatalError(String("Error connecting to Nightscout: ") + responseCode);
         }
         if (responseCode == -1) {
@@ -203,6 +206,7 @@ LCBUrl BGSourceNightscout::prepareUrl(
 #endif
 
     if (baseUrl == "") {
+        status = "not_configured";
         DisplayManager.showFatalError(
             "Nightscout clock is not configured, please go to http://" + ServerManager.myIP.toString() +
             "/ and configure the device");
@@ -223,6 +227,7 @@ LCBUrl BGSourceNightscout::prepareUrl(
 
     auto urlIsOk = url.setUrl(urlString);
     if (!urlIsOk) {
+        status = "invalid_url";
         DisplayManager.showFatalError("Invalid Nightscout URL: " + urlString);
     }
     return url;

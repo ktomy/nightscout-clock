@@ -8,6 +8,7 @@ void BGSource::setup() {
     client = new HTTPClient();
     wifiSecureClient = new WiFiClientSecure();
     wifiSecureClient->setInsecure();
+    status = "initialized";
 }
 
 void BGSource::handleFailedAttempt() {

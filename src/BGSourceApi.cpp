@@ -24,6 +24,8 @@ void BGSourceApi::setup() {
 
     // After adding our handlers we need to add the default handler back
     ServerManager.addStaticFileHandler();
+
+    status = "initialized";
 }
 
 AsyncCallbackWebHandler* BGSourceApi::createDeleteEntriesHandler() {

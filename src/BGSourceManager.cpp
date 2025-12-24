@@ -43,6 +43,7 @@ void BGSourceManager_::setup(BG_SOURCE bgSourceType) {
                 ")");
     }
     bgSource->setup();
+    currentSourceType = bgSourceType;
 }
 
 void BGSourceManager_::tick() { bgSource->tick(); }

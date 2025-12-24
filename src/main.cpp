@@ -86,8 +86,9 @@ void loop() {
     }
 #endif
 
+    ServerManager.tick();
+
     if (ServerManager.isConnected) {
-        ServerManager.tick();
         bgSourceManager.tick();
         bgDisplayManager.tick();
         bgAlarmManager.tick();

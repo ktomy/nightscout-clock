@@ -37,6 +37,7 @@ public:
     virtual void tick();
     virtual bool hasNewData(unsigned long long epochToCompare);
     virtual std::list<GlucoseReading> getGlucoseData() const;
+    virtual String getStatus() const { return status; }
 
 protected:
     HTTPClient* client;
@@ -49,6 +50,7 @@ protected:
     virtual std::list<GlucoseReading> updateReadings(std::list<GlucoseReading> existingReadings) = 0;
     BG_TREND parseDirection(String directionInput);
     void handleFailedAttempt();
+    String status = "not_initialized";
 };
 
 #endif  // BGSOURCE_H

@@ -6,6 +6,7 @@
 #include <LittleFS.h>
 #include <WiFi.h>
 
+#include "BGSourceManager.h"
 #include "DisplayManager.h"
 #include "PeripheryManager.h"
 #include "SettingsManager.h"
@@ -168,6 +169,20 @@ AsyncWebHandler ServerManager_::addHandler(AsyncWebHandler* handler) {
     return *handler;
 }
 
+bool canReachInternet() {
+    WiFiClient client;
+    const char* host = "google.com";
+    const uint16_t port = 443;
+    if (!client.connect(host, port, 1000)) {
+        DEBUG_PRINTLN("Internet not reachable");
+        client.stop();
+        return false;
+    }
+    DEBUG_PRINTLN("Internet reachable");
+    client.stop();
+    return true;
+}
+
 void ServerManager_::setupWebServer(IPAddress ip) {
 #ifdef DEBUG_BG_SOURCE
     DEBUG_PRINTLN("ServerManager::setupWebServer");
@@ -242,7 +257,7 @@ void ServerManager_::setupWebServer(IPAddress ip) {
 
     ws->on("/api/reset", HTTP_POST, [](AsyncWebServerRequest* request) {
         request->send(200, "application/json", "{\"status\": \"ok\"}");
-        delay(200);
+        delay(1000);
         LittleFS.end();
         ESP.restart();
     });
@@ -273,8 +288,24 @@ void ServerManager_::setupWebServer(IPAddress ip) {
 
     ws->on("/api/factory-reset", HTTP_POST, [](AsyncWebServerRequest* request) {
         request->send(200, "application/json", "{\"status\": \"ok\"}");
-        delay(200);
+        delay(1000);
         SettingsManager.factoryReset();
+    });
+
+    // api call which returns status (isConnected, internet is reacheable, is in AP mode, bg source type and status)
+    ws->on("/api/status", HTTP_GET, [this](AsyncWebServerRequest* request) {
+        String jsonResponse = "{\"isConnected\": ";
+        jsonResponse += this->isConnected ? "true" : "false";
+        jsonResponse += ", \"hasInternet\": ";
+        jsonResponse += canReachInternet() ? "true" : "false";
+        jsonResponse += ", \"isInAPMode\": ";
+        jsonResponse += this->isInAPMode ? "true" : "false";
+        jsonResponse += ", \"bgSource\": \"";
+        jsonResponse += toString(bgSourceManager.getCurrentSourceType());
+        jsonResponse += "\", \"bgSourceStatus\": \"";
+        jsonResponse += bgSourceManager.getSourceStatus();
+        jsonResponse += "\"}";
+        request->send(200, "application/json", jsonResponse);
     });
 
     addStaticFileHandler();
@@ -373,15 +404,18 @@ void ServerManager_::setup() {
 
     auto ipAP = IPAddress();
     ipAP.fromString(AP_IP);
-    isConnected = myIP != ipAP;
     DEBUG_PRINTF("My IP: %d.%d.%d.%d", myIP[0], myIP[1], myIP[2], myIP[3]);
 
     setupWebServer(myIP);
     setTimezone();
+
+    isConnected = myIP != ipAP;
 }
 
 void ServerManager_::tick() {
-    initTimeIfNeeded();
-    if (apMode)
+    if (apMode) {
         dnsServer.processNextRequest();
+    } else {
+        initTimeIfNeeded();
+    }
 }
