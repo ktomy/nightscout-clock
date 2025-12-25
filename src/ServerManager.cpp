@@ -292,7 +292,8 @@ void ServerManager_::setupWebServer(IPAddress ip) {
         SettingsManager.factoryReset();
     });
 
-    // api call which returns status (isConnected, internet is reacheable, is in AP mode, bg source type and status)
+    // api call which returns status (isConnected, internet is reacheable, is in AP mode, bg source type
+    // and status)
     ws->on("/api/status", HTTP_GET, [this](AsyncWebServerRequest* request) {
         String jsonResponse = "{\"isConnected\": ";
         jsonResponse += this->isConnected ? "true" : "false";

@@ -30,9 +30,17 @@ public:
     String patientId;
 };
 
+class PatientInfo {
+public:
+    String patientId;
+    String firstName;
+    String lastName;
+};
+
 class BGSourceLibreLinkUp : public BGSource {
 public:
     std::list<GlucoseReading> updateReadings(std::list<GlucoseReading> existingReadings) override;
+    void setup() override;
 
 private:
     int retryCount = 0;
@@ -55,6 +63,7 @@ private:
         {"CA", "api-ca.libreview.io"},   {"DE", "api-de.libreview.io"}, {"EU", "api-eu.libreview.io"},
         {"EU2", "api-eu2.libreview.io"}, {"FR", "api-fr.libreview.io"}, {"JP", "api-jp.libreview.io"},
         {"US", "api-us.libreview.io"},   {"LA", "api-la.libreview.io"}, {"RU", "api.libreview.ru"}};
+    std::list<PatientInfo> patients = {};
 };
 
 #endif  // BGSOURCELIBRELINKUP_H

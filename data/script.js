@@ -217,6 +217,54 @@
         return allValid;
     }
 
+    let patientPollInterval = null;
+    function pollPatientsList() {
+        const patientSelect = $('#librelinkup_patient_select');
+        if (patientSelect.length > 1) {
+            clearInterval(patientPollInterval);
+            patientPollInterval = null;
+            return;
+        }
+
+        let url = "/api/llu/patients";
+                if (window.location.href.indexOf("127.0.0.1") > 0) {
+            url = clockHost + url;
+        }
+        console.log("Polling patients list from LibreLink Up...");
+        fetch(url, {
+            method: "GET",
+            headers: { },
+            timeout: 1000,
+        }).then(function (res) {
+            if (res?.ok) {
+                res.json().then(data => {
+                    patientSelect.empty();
+                    patientSelect.append($('<option>', { value: "" }).text("Choose..."));
+                    if (data.length <= 1) {
+                        $('#librelinkup_multiple_patients_block').addClass('d-none');
+                        return;
+                    }
+                    $('#librelinkup_multiple_patients_block').removeClass('d-none');
+
+                    data.forEach(patient => {
+                        patientSelect.append($('<option>', { value: patient.patientId }).text(patient.firstName + " " + patient.lastName));
+                    });
+                });
+
+                // if json configuration contains patient id which corresponds to one of the fetched patients, select it
+                if (configJson['librelinkup_patient_id']) {
+                    patientSelect.val(configJson['librelinkup_patient_id']);
+                }
+
+                clearInterval(patientPollInterval);
+                patientPollInterval = null;
+            }
+        })
+            .catch(error => {
+                console.log(`Fetching error: ${error}`);
+            });
+    }
+
     function glucoseDataSourceSwitch() {
         const glucoseSource = $('#glucose_source');
         const value = glucoseSource.val();
@@ -233,6 +281,12 @@
         removeFocusOutValidation('librelinkup_email');
         removeFocusOutValidation('librelinkup_password');
         removeFocusOutValidation('librelinkup_region');
+
+        if (patientPollInterval !== null) {
+            clearInterval(patientPollInterval);
+            patientPollInterval = null;
+        }
+        $('#librelinkup_multiple_patients_block').addClass('d-none');
 
         switch (value) {
             case "nightscout":
@@ -255,6 +309,9 @@
                 addFocusOutValidation('librelinkup_email');
                 addFocusOutValidation('librelinkup_password');
                 addFocusOutValidation('librelinkup_region');
+
+                patientPollInterval = setInterval(pollPatientsList, 2000);
+
                 break;
             default:
                 setElementValidity(glucoseSource, false);
@@ -516,6 +573,9 @@
         json['librelinkup_email'] = $('#librelinkup_email').val();
         json['librelinkup_password'] = $('#librelinkup_password').val();
         json['librelinkup_region'] = $('#librelinkup_region').val();
+        if ($('#librelinkup_patient_select').length > 0 && $('#librelinkup_patient_select').val() != "") {
+            json['librelinkup_patient_id'] = $('#librelinkup_patient_select').val();
+        }
 
         //Nightscout
         json['api_secret'] = $('#api_secret').val();

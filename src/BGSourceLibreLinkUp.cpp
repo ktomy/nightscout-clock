@@ -1,6 +1,7 @@
 #include "BGSourceLibreLinkUp.h"
 
 #include <Arduino.h>
+#include <AsyncJson.h>
 
 #define TIMESTAMP_FIELD "FactoryTimestamp"
 
@@ -26,6 +27,33 @@ void BGSourceLibreLinkUp::deleteAuthTicket() {
     authTicket.duration = 0;
     authTicket.accountId = "";
     authTicket.patientId = "";
+}
+
+void BGSourceLibreLinkUp::setup() {
+    BGSource::setup();
+    ServerManager.removeStaticFileHandler();
+
+    // add handler to retrieve patients list
+
+    ServerManager.addHandler(new AsyncCallbackJsonWebHandler(
+        "/api/llu/patients", [this](AsyncWebServerRequest* request, JsonVariant& json) {
+            String response = "[";
+            bool first = true;
+            for (const auto& patient : this->patients) {
+                if (!first)
+                    response += ",";
+                response += "{";
+                response += "\"patientId\":\"" + patient.patientId + "\",";
+                response += "\"firstName\":\"" + patient.firstName + "\",";
+                response += "\"lastName\":\"" + patient.lastName + "\"";
+                response += "}";
+                first = false;
+            }
+            response += "]";
+            request->send(200, "application/json", response);
+        }));
+
+    ServerManager.addStaticFileHandler();
 }
 
 AuthTicket BGSourceLibreLinkUp::login() {
@@ -219,23 +247,51 @@ GlucoseReading BGSourceLibreLinkUp::getLibreLinkUpConnection() {
         DisplayManager.showFatalError("Failed to get connections from LibreLinkUp, please restart");
     }
 
-    if (doc["data"].size() == 0) {
+    int patientsCount = doc["data"].size();
+
+    if (patientsCount == 0) {
         DEBUG_PRINTLN("No LibreLinkUp connections found");
         status = "no_connections";
-        DisplayManager.showFatalError("No LibreLinkUp connections found");
+        DisplayManager.showFatalError(
+            "No LibreLinkUp connections/patients found. Add followers in the LibreLink Up app");
     }
 
-    String patientId = doc["data"][0]["patientId"].as<String>();
-    String firstName = doc["data"][0]["firstName"].as<String>();
-    String lastName = doc["data"][0]["lastName"].as<String>();
+    int patientIndex = 0;
+    bool patientFound = false;
+    patients.clear();
 
-    authTicket.patientId = patientId;
+    // find patient index by patient id
+    for (int i = 0; i < patientsCount; i++) {
+        String patientId = doc["data"][i]["patientId"].as<String>();
+        String firstName = doc["data"][i]["firstName"].as<String>();
+        String lastName = doc["data"][i]["lastName"].as<String>();
+        patients.push_back({patientId, firstName, lastName});
+
+        if (SettingsManager.settings.librelinkup_patient_id != "" &&
+            patientId == SettingsManager.settings.librelinkup_patient_id) {
+            patientIndex = i;
+            patientFound = true;
+        }
+    }
+
+    if (!patientFound && patientsCount > 1) {
+        DEBUG_PRINTF(
+            "Configured patient id \"%s\" not found among %d patients\n",
+            SettingsManager.settings.librelinkup_patient_id.c_str(), patientsCount);
+        status = "multiple_patients_no_match";
+        DisplayManager.showFatalError(
+            "Multiple patients detected, go to http://" + ServerManager.myIP.toString() +
+            "/ to select a patient");
+    }
+
+    authTicket.patientId = doc["data"][patientIndex]["patientId"].as<String>();
 
     GlucoseReading reading;
-    reading.sgv = doc["data"][0]["glucoseMeasurement"]["ValueInMgPerDl"].as<int>();
-    String dateString = doc["data"][0]["glucoseMeasurement"][TIMESTAMP_FIELD].as<String>();
+    reading.sgv = doc["data"][patientIndex]["glucoseMeasurement"]["ValueInMgPerDl"].as<int>();
+    String dateString = doc["data"][patientIndex]["glucoseMeasurement"][TIMESTAMP_FIELD].as<String>();
     reading.epoch = libreTimestampToEpoch(dateString);
-    reading.trend = trendFromLibreTrend(doc["data"][0]["glucoseMeasurement"]["TrendArrow"].as<int>());
+    reading.trend =
+        trendFromLibreTrend(doc["data"][patientIndex]["glucoseMeasurement"]["TrendArrow"].as<int>());
 
 #ifdef DEBUG_BG_SOURCE
     DEBUG_PRINTF(
@@ -364,6 +420,7 @@ std::list<GlucoseReading> BGSourceLibreLinkUp::getReadings(unsigned long long la
     if (responseCode != HTTP_CODE_OK &&
         (firstConnectionSuccess == false || retryCount > MAX_RETRY_COUNT)) {
         DEBUG_PRINTF("Error getting graph from LibreLinkUp %d\n", responseCode);
+        status = "get_glucose_failed";
         DisplayManager.showFatalError(
             String("Error getting graph from LibreLinkUp: ") + String(responseCode));
     }
