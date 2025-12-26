@@ -3,7 +3,12 @@
 (() => {
     'use strict'
 
-    const clockHost = "http://192.168.86.24";
+    let clockHost = "";
+
+    if (window.location.href.indexOf("127.0.0.1") > 0) {
+        console.log("Setting clock host to lab ESP..");
+        clockHost = "http://192.168.86.24";
+    }
 
     const patterns = {
         ssid: /^[\x20-\x7E]{1,32}$/,
@@ -27,6 +32,8 @@
 
     let configJson = {};
 
+    let clockStatus = {};
+
     addValidationHandlers();
 
     addButtonsHandlers();
@@ -34,6 +41,8 @@
     addAdditionalWifiTypeHandler();
 
     loadConfiguration();
+
+    startPollingClockStatus();
 
     displayVersionInfo();
 
@@ -122,10 +131,8 @@
             tryAlarmUrl = "/api/alarm/custom";
         }
 
-        if (window.location.href.indexOf("127.0.0.1") > 0) {
-            console.log("Trying on local ESP..");
-            tryAlarmUrl = clockHost + tryAlarmUrl;
-        }
+        tryAlarmUrl = clockHost + tryAlarmUrl;
+        
 
         fetch(tryAlarmUrl, {
             method: "POST",
@@ -226,10 +233,13 @@
             return;
         }
 
-        let url = "/api/llu/patients";
-                if (window.location.href.indexOf("127.0.0.1") > 0) {
-            url = clockHost + url;
+        if (!('bgSource' in clockStatus) || clockStatus.bgSource !== "LIBRELINKUP") {
+            return;
         }
+
+        let url = "/api/llu/patients";
+        url = clockHost + url;
+        
         console.log("Polling patients list from LibreLink Up...");
         fetch(url, {
             method: "GET",
@@ -682,11 +692,10 @@
     function uploadForm(json) {
         let saveUrl = "/api/save";
         let resetUrl = "/api/reset";
-        if (window.location.href.indexOf("127.0.0.1") > 0) {
-            console.log("Uploading to local ESP..");
-            saveUrl = clockHost + saveUrl;
-            resetUrl = clockHost + resetUrl;
-        }
+
+        saveUrl = clockHost + saveUrl;
+        resetUrl = clockHost + resetUrl;
+        
         fetch(saveUrl, {
             method: "POST",
             headers: {
@@ -802,14 +811,8 @@
 
     function loadConfiguration() {
 
-        var configJsonUrl = 'config.json?' + Date.now();
-        var tzJson = "tzdata.json";
-
-        if (window.location.href.indexOf("127.0.0.1") > 0) {
-            configJsonUrl = clockHost + "/config.json?" + Date.now();
-            tzJson = clockHost + "/tzdata.json?" + Date.now();
-
-        }
+        var configJsonUrl = clockHost + "/config.json?" + Date.now();
+        var tzJson = clockHost + "/tzdata.json?" + Date.now();
 
         Promise.all([
             fetch(configJsonUrl),
@@ -990,9 +993,7 @@
     // Version info logic
 
     let versionUrl = "/version.txt?";
-    if (window.location.href.indexOf("127.0.0.1") !== -1) {
-        versionUrl = clockHost + "/version.txt?";
-    }
+    versionUrl = clockHost + "/version.txt?";
 
     fetch(versionUrl + Date.now())
         .then(res => {
@@ -1044,6 +1045,77 @@
             if (n1 > n2) return 1;
         }
         return 0;
+    }
+
+    function startPollingClockStatus() {
+        const green = "text-bg-success"
+        const red = "text-bg-danger"
+        const yellow = "text-bg-warning text-dark"
+        const lightblue = "text-bg-info"
+        const gray = "text-bg-secondary"
+
+        const wifiBadge = $('#status_wifi_badge');
+        const internetBadge = $('#status_internet_badge');
+        const dataSourceStatusBadge = $('#status_data_source_badge');
+        const lastReadingBadge = $('#status_last_reading_badge');
+
+
+
+        setInterval(() => {
+            fetch(clockHost + '/api/status', { signal: AbortSignal.timeout ? AbortSignal.timeout(1000) : undefined })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.isInAPMode == true) {
+                        wifiBadge.removeClass().addClass('badge ms-1 ' + yellow);
+                        wifiBadge.text('Initial Mode');
+                    } else if (data.isConnected == true) {
+                        wifiBadge.removeClass().addClass('badge ms-1 ' + green);
+                        wifiBadge.text('Connected');
+                    }
+                    if (data.hasInternet == true) {
+                        internetBadge.removeClass().addClass('badge ms-1 ' + green);
+                        internetBadge.text('Yes');
+                    } else {
+                        internetBadge.removeClass().addClass('badge ms-1 ' + red);
+                        internetBadge.text('No');
+                    }
+                    switch (data.bgSourceStatus) {
+                        case "connected":
+                            dataSourceStatusBadge.removeClass().addClass('badge ms-1 ' + green);
+                            dataSourceStatusBadge.text('Connected');
+                            break; 
+                        case "initialized":
+                            dataSourceStatusBadge.removeClass().addClass('badge ms-1 ' + yellow);
+                            dataSourceStatusBadge.text('Connecting');
+                            break;
+                        default:
+                            dataSourceStatusBadge.removeClass().addClass('badge ms-1 ' + red);
+                            dataSourceStatusBadge.text('Error: ' + data.bgSourceStatus);
+                            break;
+                    }
+                    if (data.sgv != 0) {
+                        lastReadingBadge.removeClass().addClass('badge ms-1 ' + lightblue);
+                        if ($('#bg_units').val() == 'mmol') {
+                            lastReadingBadge.text(`${(Math.round(data.sgv / 1.8) / 10).toFixed(1)} mmol/l `);
+                        } else {
+                            lastReadingBadge.text(`${data.sgv} mg/dl `);
+                        }
+                    }
+
+                    clockStatus = data;
+                })
+                .catch(err => {
+                    console.error('Failed to fetch clock status:', err);
+                    wifiBadge.removeClass().addClass('badge ms-1 ' + gray);
+                    wifiBadge.text('Unknown');
+                    internetBadge.removeClass().addClass('badge ms-1 ' + gray);
+                    internetBadge.text('Unknown');
+                    dataSourceStatusBadge.removeClass().addClass('badge ms-1 ' + gray);
+                    dataSourceStatusBadge.text('Unknown');
+                    lastReadingBadge.removeClass().addClass('badge ms-1 ' + gray);
+                    lastReadingBadge.text('Unknown');
+                });
+        }, 5000); // Poll every 5 seconds
     }
 
 })()

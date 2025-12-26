@@ -13,10 +13,48 @@
 
 <body class="bg-body-tertiary">
     <div class="container-md">
-        <div class="pt-5 pb-2 text-center">
+        <div class="pt-5 pb-0 text-center">
             <h2>Nightscout clock</h2>
         </div>
         <form class="needs-validation" novalidate>
+
+
+            <div class="container mt-3">
+                <div class="d-flex flex-wrap justify-content-center align-items-center column-gap-4 row-gap-1">
+                    <div>
+                        <span class="fw-semibold">WiFi connection:</span>
+                        <span class="badge text-bg-secondary ms-1" id="status_wifi_badge">Loading</span>
+                    </div>
+
+                    <div>
+                        <span class="fw-semibold">Internet:</span>
+                        <span class="badge text-bg-secondary ms-1" id="status_internet_badge">Loading</span>
+                    </div>
+
+                    <div>
+                        <span class="fw-semibold">Data source status:</span>
+                        <span class="badge text-bg-secondary ms-1" id="status_data_source_badge">Loading</span>
+                    </div>
+
+                    <div>
+                        <span class="fw-semibold">Last reading:</span>
+                        <span class="badge text-bg-secondary ms-1" id="status_last_reading_badge">Loading</span>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- <div class="align-content-center text-center">
+                <span class="badge rounded-pill text-bg-primary">Primary</span>
+                <span class="badge rounded-pill text-bg-secondary">Secondary</span>
+                <span class="badge rounded-pill text-bg-success">Connected to internet</span>
+                <span class="badge rounded-pill text-bg-danger">Not connected to internet</span>
+                <span class="badge rounded-pill text-bg-warning">Initial mode</span>
+                <span class="badge rounded-pill text-bg-info">Info</span>
+                <span class="badge rounded-pill text-bg-light">Light</span>
+                <span class="badge rounded-pill text-bg-dark">Dark</span>
+            </div> -->
+            <br />
             <div class="card" id="loading_block">
                 <div class="card-body">Loading data...</div>
             </div>
@@ -545,21 +583,15 @@
                                     <div class="alert alert-info" role="alert">
                                         <h5 class="alert-heading">How alarms work</h5>
                                         <p>
-                                            When an alarm condition is met (BG is low or high), the alarm will sound
-                                            if
-                                            enabled. The volume is moderate, so we recommend testing it with the
-                                            "Try"
-                                            buttons before enabling. The alarm will beep 2 times (high), 3 times
-                                            (low),
-                                            or 4 times (urgent low), then pause for 5 minutes before sounding again.
-                                            If
+                                            When an alarm condition is met (BG is low or high), the alarm will sound if
+                                            enabled. The volume is moderate, so we recommend testing it with the "Try"
+                                            buttons before enabling. The alarm will beep 2 times (high), 3 times (low),
+                                            or 4 times (urgent low), then pause for 5 minutes before sounding again. If
                                             "intense mode" is selected, the alarm will continue beeping every few
                                             seconds without pause. This cycle continues until blood glucose levels
-                                            return to normal or until you press the "Select" (center) button to
-                                            snooze.
+                                            return to normal or until you press the "Select" (center) button to snooze.
                                             When snoozed, the clock displays "SNOOZED" for your selected snooze
-                                            interval. If levels remain low or high after the snooze interval ends,
-                                            the
+                                            interval. If levels remain low or high after the snooze interval ends, the
                                             alarm will sound again.
                                         </p>
                                     </div>

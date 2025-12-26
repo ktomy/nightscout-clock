@@ -305,7 +305,14 @@ void ServerManager_::setupWebServer(IPAddress ip) {
         jsonResponse += toString(bgSourceManager.getCurrentSourceType());
         jsonResponse += "\", \"bgSourceStatus\": \"";
         jsonResponse += bgSourceManager.getSourceStatus();
-        jsonResponse += "\"}";
+        jsonResponse += "\", \"sgv\": ";
+        auto glucoseData = bgSourceManager.getGlucoseData();
+        if (!glucoseData.empty()) {
+            jsonResponse += String(glucoseData.back().sgv);
+        } else {
+            jsonResponse += "0";
+        }
+        jsonResponse += "}";
         request->send(200, "application/json", jsonResponse);
     });
 
