@@ -18,7 +18,13 @@ void BGDisplayFaceClock::showReadings(const std::list<GlucoseReading>& readings,
             break;
     }
 
-    showTrendVerticalLine(17, readings.back().trend, dataIsOld);
+    auto time_format = SettingsManager.settings.time_format;
+
+    if (SettingsManager.settings.bg_units == BG_UNIT::MGDL && time_format == TIME_FORMAT::HOURS_24) {
+        showTrendVerticalLine(18, readings.back().trend, dataIsOld);
+    } else {
+        showTrendVerticalLine(17, readings.back().trend, dataIsOld);
+    }
 }
 
 void BGDisplayFaceClock::showClock() const {
