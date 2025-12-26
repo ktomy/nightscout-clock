@@ -298,6 +298,8 @@
         }
         $('#librelinkup_multiple_patients_block').addClass('d-none');
 
+        $('#btn_load_limits_from_ns').prop('disabled', value !== "nightscout");
+
         switch (value) {
             case "nightscout":
                 setElementValidity(glucoseSource, true);
@@ -1086,7 +1088,11 @@
                             break; 
                         case "initialized":
                             dataSourceStatusBadge.removeClass().addClass('badge ms-1 ' + yellow);
+                            if (data.isInAPMode == true) {
+                                dataSourceStatusBadge.text('Initial Mode');
+                            } else {
                             dataSourceStatusBadge.text('Connecting');
+                            }
                             break;
                         default:
                             dataSourceStatusBadge.removeClass().addClass('badge ms-1 ' + red);

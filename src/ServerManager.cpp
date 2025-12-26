@@ -170,17 +170,49 @@ AsyncWebHandler ServerManager_::addHandler(AsyncWebHandler* handler) {
 }
 
 bool canReachInternet() {
+    if (WiFi.status() != WL_CONNECTED) {
+        return false;
+    }
+
+    if (WiFi.getMode() == WIFI_AP || WiFi.getMode() == WIFI_AP_STA) {
+        return false;
+    }
+
     WiFiClient client;
-    const char* host = "google.com";
-    const uint16_t port = 443;
-    if (!client.connect(host, port, 1000)) {
-        DEBUG_PRINTLN("Internet not reachable");
+    const char* host = "www.google.com";
+    const uint16_t port = 80;
+    if (!client.connect(host, port, 2000)) {
+        DEBUG_PRINTLN("Internet not reachable (connect failed)");
         client.stop();
         return false;
     }
-    DEBUG_PRINTLN("Internet reachable");
+
+    // Send a simple HTTP GET request
+    client.print("GET /generate_204 HTTP/1.1\r\nHost: www.google.com\r\nConnection: close\r\n\r\n");
+
+    unsigned long start = millis();
+    while (client.connected() && !client.available() && millis() - start < 2000) {
+        delay(10);
+    }
+
+    if (!client.available()) {
+        DEBUG_PRINTLN("Internet not reachable (no response)");
+        client.stop();
+        return false;
+    }
+
+    // Optionally, check for HTTP/1.1 204 No Content response
+    String line = client.readStringUntil('\n');
+    if (line.indexOf("204") > 0 || line.indexOf("200") > 0) {
+        DEBUG_PRINTLN("Internet reachable");
+        client.stop();
+        return true;
+    }
+
+    DEBUG_PRINTLN("Internet not reachable (bad response)");
     client.stop();
-    return true;
+    return false;
+
 }
 
 void ServerManager_::setupWebServer(IPAddress ip) {
