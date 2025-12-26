@@ -281,6 +281,7 @@
         $('#nightscout_settings_card').toggleClass("d-none", value !== "nightscout");
         $('#dexcom_settings_card').toggleClass("d-none", value !== "dexcom");
         $('#librelinkup_settings_card').toggleClass("d-none", value !== "librelinkup");
+        $('#medtrum_settings_card').toggleClass("d-none", value !== "medtrum");
 
         removeFocusOutValidation('ns_hostname');
         removeFocusOutValidation('ns_port');
@@ -291,6 +292,8 @@
         removeFocusOutValidation('librelinkup_email');
         removeFocusOutValidation('librelinkup_password');
         removeFocusOutValidation('librelinkup_region');
+        removeFocusOutValidation('medtrum_email');
+        removeFocusOutValidation('medtrum_password');
 
         if (patientPollInterval !== null) {
             clearInterval(patientPollInterval);
@@ -324,6 +327,11 @@
 
                 patientPollInterval = setInterval(pollPatientsList, 2000);
 
+                break;
+            case "medtrum":
+                setElementValidity(glucoseSource, true);
+                addFocusOutValidation('medtrum_email', () => patterns.email_format);
+                addFocusOutValidation('medtrum_password', () => patterns.dexcom_password);
                 break;
             default:
                 setElementValidity(glucoseSource, false);
@@ -554,6 +562,10 @@
             isValid &= validate($('#dexcom_server'), patterns.dexcom_server);
             isValid &= validate($('#dexcom_username'), patterns.dexcom_username);
             isValid &= validate($('#dexcom_password'), patterns.dexcom_password);
+        } else if (value === "medtrum") {
+            setElementValidity(glucoseSource, true);
+            isValid &= validate($('#medtrum_email'), patterns.email_format);
+            isValid &= validate($('#medtrum_password'), patterns.dexcom_password);
         } else if (value === "librelinkup") {
             isValid &= validate($('#librelinkup_email'), patterns.email_format);
             isValid &= validate($('#librelinkup_password'), patterns.dexcom_password);
@@ -580,6 +592,10 @@
         json['dexcom_server'] = $('#dexcom_server').val();
         json['dexcom_username'] = $('#dexcom_username').val();
         json['dexcom_password'] = $('#dexcom_password').val();
+
+        // Medtrum Easy Follow
+        json['medtrum_email'] = $('#medtrum_email').val();
+        json['medtrum_password'] = $('#medtrum_password').val();
 
         //LibreLinkUp
         json['librelinkup_email'] = $('#librelinkup_email').val();
@@ -872,6 +888,10 @@
         $('#dexcom_server').val(json['dexcom_server']);
         $('#dexcom_username').val(json['dexcom_username']);
         $('#dexcom_password').val(json['dexcom_password']);
+
+        // Medtrum Easy Follow
+        $('#medtrum_email').val(json['medtrum_email']);
+        $('#medtrum_password').val(json['medtrum_password']);
 
         //LibreLinkUp
         $('#librelinkup_email').val(json['librelinkup_email']);

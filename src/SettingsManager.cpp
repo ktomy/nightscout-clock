@@ -117,9 +117,13 @@ bool SettingsManager_::loadSettingsFromFile() {
         settings.bg_source = BG_SOURCE::API;
     } else if (data_source == "librelinkup") {
         settings.bg_source = BG_SOURCE::LIBRELINKUP;
+    } else if (data_source == "medtrum") {
+        settings.bg_source = BG_SOURCE::MEDTRUM;
     } else {
         settings.bg_source = BG_SOURCE::NO_SOURCE;
     }
+    settings.medtrum_email = (*doc)["medtrum_email"].as<String>();
+    settings.medtrum_password = (*doc)["medtrum_password"].as<String>();
     settings.dexcom_username = (*doc)["dexcom_username"].as<String>();
     settings.dexcom_password = (*doc)["dexcom_password"].as<String>();
     String dexcomServerStr = (*doc)["dexcom_server"].as<String>();
@@ -233,11 +237,16 @@ bool SettingsManager_::saveSettingsToFile() {
         case BG_SOURCE::LIBRELINKUP:
             data_source = "librelinkup";
             break;
+        case BG_SOURCE::MEDTRUM:
+            data_source = "medtrum";
+            break;
         default:
             data_source = "no_source";
             break;
     }
     (*doc)["data_source"] = data_source;
+    (*doc)["medtrum_email"] = settings.medtrum_email;
+    (*doc)["medtrum_password"] = settings.medtrum_password;
 
     (*doc)["dexcom_username"] = settings.dexcom_username;
     (*doc)["dexcom_password"] = settings.dexcom_password;

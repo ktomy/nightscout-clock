@@ -25,6 +25,9 @@ public:
     String librelinkup_password;
     String librelinkup_region;
     String librelinkup_patient_id;
+    // Medtrum Easy Follow
+    String medtrum_email;
+    String medtrum_password;
     String tz_libc_value;
     TIME_FORMAT time_format;
     bool alarm_urgent_low_enabled;

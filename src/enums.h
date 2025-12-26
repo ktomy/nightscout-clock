@@ -50,6 +50,7 @@ enum class BG_SOURCE : uint8_t {
     MEDTRONIC = 3,
     API = 4,
     LIBRELINKUP = 5,
+    MEDTRUM = 6,
 };
 
 enum class DEXCOM_SERVER : uint8_t {
@@ -155,6 +156,8 @@ inline String toString(BG_SOURCE source) {
             return "API";
         case BG_SOURCE::LIBRELINKUP:
             return "LIBRELINKUP";
+        case BG_SOURCE::MEDTRUM:
+            return "MEDTRUM";
         default:
             return "unknown";
     }

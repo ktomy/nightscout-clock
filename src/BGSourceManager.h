@@ -10,6 +10,7 @@
 #include "BGSourceDexcom.h"
 #include "BGSourceLibreLinkUp.h"
 #include "BGSourceMedtronic.h"
+#include "BGSourceMedtrum.h"
 #include "BGSourceNightscout.h"
 #include "DisplayManager.h"
 #include "enums.h"

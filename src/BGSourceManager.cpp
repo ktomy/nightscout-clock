@@ -34,6 +34,9 @@ void BGSourceManager_::setup(BG_SOURCE bgSourceType) {
         case BG_SOURCE::MEDTRONIC:
             bgSource = new BGSourceMedtronic();
             break;
+        case BG_SOURCE::MEDTRUM:
+            bgSource = new BGSourceMedtrum();
+            break;
         default:
             DEBUG_PRINTLN(
                 "BGSourceManager_::setup: Unknown BG_SOURCE: " + toString(bgSourceType) + " (" +
