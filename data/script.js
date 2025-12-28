@@ -207,7 +207,9 @@
         var allValid = true;
         allValid &= validate($('#ssid'), patterns.ssid);
         console.log("Validated ssid, result: " + allValid);
-        allValid &= validate($('#wifi_password'), patterns.wifi_password);
+        if (!$('#open_wifi_network').is(':checked')) {
+            allValid &= validate($('#wifi_password'), patterns.wifi_password);
+        }
         console.log("Validated wifi password, result: " + allValid);
         allValid &= validateGlucoseSource();
         console.log("Validated glucose source, result: " + allValid);
@@ -583,7 +585,11 @@
         var json = configJson;
         //WiFi
         json['ssid'] = $('#ssid').val();
-        json['password'] = $('#wifi_password').val();
+        if ($('#open_wifi_network').is(':checked')) {
+            json['password'] = "";
+        } else {
+            json['password'] = $('#wifi_password').val();
+        }
 
         //Glucose source
         json['data_source'] = $('#glucose_source').val();

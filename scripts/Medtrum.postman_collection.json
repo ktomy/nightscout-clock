@@ -1,0 +1,239 @@
+{
+	"info": {
+		"_postman_id": "f964a938-734a-4263-b42c-6bb592f5d10b",
+		"name": "Medtrum",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "534990"
+	},
+	"item": [
+		{
+			"name": "Login",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "AppTag",
+						"value": "v=1.2.70(112);n=eyfo;p=android",
+						"type": "text"
+					},
+					{
+						"key": "DevInfo",
+						"value": "Android 11;Google generic_x86_arm;Android 11",
+						"type": "text"
+					},
+					{
+						"key": "RegionCode",
+						"value": "DE",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "user_type",
+							"value": "M",
+							"type": "text"
+						},
+						{
+							"key": "user_name",
+							"value": "{{medtrum_email}}",
+							"type": "text"
+						},
+						{
+							"key": "password",
+							"value": "{{medtrum_password}}",
+							"type": "text"
+						},
+						{
+							"key": "apptype",
+							"value": "Follow",
+							"type": "text"
+						},
+						{
+							"key": "platform",
+							"value": "google",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{baseUrl}}/mobile/ajax/login",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"mobile",
+						"ajax",
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Patient Data",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "AppTag",
+						"value": "v=1.2.70(112);n=eyfo;p=android",
+						"type": "text"
+					},
+					{
+						"key": "DevInfo",
+						"value": "Android 11;Google generic_x86_arm;Android 11",
+						"type": "text"
+					},
+					{
+						"key": "RegionCode",
+						"value": "DE",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/mobile/ajax/logindata",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"mobile",
+						"ajax",
+						"logindata"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Monitor List",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "AppTag",
+						"value": "v=1.2.70(112);n=eyfo;p=android",
+						"type": "text"
+					},
+					{
+						"key": "DevInfo",
+						"value": "Android 11;Google generic_x86_arm;Android 11",
+						"type": "text"
+					},
+					{
+						"key": "RegionCode",
+						"value": "DE",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/mobile/ajax/monitor?flag=monitor_list",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"mobile",
+						"ajax",
+						"monitor"
+					],
+					"query": [
+						{
+							"key": "flag",
+							"value": "monitor_list"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get graph data",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "AppTag",
+						"value": "v=1.2.70(112);n=eyfo;p=android",
+						"type": "text"
+					},
+					{
+						"key": "DevInfo",
+						"value": "Android 11;Google generic_x86_arm;Android 11",
+						"type": "text"
+					},
+					{
+						"key": "RegionCode",
+						"value": "DE",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/mobile/ajax/download?flag=sg&st={{start_time}}&et={{end_time}}&user_name={{medtrum_patient_email}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"mobile",
+						"ajax",
+						"download"
+					],
+					"query": [
+						{
+							"key": "flag",
+							"value": "sg"
+						},
+						{
+							"key": "st",
+							"value": "{{start_time}}"
+						},
+						{
+							"key": "et",
+							"value": "{{end_time}}"
+						},
+						{
+							"key": "user_name",
+							"value": "{{medtrum_patient_email}}"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"requests": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"requests": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "https://easyview.medtrum.eu"
+		},
+		{
+			"key": "medtrum_email",
+			"value": "",
+			"type": "default"
+		}
+	]
+}
