@@ -2,7 +2,7 @@
 
 ![Nightscout clock logo](https://github.com/ktomy/nightscout-clock/assets/1446257/1198c06d-b017-409d-aca3-2bca63581ecb)
 
-### Current version: 0.26.2
+### Current version: 0.27.0
 
 ![Build and Release](https://github.com/ktomy/nightscout-clock/actions/workflows/build_release.yml/badge.svg)
 
@@ -13,7 +13,7 @@ _Nightscout Clock (or NSClock) is an open-source product aimed to help caregiver
 ## Here is what it can do
 
 - 6 colorful clockfaces
-- Can get glucose data from Dexcom Share or Nightscout
+- Can get glucose data from Dexcom Share, Nightscout, LibreLink Up or Medtrum EasyFollow
 - Supports mg/dl and mmol/l
 - 10 minutes setup through web browser
 - Configurable low/high limits
@@ -37,7 +37,7 @@ Thanks [@CallumMcK](https://github.com/CallumMcK)
 5. Go to the [installation page](https://ktomy.github.io/nightscout-clock/)
 6. Follow the instructions
 7. Once the clock installed, take out your phone and join `nsclock` wi-fi network. Then go to `http://192.168.4.1/`
-8. Set up your device, provide the Wi-Fi network details, your Dexcom or Nightscout credentials, glucose warning limits and other parameters
+8. Set up your device, provide the Wi-Fi network details, your Dexcom, Nightscout, LibreLink Up or Medtrum EasyFollow credentials, glucose warning limits and other parameters
 9. You're all set, enjoy!
 
 ## How to update
@@ -80,6 +80,7 @@ Nightscout CLock is a custom firmware for Ulanzi TC001. It can also run (with mi
 - [Gluroo](https://gluroo.com/) data source (API_SECRET within the URL parameters) (see how to setup [video](https://youtu.be/unG-l6XXWxw))
 - Dexcom Share data source
 - LibreLinkUp (libreview) data source
+- Medtrum EasyFollow data source
 - Brightness adjustment
   - Brightness can be adjusted within the Web UI
   - Automatic brightness adjustment based on the ambient light
@@ -113,6 +114,11 @@ Nightscout CLock is a custom firmware for Ulanzi TC001. It can also run (with mi
   - ...more... (if you are the author of a CGM data collecting app/service nad you want your data to be displayed on the Nightscout Clock, please contact me)
 
 ## Changes
+
+### 0.27
+
+- Medtrum EasyFollow data source support ([discussion](https://github.com/ktomy/nightscout-clock/discussions/106)), inspired by [@pachi81](https://github.com/pachi81)'s work
+- Fixed Open WiFi networks validation
 
 ### 0.26.2
 
