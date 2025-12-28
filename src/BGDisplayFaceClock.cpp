@@ -7,7 +7,7 @@
 void BGDisplayFaceClock::showReadings(const std::list<GlucoseReading>& readings, bool dataIsOld) const {
     showClock();
 
-    showReading(readings.back(), 33, 6, TEXT_ALIGNMENT::RIGHT, FONT_TYPE::MEDIUM, dataIsOld);
+    showReading(readings.back(), 31, 6, TEXT_ALIGNMENT::RIGHT, FONT_TYPE::MEDIUM, dataIsOld);
 
     switch (SettingsManager.settings.time_format) {
         case TIME_FORMAT::HOURS_12:
@@ -18,7 +18,7 @@ void BGDisplayFaceClock::showReadings(const std::list<GlucoseReading>& readings,
             break;
     }
 
-    showTrendVerticalLine(17, readings.back().trend, dataIsOld);
+    showTrendVerticalLine(31, readings.back().trend, dataIsOld);
 }
 
 void BGDisplayFaceClock::showClock() const {
