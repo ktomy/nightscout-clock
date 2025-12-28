@@ -204,7 +204,7 @@ bool canReachInternet() {
     // Optionally, check for HTTP/1.1 204 No Content response
     String line = client.readStringUntil('\n');
     if (line.indexOf("204") > 0 || line.indexOf("200") > 0) {
-        DEBUG_PRINTLN("Internet reachable");
+        // DEBUG_PRINTLN("Internet reachable");
         client.stop();
         return true;
     }
@@ -212,7 +212,6 @@ bool canReachInternet() {
     DEBUG_PRINTLN("Internet not reachable (bad response)");
     client.stop();
     return false;
-
 }
 
 void ServerManager_::setupWebServer(IPAddress ip) {

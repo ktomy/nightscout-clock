@@ -24,10 +24,11 @@ std::list<GlucoseReading> BGSourceNightscout::updateReadings(
     if (existingReadings.size() > 0 && existingReadings.back().epoch > lastReadingEpoch) {
         lastReadingEpoch = existingReadings.back().epoch;
     }
+#ifdef DEBUG_BG_SOURCE
     DEBUG_PRINTLN(
         "Updating NS values since epoch: " + String(lastReadingEpoch) + " (-" +
         String((currentEpoch - lastReadingEpoch) / 60) + "m)");
-
+#endif
     // retrieve new readings until there are no new readings or until we reach
     // the point of now - 5 minutes (as we don't want readings from the future)
     do {
@@ -164,7 +165,9 @@ std::list<GlucoseReading> BGSourceNightscout::retrieveReadings(
             });
 
             if (lastReadings.size() == 0) {
+#ifdef DEBUG_BG_SOURCE
                 DEBUG_PRINTLN("No readings received");
+#endif
             } else {
                 String debugLog = "Received readings: ";
                 for (auto& reading : lastReadings) {
@@ -173,7 +176,9 @@ std::list<GlucoseReading> BGSourceNightscout::retrieveReadings(
                 }
 
                 debugLog += "\n";
+#ifdef DEBUG_BG_SOURCE
                 DEBUG_PRINTLN(debugLog);
+#endif
             }
         }
         ServerManager.failedAttempts = 0;  // Reset failed attempts counter

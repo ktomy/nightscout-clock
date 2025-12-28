@@ -50,6 +50,8 @@ if (r2.json().get('res') != 'OK'):
 
 # current glucose level: monitorlist -> [0] -> sensor_status -> glucose
 glucose = r2.json()['monitorlist'][0]['sensor_status']['glucose']
+glucoseRate = r2.json()['monitorlist'][0]['sensor_status']['glucoseRate']
+glucose_timestamp = r2.json()['monitorlist'][0]['sensor_status']['updateTime'] #unixtime in seconds
 if (glucose == 0):
     print('No current sensor data')
 units = "mgdl"
@@ -62,7 +64,35 @@ if (glucose < 30):
 else:
     glucosemgdl = glucose
 
-print(f'Current glucose level: {glucosemgdl} mg/dL ({glucose} {units})')
+trensString = ""
+# 0, 8: flat
+# 1:45-up
+# 2:up
+# 3:double-up
+# 4:45-down
+# 5:down
+# 6:double-down
+# 7:none
+
+if (glucoseRate == 0 or glucoseRate == 8):
+    trensString = "↔️"
+elif (glucoseRate == 1):
+    trensString = "↗️"
+elif (glucoseRate == 2):
+    trensString = "⬆️"
+elif (glucoseRate == 3):
+    trensString = "⏫"
+elif (glucoseRate == 4):
+    trensString = "↘️"
+elif (glucoseRate == 5):
+    trensString = "⬇️"
+elif (glucoseRate == 6):
+    trensString = "⏬"
+else:
+    trensString = "❓"
+
+
+print(f'Current glucose level: {glucosemgdl} mg/dL ({glucose} {units}), Timestamp (UTC): {datetime.fromtimestamp(glucose_timestamp, timezone.utc)}, Trend: {trensString}')
 
 lasthour = datetime.now(timezone.utc)-timedelta(hours=1)
 now = datetime.now(timezone.utc)
@@ -105,6 +135,6 @@ for entry in r3.json().get('data', []):
     else:
         glucosemgdl = glucose
         units = "mgdl"
-    print(f'Time: {timestamp}, Glucose: {glucosemgdl} mg/dL ({glucose} {units})')
+    print(f'Time (UTC): {timestamp}, Glucose: {glucosemgdl} mg/dL ({glucose} {units})')
 
 
