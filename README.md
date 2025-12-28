@@ -119,6 +119,7 @@ Nightscout CLock is a custom firmware for Ulanzi TC001. It can also run (with mi
 
 - Medtrum EasyFollow data source support ([discussion](https://github.com/ktomy/nightscout-clock/discussions/106)), inspired by [@pachi81](https://github.com/pachi81)'s work
 - Fixed Open WiFi networks validation
+- Moved trend indicator to the right in the "Time and value" clockface
 
 ### 0.26.2
 
