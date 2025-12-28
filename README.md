@@ -8,7 +8,7 @@
 
 _Nightscout Clock (or NSClock) is an open-source product aimed to help caregivers of people with type 1 diabetes have more piece of mind by being able to better glance at their loved onve blood glucose values._
 
-![Photo of the NSClock](https://github.com/user-attachments/assets/9c5d810a-76c0-414b-8d93-d46a6afa8bf6)
+<img width="500" alt="Photo of the Nightscout Clock" src="https://github.com/user-attachments/assets/f8005f49-6e32-43f1-bd84-0bb4e4691d7f" />
 
 ## Here is what it can do
 
@@ -54,12 +54,12 @@ Nightscout CLock is a custom firmware for Ulanzi TC001. It can also run (with mi
 
 | Name            | Look                                                                                                 | Comment |
 | --------------- | ---------------------------------------------------------------------------------------------------- |---------|
-| SImple          | ![resized_IMG_0225](https://github.com/user-attachments/assets/79cbda6d-5c0b-47fa-b5b4-2a5a10322a7d) |         |
-| BIG DIGITS      | ![resized_IMG_0222](https://github.com/user-attachments/assets/59d5bea9-977b-4c40-b308-636d3d70055a) |         |
-| 3-hours graph   | ![resized_IMG_0220](https://github.com/user-attachments/assets/86f36885-4479-412b-95fc-9fa527e12050) |         |
-| Graph and value | ![resized_IMG_0221](https://github.com/user-attachments/assets/cb21ac92-a6d5-408c-b116-69726b58abc1) |  The dots on the right side replace the trend arrow.<br>2 white dots = horizontal arrow.<br>2 colored dots (white + green) = 45° arrow.<br>3 dots = vertical arrow.<br>4 dots = double arrow.<br>Colored dots above = upward trend.<br>Colored dots below = downward trend.  |
-| Delta           | ![resized_IMG_0223](https://github.com/user-attachments/assets/dce1ecd4-a51b-4596-a292-0535c66f505c) |         |
-| Time and value  | ![resized_IMG_0217](https://github.com/user-attachments/assets/d92832c2-8713-4ccf-9cc7-67202153d111) |         |
+| SImple          | <img width="500" alt="Simple" src="https://github.com/user-attachments/assets/ad281e9f-8c7f-41ff-ba82-23c634171158" /> |   Horizontal bars in the bottom of the display <br /> indicate the time since the last reading <br />No bars: less then one minute <br /> 1..5 green bars: 1..5 minutes <br /> 5 yellow bars: 6..20 minutes <br /> gray-bolored value and vars: 20+ minutes       |
+| BIG DIGITS      | <img width="500" alt="Big Digits" src="https://github.com/user-attachments/assets/1feae65b-21e9-4c20-8960-b75583baa142" /> |         |
+| 3-hours graph   | <img width="500" alt="graph" src="https://github.com/user-attachments/assets/45d92097-f459-44d4-b1ae-a35c3cb38700" /> |         |
+| Graph and value | <img width="500" alt="Graph and value" src="https://github.com/user-attachments/assets/db9046aa-5121-43fa-b367-807cdf3c5ef3" /> |  The dots on the right side replace the trend arrow.<br>2 white dots = horizontal arrow.<br>2 colored dots (white + green) = 45° arrow.<br>3 dots = vertical arrow.<br>4 dots = double arrow.<br>Colored dots above = upward trend.<br>Colored dots below = downward trend. <br /><br /> Dots under the value are the same as <br /> horizontal bars on the other faces.<br /> See "Simple" face for details |
+| Delta           | <img width="500" alt="Photo of the Nightscout Clock" src="https://github.com/user-attachments/assets/f8005f49-6e32-43f1-bd84-0bb4e4691d7f" /> |         |
+| Time and value  | <img width="500" alt="Time and value" src="https://github.com/user-attachments/assets/cd72bf15-85e3-4621-b5ca-d639c1849cd5" /> | The dots on the right side replace the trend arrow.<br>2 white dots = horizontal arrow.<br>2 colored dots (white + green) = 45° arrow.<br>3 dots = vertical arrow.<br>4 dots = double arrow.<br>Colored dots above = upward trend.<br>Colored dots below = downward trend. <br /><br /> For the bottom-side bars see "Simple" face for details |
 
 ### Configuration web interface
 
