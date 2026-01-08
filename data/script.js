@@ -24,7 +24,7 @@
         ns_protocol: /^(http|https)$/,
         clock_timezone: /^.{2,}$/,
         time_format: /^(12|24)$/,
-        email_format: /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/,
+        email_format: /^[\w-\.]+(\+[A-Za-z0-9]+)?@([\w-]+\.)+[\w-]{2,4}$/,
         not_empty: /^.{1,}$/,
         custom_nodatatimer: /^(?:[6-9]|[1-5][0-9]|60)?$/,
 
