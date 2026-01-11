@@ -245,7 +245,7 @@ curl -X POST http://nsclock.lan/api/displaypower \
 
 ## Do you want to contribute?
 
-Please read the [Contriburing](https://github.com/ktomy/nightscout-clock/CONTRIBUTING.md) instructions
+Please read the [Contriburing](https://github.com/ktomy/nightscout-clock/blob/main/CONTRIBUTING.md) instructions
 
 ---
 
