@@ -6,7 +6,7 @@
 
 ![Build and Release](https://github.com/ktomy/nightscout-clock/actions/workflows/build_release.yml/badge.svg)
 
-_Nightscout Clock (or NSClock) is an open-source product aimed to help caregivers of people with type 1 diabetes have more piece of mind by being able to better glance at their loved onve blood glucose values._
+_Nightscout Clock (or NSClock) is an open-source product aimed at helping caregivers of people with type 1 diabetes have peace of mind by being able to better monitor their loved ones' blood glucose values._
 
 <img width="500" alt="Photo of the Nightscout Clock" src="https://github.com/user-attachments/assets/f8005f49-6e32-43f1-bd84-0bb4e4691d7f" />
 
@@ -48,13 +48,13 @@ Thanks [@CallumMcK](https://github.com/CallumMcK)
 
 ## More information for people who needs it
 
-Nightscout CLock is a custom firmware for Ulanzi TC001. It can also run (with minor changes) on AWTRIX-Light custom hardware, so if you need bigger display, feel free to research.
+Nightscout Clock is a custom firmware for Ulanzi TC001. It can also run (with minor changes) on AWTRIX-Light custom hardware, so if you need a bigger display, feel free to research.
 
 ### Clockfaces
 
 | Name            | Look                                                                                                 | Comment |
 | --------------- | ---------------------------------------------------------------------------------------------------- |---------|
-| SImple          | <img width="500" alt="Simple" src="https://github.com/user-attachments/assets/ad281e9f-8c7f-41ff-ba82-23c634171158" /> |   Horizontal bars in the bottom of the display <br /> indicate the time since the last reading <br />No bars: less then one minute <br /> 1..5 green bars: 1..5 minutes <br /> 5 yellow bars: 6..20 minutes <br /> gray-bolored value and vars: 20+ minutes       |
+| Simple          | <img width="500" alt="Simple" src="https://github.com/user-attachments/assets/ad281e9f-8c7f-41ff-ba82-23c634171158" /> |   Horizontal bars in the bottom of the display <br /> indicate the time since the last reading <br />No bars: less than one minute <br /> 1..5 green bars: 1..5 minutes <br /> 5 yellow bars: 6..20 minutes <br /> gray-colored value and vars: 20+ minutes       |
 | BIG DIGITS      | <img width="500" alt="Big Digits" src="https://github.com/user-attachments/assets/1feae65b-21e9-4c20-8960-b75583baa142" /> |         |
 | 3-hours graph   | <img width="500" alt="graph" src="https://github.com/user-attachments/assets/45d92097-f459-44d4-b1ae-a35c3cb38700" /> |         |
 | Graph and value | <img width="500" alt="Graph and value" src="https://github.com/user-attachments/assets/db9046aa-5121-43fa-b367-807cdf3c5ef3" /> |  The dots on the right side replace the trend arrow.<br>2 white dots = horizontal arrow.<br>2 colored dots (white + green) = 45° arrow.<br>3 dots = vertical arrow.<br>4 dots = double arrow.<br>Colored dots above = upward trend.<br>Colored dots below = downward trend. <br /><br /> Dots under the value are the same as <br /> horizontal bars on the other faces.<br /> See "Simple" face for details |
@@ -71,14 +71,14 @@ Nightscout CLock is a custom firmware for Ulanzi TC001. It can also run (with mi
   - Access-Point mode to set the initial configuration
   - Support for a secondary WiFi (e.g. if you want to take the clock in your car for a long trip)
   - Support for WPA-Enterprise
-  - Ability to set custom hostname in in case you have multiple NSClocks on the same network
+  - Ability to set a custom hostname in case you have multiple NSClocks on the same network
 - Simple glucose value display with trend arrow
 - Changing color based on limits
 - Nightscout data source, the clock gets units type and value boundaries from Nightscout (see [how to](https://youtu.be/GGiep2gdx_o) set up using [Nightscout.pro](https://www.nightscout.pro/) as data source)
 - [Juggluco](https://www.juggluco.nl/) data source (support for HTTP Nightscout endpoints)
 - [Improve WiFi](https://github.com/improv-wifi) compatibility (setting up WiFi during the installation)
 - [Gluroo](https://gluroo.com/) data source (API_SECRET within the URL parameters) (see how to setup [video](https://youtu.be/unG-l6XXWxw))
-- Simplifiet Nightscout API like xDrip+ [Open Web Service](https://github.com/NightscoutFoundation/xDrip/blob/master/Documentation/technical/Local_Web_Services.md) support. When adding it as data source, chooose Nightscout and check the `Simplified API` checkbox. Make sure your source device (e.g. your phone running xDrip) has static IP address and is on the same WiFi network. Also don't forget to check the port setting, for xDrip it is usually `17580`
+- Simplified Nightscout API like xDrip+ [Open Web Service](https://github.com/NightscoutFoundation/xDrip/blob/master/Documentation/technical/Local_Web_Services.md) support. When adding it as a data source, choose Nightscout and check the `Simplified API` checkbox. Make sure your source device (e.g. your phone running xDrip) has a static IP address and is on the same WiFi network. Also don't forget to check the port setting; for xDrip it is usually `17580`
 - Dexcom Share data source
 - LibreLinkUp (libreview) data source
 - Medtrum EasyFollow data source
@@ -99,7 +99,7 @@ Nightscout CLock is a custom firmware for Ulanzi TC001. It can also run (with mi
 - Smart data and screen update timings: read data once it appears, refresh screen when needed
 - API data source. The clock has a simple Nightscout-like API which can receive glucose values from an external source. The main purpose of this feature is the ability to test the clock during the clockfaces development. In order to activate this feature, select the API data source within the clock's Web UI. Here are the endpoints:
   - /api/v1/entries POST endpoint receives an array of Nightscout-like entries. The only significant fields are `sgv`, `date` and `trend` or `direction`. Due to the limited memory the API is stable when sent less than 10 recotds
-  - /api/v1/entries DELETE endpoint deleted all entries no matter the payload
+  - /api/v1/entries DELETE endpoint deletes all entries regardless of the payload
 - Firmware versioning
 - Alarms with configurable Thresholds, snooze times and silence intervals
 - To turn the device on or off press both arrow buttons for 3 seconds
@@ -112,7 +112,7 @@ Nightscout CLock is a custom firmware for Ulanzi TC001. It can also run (with mi
 - Smooth color change (rainbow) based on the value and boundaries
 - Add more data sources
   - Medtronic
-  - ...more... (if you are the author of a CGM data collecting app/service nad you want your data to be displayed on the Nightscout Clock, please contact me)
+  - ...more... (if you are the author of a CGM data collecting app/service and you want your data to be displayed on the Nightscout Clock, please contact me)
 
 ## Changes
 
@@ -138,12 +138,12 @@ Nightscout CLock is a custom firmware for Ulanzi TC001. It can also run (with mi
 ### 0.26.0
 
 - Added trend indicator to the clock-and-value clock face. [#49](https://github.com/ktomy/nightscout-clock/issues/49)
-- Added manual brightness control from the device itself. When the brightness in manual mode, when pressing `<` or `>` for more than a second, brightness increases or decreases. Setting persists over restarts. [#74](https://github.com/ktomy/nightscout-clock/issues/74)
+- Added manual brightness control from the device itself. When the brightness is in manual mode, pressing `<` or `>` for more than a second increases or decreases brightness. Setting persists over restarts. [#74](https://github.com/ktomy/nightscout-clock/issues/74)
 
 ### 0.25.2
 
 - Fixed support for Dexcom Japan
-- Added custom alarm melodies, one can set them through RTTTL strings in alrts settings
+- Added custom alarm melodies, which can be set through RTTTL strings in alarm settings
 
 ### 0.25.1
 
@@ -256,7 +256,7 @@ My computer is running linux, but you can use Windows or MacOS as well, there ar
   - install python as a PlatformIO dependency
 - clone the project using Visual Studio Code
 - PlatformIO should detect the project
-- Comment out (place `#` in the beginning of) [this](https://github.com/ktomy/nightscout-clock/blob/main/platformio.ini#L38) line
+- Comment out (place `#` at the beginning of) [this](https://github.com/ktomy/nightscout-clock/blob/main/platformio.ini#L38) line
 - You should be able to see PlatformIO tab in the sidebar
   - Select `ulanzi_debug` -> `General` -> `Build`
   - `ulanzi_debug` -> `Platform` -> `Build Filesystem image`
