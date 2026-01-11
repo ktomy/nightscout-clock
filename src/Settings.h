@@ -9,6 +9,7 @@ public:
     String hostname;
     String nightscout_url;
     String nightscout_api_key;
+    bool nightscout_simplified_api;
     BG_UNIT bg_units;
     int bg_low_warn_limit;
     int bg_high_warn_limit;

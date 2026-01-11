@@ -12,6 +12,7 @@
     "dexcom_password": "",
     "dexcom_server": "",
     "nightscout_url": "",
+    "nightscout_simplified_api": false,
     "api_secret": "",
     "units": "",
     "low_mgdl": 70,

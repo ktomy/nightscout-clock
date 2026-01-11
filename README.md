@@ -74,10 +74,11 @@ Nightscout CLock is a custom firmware for Ulanzi TC001. It can also run (with mi
   - Ability to set custom hostname in in case you have multiple NSClocks on the same network
 - Simple glucose value display with trend arrow
 - Changing color based on limits
-- Nightscout data source, the clock gett units type and value boundaries from Nightscout (see [how to](https://youtu.be/GGiep2gdx_o) set up using [Nightscout.pro](https://www.nightscout.pro/) as data source)
+- Nightscout data source, the clock gets units type and value boundaries from Nightscout (see [how to](https://youtu.be/GGiep2gdx_o) set up using [Nightscout.pro](https://www.nightscout.pro/) as data source)
 - [Juggluco](https://www.juggluco.nl/) data source (support for HTTP Nightscout endpoints)
 - [Improve WiFi](https://github.com/improv-wifi) compatibility (setting up WiFi during the installation)
 - [Gluroo](https://gluroo.com/) data source (API_SECRET within the URL parameters) (see how to setup [video](https://youtu.be/unG-l6XXWxw))
+- Simplifiet Nightscout API like xDrip+ [Open Web Service](https://github.com/NightscoutFoundation/xDrip/blob/master/Documentation/technical/Local_Web_Services.md) support. When adding it as data source, chooose Nightscout and check the `Simplified API` checkbox. Make sure your source device (e.g. your phone running xDrip) has static IP address and is on the same WiFi network. Also don't forget to check the port setting, for xDrip it is usually `17580`
 - Dexcom Share data source
 - LibreLinkUp (libreview) data source
 - Medtrum EasyFollow data source
@@ -114,6 +115,11 @@ Nightscout CLock is a custom firmware for Ulanzi TC001. It can also run (with mi
   - ...more... (if you are the author of a CGM data collecting app/service nad you want your data to be displayed on the Nightscout Clock, please contact me)
 
 ## Changes
+
+### 0.28
+
+- Fixed email parsing Medtrum credentials input, thanks [@logicafuzzy](https://github.com/logicafuzzy), merged [#127](https://github.com/ktomy/nightscout-clock/pull/127)
+- Added support for xDrip+ [Open Web Service](https://github.com/NightscoutFoundation/xDrip/blob/master/Documentation/technical/Local_Web_Services.md) as an extension of the Nightscout data source, resolving [#86](https://github.com/ktomy/nightscout-clock/discussions/86)
 
 ### 0.27
 

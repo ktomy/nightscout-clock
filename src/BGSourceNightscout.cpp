@@ -11,12 +11,13 @@ std::list<GlucoseReading> BGSourceNightscout::updateReadings(
     std::list<GlucoseReading> existingReadings) {
     auto baseUrl = SettingsManager.settings.nightscout_url;
     auto apiKey = SettingsManager.settings.nightscout_api_key;
+    bool simplifiedApi = SettingsManager.settings.nightscout_simplified_api;
 
-    return updateReadings(baseUrl, apiKey, existingReadings);
+    return updateReadings(baseUrl, apiKey, simplifiedApi, existingReadings);
 }
 
 std::list<GlucoseReading> BGSourceNightscout::updateReadings(
-    String baseUrl, String apiKey, std::list<GlucoseReading> existingReadings) {
+    String baseUrl, String apiKey, bool simplifiedApi, std::list<GlucoseReading> existingReadings) {
     unsigned long long currentEpoch = ServerManager.getUtcEpoch();
     // set last epoch to now - 3 hours (we don't want to get too many readings)
     unsigned long long lastReadingEpoch = currentEpoch - BG_BACKFILL_SECONDS;
@@ -41,7 +42,7 @@ std::list<GlucoseReading> BGSourceNightscout::updateReadings(
         // retrieve readings starting from the last reading plus one second (to not include the existing
         // reading)
         std::list<GlucoseReading> retrievedReadings =
-            retrieveReadings(baseUrl, apiKey, lastReadingEpoch + 1, readToEpoch, 30);
+            retrieveReadings(baseUrl, apiKey, simplifiedApi, lastReadingEpoch + 1, readToEpoch, 30);
 
         // if we didn't get any readings and the last reading is older than now, try to get the last
         // readings this is the case when there are gaps in readings for more than one hour for e.g.
@@ -49,7 +50,7 @@ std::list<GlucoseReading> BGSourceNightscout::updateReadings(
         if (retrievedReadings.size() == 0 && readToEpoch < currentEpoch) {
             DEBUG_PRINTLN("Second try to get readings");
             retrievedReadings =
-                retrieveReadings(baseUrl, apiKey, lastReadingEpoch + 1, currentEpoch, 30);
+                retrieveReadings(baseUrl, apiKey, simplifiedApi, lastReadingEpoch + 1, currentEpoch, 30);
         }
 
 #ifdef DEBUG_BG_SOURCE
@@ -96,12 +97,11 @@ std::list<GlucoseReading> BGSourceNightscout::updateReadings(
 }
 
 std::list<GlucoseReading> BGSourceNightscout::retrieveReadings(
-    String baseUrl, String apiKey, unsigned long long readingSinceEpoch,
+    String baseUrl, String apiKey, bool simplifiedApi, unsigned long long readingSinceEpoch,
     unsigned long long readingToEpoch, int numberOfvalues) {
     std::list<GlucoseReading> lastReadings;
 
-    LCBUrl url = prepareUrl(baseUrl, readingSinceEpoch, readingToEpoch, numberOfvalues);
-
+    LCBUrl url = prepareUrl(baseUrl, readingSinceEpoch, readingToEpoch, numberOfvalues, simplifiedApi);
     bool ssl = url.getScheme() == "https";
 
 #ifdef DEBUG_BG_SOURCE
@@ -199,7 +199,7 @@ std::list<GlucoseReading> BGSourceNightscout::retrieveReadings(
 
 LCBUrl BGSourceNightscout::prepareUrl(
     String baseUrl, unsigned long long readingSinceEpoch, unsigned long long readingToEpoch,
-    int numberOfvalues) {
+    int numberOfvalues, bool simplifiedApi) {
     unsigned long long currentEpoch = ServerManager.getUtcEpoch();
 
 #ifdef DEBUG_BG_SOURCE
@@ -218,13 +218,23 @@ LCBUrl BGSourceNightscout::prepareUrl(
     }
 
     LCBUrl url;
+    String urlString;
 
-    String sinceEpoch = String(readingSinceEpoch * 1000);
-    String toEpoch = String(readingToEpoch * 1000);
+    if (simplifiedApi) {
+        // simplified API does not use from/to, just count of last readings.
+        // We'll calculate the count based on readingSinceEpoch
+        unsigned long long secondsDiff = currentEpoch - readingSinceEpoch;
+        int count = secondsDiff / 5 / 60 + 1;  // assuming reading every 5 minutes
+        urlString = String(baseUrl + "sgv.json?brief_mode=Y&count=" + String(count));
+    } else {
+        // Full-blown Nightscout API, supporting from/to parameters
+        String sinceEpoch = String(readingSinceEpoch * 1000);
+        String toEpoch = String(readingToEpoch * 1000);
 
-    String urlString = String(
-        baseUrl + "api/v1/entries?find[date][$gt]=" + sinceEpoch + "&find[date][$lte]=" + toEpoch +
-        "&count=" + numberOfvalues);
+        urlString = String(
+            baseUrl + "api/v1/entries?find[date][$gt]=" + sinceEpoch + "&find[date][$lte]=" + toEpoch +
+            "&count=" + numberOfvalues);
+    }
 
 #ifdef DEBUG_BG_SOURCE
     DEBUG_PRINTLN("URL: " + urlString)

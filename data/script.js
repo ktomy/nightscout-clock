@@ -612,12 +612,13 @@
         }
 
         //Nightscout
-        json['api_secret'] = $('#api_secret').val();
         var url = new URL("http://bogus.url/");
         url.protocol = $('#ns_protocol').val()
         url.hostname = $('#ns_hostname').val();
         url.port = $('#ns_port').val();
         json['nightscout_url'] = url.toString();
+        json['api_secret'] = $('#api_secret').val();
+        json['nightscout_simplified_api'] = $('#nightscout_simplified_api').is(':checked');
 
         //Glucose settings
         json['units'] = $('#bg_units').val();
@@ -906,6 +907,7 @@
 
         //Nightscout        
         $('#api_secret').val(json['api_secret']);
+        $('#nightscout_simplified_api').prop('checked', json['nightscout_simplified_api']);
         var url = undefined;
         if ("canParse" in URL) {
             if (URL.canParse(json['nightscout_url'])) {
