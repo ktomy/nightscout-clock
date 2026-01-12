@@ -229,11 +229,6 @@ void PeripheryManager_::tick() {
                     resultingBrightness = (prev * 3 + target) / 4;
                     prev = resultingBrightness;
 
-#ifdef DEBUG_BRIGHTNESS
-                    DEBUG_PRINTF(
-                        "LDR: %d, Lux: %.3f, lin=%.3f, curved=%.3f -> bri=%d\n", analogRead(LDR_PIN),
-                        photocell.getSmoothedLux(), lin, curved, resultingBrightness);
-#endif
                     // Safety clamp
                     if (resultingBrightness < (int)MIN_BRIGHTNESS)
                         resultingBrightness = MIN_BRIGHTNESS;
