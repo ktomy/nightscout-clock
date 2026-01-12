@@ -1,0 +1,81 @@
+name: Build and deploy Debug on Github Pages
+
+# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "debug-release"
+  cancel-in-progress: false
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build Debug
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cache/pip
+            ~/.platformio/.cache
+          key: ${{ runner.os }}-pio
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.9"
+      - name: Install PlatformIO Core
+        run: pip install --upgrade platformio
+
+      - name: Build PlatformIO Project
+        run: pio run --environment ulanzi_debug -O build_flags="-DULANZI -DCORE_DEBUG_LEVEL=ARDUHAL_LOG_LEVEL_DEBUG -DDEBUG -DDEBUG_BG_SOURCE -DDEBUG_DISPLAY -DDEBUG_BRIGHTNESS -DDEBUG_ALARMS -DDEBUG_MEMORY"
+      - name: Build Filesystem Image
+        run: pio run --target buildfs --environment ulanzi_debug -O build_flags="-DULANZI -DCORE_DEBUG_LEVEL=ARDUHAL_LOG_LEVEL_DEBUG -DDEBUG -DDEBUG_BG_SOURCE -DDEBUG_DISPLAY -DDEBUG_BRIGHTNESS -DDEBUG_ALARMS -DDEBUG_MEMORY"
+      - name: Collect artifacts
+        run: |
+          mkdir artifacts
+          cp .pio/build/ulanzi_debug/bootloader.bin artifacts/
+          cp .pio/build/ulanzi_debug/partitions.bin artifacts/
+          cp ~/.platformio/packages/framework-arduinoespressif32/tools/partitions/boot_app0.bin artifacts/
+          cp .pio/build/ulanzi_debug/firmware.bin artifacts/
+          cp .pio/build/ulanzi_debug/littlefs.bin artifacts/
+      - name: Archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: debug-firmware
+          path: artifacts/*.bin
+          retention-days: 1
+
+  deploy:
+    name: Deploy Debug on Github Pages
+    needs: build
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Setup Pages
+        uses: actions/configure-pages@v3
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: debug-firmware
+          path: www/debug/artifacts
+      - name: Copy debug manifest
+        run: cp www/debug/manifest-debug.json www/debug/manifest.json
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          # Upload only debug subdirectory to avoid overwriting release artifacts
+          path: "www/debug"
+          retention-days: 30
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

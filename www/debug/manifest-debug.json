@@ -1,0 +1,31 @@
+{
+  "name": "Nightscout clock (Debug)",
+  "version": "0.28.0-debug",
+  "builds": [
+    {
+      "chipFamily": "ESP32",
+      "parts": [
+        {
+          "path": "https://ktomy.github.io/nightscout-clock/debug/artifacts/bootloader.bin",
+          "offset": 4096
+        },
+        {
+          "path": "https://ktomy.github.io/nightscout-clock/debug/artifacts/partitions.bin",
+          "offset": 32768
+        },
+        {
+          "path": "https://ktomy.github.io/nightscout-clock/debug/artifacts/boot_app0.bin",
+          "offset": 57344
+        },
+        {
+          "path": "https://ktomy.github.io/nightscout-clock/debug/artifacts/firmware.bin",
+          "offset": 65536
+        },
+        {
+          "path": "https://ktomy.github.io/nightscout-clock/debug/artifacts/littlefs.bin",
+          "offset": 2162688
+        }
+      ]
+    }
+  ]
+}

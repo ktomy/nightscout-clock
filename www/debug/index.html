@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <title>Nightscout clock web flasher - Debug Build</title>
+    <meta name="description" content="Easily allow users to install Nightscout clock firmware on the web." />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="color-scheme" content="dark light" />
+    <style>
+        body {
+            font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI",
+                Roboto, Ubuntu, sans-serif;
+            padding: 0;
+            margin: 0;
+            line-height: 1.4;
+        }
+
+        .content {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 12px;
+        }
+
+        h2 {
+            margin-top: 2em;
+        }
+
+        h3 {
+            margin-top: 1.5em;
+        }
+
+        a {
+            color: #03a9f4;
+        }
+
+        .invisible {
+            visibility: hidden;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        esp-web-install-button[install-unsupported] {
+            visibility: inherit;
+        }
+
+        .content pre {
+            max-width: 100%;
+            overflow-y: scroll;
+        }
+
+        .footer {
+            margin-top: 24px;
+            border-top: 1px solid #ccc;
+            padding-top: 24px;
+            text-align: center;
+        }
+
+        .footer .initiative {
+            font-style: italic;
+            margin-top: 16px;
+        }
+
+        table {
+            border-spacing: 0;
+        }
+
+        td {
+            padding: 8px;
+            border-bottom: 1px solid #ccc;
+        }
+
+        .radios li {
+            list-style: none;
+            line-height: 2em;
+        }
+
+        .debug-banner {
+            background-color: #ff9800;
+            color: #000;
+            padding: 12px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            body {
+                background-color: #333;
+                color: #fff;
+            }
+
+            a {
+                color: #58a6ff;
+            }
+
+            .debug-banner {
+                background-color: #ff6f00;
+                color: #fff;
+            }
+        }
+    </style>
+    <script type="module" src="https://unpkg.com/esp-web-tools@8.0.1/dist/web/install-button.js?module"></script>
+</head>
+
+<body>
+    <div class="content">
+        <div class="debug-banner">⚠️ DEBUG BUILD - For testing and troubleshooting only</div>
+        <h1>Nightscout clock installer - Debug Build</h1>
+        <p>
+            This is a <strong>debug build</strong> of the <a
+                href="https://github.com/ktomy/nightscout-clock/">Nightscout Clock</a> project.
+            It allows you to transform an Ulanzi TC001 programmable clock into a device showing blood sugar values
+            through <a href="https://github.com/nightscout/cgm-remote-monitor">Nightscout</a>.
+        </p>
+        <p>
+            <strong>⚠️ Warning:</strong> This debug build includes additional logging and debugging features.
+            Use this version only for testing and troubleshooting. For production use, please use the
+            <a href="https://ktomy.github.io/nightscout-clock/">release build</a>.
+        </p>
+        <p>
+            Here are the steps to install the firmware
+        </p>
+        <ul>
+            <li>Buy Ulanzi TC001 from <a
+                    href="https://www.ulanzi.com/products/ulanzi-pixel-smart-clock-2882?aff=1191">here</a>)</li>
+            <li>Turn on the device by pressing &lt; and &gt; buttons for 3 seconds</li>
+            <li>Connect the device to your computer using USB cable</li>
+            <li>Click the <b>CONNECT</b> button below</li>
+            <li>Follow the instructions</li>
+        </ul>
+        <p class="button-row" align="center">
+            <esp-web-install-button manifest="./manifest.json"></esp-web-install-button>
+        </p>
+
+</body>
+
+</html>
