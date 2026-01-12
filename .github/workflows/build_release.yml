@@ -7,17 +7,17 @@ permissions:
   id-token: write
 
 concurrency:
-  group: "release"
+  group: "pages"
   cancel-in-progress: false
 
 on:
   workflow_dispatch:
   push:
     tags:
-      - 'v-*'
+      - "v-*"
 jobs:
   build:
-    name: Build
+    name: Build Release and Debug
     runs-on: ubuntu-latest
 
     steps:
@@ -30,28 +30,57 @@ jobs:
           key: ${{ runner.os }}-pio
       - uses: actions/setup-python@v4
         with:
-          python-version: '3.9'
+          python-version: "3.9"
       - name: Install PlatformIO Core
         run: pip install --upgrade platformio
 
-      - name: Build PlatformIO Project
+      # Build Release
+      - name: Build Release Project
         run: pio run --environment ulanzi
-      - name: Build Filesystem Image
+      - name: Build Release Filesystem Image
         run: pio run --target buildfs --environment ulanzi
-      - name: Collect artifacts
+      - name: Collect Release artifacts
         run: |
-            mkdir artifacts
-            cp .pio/build/ulanzi/bootloader.bin artifacts/
-            cp .pio/build/ulanzi/partitions.bin artifacts/
-            cp ~/.platformio/packages/framework-arduinoespressif32/tools/partitions/boot_app0.bin artifacts/
-            cp .pio/build/ulanzi/firmware.bin artifacts/
-            cp .pio/build/ulanzi/littlefs.bin artifacts/
-      - name: Archive
+          mkdir artifacts
+          cp .pio/build/ulanzi/bootloader.bin artifacts/
+          cp .pio/build/ulanzi/partitions.bin artifacts/
+          cp ~/.platformio/packages/framework-arduinoespressif32/tools/partitions/boot_app0.bin artifacts/
+          cp .pio/build/ulanzi/firmware.bin artifacts/
+          cp .pio/build/ulanzi/littlefs.bin artifacts/
+
+      # Build Debug
+      - name: Enable all debug flags in platformio.ini
+        run: |
+          sed -i 's/#    -DDEBUG_BG_SOURCE/    -DDEBUG_BG_SOURCE/' platformio.ini
+          sed -i 's/#    -DDEBUG_DISPLAY/    -DDEBUG_DISPLAY/' platformio.ini
+          sed -i 's/#    -DDEBUG_BRIGHTNESS/    -DDEBUG_BRIGHTNESS/' platformio.ini
+          sed -i 's/#    -DDEBUG_ALARMS/    -DDEBUG_ALARMS/' platformio.ini
+          sed -i 's/#    -DDEBUG_MEMORY/    -DDEBUG_MEMORY/' platformio.ini
+      - name: Build Debug Project
+        run: pio run --environment ulanzi_debug
+      - name: Build Debug Filesystem Image
+        run: pio run --target buildfs --environment ulanzi_debug
+      - name: Collect Debug artifacts
+        run: |
+          mkdir artifacts-debug
+          cp .pio/build/ulanzi_debug/bootloader.bin artifacts-debug/
+          cp .pio/build/ulanzi_debug/partitions.bin artifacts-debug/
+          cp ~/.platformio/packages/framework-arduinoespressif32/tools/partitions/boot_app0.bin artifacts-debug/
+          cp .pio/build/ulanzi_debug/firmware.bin artifacts-debug/
+          cp .pio/build/ulanzi_debug/littlefs.bin artifacts-debug/
+
+      # Archive both
+      - name: Prepare combined artifacts
+        run: |
+          mkdir -p combined-artifacts/release combined-artifacts/debug
+          cp artifacts/*.bin combined-artifacts/release/
+          cp artifacts-debug/*.bin combined-artifacts/debug/
+      - name: Archive artifacts
         uses: actions/upload-artifact@v4
         with:
           name: firmware
-          path: artifacts/*.bin
-          retention-days: 1      
+          path: combined-artifacts/
+          retention-days: 1
 
   deploy:
     name: Deploy on Github Pages
@@ -69,13 +98,18 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: firmware
-          path: www/artifacts
+          path: artifacts
+      - name: Setup release artifacts
+        run: cp artifacts/release/*.bin www/artifacts/
+      - name: Setup debug artifacts
+        run: cp artifacts/debug/*.bin www/debug/artifacts/
+      - name: Copy debug manifest
+        run: cp www/debug/manifest-debug.json www/debug/manifest.json
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          # Upload only www directory
-          path: 'www'
+          # Upload complete www directory with both release and debug
+          path: "www"
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
-

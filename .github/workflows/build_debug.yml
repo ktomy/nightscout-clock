@@ -70,6 +70,13 @@ jobs:
         uses: actions/checkout@v3
       - name: Setup Pages
         uses: actions/configure-pages@v3
+      - name: Download current GitHub Pages
+        continue-on-error: true
+        run: |
+          mkdir -p gh-pages
+          cd gh-pages
+          wget -r -np -nH -nd -P root/ https://ktomy.github.io/nightscout-clock/ -R "debug*" || true
+          cd ..
       - name: Download artifacts
         uses: actions/download-artifact@v4
         with:
@@ -77,12 +84,16 @@ jobs:
           path: www/debug/artifacts
       - name: Copy debug manifest
         run: cp www/debug/manifest-debug.json www/debug/manifest.json
+      - name: Merge release content if exists
+        run: |
+          if [ -d "gh-pages/root" ] && [ "$(ls -A gh-pages/root)" ]; then
+            cp -r gh-pages/root/* www/ || true
+          fi
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          # Upload only debug subdirectory to avoid overwriting release artifacts
-          path: "www/debug"
-          retention-days: 30
+          # Upload complete www directory with both release and debug
+          path: "www"
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
