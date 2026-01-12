@@ -34,11 +34,11 @@ jobs:
 
       - name: Enable all debug flags in platformio.ini
         run: |
-          sed -i 's/#    -DDEBUG_BG_SOURCE/-DDEBUG_BG_SOURCE/' platformio.ini
-          sed -i 's/#    -DDEBUG_DISPLAY/-DDEBUG_DISPLAY/' platformio.ini
-          sed -i 's/#    -DDEBUG_BRIGHTNESS/-DDEBUG_BRIGHTNESS/' platformio.ini
-          sed -i 's/#    -DDEBUG_ALARMS/-DDEBUG_ALARMS/' platformio.ini
-          sed -i 's/#    -DDEBUG_MEMORY/-DDEBUG_MEMORY/' platformio.ini
+          sed -i 's/#    -DDEBUG_BG_SOURCE/    -DDEBUG_BG_SOURCE/' platformio.ini
+          sed -i 's/#    -DDEBUG_DISPLAY/    -DDEBUG_DISPLAY/' platformio.ini
+          sed -i 's/#    -DDEBUG_BRIGHTNESS/    -DDEBUG_BRIGHTNESS/' platformio.ini
+          sed -i 's/#    -DDEBUG_ALARMS/    -DDEBUG_ALARMS/' platformio.ini
+          sed -i 's/#    -DDEBUG_MEMORY/    -DDEBUG_MEMORY/' platformio.ini
       - name: Build PlatformIO Project
         run: pio run --environment ulanzi_debug
       - name: Build Filesystem Image
