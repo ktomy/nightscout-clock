@@ -99,10 +99,11 @@ jobs:
         with:
           name: firmware
           path: artifacts
-      - name: Setup release artifacts
-        run: cp artifacts/release/*.bin www/artifacts/
-      - name: Setup debug artifacts
-        run: cp artifacts/debug/*.bin www/debug/artifacts/
+      - name: Setup artifacts directories and files
+        run: |
+          mkdir -p www/artifacts www/debug/artifacts
+          cp artifacts/release/*.bin www/artifacts/
+          cp artifacts/debug/*.bin www/debug/artifacts/
       - name: Copy debug manifest
         run: cp www/debug/manifest-debug.json www/debug/manifest.json
       - name: Upload artifact
