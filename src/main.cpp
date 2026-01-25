@@ -55,6 +55,7 @@ void setup() {
         DisplayManager.clearMatrix();
         DisplayManager.setTextColor(COLOR_WHITE);
         DisplayManager.printText(0, 6, "Connect", TEXT_ALIGNMENT::CENTER, 2);
+        DisplayManager.update();
     }
 }
 

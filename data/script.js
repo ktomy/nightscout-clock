@@ -660,6 +660,7 @@
 
         json['brightness_mode'] = brightnessMode;
         json['brightness_level'] = brightness;
+        json['auto_balanced_max_brightness'] = parseInt($('#auto_balanced_max_brightness').val());
         json['default_face'] = parseInt($('#default_clock_face').val());
         json['tz_libc'] = $('#clock_timezone').val();
         json['tz'] = $('#clock_timezone option:selected').text();
@@ -942,6 +943,7 @@
 
         // Device settings
         $('#brightness_level').val(json['brightness_level']);
+        $('#auto_balanced_max_brightness').val(json['auto_balanced_max_brightness']);
         $('#default_clock_face').val(json['default_face']);
 
         $('#time_format').val(json['time_format']);
