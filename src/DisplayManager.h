@@ -12,6 +12,7 @@
 class DisplayManager_ {
 private:
     uint8_t currentBrightness = 128;
+    bool inFrame = false;
 
 public:
     static DisplayManager_& getInstance();

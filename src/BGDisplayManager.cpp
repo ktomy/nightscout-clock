@@ -107,11 +107,14 @@ void BGDisplayManager_::maybeRrefreshScreen(bool force) {
 void BGDisplayManager_::showData(std::list<GlucoseReading> glucoseReadings) {
     if (glucoseReadings.size() == 0) {
         currentFace->showNoData();
+        DisplayManager.update();
         return;
     }
 
     DisplayManager.clearMatrix();
     currentFace->showReadings(glucoseReadings);
+
+    DisplayManager.update();
 
     displayedReadings = glucoseReadings;
 }
