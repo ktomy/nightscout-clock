@@ -53,5 +53,6 @@
     "custom_hostname_enable": false,
     "custom_hostname": "",
     "custom_nodatatimer_enable": false,
-    "custom_nodatatimer": 20
+    "custom_nodatatimer": 20,
+    "auto_balanced_max_brightness": 120
 }

@@ -188,7 +188,8 @@ void PeripheryManager_::tick() {
                         photocell.getSmoothedLux(), brightnessPercent);
 #endif
 
-                    resultingBrightness = map(brightnessPercent, 0, 100, MIN_BRIGHTNESS, MAX_BRIGHTNESS);
+                    int autoMax = SettingsManager.settings.auto_balanced_max_brightness;
+                    resultingBrightness = map(brightnessPercent, 0, 100, MIN_BRIGHTNESS, autoMax);
                     break;
                 }
                 case BRIGHTNES_MODE::AUTO_DIMMED: {
@@ -220,7 +221,8 @@ void PeripheryManager_::tick() {
                     }
 
                     // Convert 0..1 → MIN..MAX
-                    int target = (int)lroundf(MIN_BRIGHTNESS + t * (MAX_BRIGHTNESS - MIN_BRIGHTNESS));
+                    int autoMax = SettingsManager.settings.auto_balanced_max_brightness;
+                    int target = (int)lroundf(MIN_BRIGHTNESS + t * (autoMax - MIN_BRIGHTNESS));
 
                     // Light smoothing to avoid flicker when people move near the sensor
                     static int prev = -1;
@@ -232,8 +234,8 @@ void PeripheryManager_::tick() {
                     // Safety clamp
                     if (resultingBrightness < (int)MIN_BRIGHTNESS)
                         resultingBrightness = MIN_BRIGHTNESS;
-                    if (resultingBrightness > (int)MAX_BRIGHTNESS)
-                        resultingBrightness = MAX_BRIGHTNESS;
+                    if (resultingBrightness > (int)autoMax)
+                        resultingBrightness = autoMax;
                     break;
                 }
                 default:

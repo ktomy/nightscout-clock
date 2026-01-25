@@ -17,6 +17,7 @@ public:
     int bg_high_urgent_limit;
     BRIGHTNES_MODE brightness_mode;
     int brightness_level;
+    int auto_balanced_max_brightness;    
     int default_clockface;
     BG_SOURCE bg_source;
     String dexcom_username;

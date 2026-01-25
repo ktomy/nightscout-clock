@@ -104,6 +104,10 @@ bool SettingsManager_::loadSettingsFromFile() {
     }
 
     settings.brightness_level = (*doc)["brightness_level"].as<int>() - 1;
+    settings.auto_balanced_max_brightness = (*doc)["auto_balanced_max_brightness"].as<int>();
+    if (settings.auto_balanced_max_brightness <= 0) {
+        settings.auto_balanced_max_brightness = MAX_BRIGHTNESS;
+    }
     settings.default_clockface = (*doc)["default_face"].as<int>();
 
     String data_source = (*doc)["data_source"].as<String>();
@@ -219,6 +223,7 @@ bool SettingsManager_::saveSettingsToFile() {
                                 : settings.brightness_mode == BRIGHTNES_MODE::AUTO_DIMMED ? "auto_dimmed"
                                                                                           : "manual";
     (*doc)["brightness_level"] = settings.brightness_level + 1;
+    (*doc)["auto_balanced_max_brightness"] = settings.auto_balanced_max_brightness;
     (*doc)["default_face"] = settings.default_clockface;
 
     String data_source = "no_source";
