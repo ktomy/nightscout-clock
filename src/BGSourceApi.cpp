@@ -33,6 +33,9 @@ AsyncCallbackWebHandler* BGSourceApi::createDeleteEntriesHandler() {
     handler->setUri("/api/v1/entries");
     handler->setMethod(HTTP_DELETE);
     handler->onRequest([this](AsyncWebServerRequest* request) {
+        if (!ServerManager.enforceAuthentication(request)) {
+            return;
+        }
 #ifdef DEBUG_BG_SOURCE
         DEBUG_PRINTLN("BGSourceApi::HandleEntriesDelete");
 #endif
@@ -47,6 +50,9 @@ void BGSourceApi::HandleEntriesPost(AsyncWebServerRequest* request, JsonVariant&
 #ifdef DEBUG_BG_SOURCE
     DEBUG_PRINTLN("BGSourceApi::HandleEntriesPost");
 #endif
+    if (!ServerManager.enforceAuthentication(request)) {
+        return;
+    }
 
     if (not json.is<JsonArray>()) {
         request->send(400, "application/json", "{\"status\": \"json parsing error\"}");

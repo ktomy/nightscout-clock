@@ -37,6 +37,9 @@ void BGSourceLibreLinkUp::setup() {
 
     ServerManager.addHandler(new AsyncCallbackJsonWebHandler(
         "/api/llu/patients", [this](AsyncWebServerRequest* request, JsonVariant& json) {
+            if (!ServerManager.enforceAuthentication(request)) {
+                return;
+            }
             String response = "[";
             bool first = true;
             for (const auto& patient : this->patients) {

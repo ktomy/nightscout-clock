@@ -194,6 +194,10 @@ bool SettingsManager_::loadSettingsFromFile() {
         }
     }
 
+    // Web interface authentication
+    settings.web_auth_enable = (*doc)["web_auth_enable"].as<bool>();
+    settings.web_auth_password = (*doc)["web_auth_password"].as<String>();
+
     delete doc;
 
     this->settings = settings;
@@ -311,6 +315,10 @@ bool SettingsManager_::saveSettingsToFile() {
     // Custom No Data Timer
     (*doc)["custom_nodatatimer_enable"] = settings.custom_nodatatimer_enable;
     (*doc)["custom_nodatatimer"] = settings.custom_nodatatimer;
+
+    // Web interface authentication
+    (*doc)["web_auth_enable"] = settings.web_auth_enable;
+    (*doc)["web_auth_password"] = settings.web_auth_password;
 
     if (trySaveJsonAsSettings(*doc) == false)
         return false;

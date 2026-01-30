@@ -5,6 +5,7 @@
 #include <ESPAsyncWebServer.h>
 #include <LittleFS.h>
 #include <WiFi.h>
+#include <esp_system.h>
 
 #include "BGSourceManager.h"
 #include "DisplayManager.h"
@@ -42,6 +43,42 @@ static String resolveAlarmMelody(const String& alarmType) {
     return "";
 }
 
+// Web authentication constants, cookie set for 10 minutes
+static constexpr unsigned long WEB_AUTH_TOKEN_TTL_MS = 10UL * 60UL * 1000UL;
+static constexpr int WEB_AUTH_COOKIE_MAX_AGE_SEC = 10 * 60;
+static const char* WEB_AUTH_COOKIE_NAME = "auth_token";
+
+static String getCookieValue(const String& cookieHeader, const String& name) {
+    int pos = 0;
+    while (pos < cookieHeader.length()) {
+        int end = cookieHeader.indexOf(';', pos);
+        if (end < 0) {
+            end = cookieHeader.length();
+        }
+        String pair = cookieHeader.substring(pos, end);
+        pair.trim();
+        int eq = pair.indexOf('=');
+        if (eq > 0) {
+            String key = pair.substring(0, eq);
+            key.trim();
+            if (key == name) {
+                return pair.substring(eq + 1);
+            }
+        }
+        pos = end + 1;
+    }
+    return "";
+}
+
+static String buildAuthCookie(const String& token, int maxAgeSeconds) {
+    String cookie = String(WEB_AUTH_COOKIE_NAME) + "=" + token;
+    if (maxAgeSeconds >= 0) {
+        cookie += "; Max-Age=" + String(maxAgeSeconds);
+    }
+    cookie += "; Path=/; SameSite=Strict; HttpOnly";
+    return cookie;
+}
+
 // Initialize the global shared instance
 ServerManager_& ServerManager = ServerManager.getInstance();
 
@@ -61,6 +98,54 @@ String ServerManager_::getHostname() {
     DEBUG_PRINTF("Hostname: %s\n", hostname.c_str());
 
     return hostname;
+}
+
+bool ServerManager_::isWebAuthEnabled() const {
+    return SettingsManager.settings.web_auth_enable &&
+           SettingsManager.settings.web_auth_password.length() > 0;
+}
+
+bool ServerManager_::isRequestAuthenticated(AsyncWebServerRequest* request) const {
+    if (!isWebAuthEnabled()) {
+        return false;
+    }
+
+    if (webAuthToken.length() == 0) {
+        return false;
+    }
+
+    if (webAuthTokenIssuedMs == 0 || (millis() - webAuthTokenIssuedMs) > WEB_AUTH_TOKEN_TTL_MS) {
+        const_cast<ServerManager_*>(this)->webAuthToken = "";
+        const_cast<ServerManager_*>(this)->webAuthTokenIssuedMs = 0;
+        return false;
+    }
+
+    String requestToken = "";
+    if (request->hasHeader("Cookie")) {
+        requestToken = getCookieValue(request->getHeader("Cookie")->value(), WEB_AUTH_COOKIE_NAME);
+    }
+
+    return requestToken.length() > 0 && requestToken == webAuthToken;
+}
+
+String ServerManager_::generateAuthToken() {
+    uint32_t part1 = esp_random();
+    uint32_t part2 = esp_random();
+    uint32_t part3 = millis();
+    return String(part1, HEX) + String(part2, HEX) + String(part3, HEX);
+}
+
+bool ServerManager_::enforceAuthentication(AsyncWebServerRequest* request) {
+    if (!isWebAuthEnabled()) {
+        return true;
+    }
+
+    if (isRequestAuthenticated(request)) {
+        return true;
+    }
+
+    request->send(401, "application/json", "{\"status\": \"unauthorized\"}");
+    return false;
 }
 
 IPAddress ServerManager_::setAPmode(String ssid, String psk) {
@@ -224,8 +309,65 @@ void ServerManager_::setupWebServer(IPAddress ip) {
     DefaultHeaders::Instance().addHeader("Access-Control-Allow-Methods", "GET, POST, PUT");
     DefaultHeaders::Instance().addHeader("Access-Control-Allow-Headers", "Content-Type");
 
+    ws->on("/api/auth/status", HTTP_GET, [this](AsyncWebServerRequest* request) {
+        String jsonResponse = "{\"enabled\": ";
+        jsonResponse += isWebAuthEnabled() ? "true" : "false";
+        jsonResponse += ", \"authenticated\": ";
+        jsonResponse += isRequestAuthenticated(request) ? "true" : "false";
+        jsonResponse += ", \"hasPassword\": ";
+        jsonResponse += SettingsManager.settings.web_auth_password.length() > 0 ? "true" : "false";
+        jsonResponse += "}";
+        request->send(200, "application/json", jsonResponse);
+    });
+
+    ws->addHandler(new AsyncCallbackJsonWebHandler(
+        "/api/auth/login", [this](AsyncWebServerRequest* request, JsonVariant& json) {
+            if (not json.is<JsonObject>()) {
+                request->send(400, "application/json", "{\"status\": \"json parsing error\"}");
+                return;
+            }
+            if (!isWebAuthEnabled()) {
+                request->send(200, "application/json", "{\"status\": \"disabled\"}");
+                return;
+            }
+
+            auto&& data = json.as<JsonObject>();
+            String password = data["password"].as<String>();
+            if (password != SettingsManager.settings.web_auth_password) {
+                request->send(401, "application/json", "{\"status\": \"invalid\"}");
+                return;
+            }
+
+            webAuthToken = generateAuthToken();
+            webAuthTokenIssuedMs = millis();
+            String jsonResponse = "{\"status\": \"ok\"}";
+            auto response = request->beginResponse(200, "application/json", jsonResponse);
+            response->addHeader(
+                "Set-Cookie", buildAuthCookie(webAuthToken, WEB_AUTH_COOKIE_MAX_AGE_SEC));
+            request->send(response);
+        }));
+
+    ws->on("/api/auth/logout", HTTP_POST, [this](AsyncWebServerRequest* request) {
+        if (!isWebAuthEnabled()) {
+            request->send(200, "application/json", "{\"status\": \"disabled\"}");
+            return;
+        }
+        if (!isRequestAuthenticated(request)) {
+            request->send(401, "application/json", "{\"status\": \"unauthorized\"}");
+            return;
+        }
+        webAuthToken = "";
+        webAuthTokenIssuedMs = 0;
+        auto response = request->beginResponse(200, "application/json", "{\"status\": \"ok\"}");
+        response->addHeader("Set-Cookie", buildAuthCookie("", 0));
+        request->send(response);
+    });
+
     ws->addHandler(new AsyncCallbackJsonWebHandler(
         "/api/save", [this](AsyncWebServerRequest* request, JsonVariant& json) {
+            if (!enforceAuthentication(request)) {
+                return;
+            }
             if (not json.is<JsonObject>()) {
                 request->send(200, "application/json", "{\"status\": \"json parsing error\"}");
                 return;
@@ -240,6 +382,9 @@ void ServerManager_::setupWebServer(IPAddress ip) {
 
     ws->addHandler(new AsyncCallbackJsonWebHandler(
         "/api/alarm/custom", [](AsyncWebServerRequest* request, JsonVariant& json) {
+            if (!ServerManager.enforceAuthentication(request)) {
+                return;
+            }
             if (not json.is<JsonObject>()) {
                 request->send(400, "application/json", "{\"status\": \"json parsing error\"}");
                 return;
@@ -265,6 +410,9 @@ void ServerManager_::setupWebServer(IPAddress ip) {
 
     ws->addHandler(new AsyncCallbackJsonWebHandler(
         "/api/alarm", [this](AsyncWebServerRequest* request, JsonVariant& json) {
+            if (!enforceAuthentication(request)) {
+                return;
+            }
             if (not json.is<JsonObject>()) {
                 request->send(400, "application/json", "{\"status\": \"json parsing error\"}");
                 return;
@@ -286,7 +434,10 @@ void ServerManager_::setupWebServer(IPAddress ip) {
             }
         }));
 
-    ws->on("/api/reset", HTTP_POST, [](AsyncWebServerRequest* request) {
+    ws->on("/api/reset", HTTP_POST, [this](AsyncWebServerRequest* request) {
+        if (!enforceAuthentication(request)) {
+            return;
+        }
         request->send(200, "application/json", "{\"status\": \"ok\"}");
         delay(1000);
         LittleFS.end();
@@ -295,6 +446,9 @@ void ServerManager_::setupWebServer(IPAddress ip) {
 
     ws->addHandler(new AsyncCallbackJsonWebHandler(
         "/api/displaypower", [this](AsyncWebServerRequest* request, JsonVariant& json) {
+            if (!enforceAuthentication(request)) {
+                return;
+            }
             if (not json.is<JsonObject>()) {
                 request->send(400, "application/json", "{\"status\": \"json parsing error\"}");
                 return;
@@ -317,7 +471,10 @@ void ServerManager_::setupWebServer(IPAddress ip) {
             }
         }));
 
-    ws->on("/api/factory-reset", HTTP_POST, [](AsyncWebServerRequest* request) {
+    ws->on("/api/factory-reset", HTTP_POST, [this](AsyncWebServerRequest* request) {
+        if (!enforceAuthentication(request)) {
+            return;
+        }
         request->send(200, "application/json", "{\"status\": \"ok\"}");
         delay(1000);
         SettingsManager.factoryReset();
@@ -345,6 +502,13 @@ void ServerManager_::setupWebServer(IPAddress ip) {
         }
         jsonResponse += "}";
         request->send(200, "application/json", jsonResponse);
+    });
+
+    ws->on("/config.json", HTTP_GET, [this](AsyncWebServerRequest* request) {
+        if (!enforceAuthentication(request)) {
+            return;
+        }
+        request->send(LittleFS, CONFIG_JSON, "application/json");
     });
 
     addStaticFileHandler();

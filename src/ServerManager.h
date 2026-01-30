@@ -5,6 +5,7 @@
 #include <AsyncTCP.h>
 #include <DNSServer.h>
 #include <ESPAsyncWebServer.h>
+#include <time.h>
 
 class ServerManager_ {
 private:
@@ -21,6 +22,11 @@ private:
     bool initTimeIfNeeded();
     void setTimezone();
     String getHostname();
+    bool isWebAuthEnabled() const;
+    bool isRequestAuthenticated(AsyncWebServerRequest* request) const;
+    String generateAuthToken();
+    String webAuthToken;
+    unsigned long webAuthTokenIssuedMs = 0;
 
 public:
     static ServerManager_& getInstance();
@@ -36,6 +42,7 @@ public:
     AsyncWebHandler addHandler(AsyncWebHandler* handler);
     void removeStaticFileHandler();
     void addStaticFileHandler();
+    bool enforceAuthentication(AsyncWebServerRequest* request);
     int failedAttempts = 0;
     void reconnectWifi();
 };

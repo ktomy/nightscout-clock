@@ -4,6 +4,12 @@
     'use strict'
 
     let clockHost = "";
+    let authEnabled = false;
+    let authAuthenticated = false;
+    let authUnauthorizedNotified = false;
+    let webAuthHasPassword = false;
+    let webAuthPassword = "";
+    let configLoaded = false;
 
     if (window.location.href.indexOf("127.0.0.1") > 0) {
         console.log("Setting clock host to lab ESP..");
@@ -27,6 +33,7 @@
         email_format: /^[\w-\.]+(\+[A-Za-z0-9]+)?@([\w-]+\.)+[\w-]{2,4}$/,
         not_empty: /^.{1,}$/,
         custom_nodatatimer: /^(?:[6-9]|[1-5][0-9]|60)?$/,
+        web_auth_password: /^.{8,64}$/,
 
     };
 
@@ -52,10 +59,22 @@
         $('#btn_urgent_low_alarm_try').on('click', tryAlarm);
         $('#btn_load_limits_from_ns').on('click', loadNightscoutData);
         $("#btn_save").on('click', validateAndSave);
+        $('#btn_auth_login').on('click', loginToWebAuth);
+        $('#btn_auth_logout').on('click', logoutFromWebAuth);
         $('#additional_wifi_enable').on('change', toggleAdditionalWifiSettings);
         $('#custom_hostname_enable').on('change', toggleCustomHostnameSettings);
         $('#custom_nodatatimer_enable').on('change', toggleCustomNoDataSettings);
+        $('#web_auth_enable').on('change', toggleWebAuthSettings);
         $('#open_wifi_network').on('change', toggleWifiPasswordField);
+        $('.btn-password-toggle').on('click', togglePasswordVisibility);
+        $('.btn-password-toggle').each((_, el) => {
+            const btn = $(el);
+            const targetSelector = btn.data('target');
+            if (!targetSelector) return;
+            const passwordField = $(targetSelector);
+            if (!passwordField || passwordField.length === 0) return;
+            updatePasswordToggleIcon(passwordField, btn);
+        });
 
     }
 
@@ -99,6 +118,14 @@
         $('#custom_nodatatimer_settings').toggleClass('d-none', !isChecked);
     }
 
+    function toggleWebAuthSettings() {
+        const isChecked = $('#web_auth_enable').is(':checked');
+        $('#web_auth_settings').toggleClass('d-none', !isChecked);
+        if (!isChecked) {
+            clearValidationStatus('web_auth_password');
+        }
+    }
+
     function toggleWifiPasswordField() {
         const isChecked = $('#open_wifi_network').is(':checked');
         const passwordField = $('#wifi_password');
@@ -111,6 +138,164 @@
             passwordField.prop('disabled', false);
         }
         validate(passwordField, wifiPasswordValidationPatternSelector());
+    }
+
+    function togglePasswordVisibility(e) {
+        e.preventDefault();
+        const btn = $(e.currentTarget);
+        const targetSelector = btn.data('target');
+        if (!targetSelector) return;
+        const passwordField = $(targetSelector);
+        if (!passwordField || passwordField.length === 0) return;
+
+        if (passwordField.attr('type') === 'password') {
+            passwordField.attr('type', 'text');
+        } else {
+            passwordField.attr('type', 'password');
+        }
+        updatePasswordToggleIcon(passwordField, btn);
+    }
+
+    function updatePasswordToggleIcon(passwordField, btn) {
+        if (passwordField.attr('type') === 'password') {
+            btn.html('<i class="bi bi-eye-slash"></i>');
+        } else {
+            btn.html('<i class="bi bi-eye"></i>');
+        }
+    }
+
+    function handleUnauthorizedResponse(res) {
+        if (res && res.status === 401) {
+            authAuthenticated = false;
+            updateAuthBanner();
+            if (!authUnauthorizedNotified) {
+                showToastFailure("Error", "Authentication required.");
+                authUnauthorizedNotified = true;
+            }
+            return true;
+        }
+        return false;
+    }
+
+    function setProtectedUiState(isLocked) {
+        $('#btn_save').prop('disabled', isLocked);
+        $('#btn_high_alarm_try').prop('disabled', isLocked);
+        $('#btn_low_alarm_try').prop('disabled', isLocked);
+        $('#btn_urgent_low_alarm_try').prop('disabled', isLocked);
+        $('#save_button').toggleClass('d-none', isLocked);
+    }
+
+    function updateAuthBanner() {
+        if (!authEnabled) {
+            $('#auth_banner').addClass('d-none');
+            $('#auth_password_block').removeClass('d-none');
+            setProtectedUiState(false);
+            $('#main_block').removeClass('collapse');
+            return;
+        }
+
+        $('#auth_banner').removeClass('d-none');
+        if (authAuthenticated) {
+            $('#auth_password_block').addClass('d-none');
+            $('#btn_auth_login').addClass('d-none');
+            $('#btn_auth_logout').removeClass('d-none');
+            $('#auth_banner_text').text('Authenticated. Settings are unlocked.');
+            setProtectedUiState(false);
+            $('#main_block').removeClass('collapse');
+        } else {
+            $('#auth_password_block').removeClass('d-none');
+            $('#btn_auth_login').removeClass('d-none');
+            $('#btn_auth_logout').addClass('d-none');
+            $('#auth_banner_text').text('Authentication is enabled. Log in to change settings.');
+            setProtectedUiState(true);
+            $('#main_block').addClass('collapse');
+        }
+    }
+
+    function checkAuthStatus() {
+        return fetch(clockHost + '/api/auth/status')
+            .then(res => res.json())
+            .then(data => {
+                authEnabled = data.enabled === true;
+                authAuthenticated = data.authenticated === true;
+                if (authAuthenticated) {
+                    authUnauthorizedNotified = false;
+                }
+                updateAuthBanner();
+                return data;
+            })
+            .catch(error => {
+                console.log(`Auth status error: ${error}`);
+            });
+    }
+
+    function loginToWebAuth() {
+        const password = $('#auth_login_password').val();
+        if (!password) {
+            showToastFailure("Error", "Password is required to unlock.");
+            return;
+        }
+
+        fetch(clockHost + '/api/auth/login', {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ password })
+        })
+            .then(res => {
+                if (res?.ok) {
+                    res.json().then(data => {
+                        if (data.status === "ok") {
+                            authAuthenticated = true;
+                            authUnauthorizedNotified = false;
+                            $('#auth_login_password').val('');
+                            updateAuthBanner();
+                            if (!configLoaded) {
+                                loadProtectedConfiguration();
+                            }
+                            showToastSuccess("Unlocked", "Settings are now unlocked.");
+                        } else if (data.status === "disabled") {
+                            authEnabled = false;
+                            updateAuthBanner();
+                        } else {
+                            showToastFailure("Error", "Invalid credentials.");
+                        }
+                    });
+                } else {
+                    showToastFailure("Error", "Invalid credentials.");
+                }
+            })
+            .catch(error => {
+                console.log(`Auth login error: ${error}`);
+                showToastFailure("Error", "Could not authenticate.");
+            });
+    }
+
+    function logoutFromWebAuth() {
+        fetch(clockHost + '/api/auth/logout', {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+            },
+            body: "{}"
+        })
+            .then(res => {
+                if (res?.ok) {
+                    authAuthenticated = false;
+                    authUnauthorizedNotified = false;
+                    updateAuthBanner();
+                    showToastSuccess("Locked", "Settings are now locked.");
+                } else {
+                    showToastFailure("Error", "Could not lock settings.");
+                }
+            })
+            .catch(error => {
+                console.log(`Auth logout error: ${error}`);
+                showToastFailure("Error", "Could not lock settings.");
+            });
     }
 
     function tryAlarm(e) {
@@ -133,7 +318,6 @@
 
         tryAlarmUrl = clockHost + tryAlarmUrl;
         
-
         fetch(tryAlarmUrl, {
             method: "POST",
             headers: {
@@ -143,6 +327,9 @@
             body: JSON.stringify(requestBody),
         })
             .then(function (res) {
+                if (handleUnauthorizedResponse(res)) {
+                    return;
+                }
                 if (res?.ok) {
                     res.json().then(data => {
                         if (data.status == "ok") {
@@ -223,6 +410,16 @@
         console.log("Validated alarms, result: " + allValid);
         allValid &= validate($('#custom_nodatatimer'), patterns.custom_nodatatimer);
         console.log("Validated custom no data timer, result: " + allValid);
+        if ($('#web_auth_enable').is(':checked')) {
+            const passwordField = $('#web_auth_password');
+            const requiresPassword = !webAuthHasPassword || (passwordField.val() || "").length > 0;
+            if (requiresPassword) {
+                allValid &= validate(passwordField, patterns.web_auth_password);
+            } else {
+                clearValidationStatus('web_auth_password');
+            }
+            console.log("Validated web auth, result: " + allValid);
+        }
         return allValid;
     }
 
@@ -245,9 +442,11 @@
         console.log("Polling patients list from LibreLink Up...");
         fetch(url, {
             method: "GET",
-            headers: { },
             timeout: 1000,
         }).then(function (res) {
+            if (handleUnauthorizedResponse(res)) {
+                return;
+            }
             if (res?.ok) {
                 res.json().then(data => {
                     patientSelect.empty();
@@ -687,6 +886,15 @@
         json['custom_nodatatimer_enable'] = $('#custom_nodatatimer_enable').is(':checked');
         json['custom_nodatatimer'] = $('#custom_nodatatimer').val();
 
+        // Web interface authentication
+        json['web_auth_enable'] = $('#web_auth_enable').is(':checked');
+        const webAuthPasswordInput = ($('#web_auth_password').val() || "").trim();
+        if (webAuthPasswordInput.length > 0) {
+            json['web_auth_password'] = webAuthPasswordInput;
+        } else if (webAuthPassword.length > 0) {
+            json['web_auth_password'] = webAuthPassword;
+        }
+
         return JSON.stringify(json);
     }
 
@@ -730,6 +938,9 @@
             body: json,
         })
             .then(function (res) {
+                if (handleUnauthorizedResponse(res)) {
+                    return;
+                }
                 if (res?.ok) {
                     res.json().then(data => {
                         if (data.status == "ok") {
@@ -836,20 +1047,47 @@
 
     function loadConfiguration() {
 
-        var configJsonUrl = clockHost + "/config.json?" + Date.now();
         var tzJson = clockHost + "/tzdata.json?" + Date.now();
 
         Promise.all([
-            fetch(configJsonUrl),
-            fetch(tzJson)
-        ]).then(([configJsonData, tzJsonData]) => {
-            Promise.all([configJsonData.json(), tzJsonData.json()]).then(([configJsonLocal, tzJsonLocal]) => {
-                var tzSelect = $('#clock_timezone');
-                for (let tzInfo of tzJsonLocal) {
-                    var option = document.createElement("option");
-                    option.text = tzInfo.name;
-                    option.value = tzInfo.value;
-                    tzSelect.append(option);
+            fetch(tzJson).then(res => res.json()),
+            checkAuthStatus()
+        ]).then(([tzJsonLocal]) => {
+            var tzSelect = $('#clock_timezone');
+            for (let tzInfo of tzJsonLocal) {
+                var option = document.createElement("option");
+                option.text = tzInfo.name;
+                option.value = tzInfo.value;
+                tzSelect.append(option);
+            }
+
+            if (authEnabled && !authAuthenticated) {
+                $('#loading_block .card-body').text('Authentication required to load settings.');
+                return;
+            }
+
+            loadProtectedConfiguration();
+        }).catch(error => {
+            console.log(`Fetching error: ${error}`);
+            showToastFailure("Error", "Failed to load configuration");
+        });
+
+    }
+
+    function loadProtectedConfiguration() {
+        var configJsonUrl = clockHost + "/config.json?" + Date.now();
+
+        fetch(configJsonUrl)
+            .then(res => {
+                if (handleUnauthorizedResponse(res)) {
+                    $('#loading_block .card-body').text('Authentication required to load settings.');
+                    return null;
+                }
+                return res.json();
+            })
+            .then(configJsonLocal => {
+                if (!configJsonLocal) {
+                    return;
                 }
                 configJson = configJsonLocal;
                 loadFormData();
@@ -858,15 +1096,12 @@
                 $('#loading_block').addClass("collapse");
 
                 validateAll();
-
+                configLoaded = true;
+            })
+            .catch(error => {
+                console.log(`Fetching error: ${error}`);
+                showToastFailure("Error", "Failed to load configuration");
             });
-
-
-        }).catch(error => {
-            console.log(`Fetching error: ${error}`);
-            showToastFailure("Error", "Failed to load configuration");
-        });
-
     }
 
     function loadFormData() {
@@ -986,6 +1221,15 @@
             : $('#custom_nodatatimer').val();
 
         toggleCustomNoDataSettings();
+
+        // Web interface authentication
+        webAuthPassword = json['web_auth_password'] || "";
+        webAuthHasPassword = webAuthPassword.length > 0;
+        $('#web_auth_enable').prop('checked', json['web_auth_enable']);
+        $('#web_auth_password').val(json['web_auth_password']);
+        toggleWebAuthSettings();
+        authEnabled = json['web_auth_enable'] === true;
+        updateAuthBanner();
         
     }
 
