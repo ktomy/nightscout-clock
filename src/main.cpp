@@ -53,7 +53,9 @@ void setup() {
     DEBUG_PRINTLN("Setup done");
     if (ServerManager.isConnected) {
         String welcomeMessage = "Nightscout clock | To configure go to http://" + ServerManager.myIP.toString() + "/";
-        DisplayManager.scrollColorfulText(welcomeMessage);
+        for (int i = 0; i < 3; i++) {
+            DisplayManager.scrollColorfulText(welcomeMessage);
+        }
 
         DisplayManager.clearMatrix();
         DisplayManager.setTextColor(COLOR_WHITE);
