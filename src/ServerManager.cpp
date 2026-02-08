@@ -558,7 +558,8 @@ void ServerManager_::setupWebServer(IPAddress ip) {
         request->send(LittleFS, CONFIG_JSON, "application/json");
     });
 
-    // Captive portal detection endpoints for Android and Windows
+    // Captive portal detection: Android (/generate_204) and Windows (/connecttest.txt).
+    // Apple/iOS detection is handled by data/hotspot-detect.html served as a static file.
     ws->on("/generate_204", HTTP_GET, [](AsyncWebServerRequest* request) {
         request->redirect("/");
     });
