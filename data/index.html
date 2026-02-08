@@ -1051,25 +1051,43 @@
     <!-- dev-only: <script src="../data_dev/jquery.js"></script> -->
     <script src="script.js"></script>
     <script>
+    function setOtaStatus(message, isSuccess) {
+        var statusDiv = document.getElementById('ota_status');
+        var span = document.createElement('span');
+        span.className = isSuccess ? 'text-success' : 'text-danger';
+        span.textContent = message;
+        statusDiv.innerHTML = '';
+        statusDiv.appendChild(span);
+        if (!isSuccess) {
+            document.getElementById('btn_ota_upload').disabled = false;
+        }
+    }
     function uploadOTA() {
         var fileInput = document.getElementById('ota_file');
         if (!fileInput.files.length) {
-            document.getElementById('ota_status').innerHTML =
-                '<span class="text-danger">Please select a firmware file.</span>';
+            setOtaStatus('Please select a firmware file.', false);
             return;
         }
         var file = fileInput.files[0];
+        var maxSize = 1536 * 1024;
+        if (file.size > maxSize) {
+            setOtaStatus('File too large (' + Math.round(file.size/1024) + 'KB). Max: ' + Math.round(maxSize/1024) + 'KB.', false);
+            return;
+        }
         var formData = new FormData();
         formData.append('update', file, file.name);
 
         var xhr = new XMLHttpRequest();
         var progressContainer = document.getElementById('ota_progress_container');
         var progressBar = document.getElementById('ota_progress');
-        var statusDiv = document.getElementById('ota_status');
 
+        progressBar.style.width = '0%';
+        progressBar.textContent = '0%';
         progressContainer.style.display = 'flex';
         document.getElementById('btn_ota_upload').disabled = true;
+        document.getElementById('ota_status').innerHTML = '';
 
+        xhr.timeout = 120000;
         xhr.upload.addEventListener('progress', function(e) {
             if (e.lengthComputable) {
                 var pct = Math.round((e.loaded / e.total) * 100);
@@ -1078,16 +1096,29 @@
             }
         });
         xhr.addEventListener('load', function() {
-            if (xhr.status === 200) {
-                statusDiv.innerHTML = '<span class="text-success">Update successful! Device is rebooting...</span>';
-            } else {
-                statusDiv.innerHTML = '<span class="text-danger">Update failed: ' + xhr.statusText + '</span>';
-                document.getElementById('btn_ota_upload').disabled = false;
+            try {
+                var resp = JSON.parse(xhr.responseText);
+                if (xhr.status === 200 && resp.status === 'ok') {
+                    setOtaStatus('Update successful! Device is rebooting...', true);
+                } else {
+                    setOtaStatus('Update failed: ' + (resp.message || 'Unknown error'), false);
+                }
+            } catch(e) {
+                if (xhr.status === 200) {
+                    setOtaStatus('Update successful! Device is rebooting...', true);
+                } else {
+                    setOtaStatus('Update failed (HTTP ' + xhr.status + ')', false);
+                }
             }
         });
         xhr.addEventListener('error', function() {
-            statusDiv.innerHTML = '<span class="text-danger">Upload error. Check connection.</span>';
-            document.getElementById('btn_ota_upload').disabled = false;
+            setOtaStatus('Upload error. Check connection and try again.', false);
+        });
+        xhr.addEventListener('timeout', function() {
+            setOtaStatus('Upload timed out. Check connection and try again.', false);
+        });
+        xhr.addEventListener('abort', function() {
+            setOtaStatus('Upload was cancelled.', false);
         });
         xhr.open('POST', '/api/update');
         xhr.send(formData);

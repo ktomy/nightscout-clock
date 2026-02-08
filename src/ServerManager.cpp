@@ -489,9 +489,12 @@ void ServerManager_::setupWebServer(IPAddress ip) {
                 return;
             }
             bool success = !Update.hasError();
-            request->send(200, "application/json",
-                          success ? "{\"status\": \"ok\", \"message\": \"Update successful, rebooting...\"}"
-                                  : "{\"status\": \"error\", \"message\": \"Update failed\"}");
+            int httpCode = success ? 200 : 500;
+            String message = success ? "Update successful, rebooting..."
+                                     : String("Update failed: ") + Update.errorString();
+            request->send(httpCode, "application/json",
+                          "{\"status\": \"" + String(success ? "ok" : "error") +
+                              "\", \"message\": \"" + message + "\"}");
             if (success) {
                 delay(1000);
                 ESP.restart();
@@ -500,17 +503,22 @@ void ServerManager_::setupWebServer(IPAddress ip) {
         [this](AsyncWebServerRequest* request, String filename, size_t index, uint8_t* data, size_t len,
                bool final) {
             if (!index) {
+                // Auth check must happen here — the completion handler runs too late
+                if (isWebAuthEnabled() && !isRequestAuthenticated(request)) {
+                    DEBUG_PRINTLN("OTA Update rejected: unauthorized");
+                    return;
+                }
                 DEBUG_PRINTF("OTA Update start: %s\n", filename.c_str());
                 if (!Update.begin(UPDATE_SIZE_UNKNOWN)) {
                     Update.printError(Serial);
                 }
             }
-            if (!Update.hasError()) {
+            if (Update.isRunning() && !Update.hasError()) {
                 if (Update.write(data, len) != len) {
                     Update.printError(Serial);
                 }
             }
-            if (final) {
+            if (final && Update.isRunning()) {
                 if (Update.end(true)) {
                     DEBUG_PRINTF("OTA Update success: %u bytes\n", index + len);
                 } else {
