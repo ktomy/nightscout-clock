@@ -492,6 +492,8 @@ void ServerManager_::setupWebServer(IPAddress ip) {
             int httpCode = success ? 200 : 500;
             String message = success ? "Update successful, rebooting..."
                                      : String("Update failed: ") + Update.errorString();
+            message.replace("\\", "\\\\");
+            message.replace("\"", "\\\"");
             request->send(httpCode, "application/json",
                           "{\"status\": \"" + String(success ? "ok" : "error") +
                               "\", \"message\": \"" + message + "\"}");

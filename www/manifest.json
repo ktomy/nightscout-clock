@@ -5,6 +5,7 @@
         {
             "chipFamily": "ESP32",
             "improv": true,
+            "erase_before_install": true,
             "parts": [
                 {
                     "path": "https://ktomy.github.io/nightscout-clock/artifacts/bootloader.bin",
