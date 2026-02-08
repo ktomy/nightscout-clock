@@ -5,6 +5,7 @@
 #include <ESPAsyncWebServer.h>
 #include <LittleFS.h>
 #include <WiFi.h>
+#include <Update.h>
 #include <esp_system.h>
 
 #include "BGSourceManager.h"
@@ -480,6 +481,44 @@ void ServerManager_::setupWebServer(IPAddress ip) {
         SettingsManager.factoryReset();
     });
 
+    // OTA firmware update endpoint
+    ws->on(
+        "/api/update", HTTP_POST,
+        [this](AsyncWebServerRequest* request) {
+            if (!enforceAuthentication(request)) {
+                return;
+            }
+            bool success = !Update.hasError();
+            request->send(200, "application/json",
+                          success ? "{\"status\": \"ok\", \"message\": \"Update successful, rebooting...\"}"
+                                  : "{\"status\": \"error\", \"message\": \"Update failed\"}");
+            if (success) {
+                delay(1000);
+                ESP.restart();
+            }
+        },
+        [this](AsyncWebServerRequest* request, String filename, size_t index, uint8_t* data, size_t len,
+               bool final) {
+            if (!index) {
+                DEBUG_PRINTF("OTA Update start: %s\n", filename.c_str());
+                if (!Update.begin(UPDATE_SIZE_UNKNOWN)) {
+                    Update.printError(Serial);
+                }
+            }
+            if (!Update.hasError()) {
+                if (Update.write(data, len) != len) {
+                    Update.printError(Serial);
+                }
+            }
+            if (final) {
+                if (Update.end(true)) {
+                    DEBUG_PRINTF("OTA Update success: %u bytes\n", index + len);
+                } else {
+                    Update.printError(Serial);
+                }
+            }
+        });
+
     // api call which returns status (isConnected, internet is reacheable, is in AP mode, bg source type
     // and status)
     ws->on("/api/status", HTTP_GET, [this](AsyncWebServerRequest* request) {
@@ -509,6 +548,14 @@ void ServerManager_::setupWebServer(IPAddress ip) {
             return;
         }
         request->send(LittleFS, CONFIG_JSON, "application/json");
+    });
+
+    // Captive portal detection endpoints for Android and Windows
+    ws->on("/generate_204", HTTP_GET, [](AsyncWebServerRequest* request) {
+        request->redirect("/");
+    });
+    ws->on("/connecttest.txt", HTTP_GET, [](AsyncWebServerRequest* request) {
+        request->redirect("/");
     });
 
     addStaticFileHandler();

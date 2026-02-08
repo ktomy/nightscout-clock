@@ -39,6 +39,14 @@ jobs:
         run: pio run --environment ulanzi
       - name: Build Release Filesystem Image
         run: pio run --target buildfs --environment ulanzi
+      - name: Verify filesystem image
+        run: |
+          FS_SIZE=$(stat -c%s .pio/build/ulanzi/littlefs.bin 2>/dev/null || stat -f%z .pio/build/ulanzi/littlefs.bin)
+          echo "littlefs.bin size: $FS_SIZE bytes"
+          if [ "$FS_SIZE" -lt 1024 ]; then
+            echo "ERROR: littlefs.bin is suspiciously small ($FS_SIZE bytes). Build may have failed."
+            exit 1
+          fi
       - name: Collect Release artifacts
         run: |
           mkdir artifacts
@@ -47,6 +55,8 @@ jobs:
           cp ~/.platformio/packages/framework-arduinoespressif32/tools/partitions/boot_app0.bin artifacts/
           cp .pio/build/ulanzi/firmware.bin artifacts/
           cp .pio/build/ulanzi/littlefs.bin artifacts/
+          echo "=== Artifact sizes ==="
+          ls -la artifacts/
 
       # Build Debug
       - name: Enable all debug flags in platformio.ini

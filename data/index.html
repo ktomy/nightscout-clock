@@ -7,8 +7,8 @@
     <link href="bootstrap.min.css" rel="stylesheet" />
     <link href="bootstrap-icons.min.css" rel="stylesheet" />
     <!-- <link href="all.min.css" rel="stylesheet"> -->
-    <link href="../data_dev/bootstrap.css" rel="stylesheet" />
-    <link href="../data_dev/bootstrap-icons.css" rel="stylesheet" />
+    <!-- dev-only: <link href="../data_dev/bootstrap.css" rel="stylesheet" /> -->
+    <!-- dev-only: <link href="../data_dev/bootstrap-icons.css" rel="stylesheet" /> -->
     <!-- <link href="../data_dev/all.css" rel="stylesheet"> -->
     <title>Nightscout clock</title>
 </head>
@@ -965,6 +965,29 @@
             <br class="pb-5 my-4" />
     </div>
     </form>
+
+    <!-- Firmware Update Section -->
+    <div class="container mt-4 mb-5">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Firmware Update (OTA)</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">Upload a new firmware.bin file to update over-the-air.</p>
+                <div class="input-group">
+                    <input type="file" class="form-control" id="ota_file" accept=".bin">
+                    <button class="btn btn-warning" type="button" id="btn_ota_upload" onclick="uploadOTA()">
+                        Upload &amp; Update
+                    </button>
+                </div>
+                <div class="progress mt-2" style="display: none;" id="ota_progress_container">
+                    <div class="progress-bar progress-bar-striped progress-bar-animated" id="ota_progress" role="progressbar" style="width: 0%">0%</div>
+                </div>
+                <div class="mt-2" id="ota_status"></div>
+            </div>
+        </div>
+    </div>
+
     </div>
     <svg xmlns="http://www.w3.org/2000/svg" style="display: none">
         <symbol id="check-circle-fill" fill="currentColor" viewBox="0 0 16 16">
@@ -1020,12 +1043,53 @@
     </div>
 
     <script src="bootstrap.bundle.min.js"></script>
-    <script src="../data_dev/bootstrap.bundle.js"></script>
+    <!-- dev-only: <script src="../data_dev/bootstrap.bundle.js"></script> -->
     <script src="jquery.min.js"></script>
-    <script src="../data_dev/jquery.js"></script>
+    <!-- dev-only: <script src="../data_dev/jquery.js"></script> -->
     <script src="script.js"></script>
-    <!-- <script src="all.min.js"></script>
-    <script src="../data_dev/all.js"></script> -->
+    <script>
+    function uploadOTA() {
+        var fileInput = document.getElementById('ota_file');
+        if (!fileInput.files.length) {
+            document.getElementById('ota_status').innerHTML =
+                '<span class="text-danger">Please select a firmware file.</span>';
+            return;
+        }
+        var file = fileInput.files[0];
+        var formData = new FormData();
+        formData.append('update', file, file.name);
+
+        var xhr = new XMLHttpRequest();
+        var progressContainer = document.getElementById('ota_progress_container');
+        var progressBar = document.getElementById('ota_progress');
+        var statusDiv = document.getElementById('ota_status');
+
+        progressContainer.style.display = 'flex';
+        document.getElementById('btn_ota_upload').disabled = true;
+
+        xhr.upload.addEventListener('progress', function(e) {
+            if (e.lengthComputable) {
+                var pct = Math.round((e.loaded / e.total) * 100);
+                progressBar.style.width = pct + '%';
+                progressBar.textContent = pct + '%';
+            }
+        });
+        xhr.addEventListener('load', function() {
+            if (xhr.status === 200) {
+                statusDiv.innerHTML = '<span class="text-success">Update successful! Device is rebooting...</span>';
+            } else {
+                statusDiv.innerHTML = '<span class="text-danger">Update failed: ' + xhr.statusText + '</span>';
+                document.getElementById('btn_ota_upload').disabled = false;
+            }
+        });
+        xhr.addEventListener('error', function() {
+            statusDiv.innerHTML = '<span class="text-danger">Upload error. Check connection.</span>';
+            document.getElementById('btn_ota_upload').disabled = false;
+        });
+        xhr.open('POST', '/api/update');
+        xhr.send(formData);
+    }
+    </script>
 </body>
 
 </html>

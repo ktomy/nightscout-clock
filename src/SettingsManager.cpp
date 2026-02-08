@@ -15,7 +15,20 @@ SettingsManager_& SettingsManager_::getInstance() {
 // Initialize the global shared instance
 SettingsManager_& SettingsManager = SettingsManager.getInstance();
 
-void SettingsManager_::setup() { LittleFS.begin(); }
+bool SettingsManager_::setup() {
+    if (!LittleFS.begin()) {
+        DEBUG_PRINTLN("LittleFS mount failed!");
+        return false;
+    }
+
+    // Verify critical filesystem files exist
+    if (!LittleFS.exists("/index.html") || !LittleFS.exists(CONFIG_JSON_FACTORY)) {
+        DEBUG_PRINTLN("Filesystem is empty or corrupt - critical files missing!");
+        return false;
+    }
+
+    return true;
+}
 
 bool copyFile(const char* srcPath, const char* destPath) {
     File srcFile = LittleFS.open(srcPath, "r");

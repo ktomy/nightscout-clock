@@ -1,4 +1,5 @@
 #include <Arduino.h>
+#include <ArduinoOTA.h>
 #include <esp32-hal.h>
 
 #include "BGAlarmManager.h"
@@ -21,7 +22,10 @@ void setup() {
     // Serial.setDebugOutput(true);
 
     DisplayManager.setup();
-    SettingsManager.setup();
+    if (!SettingsManager.setup()) {
+        DisplayManager.showFatalError("FS empty - reflash firmware+filesystem via USB");
+        return;
+    }
     if (!SettingsManager.loadSettingsFromFile()) {
         DisplayManager.showFatalError("Error loading software, please reinstall");
     }
@@ -46,6 +50,13 @@ void setup() {
     bgDisplayManager.setup();
     bgAlarmManager.setup();
     // PeripheryManager.playRTTTLString(sound_boot);
+
+    // Enable ArduinoOTA for PlatformIO WiFi uploads
+    if (ServerManager.isConnected) {
+        ArduinoOTA.setHostname("nsclock");
+        ArduinoOTA.begin();
+        DEBUG_PRINTLN("ArduinoOTA started");
+    }
 
     DEBUG_PRINTLN("Setup done");
     if (ServerManager.isConnected) {
@@ -89,6 +100,7 @@ void loop() {
     ServerManager.tick();
 
     if (ServerManager.isConnected) {
+        ArduinoOTA.handle();
         bgSourceManager.tick();
         bgDisplayManager.tick();
         bgAlarmManager.tick();
