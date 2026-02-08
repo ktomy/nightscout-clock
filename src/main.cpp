@@ -1,5 +1,4 @@
 #include <Arduino.h>
-#include <ArduinoOTA.h>
 #include <esp32-hal.h>
 
 #include "BGAlarmManager.h"
@@ -51,13 +50,6 @@ void setup() {
     bgAlarmManager.setup();
     // PeripheryManager.playRTTTLString(sound_boot);
 
-    // Enable ArduinoOTA for PlatformIO WiFi uploads
-    if (ServerManager.isConnected) {
-        ArduinoOTA.setHostname("nsclock");
-        ArduinoOTA.begin();
-        DEBUG_PRINTLN("ArduinoOTA started");
-    }
-
     DEBUG_PRINTLN("Setup done");
     if (ServerManager.isConnected) {
         String welcomeMessage = "Nightscout clock | To configure go to http://" + ServerManager.myIP.toString() + "/";
@@ -100,7 +92,6 @@ void loop() {
     ServerManager.tick();
 
     if (ServerManager.isConnected) {
-        ArduinoOTA.handle();
         bgSourceManager.tick();
         bgDisplayManager.tick();
         bgAlarmManager.tick();
