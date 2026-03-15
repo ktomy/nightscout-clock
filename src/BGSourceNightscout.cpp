@@ -1,7 +1,7 @@
 #include "BGSourceNightscout.h"
 
 #include <ArduinoJson.h>
-#include <Hashing/Hash.h>
+#include <Hash.h>
 #include <StreamUtils.h>
 
 #include "SettingsManager.h"

@@ -2,8 +2,8 @@
 #include <BGAlarmManager.h>
 #include <LightDependentResistor.h>
 #include <LittleFS.h>
-#include <MelodyPlayer/melody_factory.h>
-#include <MelodyPlayer/melody_player.h>
+#include <melody_factory.h>
+#include <melody_player.h>
 #include <PeripheryManager.h>
 
 #include "Adafruit_SHT31.h"

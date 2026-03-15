@@ -19,7 +19,6 @@
  ***************************************************************************/
 #include "melody_player.h"
 
-#include "../globals.h"
 /**
  * https://stackoverflow.com/questions/24609271/errormake-unique-is-not-a-member-of-std
  */
