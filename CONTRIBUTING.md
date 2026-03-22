@@ -21,3 +21,15 @@ My computer is running linux, but you can use Windows or MacOS as well, there ar
 - If you are lucky enough, the clock should restart and run your local version of NSClock
 - You should be able to see the debug output in the VS Code terminal
 - If something goes wrong and you are stuck, feel free to start a [discussion](https://github.com/ktomy/nightscout-clock/discussions)
+
+### Release procedure
+
+Use `scripts/release.py` for `patch`, `minor`, and `major` releases.
+
+- Treat `data/version.txt` as the source of truth for the current version. The next version is calculated from that file.
+- Make sure all intended release changes are already committed before starting the release, except pending changelog edits in `README.md`.
+- Check whether `README.md` already contains changelog information for the upcoming version.
+- If the changelog is not updated yet, add the release notes for the upcoming version to `README.md`, but do not manually change the `Current version` line.
+- Run `scripts/release.py patch`, `scripts/release.py minor`, or `scripts/release.py major`.
+- The script commits the release metadata changes, pushes the branch, and pushes the release tag.
+- After the tag is pushed, monitor the tag-triggered GitHub Actions workflow `Build and deploy on Github Pages`. The release is not complete until that workflow succeeds.

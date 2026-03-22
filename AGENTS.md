@@ -40,6 +40,15 @@ Use the IDE's PlatformIO actions or the helper scripts in `scripts/`; avoid call
 - `scripts/ns_emulator.py`: sends sample glucose entries to the device API for testing data processing and display behavior.
 - `scripts/merge_bins.sh`: merges the build outputs into a single distributable binary, but this is not part of the active day-to-day workflow.
 
+### Release workflow
+
+For releases, follow the canonical procedure in `CONTRIBUTING.md`.
+
+- Use `scripts/release.py [patch|minor|major]`.
+- Treat `data/version.txt` as the version source of truth.
+- If needed, prepare the upcoming version changelog in `README.md`, but do not manually bump the `Current version` line before running the script.
+- After the release tag is pushed, monitor the GitHub Actions workflow `Build and deploy on Github Pages` and require it to succeed.
+
 `platformio.ini` defines the `ulanzi_debug` environment and the serial upload port used by the scripts. Check `upload_port` before flashing from a different machine or after reconnecting the device.
 
 ## Coding Style & Naming Conventions
