@@ -2,7 +2,7 @@
 
 ![Nightscout clock logo](https://github.com/ktomy/nightscout-clock/assets/1446257/1198c06d-b017-409d-aca3-2bca63581ecb)
 
-### Current version: 0.28.1
+### Current version: 0.30.0
 
 ![Build and Release](https://github.com/ktomy/nightscout-clock/actions/workflows/build_release.yml/badge.svg)
 
@@ -116,10 +116,12 @@ Nightscout Clock is a custom firmware for Ulanzi TC001. It can also run (with mi
 
 ## Changes
 
-### 0.28.1
+### 0.29
 
- - Added web auth in the advanced settings. ([discussion](https://github.com/ktomy/nightscout-clock/issues/72))
- - Added show password option on all password fields.
+- Added Medtronic setup guidance to the WebUI, closes [#147](https://github.com/ktomy/nightscout-clock/issues/147)
+- Added web auth in the advanced settings. ([discussion](https://github.com/ktomy/nightscout-clock/issues/72)), thank you [@mrendo](https://github.com/mrendo)
+- Added show password option on all password fields, thank you [@mrendo](https://github.com/mrendo)
+- Fixed local WebUI password visibility icons after the changes from [#125](https://github.com/ktomy/nightscout-clock/pull/125)
 
 ### 0.28
 
