@@ -424,6 +424,12 @@
     }
 
     let patientPollInterval = null;
+    const defaultGlucoseSourceFeedback = "Please select glucose data source";
+
+    function setGlucoseSourceFeedback(message) {
+        $('#glucose_source').siblings('.invalid-feedback').text(message);
+    }
+
     function pollPatientsList() {
         const patientSelect = $('#librelinkup_patient_select');
         if (patientSelect.length > 1) {
@@ -483,6 +489,8 @@
         $('#dexcom_settings_card').toggleClass("d-none", value !== "dexcom");
         $('#librelinkup_settings_card').toggleClass("d-none", value !== "librelinkup");
         $('#medtrum_settings_card').toggleClass("d-none", value !== "medtrum");
+        $('#medtronic_info_alert').toggleClass("d-none", value !== "carelink");
+        setGlucoseSourceFeedback(defaultGlucoseSourceFeedback);
 
         removeFocusOutValidation('ns_hostname');
         removeFocusOutValidation('ns_port');
@@ -533,6 +541,10 @@
                 setElementValidity(glucoseSource, true);
                 addFocusOutValidation('medtrum_email', () => patterns.email_format);
                 addFocusOutValidation('medtrum_password', () => patterns.dexcom_password);
+                break;
+            case "carelink":
+                // Keep the field visually neutral while the inline info explains the required bridge setup.
+                clearValidationStatus('glucose_source');
                 break;
             default:
                 setElementValidity(glucoseSource, false);
@@ -767,6 +779,12 @@
             setElementValidity(glucoseSource, true);
             isValid &= validate($('#medtrum_email'), patterns.email_format);
             isValid &= validate($('#medtrum_password'), patterns.dexcom_password);
+        } else if (value === "carelink") {
+            setGlucoseSourceFeedback(
+                "Medtronic CareLink requires xDrip+ and Nightscout. Select Nightscout after setting up that bridge."
+            );
+            isValid = false;
+            setElementValidity(glucoseSource, false);
         } else if (value === "librelinkup") {
             isValid &= validate($('#librelinkup_email'), patterns.email_format);
             isValid &= validate($('#librelinkup_password'), patterns.dexcom_password);

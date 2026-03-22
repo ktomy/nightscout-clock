@@ -82,6 +82,7 @@ Nightscout Clock is a custom firmware for Ulanzi TC001. It can also run (with mi
 - Dexcom Share data source
 - LibreLinkUp (libreview) data source
 - Medtrum EasyFollow data source
+- Medtronic users can bridge data through xDrip+ to Nightscout, then connect the clock to that Nightscout site. See [discussion #53](https://github.com/ktomy/nightscout-clock/discussions/53)
 - Brightness adjustment
   - Brightness can be adjusted within the Web UI
   - Automatic brightness adjustment based on the ambient light
@@ -111,7 +112,6 @@ Nightscout Clock is a custom firmware for Ulanzi TC001. It can also run (with mi
   - Battery, humidity and temperature
 - Smooth color change (rainbow) based on the value and boundaries
 - Add more data sources
-  - Medtronic
   - ...more... (if you are the author of a CGM data collecting app/service and you want your data to be displayed on the Nightscout Clock, please contact me)
 
 ## Changes
