@@ -74,6 +74,56 @@ void BGDisplayManager_::setFace(int id) {
 
 void BGDisplayManager_::tick() { maybeRrefreshScreen(); }
 
+void BGDisplayManager_::renderCurrentFace(bool dataIsOld) {
+    DisplayManager.clearMatrix();
+    if (displayedReadings.size() > 0) {
+        currentFace->showReadings(displayedReadings, dataIsOld);
+    } else {
+        currentFace->showNoData();
+    }
+    DisplayManager.update();
+    lastRenderedDataWasOld = dataIsOld;
+    lastRefreshEpoch = ServerManager.getUtcEpoch();
+}
+
+bool BGDisplayManager_::shouldUseClockPartialRefresh(bool force, bool dataIsOld) const {
+    return !force && displayedReadings.size() > 0 && currentFaceIndex == 5 &&
+           dataIsOld == lastRenderedDataWasOld;
+}
+
+void BGDisplayManager_::refreshClockFaceTimeAndTimer() {
+    if (currentFaceIndex != 5 || clockFace == nullptr || displayedReadings.size() == 0) {
+        renderCurrentFace(lastRenderedDataWasOld);
+        return;
+    }
+
+    DisplayManager.clearMatrixPart(0, 0, 16, 7);
+
+    switch (SettingsManager.settings.time_format) {
+        case TIME_FORMAT::HOURS_12:
+            DisplayManager.clearMatrixPart(0, 7, 16, 1);
+            DisplayManager.clearMatrixPart(18, 7, 13, 1);
+            break;
+        default:
+            DisplayManager.clearMatrixPart(0, 7, 31, 1);
+            break;
+    }
+
+    clockFace->showClock();
+
+    switch (SettingsManager.settings.time_format) {
+        case TIME_FORMAT::HOURS_12:
+            BGDisplayManager_::drawTimerBlocks(displayedReadings.back(), MATRIX_WIDTH - 17, 18, 7);
+            break;
+        default:
+            BGDisplayManager_::drawTimerBlocks(displayedReadings.back(), MATRIX_WIDTH, 0, 7);
+            break;
+    }
+
+    DisplayManager.update();
+    lastRefreshEpoch = ServerManager.getUtcEpoch();
+}
+
 void BGDisplayManager_::maybeRrefreshScreen(bool force) {
     auto currentEpoch = ServerManager.getUtcEpoch();
     tm timeInfo = ServerManager.getTimezonedTime();
@@ -83,22 +133,20 @@ void BGDisplayManager_::maybeRrefreshScreen(bool force) {
     if (bgSourceManager.hasNewData(lastReading == NULL ? 0 : lastReading->epoch)) {
         DEBUG_PRINTLN("We have new data");
         bgDisplayManager.showData(bgSourceManager.getInstance().getGlucoseData());
-        lastRefreshEpoch = currentEpoch;
     } else {
         // We refresh the display every minue trying to match the exact :00 second
         if (force || timeInfo.tm_sec == 0 && currentEpoch > lastRefreshEpoch ||
             currentEpoch - lastRefreshEpoch > 60) {
-            lastRefreshEpoch = currentEpoch;
             if (displayedReadings.size() > 0) {
                 bool dataIsOld = displayedReadings.back().getSecondsAgo() >
                                  60 * SettingsManager.settings.bg_data_too_old_threshold_minutes;
-                DisplayManager.clearMatrix();
-                currentFace->showReadings(displayedReadings, dataIsOld);
-                DisplayManager.update();
+                if (shouldUseClockPartialRefresh(force, dataIsOld)) {
+                    refreshClockFaceTimeAndTimer();
+                } else {
+                    renderCurrentFace(dataIsOld);
+                }
             } else {
-                DisplayManager.clearMatrix();
-                currentFace->showNoData();
-                DisplayManager.update();
+                renderCurrentFace(false);
             }
         }
     }
@@ -106,14 +154,15 @@ void BGDisplayManager_::maybeRrefreshScreen(bool force) {
 
 void BGDisplayManager_::showData(std::list<GlucoseReading> glucoseReadings) {
     if (glucoseReadings.size() == 0) {
-        currentFace->showNoData();
+        displayedReadings.clear();
+        renderCurrentFace(false);
         return;
     }
 
-    DisplayManager.clearMatrix();
-    currentFace->showReadings(glucoseReadings);
-
     displayedReadings = glucoseReadings;
+    bool dataIsOld = displayedReadings.back().getSecondsAgo() >
+                     60 * SettingsManager.settings.bg_data_too_old_threshold_minutes;
+    renderCurrentFace(dataIsOld);
 }
 
 // We draw the horizontal blocks equal to the number of minutes since last reading

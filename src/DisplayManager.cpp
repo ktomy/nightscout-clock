@@ -136,7 +136,6 @@ void DisplayManager_::setTextColor(uint16_t color) { matrix->setTextColor(color)
 
 void DisplayManager_::clearMatrix() {
     matrix->clear();
-    matrix->show();
 }
 
 // DisplayManager_::printText(int16_t x, int16_t y, const char *text, TEXT_ALIGNMENT alignment, byte
@@ -170,8 +169,6 @@ void DisplayManager_::printText(
     } else {
         matrix->print(text);
     }
-
-    matrix->show();
 }
 
 void DisplayManager_::drawBitmap(
@@ -233,6 +230,7 @@ void DisplayManager_::showFatalError(String errorMessage) {
         while (position > finalPosition) {
             matrix->clear();
             printText(position, 6, errorMessage.c_str(), TEXT_ALIGNMENT::LEFT, 1);
+            update();
             position -= 0.18;
             checckForImprovWifiConnection();
         }
@@ -322,5 +320,4 @@ void DisplayManager_::update() { matrix->show(); }
 
 void DisplayManager_::clearMatrixPart(uint8_t x, uint8_t y, uint8_t width, uint8_t height) {
     matrix->fillRect(x, y, width, height, 0);
-    matrix->show();
 }
