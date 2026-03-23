@@ -7,8 +7,8 @@
     <link href="bootstrap.min.css" rel="stylesheet" />
     <link href="bootstrap-icons.min.css" rel="stylesheet" />
     <!-- <link href="all.min.css" rel="stylesheet"> -->
-    <link href="../data_dev/bootstrap.css" rel="stylesheet" />
-    <link href="../data_dev/bootstrap-icons.css" rel="stylesheet" />
+    <!-- dev-only: <link href="../data_dev/bootstrap.css" rel="stylesheet" /> -->
+    <!-- dev-only: <link href="../data_dev/bootstrap-icons.css" rel="stylesheet" /> -->
     <!-- <link href="../data_dev/all.css" rel="stylesheet"> -->
     <title>Nightscout clock</title>
 </head>
@@ -169,7 +169,7 @@
                             <div class="row">
                                 <div class="col-lg-6 col-md-6 col-12 mb-3 mb-md-0">
                                     <label for="medtrum_email" class="form-label">Medtrum email</label>
-                                    <input type="text" class="form-control" id="medtrum_email" />
+                                    <input type="email" class="form-control" id="medtrum_email" name="medtrum_email" autocomplete="email" />
                                     <div class="invalid-feedback">
                                         Medtrum email is required
                                     </div>
@@ -177,7 +177,7 @@
                                 <div class="col-lg-6 col-md-6 col-12 mb-3 mb-md-0">
                                     <label for="medtrum_password" class="form-label">Medtrum password</label>
                                     <div class="input-group">
-                                        <input type="password" class="form-control" id="medtrum_password" />
+                                        <input type="password" class="form-control" id="medtrum_password" name="medtrum_password" autocomplete="current-password" />
                                         <button class="btn btn-outline-secondary btn-password-toggle" type="button"
                                             data-target="#medtrum_password" aria-label="Show or hide Medtrum password">
                                             <i class="bi bi-eye-slash"></i>
@@ -196,10 +196,13 @@
                     <div class="card">
                         <h5 class="card-header" id="headingTwo">Dexcom connection</h5>
                         <div class="card-body">
+                            <div class="alert alert-info py-2 mb-3" role="alert">
+                                <small>Use the <strong>sensor wearer's</strong> Dexcom account credentials (if you are a parent, use your child's account). Follower accounts will not work. The sensor wearer must have set up Dexcom Share at least once.</small>
+                            </div>
                             <div class="row">
                                 <div class="col-lg-5 col-md-6 col-12 mb-3 mb-md-0">
                                     <label for="dexcom_username" class="form-label">Dexcom username</label>
-                                    <input type="text" class="form-control" id="dexcom_username" />
+                                    <input type="text" class="form-control" id="dexcom_username" name="dexcom_username" autocomplete="username" />
                                     <div class="invalid-feedback">
                                         Dexcom username is required
                                     </div>
@@ -207,7 +210,7 @@
                                 <div class="col-lg-5 col-md-6 col-12 mb-3 mb-md-0">
                                     <label for="dexcom_password" class="form-label">Dexcom password</label>
                                     <div class="input-group">
-                                        <input type="password" class="form-control" id="dexcom_password" />
+                                        <input type="password" class="form-control" id="dexcom_password" name="dexcom_password" autocomplete="current-password" />
                                         <button class="btn btn-outline-secondary btn-password-toggle" type="button"
                                             data-target="#dexcom_password" aria-label="Show or hide Dexcom password">
                                             <i class="bi bi-eye-slash"></i>
@@ -277,7 +280,7 @@
                                         <span class="text-body-secondary">(Only needed when viewing Nightscout data is
                                             protected)</span></label>
                                     <div class="input-group">
-                                        <input type="password" class="form-control" id="api_secret" />
+                                        <input type="password" class="form-control" id="api_secret" name="api_secret" autocomplete="current-password" />
                                         <button class="btn btn-outline-secondary btn-password-toggle" type="button"
                                             data-target="#api_secret" aria-label="Show or hide API secret">
                                             <i class="bi bi-eye-slash"></i>
@@ -312,7 +315,7 @@
                             <div class="row">
                                 <div class="col-lg-5 col-md-6 col-12 mb-3 mb-md-0">
                                     <label for="librelinkup_email" class="form-label">LibreLink Up email</label>
-                                    <input type="text" class="form-control" id="librelinkup_email" />
+                                    <input type="email" class="form-control" id="librelinkup_email" name="librelinkup_email" autocomplete="email" />
                                     <div class="invalid-feedback">
                                         LibreLink Up email is required
                                     </div>
@@ -321,7 +324,7 @@
                                     <label for="librelinkup_password" class="form-label">LibreLink Up
                                         password</label>
                                     <div class="input-group">
-                                        <input type="password" class="form-control" id="librelinkup_password" />
+                                        <input type="password" class="form-control" id="librelinkup_password" name="librelinkup_password" autocomplete="current-password" />
                                         <button class="btn btn-outline-secondary btn-password-toggle" type="button"
                                             data-target="#librelinkup_password"
                                             aria-label="Show or hide LibreLink Up password">
@@ -941,6 +944,29 @@
             <br class="pb-5 my-4" />
     </div>
     </form>
+
+    <!-- Firmware Update Section -->
+    <div class="container mt-4 mb-5">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Firmware Update (OTA)</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">Upload a new firmware.bin file to update over-the-air.</p>
+                <div class="input-group">
+                    <input type="file" class="form-control" id="ota_file" accept=".bin">
+                    <button class="btn btn-warning" type="button" id="btn_ota_upload" onclick="uploadOTA()">
+                        Upload &amp; Update
+                    </button>
+                </div>
+                <div class="progress mt-2" style="display: none;" id="ota_progress_container">
+                    <div class="progress-bar progress-bar-striped progress-bar-animated" id="ota_progress" role="progressbar" style="width: 0%">0%</div>
+                </div>
+                <div class="mt-2" id="ota_status"></div>
+            </div>
+        </div>
+    </div>
+
     </div>
     <svg xmlns="http://www.w3.org/2000/svg" style="display: none">
         <symbol id="check-circle-fill" fill="currentColor" viewBox="0 0 16 16">
@@ -996,12 +1022,84 @@
     </div>
 
     <script src="bootstrap.bundle.min.js"></script>
-    <script src="../data_dev/bootstrap.bundle.js"></script>
+    <!-- dev-only: <script src="../data_dev/bootstrap.bundle.js"></script> -->
     <script src="jquery.min.js"></script>
-    <script src="../data_dev/jquery.js"></script>
+    <!-- dev-only: <script src="../data_dev/jquery.js"></script> -->
     <script src="script.js"></script>
-    <!-- <script src="all.min.js"></script>
-    <script src="../data_dev/all.js"></script> -->
+    <script>
+    function setOtaStatus(message, isSuccess) {
+        var statusDiv = document.getElementById('ota_status');
+        var span = document.createElement('span');
+        span.className = isSuccess ? 'text-success' : 'text-danger';
+        span.textContent = message;
+        statusDiv.innerHTML = '';
+        statusDiv.appendChild(span);
+        if (!isSuccess) {
+            document.getElementById('btn_ota_upload').disabled = false;
+        }
+    }
+    function uploadOTA() {
+        var fileInput = document.getElementById('ota_file');
+        if (!fileInput.files.length) {
+            setOtaStatus('Please select a firmware file.', false);
+            return;
+        }
+        var file = fileInput.files[0];
+        var maxSize = 1536 * 1024;
+        if (file.size > maxSize) {
+            setOtaStatus('File too large (' + Math.round(file.size/1024) + 'KB). Max: ' + Math.round(maxSize/1024) + 'KB.', false);
+            return;
+        }
+        var formData = new FormData();
+        formData.append('update', file, file.name);
+
+        var xhr = new XMLHttpRequest();
+        var progressContainer = document.getElementById('ota_progress_container');
+        var progressBar = document.getElementById('ota_progress');
+
+        progressBar.style.width = '0%';
+        progressBar.textContent = '0%';
+        progressContainer.style.display = 'flex';
+        document.getElementById('btn_ota_upload').disabled = true;
+        document.getElementById('ota_status').innerHTML = '';
+
+        xhr.timeout = 120000;
+        xhr.upload.addEventListener('progress', function(e) {
+            if (e.lengthComputable) {
+                var pct = Math.round((e.loaded / e.total) * 100);
+                progressBar.style.width = pct + '%';
+                progressBar.textContent = pct + '%';
+            }
+        });
+        xhr.addEventListener('load', function() {
+            try {
+                var resp = JSON.parse(xhr.responseText);
+                if (xhr.status === 200 && resp.status === 'ok') {
+                    setOtaStatus('Update successful! Device is rebooting...', true);
+                } else {
+                    setOtaStatus('Update failed: ' + (resp.message || 'Unknown error'), false);
+                }
+            } catch(e) {
+                if (xhr.status === 200) {
+                    setOtaStatus('Update successful! Device is rebooting...', true);
+                } else {
+                    setOtaStatus('Update failed (HTTP ' + xhr.status + ')', false);
+                }
+            }
+        });
+        xhr.addEventListener('error', function() {
+            setOtaStatus('Upload error. Check connection and try again.', false);
+        });
+        xhr.addEventListener('timeout', function() {
+            setOtaStatus('Upload timed out. Check connection and try again.', false);
+        });
+        xhr.addEventListener('abort', function() {
+            setOtaStatus('Upload was cancelled.', false);
+        });
+        xhr.open('POST', '/api/update');
+        xhr.send(formData);
+    }
+    </script>
 </body>
 
 </html>

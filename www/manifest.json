@@ -4,6 +4,8 @@
     "builds": [
         {
             "chipFamily": "ESP32",
+            "improv": true,
+            "erase_before_install": true,
             "parts": [
                 {
                     "path": "https://ktomy.github.io/nightscout-clock/artifacts/bootloader.bin",
@@ -23,7 +25,7 @@
                 },
                 {
                     "path": "https://ktomy.github.io/nightscout-clock/artifacts/littlefs.bin",
-                    "offset": 2162688
+                    "offset": 3211264
                 }
             ]
         }
