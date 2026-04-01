@@ -14,6 +14,33 @@
 #include "globals.h"
 #include "time.h"
 
+// Escape a string for safe embedding in JSON string values.
+// Prevents injection when building JSON responses by concatenation.
+static String jsonStringEscape(const String& input) {
+    String output;
+    output.reserve(input.length());
+    for (unsigned int i = 0; i < input.length(); i++) {
+        char c = input.charAt(i);
+        switch (c) {
+            case '"':  output += "\\\""; break;
+            case '\\': output += "\\\\"; break;
+            case '\n': output += "\\n"; break;
+            case '\r': output += "\\r"; break;
+            case '\t': output += "\\t"; break;
+            default:
+                if (c < 0x20) {
+                    char buf[7];
+                    snprintf(buf, sizeof(buf), "\\u%04x", (unsigned char)c);
+                    output += buf;
+                } else {
+                    output += c;
+                }
+                break;
+        }
+    }
+    return output;
+}
+
 // The getter for the instantiated singleton instance
 ServerManager_& ServerManager_::getInstance() {
     static ServerManager_ instance;
@@ -490,9 +517,9 @@ void ServerManager_::setupWebServer(IPAddress ip) {
         jsonResponse += ", \"isInAPMode\": ";
         jsonResponse += this->isInAPMode ? "true" : "false";
         jsonResponse += ", \"bgSource\": \"";
-        jsonResponse += toString(bgSourceManager.getCurrentSourceType());
+        jsonResponse += jsonStringEscape(toString(bgSourceManager.getCurrentSourceType()));
         jsonResponse += "\", \"bgSourceStatus\": \"";
-        jsonResponse += bgSourceManager.getSourceStatus();
+        jsonResponse += jsonStringEscape(bgSourceManager.getSourceStatus());
         jsonResponse += "\", \"sgv\": ";
         auto glucoseData = bgSourceManager.getGlucoseData();
         if (!glucoseData.empty()) {
