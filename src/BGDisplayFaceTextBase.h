@@ -17,6 +17,8 @@ protected:
         bool isOld = false) const;
     void SetDisplayColorByBGValue(const GlucoseReading& reading) const;
     String getPrintableReading(const int sgv) const;
+    int toDisplayTenths(const int sgv) const;
+    String formatDisplayTenths(const int tenths) const;
 };
 
 #endif  // BGDISPLAYFACETEXTBASE_H

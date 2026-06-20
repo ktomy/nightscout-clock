@@ -42,15 +42,36 @@ void BGDisplayFaceTextBase::SetDisplayColorByBGValue(const GlucoseReading& readi
 }
 
 String BGDisplayFaceTextBase::getPrintableReading(const int sgv) const {
-    String readingToDisplay = "";
+    return formatDisplayTenths(toDisplayTenths(sgv));
+}
+
+// `sgv` is always raw mg/dL, exactly as delivered by the data source - that never
+// changes anywhere in the codebase. This helper only produces a *local, display-scale*
+// representation of a reading, used to compare/diff readings the same way they are
+// shown on screen. It is never stored and never passed back into GlucoseReading.sgv.
+//
+// The result is scaled by 10 ("tenths") so it stays an integer that callers can use in
+// arithmetic (e.g. min/max/subtraction) before paying the string-formatting cost:
+//  - mg/dL: the displayed resolution is whole mg/dL, so this is the identity function.
+//  - mmol/L: mg/dL / 18 = mmol/L; multiplying by 10 and rounding gives the same value
+//    that gets printed with one decimal (e.g. sgv=193 -> 107, printed later as "10.7").
+int BGDisplayFaceTextBase::toDisplayTenths(const int sgv) const {
     if (SettingsManager.settings.bg_units == BG_UNIT::MGDL) {
-        readingToDisplay += String(sgv);
-    } else {
-        char buffer[10];
-        sprintf(buffer, "%.1f", round((float)sgv / 1.8) / 10);
-        readingToDisplay += String(buffer);
+        return sgv;
     }
-    return readingToDisplay;
+    return round((float)sgv / 1.8);
+}
+
+// Formats a value produced by toDisplayTenths() back into the string shown on screen
+// (e.g. 107 -> "10.7"). Kept separate from toDisplayTenths() so callers can do integer
+// arithmetic on the tenths value first and only format the final result.
+String BGDisplayFaceTextBase::formatDisplayTenths(const int tenths) const {
+    if (SettingsManager.settings.bg_units == BG_UNIT::MGDL) {
+        return String(tenths);
+    }
+    char buffer[10];
+    sprintf(buffer, "%.1f", (float)tenths / 10);
+    return String(buffer);
 }
 
 #pragma region Show arrow
