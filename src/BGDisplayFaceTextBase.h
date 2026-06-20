@@ -24,6 +24,8 @@ protected:
         FONT_TYPE font) const;
     uint16_t getColorByBGValue(const GlucoseReading& reading) const;
     String getPrintableReading(const int sgv) const;
+    int toDisplayTenths(const int sgv) const;
+    String formatDisplayTenths(const int tenths) const;
 };
 
 #endif  // BGDISPLAYFACETEXTBASE_H
