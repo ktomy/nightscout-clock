@@ -63,7 +63,7 @@ String BGDisplayFaceValueAndDiff::getDiff(const std::list<GlucoseReading>& readi
         foundReadings.resize(2);
     }
 
-    // cucle through found readings, get min and max SGVs
+    // cycle through found readings, get min and max SGVs
     int minSGV = 9999;
     int maxSGV = 0;
     for (const auto& reading : foundReadings) {
@@ -74,7 +74,9 @@ String BGDisplayFaceValueAndDiff::getDiff(const std::list<GlucoseReading>& readi
             maxSGV = reading.sgv;
         }
     }
-    int base = last.sgv;
+    minSGV = getComparableSGV(minSGV);
+    maxSGV = getComparableSGV(maxSGV);
+    int base = getComparableSGV(last.sgv);
     if (minSGV != base && maxSGV != base) {
 #ifdef DEBUG_DISPLAY
         DEBUG_PRINTLN("Too many changes in last 6.5 minutes");
@@ -84,7 +86,7 @@ String BGDisplayFaceValueAndDiff::getDiff(const std::list<GlucoseReading>& readi
 
     int diff = minSGV == base ? base - maxSGV : base - minSGV;
 
-    if (std::abs(diff) > 99) {
+    if (std::abs(diff) > getComparableSGV(99)) {
 #ifdef DEBUG_DISPLAY
         DEBUG_PRINTLN("Diff is too big: " + String(diff));
 #endif
@@ -96,11 +98,29 @@ String BGDisplayFaceValueAndDiff::getDiff(const std::list<GlucoseReading>& readi
         diffString += "+";
     }
 
-    diffString += getPrintableReading(diff);
+    diffString += getPrintableDiff(diff);
 
 #ifdef DEBUG_DISPLAY
     DEBUG_PRINTF("SGV Diff: %s (%d readings)", diffString.c_str(), foundReadings.size());
 #endif
 
     return diffString;
+}
+
+int BGDisplayFaceValueAndDiff::getComparableSGV(int sgv) const {
+    if (SettingsManager.settings.bg_units == BG_UNIT::MGDL) {
+        return sgv;
+    }
+
+    return round((float)sgv / 1.8);
+}
+
+String BGDisplayFaceValueAndDiff::getPrintableDiff(int diff) const {
+    if (SettingsManager.settings.bg_units == BG_UNIT::MGDL) {
+        return String(diff);
+    }
+
+    char buffer[10];
+    sprintf(buffer, "%.1f", (float)diff / 10);
+    return String(buffer);
 }

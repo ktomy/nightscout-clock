@@ -10,6 +10,8 @@ public:
 
 private:
     String getDiff(const std::list<GlucoseReading>& readings) const;
+    int getComparableSGV(int sgv) const;
+    String getPrintableDiff(int diff) const;
 };
 
 #endif
