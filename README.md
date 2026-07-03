@@ -2,6 +2,17 @@
 
 ![Nightscout clock logo](https://github.com/ktomy/nightscout-clock/assets/1446257/1198c06d-b017-409d-aca3-2bca63581ecb)
 
+> [!IMPORTANT]
+> ## This project is looking for a new maintainer or co-maintainer
+>
+> Over the past few months, I have not been able to spend as much time as this project deserves on support, maintenance, and development.
+>
+> Rather than let the project stall, I would like to find someone who is interested in helping maintain it, either together with me or as the new primary maintainer.
+>
+> If you use Nightscout Clock, have contributed before, or are interested in supporting an open-source project that helps caregivers monitor their loved ones’ glucose values, please get in touch.
+>
+> You can reach me at **artiom@gmail.com**.
+
 ### Current version: 0.29.0
 
 ![Build and Release](https://github.com/ktomy/nightscout-clock/actions/workflows/build_release.yml/badge.svg)
