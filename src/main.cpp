@@ -12,6 +12,7 @@
 #include "improv_consume.h"
 
 float apModeHintPosition = MATRIX_WIDTH;  // Start the scrolling right after the screen
+bool setupFailed = false;
 
 void setup() {
     pinMode(15, OUTPUT);
@@ -21,9 +22,15 @@ void setup() {
     // Serial.setDebugOutput(true);
 
     DisplayManager.setup();
-    SettingsManager.setup();
+    if (!SettingsManager.setup()) {
+        DisplayManager.showFatalError("FS empty - reflash firmware+filesystem via USB");
+        setupFailed = true;
+        return;
+    }
     if (!SettingsManager.loadSettingsFromFile()) {
         DisplayManager.showFatalError("Error loading software, please reinstall");
+        setupFailed = true;
+        return;
     }
 
     DisplayManager.applySettings();
@@ -74,6 +81,10 @@ void showJoinAP() {
 }
 
 void loop() {
+    if (setupFailed) {
+        delay(1000);
+        return;
+    }
 #ifdef DEBUG_MEMORY
 
     static unsigned long lastMemoryCheck = 0;

@@ -15,7 +15,18 @@ SettingsManager_& SettingsManager_::getInstance() {
 // Initialize the global shared instance
 SettingsManager_& SettingsManager = SettingsManager.getInstance();
 
-void SettingsManager_::setup() { LittleFS.begin(); }
+bool SettingsManager_::setup() {
+    if (!LittleFS.begin()) {
+        DEBUG_PRINTLN("LittleFS mount failed");
+        return false;
+    }
+    // Check critical files exist
+    if (!LittleFS.exists("/index.html") || !LittleFS.exists("/config_initial.json")) {
+        DEBUG_PRINTLN("Critical filesystem files missing");
+        return false;
+    }
+    return true;
+}
 
 bool copyFile(const char* srcPath, const char* destPath) {
     File srcFile = LittleFS.open(srcPath, "r");
@@ -71,7 +82,6 @@ JsonDocument* SettingsManager_::readConfigJsonFile() {
         return doc;
     } else {
         DEBUG_PRINTLN("Cannot read configuration file");
-        factoryReset();
         return NULL;
     }
 }
