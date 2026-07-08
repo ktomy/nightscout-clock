@@ -196,10 +196,13 @@
                     <div class="card">
                         <h5 class="card-header" id="headingTwo">Dexcom connection</h5>
                         <div class="card-body">
+                            <p class="form-text mt-0 mb-2">Use the same credentials you use to log into the Dexcom app on your phone.</p>
                             <div class="row">
                                 <div class="col-lg-5 col-md-6 col-12 mb-3 mb-md-0">
                                     <label for="dexcom_username" class="form-label">Dexcom username</label>
-                                    <input type="text" class="form-control" id="dexcom_username" />
+                                    <input type="text" class="form-control" id="dexcom_username"
+                                        autocomplete="username"
+                                        placeholder="Your Dexcom app login" />
                                     <div class="invalid-feedback">
                                         Dexcom username is required
                                     </div>
@@ -207,7 +210,9 @@
                                 <div class="col-lg-5 col-md-6 col-12 mb-3 mb-md-0">
                                     <label for="dexcom_password" class="form-label">Dexcom password</label>
                                     <div class="input-group">
-                                        <input type="password" class="form-control" id="dexcom_password" />
+                                        <input type="password" class="form-control" id="dexcom_password"
+                                            autocomplete="current-password"
+                                            placeholder="Your Dexcom app password" />
                                         <button class="btn btn-outline-secondary btn-password-toggle" type="button"
                                             data-target="#dexcom_password" aria-label="Show or hide Dexcom password">
                                             <i class="bi bi-eye-slash"></i>
