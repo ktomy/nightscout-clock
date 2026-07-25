@@ -2,6 +2,17 @@
 
 ![Nightscout clock logo](https://github.com/ktomy/nightscout-clock/assets/1446257/1198c06d-b017-409d-aca3-2bca63581ecb)
 
+> [!IMPORTANT]
+> ## This project is looking for a new maintainer or co-maintainer
+>
+> Over the past few months, I have not been able to spend as much time as this project deserves on support, maintenance, and development.
+>
+> Rather than let the project stall, I would like to find someone who is interested in helping maintain it, either together with me or as the new primary maintainer.
+>
+> If you use Nightscout Clock, have contributed before, or are interested in supporting an open-source project that helps caregivers monitor their loved ones’ glucose values, please get in touch.
+>
+> You can reach me at **artiom@gmail.com**.
+
 ### Current version: 0.29.0
 
 ![Build and Release](https://github.com/ktomy/nightscout-clock/actions/workflows/build_release.yml/badge.svg)
@@ -35,7 +46,7 @@ Thanks [@CallumMcK](https://github.com/CallumMcK)
 3. Unpack, turn on (press on `<` and `>` buttons for a few seconds)
 4. Connect the USB-C cable (comes with the clock) to your computer
 5. Go to the [installation page](https://ktomy.github.io/nightscout-clock/)
-6. Follow the instructions
+6. Follow the instructions. If the installation fails (error messages during installation, read [this](https://github.com/ktomy/nightscout-clock/discussions/57)
 7. Once the clock installed, take out your phone and join `nsclock` wi-fi network. Then go to `http://192.168.4.1/`
 8. Set up your device, provide the Wi-Fi network details, your Dexcom, Nightscout, LibreLink Up or Medtrum EasyFollow credentials, glucose warning limits and other parameters
 9. You're all set, enjoy!

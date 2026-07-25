@@ -513,6 +513,16 @@ void ServerManager_::setupWebServer(IPAddress ip) {
 
     addStaticFileHandler();
 
+    // Captive portal detection endpoints
+    // Android: responds with HTTP 204 so the device opens the portal
+    ws->on("/generate_204", HTTP_GET, [](AsyncWebServerRequest* request) {
+        request->redirect("/");
+    });
+    // Windows: redirect NCSI probe to the settings page
+    ws->on("/connecttest.txt", HTTP_GET, [](AsyncWebServerRequest* request) {
+        request->redirect("/");
+    });
+
     ws->onNotFound([](AsyncWebServerRequest* request) {
         if (request->method() == HTTP_OPTIONS) {
             request->send(200);

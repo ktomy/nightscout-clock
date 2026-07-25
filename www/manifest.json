@@ -1,6 +1,7 @@
 {
     "name": "Nightscout clock",
     "version": "0.29.0",
+    "new_install_prompt_erase": true,
     "builds": [
         {
             "chipFamily": "ESP32",
