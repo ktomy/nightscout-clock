@@ -161,8 +161,12 @@ void PeripheryManager_::tick() {
             CURRENT_HUM += HUM_OFFSET;
         }
         if (BATTERY_PERCENT <= 5) {
-            if (lastLowBatteryAlertMillis == 0 ||
-                currentMillis_BatTempHum - lastLowBatteryAlertMillis >= LOW_BATTERY_ALERT_INTERVAL_MS) {
+            bool alertDue = lastLowBatteryAlertMillis == 0 ||
+                            currentMillis_BatTempHum - lastLowBatteryAlertMillis >= LOW_BATTERY_ALERT_INTERVAL_MS;
+            // Don't interrupt a melody that is already sounding (e.g. a glucose
+            // alarm) - the single shared player would cut it off. Leave
+            // lastLowBatteryAlertMillis untouched so we retry on the next poll.
+            if (alertDue && !player.isPlaying()) {
                 PeripheryManager.playRTTTLString(LOW_BATTERY_BEEP);
                 lastLowBatteryAlertMillis = currentMillis_BatTempHum;
             }

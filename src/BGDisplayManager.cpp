@@ -53,6 +53,8 @@ void BGDisplayManager_::setup() {
     facesNames[7] = "Battery and uptime";
     faces.push_back(new BGDisplayFaceBigTextRainbow());
     facesNames[8] = "Rainbow big text";
+    faces.push_back(new BGDisplayFaceSmiley());
+    facesNames[9] = "Smiley";
 
     currentFaceIndex = SettingsManager.settings.default_clockface;
     if (currentFaceIndex >= faces.size()) {
@@ -73,7 +75,8 @@ void BGDisplayManager_::setFace(int id) {
         currentFaceIndex = id;
         currentFace = (faces[currentFaceIndex]);
         DisplayManager.clearMatrix();
-        lastRefreshEpoch = 0;
+        lastRefreshMillis = 0;
+        lastRefreshEpochSec = 0;
         tick();
     }
 }
@@ -86,28 +89,40 @@ void BGDisplayManager_::maybeRrefreshScreen(bool force) {
     tm timeInfo = ServerManager.getTimezonedTime();
     bool frequentRefresh = currentFace->needsFrequentRefresh();
     unsigned long refreshIntervalMs = frequentRefresh ? currentFace->getFrequentRefreshIntervalMs() : 60000;
-    unsigned long long refreshClock = frequentRefresh ? currentMillis : currentEpoch;
 
     auto lastReading = bgDisplayManager.getLastDisplayedGlucoseReading();
 
     if (bgSourceManager.hasNewData(lastReading == NULL ? 0 : lastReading->epoch)) {
         DEBUG_PRINTLN("We have new data");
         bgDisplayManager.showData(bgSourceManager.getInstance().getGlucoseData());
-        lastRefreshEpoch = refreshClock;
+        lastRefreshMillis = currentMillis;
+        lastRefreshEpochSec = currentEpoch;
     } else {
-        // We refresh the display every minue trying to match the exact :00 second
-        if (force || frequentRefresh && refreshClock - lastRefreshEpoch >= refreshIntervalMs ||
-            timeInfo.tm_sec == 0 && currentEpoch > lastRefreshEpoch ||
-            !frequentRefresh && currentEpoch - lastRefreshEpoch > 60) {
-            lastRefreshEpoch = refreshClock;
+        // Frequent faces animate on a millis interval; normal faces refresh once
+        // per wall-clock minute, trying to match the exact :00 second.
+        bool refreshDue;
+        if (frequentRefresh) {
+            refreshDue = force || currentMillis - lastRefreshMillis >= refreshIntervalMs;
+        } else {
+            refreshDue = force || (timeInfo.tm_sec == 0 && currentEpoch > lastRefreshEpochSec) ||
+                         currentEpoch - lastRefreshEpochSec > 60;
+        }
+        if (refreshDue) {
+            lastRefreshMillis = currentMillis;
+            lastRefreshEpochSec = currentEpoch;
             if (displayedReadings.size() > 0) {
                 bool dataIsOld = displayedReadings.back().getSecondsAgo() >
                                  60 * SettingsManager.settings.bg_data_too_old_threshold_minutes;
-                DisplayManager.clearMatrix();
+                // clearMatrix(false) clears the back buffer without pushing a
+                // blank frame to the LEDs. On WS2812 every matrix->show() is a
+                // ~7-8ms interrupts-disabled blit, so the old clearMatrix() here
+                // both wasted a full blit and caused a visible blank flash before
+                // the face redrew.
+                DisplayManager.clearMatrix(false);
                 currentFace->showReadings(displayedReadings, dataIsOld);
                 DisplayManager.update();
             } else {
-                DisplayManager.clearMatrix();
+                DisplayManager.clearMatrix(false);
                 currentFace->showNoData();
                 DisplayManager.update();
             }
