@@ -11,7 +11,16 @@ My computer is running linux, but you can use Windows or MacOS as well, there ar
   - install python as a PlatformIO dependency
 - clone the project using Visual Studio Code
 - PlatformIO should detect the project
-- Comment out (place `#` at the beginning of) [this](https://github.com/ktomy/nightscout-clock/blob/main/platformio.ini#L38) line
+- (Optional) Configure your machine-specific upload settings. PlatformIO
+  auto-detects the serial port, so this is only needed if auto-detect picks the
+  wrong device or you want a faster upload speed:
+  - Copy `platformio.local.ini.example` to `platformio.local.ini`
+    (`cp platformio.local.ini.example platformio.local.ini`)
+  - Set `upload_port` to your board's device path (find it with `pio device list`)
+  - `platformio.local.ini` is git-ignored, so your local settings never get
+    committed. `platformio.ini` merges it automatically via `extra_configs`.
+  - The unix helper scripts (`scripts/upload.sh`, `scripts/reset.sh`) require an
+    explicit `upload_port`, so create this file before using them.
 - You should be able to see PlatformIO tab in the sidebar
   - Select `ulanzi_debug` -> `General` -> `Build`
   - `ulanzi_debug` -> `Platform` -> `Build Filesystem image`

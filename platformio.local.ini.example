@@ -1,0 +1,41 @@
+; -----------------------------------------------------------------------------
+; Per-machine PlatformIO overrides (TEMPLATE)
+; -----------------------------------------------------------------------------
+; Copy this file to "platformio.local.ini" (same directory) and edit the values
+; for YOUR computer:
+;
+;     cp platformio.local.ini.example platformio.local.ini
+;
+; "platformio.local.ini" is git-ignored, so your serial port and upload speed
+; never end up in a commit. platformio.ini references this file via:
+;
+;     [platformio]
+;     extra_configs = platformio.local.ini
+;
+; PlatformIO merges the settings below on top of platformio.ini. The helper
+; scripts (scripts/upload.sh, scripts/reset.sh) also read this file first and
+; fall back to platformio.ini.
+;
+; If you do NOT create this file, PlatformIO still auto-detects the serial port,
+; so `pio run -t upload` works out of the box. You only need it to pin a port or
+; use a faster upload speed. The raw esptool helper scripts, however, require an
+; explicit upload_port and will tell you to create this file if it is missing.
+; -----------------------------------------------------------------------------
+
+[env]
+; --- Serial port ---------------------------------------------------------------
+; Set the device path for your board. Find it with: pio device list
+;
+;   macOS    -> /dev/cu.usbserial-XXXX  or  /dev/cu.SLAB_USBtoUART
+;   Linux    -> /dev/ttyUSB0  or a stable /dev/serial/by-id/usb-...-port0 path
+;   Windows  -> COM3 (check Device Manager for the number)
+upload_port = /dev/cu.usbserial-210
+
+; --- Upload speed (optional) ---------------------------------------------------
+; platformio.ini defaults to a safe 115200. Uncomment to go faster once stable.
+; Common values: 460800, 921600. Drop back down if uploads start failing.
+;upload_speed = 921600
+
+; --- Serial monitor port (optional) --------------------------------------------
+; Usually the same as upload_port. Only needed if they differ.
+;monitor_port = /dev/cu.usbserial-210
