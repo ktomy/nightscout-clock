@@ -1,3 +1,40 @@
+"""Nightscout emulator for the clock's built-in "API" data source.
+
+The clock can act as its own tiny Nightscout server: when its data source is set
+to "API" it exposes POST/DELETE /api/v1/entries, so you can push fake glucose
+readings to it for testing (e.g. to exercise the different clock faces / moods)
+without a real CGM.
+
+Prerequisites
+-------------
+1. In the clock's Web UI (http://<clock-ip>/), set Data source -> "API" and let
+   it reboot. Any other source (Nightscout, Dexcom, LibreLinkUp, ...) does NOT
+   register the /api/v1/entries route and requests will 404.
+2. Point `nightscout_url` below at your clock's IP (keep the trailing slash).
+3. Install deps:  pip install requests requests_toolbelt
+
+Usage
+-----
+    python ns_emulator.py --one-value 110      # send a single reading (sgv=110)
+    python ns_emulator.py --sin                # send a sinusoid history of readings
+    python ns_emulator.py --one-value 110 --no-delete   # keep existing readings
+
+By default the script first DELETEs all existing entries, then sends new ones.
+Pass --no-delete to append instead of replacing.
+
+Handy values (mg/dL, assuming default limits) to exercise the Smiley face moods:
+    50  -> urgent low  -> sad / blue
+    110 -> in range    -> happy / green
+    300 -> urgent high -> angry / red
+
+curl equivalent (no Python needed) -- replace the IP and epoch-millis date:
+    # wipe existing readings
+    curl -X DELETE http://192.168.86.24/api/v1/entries
+    # send one reading of 110
+    curl -X POST http://192.168.86.24/api/v1/entries \\
+         -H "Content-Type: application/json" \\
+         -d '[{"sgv":110,"date":1690000000000,"dateString":"2023-07-22T00:00:00","trend":4}]'
+"""
 import json
 import random
 import requests
@@ -6,6 +43,8 @@ from requests_toolbelt.utils import dump
 import math
 import sys
 
+# The clock's IP address (with trailing slash). Find it in your router or on the
+# clock's Web UI; it must be running with Data source set to "API".
 nightscout_url = "http://192.168.86.24/"
 # read command arguments:
 # --no-delete: do not delete the existing data

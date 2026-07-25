@@ -25,8 +25,8 @@ fi
 if [[ $1 == "--upload" || $2 == "--upload" ]]; then
     if [[ $1 == "--fs" || $1 == "--fs" ]]; then
         echo "Uploading LittleFS..."
-        $PROJECTDIR/scripts/upload.sh --fs
+        bash "$PROJECTDIR/scripts/upload.sh" --fs
     else
-        $PROJECTDIR/scripts/upload.sh $1 $2 $3
+        bash "$PROJECTDIR/scripts/upload.sh" $1 $2 $3
     fi
 fi

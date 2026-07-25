@@ -34,6 +34,10 @@ void BGSource::tick() {
 
         if (!firstConnectionSuccess) {
             DisplayManager.clearMatrix();
+            // A big-text face may have left the large font (yAdvance 8) active;
+            // at the y=6 baseline it renders shifted up and clipped. Pin the
+            // small font (yAdvance 6) this baseline is centered for.
+            DisplayManager.setFont(FONT_TYPE::SMALL);
             DisplayManager.printText(0, 6, "To API", TEXT_ALIGNMENT::CENTER, 0);
         }
 
