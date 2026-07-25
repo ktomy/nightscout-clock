@@ -9,3 +9,5 @@ void BGDisplayFace::showNoData() const {
 bool BGDisplayFace::needsFrequentRefresh() const { return false; }
 
 unsigned long BGDisplayFace::getFrequentRefreshIntervalMs() const { return 5000; }
+
+void BGDisplayFace::onActivate() const {}

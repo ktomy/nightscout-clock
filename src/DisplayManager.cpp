@@ -40,6 +40,7 @@ void DisplayManager_::setFont(FONT_TYPE fontType) {
             break;
         case FONT_TYPE::LARGE:
             currentFont = muHeavy8ptBold;
+            break;
         default:
             break;
     }

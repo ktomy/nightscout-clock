@@ -24,6 +24,11 @@ void BGDisplayFaceDiagnostics::showReadings(
 }
 
 void BGDisplayFaceDiagnostics::showNoData() const {
+    // currentFont is global state left by the previous face (e.g. the Smiley or
+    // big-text faces leave the large font active). Pin the small font both for
+    // the width math below and the datetime render, otherwise the first frame
+    // after such a switch is measured and drawn in the large font and clipped.
+    DisplayManager.setFont(FONT_TYPE::SMALL);
     const String& dateTimeText = formatDateTime();
     String noDataText = SettingsManager.settings.bg_units == BG_UNIT::MMOLL ? "--.-" : "---";
     int dateTimeWidth = (int)DisplayManager.getTextWidth(dateTimeText.c_str(), 2);
@@ -46,6 +51,14 @@ void BGDisplayFaceDiagnostics::showNoData() const {
 
 bool BGDisplayFaceDiagnostics::needsFrequentRefresh() const { return contentScrolls; }
 
+void BGDisplayFaceDiagnostics::onActivate() const {
+    // Re-arm the frequent-refresh path: assume the content scrolls until the
+    // next getScrollX measures it. Without this, returning to this face after
+    // it was last shown with static (fitting) content would leave contentScrolls
+    // false, so the first frame would be scheduled at the per-minute rate.
+    contentScrolls = true;
+}
+
 unsigned long BGDisplayFaceDiagnostics::getFrequentRefreshIntervalMs() const {
     return DATETIME_SCROLL_FRAME_MS;
 }
@@ -53,6 +66,10 @@ unsigned long BGDisplayFaceDiagnostics::getFrequentRefreshIntervalMs() const {
 void BGDisplayFaceDiagnostics::showDateTimePage(
     const std::list<GlucoseReading>& readings, bool dataIsOld) const {
     auto lastReading = readings.back();
+    // Pin the small font before the font-dependent width math and the datetime
+    // render; the previous face may have left the large font active (Smiley /
+    // big-text faces), which would otherwise clip this first frame.
+    DisplayManager.setFont(FONT_TYPE::SMALL);
     const String& dateTimeText = formatDateTime();
     String printableReading = getPrintableReading(lastReading.sgv);
     int dateTimeWidth = (int)DisplayManager.getTextWidth(dateTimeText.c_str(), 2);

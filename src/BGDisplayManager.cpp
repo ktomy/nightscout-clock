@@ -62,6 +62,10 @@ void BGDisplayManager_::setup() {
     }
 
     currentFace = (faces[currentFaceIndex]);
+    // The boot/default face is assigned here rather than through setFace(), so
+    // give it the same activation hook the switch path uses to initialize its
+    // per-view state.
+    currentFace->onActivate();
 }
 
 std::map<int, String> BGDisplayManager_::getFaces() { return facesNames; }
@@ -74,6 +78,13 @@ void BGDisplayManager_::setFace(int id) {
     if (id < faces.size()) {
         currentFaceIndex = id;
         currentFace = (faces[currentFaceIndex]);
+        // Reset the shared font to the compact default on every face switch.
+        // currentFont is global state, and several faces (Simple, Battery,
+        // Value-and-diff, ...) render text without calling setFont, so without
+        // this a face that leaves the LARGE font active (BigText, Smiley) would
+        // make the next such face render oversized and clip.
+        DisplayManager.setFont(FONT_TYPE::SMALL);
+        currentFace->onActivate();
         DisplayManager.clearMatrix();
         lastRefreshMillis = 0;
         lastRefreshEpochSec = 0;

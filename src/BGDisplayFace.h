@@ -15,6 +15,10 @@ public:
     virtual void showNoData() const;
     virtual bool needsFrequentRefresh() const;
     virtual unsigned long getFrequentRefreshIntervalMs() const;
+    // Called when this face becomes the active one. Faces are constructed once
+    // and reused, so any per-view state that would otherwise leak across a
+    // switch (e.g. a cached "content fits / is scrolling" flag) is reset here.
+    virtual void onActivate() const;
 };
 
 #endif
