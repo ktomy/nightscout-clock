@@ -13,7 +13,7 @@
 >
 > You can reach me at **artiom@gmail.com**.
 
-### Current version: 0.29.0
+### Current version: 0.29.1
 
 ![Build and Release](https://github.com/ktomy/nightscout-clock/actions/workflows/build_release.yml/badge.svg)
 
@@ -126,6 +126,12 @@ Nightscout Clock is a custom firmware for Ulanzi TC001. It can also run (with mi
   - ...more... (if you are the author of a CGM data collecting app/service and you want your data to be displayed on the Nightscout Clock, please contact me)
 
 ## Changes
+
+### 0.29.1
+
+- Addressed screen refresh, now there should be less flickering due to partial refresh
+- Fixed a potential issue in Improv protocol handling (setting wifi from the installation page)
+- Fixed a potential filesystem corruption on restarts
 
 ### 0.29
 
