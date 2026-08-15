@@ -31,5 +31,6 @@ Use `scripts/release.py` for `patch`, `minor`, and `major` releases.
 - Check whether `README.md` already contains changelog information for the upcoming version.
 - If the changelog is not updated yet, add the release notes for the upcoming version to `README.md`, but do not manually change the `Current version` line.
 - Run `scripts/release.py patch`, `scripts/release.py minor`, or `scripts/release.py major`.
-- The script commits the release metadata changes, pushes the branch, and pushes the release tag.
+- The script requires `main` to track `origin/main`, permits only pending `README.md` changelog edits, and fast-forward pulls before changing release metadata.
+- The script exits on any failed Git operation and atomically pushes the release commit with only its release tag, so neither remote ref is updated if the push is rejected.
 - After the tag is pushed, monitor the tag-triggered GitHub Actions workflow `Build and deploy on Github Pages`. The release is not complete until that workflow succeeds.
