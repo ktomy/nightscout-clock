@@ -223,7 +223,7 @@ IPAddress ServerManager_::startWifi() {
 
     if (connected) {
         WiFi.setAutoReconnect(true);
-        WiFi.persistent(true);
+        WiFi.persistent(false);
         ip = WiFi.localIP();
         DEBUG_PRINTLN("Connected");
         failedAttempts = 0;  // Reset failed API call attempts counter
