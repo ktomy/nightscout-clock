@@ -2,7 +2,6 @@
 
 #include <Arduino.h>
 
-#include "BGDisplayManager.h"
 #include "enums.h"
 #include "globals.h"
 
@@ -26,5 +25,5 @@ void BGDisplayFaceGraphAndBG::showReadings(
     showGraph(0, graphWidth, minutesToShow, readings);
     showReading(lastReading, 31, 6, TEXT_ALIGNMENT::RIGHT, FONT_TYPE::MEDIUM, dataIsOld);
     showTrendVerticalLine(31, lastReading.trend, dataIsOld);
-    BGDisplayManager_::drawTimerBlocks(lastReading, textWidth + 2, graphWidth, 7);
+    drawTimerBlocks(lastReading, textWidth + 2, graphWidth, 7);
 }

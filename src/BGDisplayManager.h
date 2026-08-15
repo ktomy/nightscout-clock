@@ -72,15 +72,13 @@ private:
     std::list<GlucoseReading> displayedReadings;
     std::vector<BGDisplayFace*> faces;
     BGDisplayFace* currentFace;
-    BGDisplayFaceClock* clockFace = nullptr;
     int currentFaceIndex;
     GlucoseIntervals glucoseIntervals;
     std::map<int, String> facesNames;
     bool lastRenderedDataWasOld = false;
 
-    void renderCurrentFace(bool dataIsOld);
-    bool shouldUseClockPartialRefresh(bool force, bool dataIsOld) const;
-    void refreshClockFaceTimeAndTimer();
+    void runRenderCycle(RenderReason reason, const tm& timeInfo);
+    void commitRenderedState(bool dataIsOld);
 
 public:
     static BGDisplayManager_& getInstance();
@@ -95,8 +93,6 @@ public:
     int getCurrentFaceId();
 
     void setFace(int id);
-
-    static void drawTimerBlocks(GlucoseReading lastReading, int width, int xPosition, int yPosition);
 
 private:
     unsigned long long lastRefreshEpoch = 0;

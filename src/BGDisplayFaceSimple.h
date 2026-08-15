@@ -2,9 +2,10 @@
 #define BGDISPLAYFACESIMPLE_H
 
 #include "BGDisplayFaceTextBase.h"
+#include "BGDisplayFaceWithAge.h"
 #include "BGSource.h"
 
-class BGDisplayFaceSimple : public BGDisplayFaceTextBase {
+class BGDisplayFaceSimple : public BGDisplayFaceTextBase, public BGDisplayFaceWithAge {
 public:
     void showReadings(const std::list<GlucoseReading>& readings, bool dataIsOld = false) const override;
 };

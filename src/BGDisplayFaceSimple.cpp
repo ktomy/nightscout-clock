@@ -1,6 +1,5 @@
 #include "BGDisplayFaceSimple.h"
 
-#include "BGDisplayManager.h"
 #include "globals.h"
 
 void BGDisplayFaceSimple::showReadings(const std::list<GlucoseReading>& readings, bool dataIsOld) const {
@@ -11,5 +10,5 @@ void BGDisplayFaceSimple::showReadings(const std::list<GlucoseReading>& readings
     showTrendArrow(lastReading, MATRIX_WIDTH - 5, 1, dataIsOld);
 
     // Call timer block function
-    BGDisplayManager_::drawTimerBlocks(lastReading, MATRIX_WIDTH, 0, 7);
+    drawTimerBlocks(lastReading, MATRIX_WIDTH, 0, 7);
 }

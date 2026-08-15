@@ -1,6 +1,5 @@
 #include "BGDisplayFaceClock.h"
 
-#include "BGDisplayManager.h"
 #include "ServerManager.h"
 #include "globals.h"
 
@@ -11,14 +10,40 @@ void BGDisplayFaceClock::showReadings(const std::list<GlucoseReading>& readings,
 
     switch (SettingsManager.settings.time_format) {
         case TIME_FORMAT::HOURS_12:
-            BGDisplayManager_::drawTimerBlocks(readings.back(), MATRIX_WIDTH - 17, 18, 7);
+            drawTimerBlocks(readings.back(), MATRIX_WIDTH - 17, 18, 7);
             break;
         default:
-            BGDisplayManager_::drawTimerBlocks(readings.back(), MATRIX_WIDTH, 0, 7);
+            drawTimerBlocks(readings.back(), MATRIX_WIDTH, 0, 7);
             break;
     }
 
     showTrendVerticalLine(31, readings.back().trend, dataIsOld);
+}
+
+RenderDecision BGDisplayFaceClock::getRenderDecision(const RenderContext& ctx) const {
+    if (ctx.reason == RenderReason::TIME_TICK && ctx.readings.empty()) {
+        return RenderDecision::PARTIAL;
+    }
+
+    return BGDisplayFaceWithAge::getRenderDecision(ctx);
+}
+
+RenderDecision BGDisplayFaceClock::getAgeTickRenderDecision() const { return RenderDecision::PARTIAL; }
+
+void BGDisplayFaceClock::renderPartial(const RenderContext& ctx) const {
+    clearClockRegion(!ctx.readings.empty());
+    showClock();
+
+    if (!ctx.readings.empty()) {
+        switch (SettingsManager.settings.time_format) {
+            case TIME_FORMAT::HOURS_12:
+                drawTimerBlocks(ctx.readings.back(), MATRIX_WIDTH - 17, 18, 7);
+                break;
+            default:
+                drawTimerBlocks(ctx.readings.back(), MATRIX_WIDTH, 0, 7);
+                break;
+        }
+    }
 }
 
 void BGDisplayFaceClock::showClock() const {
@@ -47,6 +72,24 @@ void BGDisplayFaceClock::showClock() const {
     DisplayManager.setTextColor(COLOR_WHITE);
     DisplayManager.printText(0, 6, hour, TEXT_ALIGNMENT::LEFT, 2);
     DisplayManager.printText(9, 6, minute, TEXT_ALIGNMENT::LEFT, 2);
+}
+
+void BGDisplayFaceClock::clearClockRegion(bool hasTimerBlocks) const {
+    DisplayManager.clearMatrixPart(0, 0, 16, 7);
+
+    switch (SettingsManager.settings.time_format) {
+        case TIME_FORMAT::HOURS_12:
+            DisplayManager.clearMatrixPart(0, 7, 16, 1);
+            if (hasTimerBlocks) {
+                DisplayManager.clearMatrixPart(18, 7, 13, 1);
+            }
+            break;
+        default:
+            if (hasTimerBlocks) {
+                DisplayManager.clearMatrixPart(0, 7, 31, 1);
+            }
+            break;
+    }
 }
 
 void BGDisplayFaceClock::showNoData() const {

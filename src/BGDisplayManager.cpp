@@ -66,62 +66,43 @@ void BGDisplayManager_::setFace(int id) {
     if (id < faces.size()) {
         currentFaceIndex = id;
         currentFace = (faces[currentFaceIndex]);
-        DisplayManager.clearMatrix();
         lastRefreshEpoch = 0;
-        tick();
+        runRenderCycle(RenderReason::FACE_CHANGE, ServerManager.getTimezonedTime());
     }
 }
 
 void BGDisplayManager_::tick() { maybeRrefreshScreen(); }
 
-void BGDisplayManager_::renderCurrentFace(bool dataIsOld) {
-    DisplayManager.clearMatrix();
-    if (displayedReadings.size() > 0) {
-        currentFace->showReadings(displayedReadings, dataIsOld);
-    } else {
-        currentFace->showNoData();
-    }
-    DisplayManager.update();
+void BGDisplayManager_::commitRenderedState(bool dataIsOld) {
     lastRenderedDataWasOld = dataIsOld;
     lastRefreshEpoch = ServerManager.getUtcEpoch();
 }
 
-bool BGDisplayManager_::shouldUseClockPartialRefresh(bool force, bool dataIsOld) const {
-    return !force && displayedReadings.size() > 0 && currentFaceIndex == 5 &&
-           dataIsOld == lastRenderedDataWasOld;
-}
+void BGDisplayManager_::runRenderCycle(RenderReason reason, const tm& timeInfo) {
+    bool dataIsOld = displayedReadings.size() > 0 &&
+                     displayedReadings.back().getSecondsAgo() >
+                         60 * SettingsManager.settings.bg_data_too_old_threshold_minutes;
+    RenderContext ctx{reason, timeInfo, dataIsOld, lastRenderedDataWasOld, displayedReadings};
 
-void BGDisplayManager_::refreshClockFaceTimeAndTimer() {
-    if (currentFaceIndex != 5 || clockFace == nullptr || displayedReadings.size() == 0) {
-        renderCurrentFace(lastRenderedDataWasOld);
-        return;
+    switch (currentFace->getRenderDecision(ctx)) {
+        case RenderDecision::NONE:
+            return;
+        case RenderDecision::PARTIAL:
+            currentFace->renderPartial(ctx);
+            DisplayManager.update();
+            commitRenderedState(dataIsOld);
+            return;
+        case RenderDecision::FULL:
+            DisplayManager.clearMatrix();
+            if (displayedReadings.size() > 0) {
+                currentFace->showReadings(displayedReadings, dataIsOld);
+            } else {
+                currentFace->showNoData();
+            }
+            DisplayManager.update();
+            commitRenderedState(dataIsOld);
+            return;
     }
-
-    DisplayManager.clearMatrixPart(0, 0, 16, 7);
-
-    switch (SettingsManager.settings.time_format) {
-        case TIME_FORMAT::HOURS_12:
-            DisplayManager.clearMatrixPart(0, 7, 16, 1);
-            DisplayManager.clearMatrixPart(18, 7, 13, 1);
-            break;
-        default:
-            DisplayManager.clearMatrixPart(0, 7, 31, 1);
-            break;
-    }
-
-    clockFace->showClock();
-
-    switch (SettingsManager.settings.time_format) {
-        case TIME_FORMAT::HOURS_12:
-            BGDisplayManager_::drawTimerBlocks(displayedReadings.back(), MATRIX_WIDTH - 17, 18, 7);
-            break;
-        default:
-            BGDisplayManager_::drawTimerBlocks(displayedReadings.back(), MATRIX_WIDTH, 0, 7);
-            break;
-    }
-
-    DisplayManager.update();
-    lastRefreshEpoch = ServerManager.getUtcEpoch();
 }
 
 void BGDisplayManager_::maybeRrefreshScreen(bool force) {
@@ -135,19 +116,12 @@ void BGDisplayManager_::maybeRrefreshScreen(bool force) {
         bgDisplayManager.showData(bgSourceManager.getInstance().getGlucoseData());
     } else {
         // We refresh the display every minue trying to match the exact :00 second
-        if (force || timeInfo.tm_sec == 0 && currentEpoch > lastRefreshEpoch ||
+        if (force) {
+            runRenderCycle(RenderReason::FORCED, timeInfo);
+        } else if (
+            timeInfo.tm_sec == 0 && currentEpoch > lastRefreshEpoch ||
             currentEpoch - lastRefreshEpoch > 60) {
-            if (displayedReadings.size() > 0) {
-                bool dataIsOld = displayedReadings.back().getSecondsAgo() >
-                                 60 * SettingsManager.settings.bg_data_too_old_threshold_minutes;
-                if (shouldUseClockPartialRefresh(force, dataIsOld)) {
-                    refreshClockFaceTimeAndTimer();
-                } else {
-                    renderCurrentFace(dataIsOld);
-                }
-            } else {
-                renderCurrentFace(false);
-            }
+            runRenderCycle(RenderReason::TIME_TICK, timeInfo);
         }
     }
 }
@@ -155,74 +129,12 @@ void BGDisplayManager_::maybeRrefreshScreen(bool force) {
 void BGDisplayManager_::showData(std::list<GlucoseReading> glucoseReadings) {
     if (glucoseReadings.size() == 0) {
         displayedReadings.clear();
-        renderCurrentFace(false);
+        runRenderCycle(RenderReason::NEW_DATA, ServerManager.getTimezonedTime());
         return;
     }
 
     displayedReadings = glucoseReadings;
-    bool dataIsOld = displayedReadings.back().getSecondsAgo() >
-                     60 * SettingsManager.settings.bg_data_too_old_threshold_minutes;
-    renderCurrentFace(dataIsOld);
-}
-
-// We draw the horizontal blocks equal to the number of minutes since last reading
-// maximum numer of lines is 5
-// Depending on the face we draw the lines in different places having different sizes
-// The idea is to fit that maximum of 5 lines in the available space
-// We can draw lines in 3 colors:
-// - dark green if reading is less than 6 minutes old
-// - dark orange if reading is between 6 and old_data_threshold_minutes threshold
-// - gray if reading is older than old_data_threshold_minutes threshold
-// @param lastReading - the last reading to draw the lines for
-// @param width - the width of the available space in pixels
-// @param yPosition - the y position of the lines
-// @param xPosition - the x position of the lines
-void BGDisplayManager_::drawTimerBlocks(
-    GlucoseReading lastReading, int width, int xPosition, int yPosition) {
-    const int MAX_BLOXCS = 5;  // maximum number of blocks to draw
-
-    int blocksCount = lastReading.getSecondsAgo() / 60;
-    if (blocksCount > MAX_BLOXCS) {
-        blocksCount = MAX_BLOXCS;  // we draw maximum 5 lines
-    }
-    if (blocksCount <= 0) {
-#ifdef DEBUG_DISPLAY
-        DEBUG_PRINTLN("No blocks to draw, not drawing timer blocks");
-#endif
-        return;
-    }
-
-    // minimal block size is 1 pixel, size between blocks is 1 pixel, so we get width, subtract spaces
-    // between lines and divide by the maximum number of lines
-    int blockSize = blockSize = (width - 4) / MAX_BLOXCS;
-    if (blockSize < 1) {
-#ifdef DEBUG_DISPLAY
-        DEBUG_PRINTLN("Block size is less than 1, not drawing timer blocks");
-#endif
-        return;
-    }
-
-    // Now let's alter xPosition to center the blocks in the available space
-    xPosition += (width - (blockSize * MAX_BLOXCS + (MAX_BLOXCS - 1))) / 2;
-
-    uint16_t color = COLOR_GREEN;
-    if (lastReading.getSecondsAgo() >= 60 * SettingsManager.settings.bg_data_too_old_threshold_minutes) {
-        color = COLOR_GRAY;  // old data
-    } else if (lastReading.getSecondsAgo() >= (MAX_BLOXCS + 1) * 60) {
-        color = COLOR_YELLOW;  // warning data
-    }
-#ifdef DEBUG_DISPLAY
-    DEBUG_PRINTF(
-        "Drawing %d blocks of size %d at position (%d, %d) with color %04X", blocksCount, blockSize,
-        xPosition, yPosition, color);
-#endif
-
-    for (int i = 0; i < blocksCount; i++) {
-        int x = xPosition + i * (blockSize + 1);  // +1 for the space between blocks
-        for (int j = 0; j < blockSize; j++) {
-            DisplayManager.drawPixel(x + j, yPosition, color, false);
-        }
-    }
+    runRenderCycle(RenderReason::NEW_DATA, ServerManager.getTimezonedTime());
 }
 
 GlucoseReading* BGDisplayManager_::getLastDisplayedGlucoseReading() {

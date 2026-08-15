@@ -1,6 +1,5 @@
 #include "BGDisplayFaceValueAndDiff.h"
 
-#include "BGDisplayManager.h"
 #include "globals.h"
 
 void BGDisplayFaceValueAndDiff::showReadings(
@@ -32,7 +31,7 @@ void BGDisplayFaceValueAndDiff::showReadings(
     int elapsedMinutes = (ServerManager.getUtcEpoch() - lastReading.epoch) / 60;
 
     // Call timer block function
-    BGDisplayManager_::drawTimerBlocks(lastReading, MATRIX_WIDTH, 0, 7);
+    drawTimerBlocks(lastReading, MATRIX_WIDTH, 0, 7);
 }
 
 String BGDisplayFaceValueAndDiff::getDiff(const std::list<GlucoseReading>& readings) const {

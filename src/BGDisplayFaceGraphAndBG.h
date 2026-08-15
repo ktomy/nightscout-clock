@@ -4,8 +4,11 @@
 
 #include "BGDisplayFaceGraphBase.h"
 #include "BGDisplayFaceTextBase.h"
+#include "BGDisplayFaceWithAge.h"
 
-class BGDisplayFaceGraphAndBG : public BGDisplayFaceGraphBase, public BGDisplayFaceTextBase {
+class BGDisplayFaceGraphAndBG : public BGDisplayFaceGraphBase,
+                                public BGDisplayFaceTextBase,
+                                public BGDisplayFaceWithAge {
 public:
     void showReadings(const std::list<GlucoseReading>& readings, bool dataIsOld = false) const override;
 };

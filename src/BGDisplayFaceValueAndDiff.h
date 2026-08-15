@@ -2,9 +2,10 @@
 #define BGDISPLAYFACEVALUEANDDIFF_H
 
 #include "BGDisplayFaceTextBase.h"
+#include "BGDisplayFaceWithAge.h"
 #include "BGSource.h"
 
-class BGDisplayFaceValueAndDiff : public BGDisplayFaceTextBase {
+class BGDisplayFaceValueAndDiff : public BGDisplayFaceTextBase, public BGDisplayFaceWithAge {
 public:
     void showReadings(const std::list<GlucoseReading>& readings, bool dataIsOld = false) const override;
 
