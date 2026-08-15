@@ -20,7 +20,7 @@ ImprovCommand parse_improv_data(const uint8_t* data, size_t length, bool check_c
         uint8_t checksum = data[length - 1];
 
         uint32_t calculated_checksum = 0;
-        for (uint8_t i = 0; i < length - 1; i++) {
+        for (size_t i = 0; i < length - 1; i++) {
             calculated_checksum += data[i];
         }
 
