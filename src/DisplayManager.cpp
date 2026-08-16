@@ -270,22 +270,10 @@ void DisplayManager_::setPower(bool state) {
 }
 
 // cycle to previous face
-void DisplayManager_::leftButton() {
-    if (bgDisplayManager.getCurrentFaceId() == 0) {
-        bgDisplayManager.setFace(bgDisplayManager.getFaces().size() - 1);
-    } else {
-        bgDisplayManager.setFace(bgDisplayManager.getCurrentFaceId() - 1);
-    }
-}
+void DisplayManager_::leftButton() { bgDisplayManager.showPreviousFace(); }
 
 // cycle to next face
-void DisplayManager_::rightButton() {
-    if (bgDisplayManager.getCurrentFaceId() == bgDisplayManager.getFaces().size() - 1) {
-        bgDisplayManager.setFace(0);
-    } else {
-        bgDisplayManager.setFace(bgDisplayManager.getCurrentFaceId() + 1);
-    }
-}
+void DisplayManager_::rightButton() { bgDisplayManager.showNextFace(); }
 
 // decrease brightness if not auto mode
 void DisplayManager_::leftButtonLong() {

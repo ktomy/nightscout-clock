@@ -1,5 +1,7 @@
 #include <Arduino.h>
 
+#include <vector>
+
 #include "enums.h"
 
 class Settings {
@@ -18,6 +20,9 @@ public:
     BRIGHTNES_MODE brightness_mode;
     int brightness_level;
     int default_clockface;
+    bool face_cycle_enabled = false;
+    std::vector<int> face_cycle_faces;
+    int face_cycle_interval_seconds = 60;
     BG_SOURCE bg_source;
     String dexcom_username;
     String dexcom_password;

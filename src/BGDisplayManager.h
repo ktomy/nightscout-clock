@@ -76,7 +76,14 @@ private:
     GlucoseIntervals glucoseIntervals;
     std::map<int, String> facesNames;
     bool lastRenderedDataWasOld = false;
+    bool faceCycleActive = false;
+    bool faceCycleTimerStarted = false;
+    unsigned long lastFaceCycleMillis = 0;
+    std::vector<int> faceCycleFaces;
 
+    void configureFaceCycle();
+    void updateFaceCycle();
+    void resetFaceCycleTimer();
     void runRenderCycle(RenderReason reason, const tm& timeInfo);
     void commitRenderedState(bool dataIsOld);
 
@@ -93,6 +100,8 @@ public:
     int getCurrentFaceId();
 
     void setFace(int id);
+    void showNextFace();
+    void showPreviousFace();
 
 private:
     unsigned long long lastRefreshEpoch = 0;

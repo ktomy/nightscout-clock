@@ -65,6 +65,8 @@
         $('#custom_hostname_enable').on('change', toggleCustomHostnameSettings);
         $('#custom_nodatatimer_enable').on('change', toggleCustomNoDataSettings);
         $('#web_auth_enable').on('change', toggleWebAuthSettings);
+        $('#face_cycle_enabled').on('change', toggleFaceCycleSettings);
+        $('.face-cycle-face').on('change', validateFaceCycleSelection);
         $('#open_wifi_network').on('change', toggleWifiPasswordField);
         $('.btn-password-toggle').on('click', togglePasswordVisibility);
         $('.btn-password-toggle').each((_, el) => {
@@ -124,6 +126,52 @@
         if (!isChecked) {
             clearValidationStatus('web_auth_password');
         }
+    }
+
+    function toggleFaceCycleSettings() {
+        const isEnabled = $('#face_cycle_enabled').is(':checked');
+        $('#face_cycle_settings').toggleClass('d-none', !isEnabled);
+        $('#face_cycle_settings').find('input, select').prop('disabled', !isEnabled);
+        $('#default_clock_face').prop('disabled', isEnabled);
+        $('#default_clock_face_cycle_help').toggleClass('d-none', !isEnabled);
+        $('#face_cycle_enabled').attr('aria-expanded', isEnabled ? 'true' : 'false');
+
+        if (isEnabled) {
+            validateFaceCycleSelection();
+        } else {
+            clearFaceCycleValidation();
+        }
+    }
+
+    function validateFaceCycleSelection() {
+        if (!$('#face_cycle_enabled').is(':checked')) {
+            clearFaceCycleValidation();
+            return true;
+        }
+
+        const selectedCount = $('.face-cycle-face:checked').length;
+        const isValid = selectedCount >= 2;
+        const faceGroup = $('#face_cycle_faces_group');
+        const feedback = $('#face_cycle_faces_feedback');
+
+        faceGroup.toggleClass('border-danger', !isValid);
+        faceGroup.attr('aria-invalid', isValid ? 'false' : 'true');
+
+        if (isValid) {
+            feedback.removeClass('mt-3').text('');
+        } else {
+            const message = selectedCount === 1
+                ? '1 face selected. Select one more face before saving.'
+                : '0 faces selected. Select at least two faces before saving.';
+            feedback.addClass('mt-3').text(message);
+        }
+
+        return isValid;
+    }
+
+    function clearFaceCycleValidation() {
+        $('#face_cycle_faces_group').removeClass('border-danger').removeAttr('aria-invalid');
+        $('#face_cycle_faces_feedback').removeClass('mt-3').text('');
     }
 
     function toggleWifiPasswordField() {
@@ -410,6 +458,8 @@
         console.log("Validated alarms, result: " + allValid);
         allValid &= validate($('#custom_nodatatimer'), patterns.custom_nodatatimer);
         console.log("Validated custom no data timer, result: " + allValid);
+        allValid &= validateFaceCycleSelection();
+        console.log("Validated face cycling, result: " + allValid);
         if ($('#web_auth_enable').is(':checked')) {
             const passwordField = $('#web_auth_password');
             const requiresPassword = !webAuthHasPassword || (passwordField.val() || "").length > 0;
@@ -878,6 +928,11 @@
         json['brightness_mode'] = brightnessMode;
         json['brightness_level'] = brightness;
         json['default_face'] = parseInt($('#default_clock_face').val());
+        json['face_cycle_enabled'] = $('#face_cycle_enabled').is(':checked');
+        json['face_cycle_faces'] = $('.face-cycle-face:checked')
+            .map((_, face) => parseInt(face.value))
+            .get();
+        json['face_cycle_interval_seconds'] = parseInt($('#face_cycle_interval_seconds').val());
         json['tz_libc'] = $('#clock_timezone').val();
         json['tz'] = $('#clock_timezone option:selected').text();
         json['time_format'] = $('#time_format').val();
@@ -1196,6 +1251,26 @@
         // Device settings
         $('#brightness_level').val(json['brightness_level']);
         $('#default_clock_face').val(json['default_face']);
+
+        const availableFaces = [0, 1, 2, 3, 4, 5];
+        const defaultFace = Number(json['default_face']);
+        const fallbackFace = availableFaces.includes(defaultFace) ? defaultFace : 0;
+        const configuredFaces = Array.isArray(json['face_cycle_faces'])
+            ? json['face_cycle_faces']
+            : [fallbackFace];
+        const selectedFaces = [...new Set(configuredFaces.map(Number))]
+            .filter(face => availableFaces.includes(face));
+        $('.face-cycle-face').prop('checked', false);
+        selectedFaces.forEach(face => $(`#face_cycle_face_${face}`).prop('checked', true));
+
+        const availableIntervals = [10, 30, 60, 120, 180, 300];
+        const configuredInterval = Number(json['face_cycle_interval_seconds']);
+        const faceCycleInterval = availableIntervals.includes(configuredInterval)
+            ? configuredInterval
+            : 60;
+        $('#face_cycle_interval_seconds').val(faceCycleInterval);
+        $('#face_cycle_enabled').prop('checked', json['face_cycle_enabled'] === true);
+        toggleFaceCycleSettings();
 
         $('#time_format').val(json['time_format']);
 

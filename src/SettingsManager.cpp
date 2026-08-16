@@ -6,6 +6,13 @@
 
 #include "globals.h"
 
+namespace {
+bool isValidFaceCycleInterval(int intervalSeconds) {
+    return intervalSeconds == 10 || intervalSeconds == 30 || intervalSeconds == 60 ||
+           intervalSeconds == 120 || intervalSeconds == 180 || intervalSeconds == 300;
+}
+}  // namespace
+
 // The getter for the instantiated singleton instance
 SettingsManager_& SettingsManager_::getInstance() {
     static SettingsManager_ instance;
@@ -52,7 +59,6 @@ void SettingsManager_::factoryReset() {
 JsonDocument* SettingsManager_::readConfigJsonFile() {
     JsonDocument* doc;
     if (LittleFS.exists(CONFIG_JSON)) {
-        auto settings = Settings();
         File file = LittleFS.open(CONFIG_JSON);
         if (!file || file.isDirectory()) {
             DEBUG_PRINTLN("Failed to open config file for reading");
@@ -105,6 +111,39 @@ bool SettingsManager_::loadSettingsFromFile() {
 
     settings.brightness_level = (*doc)["brightness_level"].as<int>() - 1;
     settings.default_clockface = (*doc)["default_face"].as<int>();
+
+    settings.face_cycle_enabled = (*doc)["face_cycle_enabled"] | false;
+    settings.face_cycle_interval_seconds = (*doc)["face_cycle_interval_seconds"] | 60;
+    if (!isValidFaceCycleInterval(settings.face_cycle_interval_seconds)) {
+        DEBUG_PRINTLN("Invalid face cycle interval in config, defaulting to 60 seconds");
+        settings.face_cycle_interval_seconds = 60;
+    }
+
+    settings.face_cycle_faces.clear();
+    bool faceAlreadyAdded[6] = {};
+    if ((*doc)["face_cycle_faces"].is<JsonArray>()) {
+        for (JsonVariant face : (*doc)["face_cycle_faces"].as<JsonArray>()) {
+            if (!face.is<int>()) {
+                continue;
+            }
+
+            int faceId = face.as<int>();
+            if (faceId >= 0 && faceId < 6 && !faceAlreadyAdded[faceId]) {
+                settings.face_cycle_faces.push_back(faceId);
+                faceAlreadyAdded[faceId] = true;
+            }
+        }
+    }
+    if (settings.face_cycle_faces.empty()) {
+        int fallbackFace = settings.default_clockface >= 0 && settings.default_clockface < 6
+                               ? settings.default_clockface
+                               : 0;
+        settings.face_cycle_faces.push_back(fallbackFace);
+    }
+    if (settings.face_cycle_enabled && settings.face_cycle_faces.size() < 2) {
+        DEBUG_PRINTLN("Too few valid faces in config, disabling face cycling");
+        settings.face_cycle_enabled = false;
+    }
 
     String data_source = (*doc)["data_source"].as<String>();
     if (data_source == "nightscout") {
@@ -224,6 +263,13 @@ bool SettingsManager_::saveSettingsToFile() {
                                                                                           : "manual";
     (*doc)["brightness_level"] = settings.brightness_level + 1;
     (*doc)["default_face"] = settings.default_clockface;
+    (*doc)["face_cycle_enabled"] = settings.face_cycle_enabled;
+    (*doc)["face_cycle_interval_seconds"] = settings.face_cycle_interval_seconds;
+    (*doc).remove("face_cycle_faces");
+    JsonArray faceCycleFaces = (*doc)["face_cycle_faces"].to<JsonArray>();
+    for (int faceId : settings.face_cycle_faces) {
+        faceCycleFaces.add(faceId);
+    }
 
     String data_source = "no_source";
     switch (settings.bg_source) {

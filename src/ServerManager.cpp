@@ -373,6 +373,69 @@ void ServerManager_::setupWebServer(IPAddress ip) {
                 return;
             }
             auto&& data = json.as<JsonObject>();
+            auto sendFaceCycleValidationError = [request](const char* error) {
+                String response = "{\"status\": \"error\", \"error\": \"";
+                response += error;
+                response += "\"}";
+                request->send(400, "application/json", response);
+            };
+
+            if (!data["face_cycle_enabled"].isNull() && !data["face_cycle_enabled"].is<bool>()) {
+                sendFaceCycleValidationError("face_cycle_enabled must be a boolean");
+                return;
+            }
+
+            bool faceCycleEnabled = data["face_cycle_enabled"] | false;
+            bool hasFaceCycleFaces = !data["face_cycle_faces"].isNull();
+            int uniqueFaceCount = 0;
+            if (faceCycleEnabled || hasFaceCycleFaces) {
+                if (!data["face_cycle_faces"].is<JsonArray>()) {
+                    sendFaceCycleValidationError("face_cycle_faces must be an array");
+                    return;
+                }
+
+                bool selectedFaces[6] = {};
+                for (JsonVariant face : data["face_cycle_faces"].as<JsonArray>()) {
+                    if (!face.is<int>()) {
+                        sendFaceCycleValidationError("Face selections must use IDs from 0 to 5");
+                        return;
+                    }
+
+                    int faceId = face.as<int>();
+                    if (faceId < 0 || faceId >= 6) {
+                        sendFaceCycleValidationError("Face selections must use IDs from 0 to 5");
+                        return;
+                    }
+
+                    if (!selectedFaces[faceId]) {
+                        selectedFaces[faceId] = true;
+                        uniqueFaceCount++;
+                    }
+                }
+            }
+
+            if (faceCycleEnabled && uniqueFaceCount < 2) {
+                sendFaceCycleValidationError("Select at least two different clock faces");
+                return;
+            }
+
+            bool hasFaceCycleInterval = !data["face_cycle_interval_seconds"].isNull();
+            if (faceCycleEnabled || hasFaceCycleInterval) {
+                if (!data["face_cycle_interval_seconds"].is<int>()) {
+                    sendFaceCycleValidationError(
+                        "Face cycle period must be 10, 30, 60, 120, 180, or 300 seconds");
+                    return;
+                }
+
+                int intervalSeconds = data["face_cycle_interval_seconds"].as<int>();
+                if (intervalSeconds != 10 && intervalSeconds != 30 && intervalSeconds != 60 &&
+                    intervalSeconds != 120 && intervalSeconds != 180 && intervalSeconds != 300) {
+                    sendFaceCycleValidationError(
+                        "Face cycle period must be 10, 30, 60, 120, 180, or 300 seconds");
+                    return;
+                }
+            }
+
             if (SettingsManager.trySaveJsonAsSettings(data)) {
                 request->send(200, "application/json", "{\"status\": \"ok\"}");
             } else {

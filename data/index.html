@@ -716,7 +716,8 @@
                             <div class="col-md-3 col-lg-3">
                                 <label for="default_clock_face" class="form-label">Default clock
                                     face</label>
-                                <select class="form-select" id="default_clock_face" required>
+                                <select class="form-select" id="default_clock_face" required
+                                    aria-describedby="default_clock_face_cycle_help">
                                     <option value="0">Simple</option>
                                     <option value="1">Full glucose graph</option>
                                     <option value="2">Glucose graph and value</option>
@@ -726,6 +727,9 @@
                                 </select>
                                 <div class="invalid-feedback">
                                     Please select default clock face
+                                </div>
+                                <div class="form-text d-none" id="default_clock_face_cycle_help">
+                                    Default face applies only when automatic cycling is turned off.
                                 </div>
                             </div>
                             <div class="col-md-3 col-lg-3">
@@ -747,6 +751,90 @@
                                 <div class="invalid-feedback">
                                     Please select the time format (AM/PM or 24h)
                                 </div>
+                            </div>
+                        </div>
+                        <hr class="my-4" />
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" role="switch" id="face_cycle_enabled"
+                                aria-controls="face_cycle_settings" aria-describedby="face_cycle_mode_help"
+                                aria-expanded="false" />
+                            <label class="form-check-label fw-semibold" for="face_cycle_enabled">
+                                Cycle selected clock faces automatically
+                            </label>
+                        </div>
+                        <div class="form-text" id="face_cycle_mode_help">
+                            The left and right buttons will move only between the selected faces while cycling is on.
+                        </div>
+                        <div class="row g-3 mt-1 d-none" id="face_cycle_settings">
+                            <div class="col-lg-8">
+                                <fieldset class="border rounded p-3" id="face_cycle_faces_group"
+                                    aria-describedby="face_cycle_faces_help face_cycle_faces_feedback">
+                                    <legend class="float-none w-auto px-2 fs-6 mb-1">Faces to cycle</legend>
+                                    <div class="form-text mt-0 mb-3" id="face_cycle_faces_help">
+                                        Select at least two faces. They will cycle in the order shown below.
+                                    </div>
+                                    <div class="row row-cols-1 row-cols-sm-2 g-2">
+                                        <div class="col">
+                                            <div class="form-check">
+                                                <input class="form-check-input face-cycle-face" type="checkbox"
+                                                    name="face_cycle_faces" value="0" id="face_cycle_face_0" disabled />
+                                                <label class="form-check-label" for="face_cycle_face_0">Simple</label>
+                                            </div>
+                                        </div>
+                                        <div class="col">
+                                            <div class="form-check">
+                                                <input class="form-check-input face-cycle-face" type="checkbox"
+                                                    name="face_cycle_faces" value="1" id="face_cycle_face_1" disabled />
+                                                <label class="form-check-label" for="face_cycle_face_1">Full glucose
+                                                    graph</label>
+                                            </div>
+                                        </div>
+                                        <div class="col">
+                                            <div class="form-check">
+                                                <input class="form-check-input face-cycle-face" type="checkbox"
+                                                    name="face_cycle_faces" value="2" id="face_cycle_face_2" disabled />
+                                                <label class="form-check-label" for="face_cycle_face_2">Glucose graph
+                                                    and value</label>
+                                            </div>
+                                        </div>
+                                        <div class="col">
+                                            <div class="form-check">
+                                                <input class="form-check-input face-cycle-face" type="checkbox"
+                                                    name="face_cycle_faces" value="3" id="face_cycle_face_3" disabled />
+                                                <label class="form-check-label" for="face_cycle_face_3">Big text</label>
+                                            </div>
+                                        </div>
+                                        <div class="col">
+                                            <div class="form-check">
+                                                <input class="form-check-input face-cycle-face" type="checkbox"
+                                                    name="face_cycle_faces" value="4" id="face_cycle_face_4" disabled />
+                                                <label class="form-check-label" for="face_cycle_face_4">Value and
+                                                    delta</label>
+                                            </div>
+                                        </div>
+                                        <div class="col">
+                                            <div class="form-check">
+                                                <input class="form-check-input face-cycle-face" type="checkbox"
+                                                    name="face_cycle_faces" value="5" id="face_cycle_face_5" disabled />
+                                                <label class="form-check-label" for="face_cycle_face_5">Current time
+                                                    and BG value</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="text-danger fw-semibold" id="face_cycle_faces_feedback"
+                                        role="status" aria-live="polite" aria-atomic="true"></div>
+                                </fieldset>
+                            </div>
+                            <div class="col-lg-4">
+                                <label for="face_cycle_interval_seconds" class="form-label">Change face every</label>
+                                <select class="form-select" id="face_cycle_interval_seconds" disabled>
+                                    <option value="10">10 seconds</option>
+                                    <option value="30">30 seconds</option>
+                                    <option value="60" selected>1 minute</option>
+                                    <option value="120">2 minutes</option>
+                                    <option value="180">3 minutes</option>
+                                    <option value="300">5 minutes</option>
+                                </select>
                             </div>
                         </div>
                     </div>

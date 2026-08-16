@@ -1,5 +1,6 @@
 #include "BGDisplayManager.h"
 
+#include <algorithm>
 #include <list>
 
 #include "BGSource.h"
@@ -48,12 +49,48 @@ void BGDisplayManager_::setup() {
     faces.push_back(new BGDisplayFaceClock());
     facesNames[5] = "Clock and value";
 
-    currentFaceIndex = SettingsManager.settings.default_clockface;
-    if (currentFaceIndex >= faces.size()) {
+    configureFaceCycle();
+
+    if (faceCycleActive) {
+        currentFaceIndex = faceCycleFaces.front();
+    } else {
+        currentFaceIndex = SettingsManager.settings.default_clockface;
+    }
+
+    if (currentFaceIndex < 0 || static_cast<size_t>(currentFaceIndex) >= faces.size()) {
         currentFaceIndex = 0;
     }
 
     currentFace = (faces[currentFaceIndex]);
+}
+
+void BGDisplayManager_::configureFaceCycle() {
+    faceCycleFaces.clear();
+    faceCycleActive = false;
+    faceCycleTimerStarted = false;
+
+    for (int faceId : SettingsManager.settings.face_cycle_faces) {
+        if (faceId < 0 || static_cast<size_t>(faceId) >= faces.size()) {
+            continue;
+        }
+
+        if (std::find(faceCycleFaces.begin(), faceCycleFaces.end(), faceId) == faceCycleFaces.end()) {
+            faceCycleFaces.push_back(faceId);
+        }
+    }
+
+    if (!SettingsManager.settings.face_cycle_enabled) {
+        return;
+    }
+
+    if (faceCycleFaces.size() < 2) {
+        DEBUG_PRINTF(
+            "Clock face cycling disabled: at least two valid unique faces are required, found %u\n",
+            static_cast<unsigned int>(faceCycleFaces.size()));
+        return;
+    }
+
+    faceCycleActive = true;
 }
 
 std::map<int, String> BGDisplayManager_::getFaces() { return facesNames; }
@@ -63,15 +100,88 @@ int BGDisplayManager_::getCurrentFaceId() { return currentFaceIndex; }
 GlucoseIntervals BGDisplayManager_::getGlucoseIntervals() { return glucoseIntervals; }
 
 void BGDisplayManager_::setFace(int id) {
-    if (id < faces.size()) {
-        currentFaceIndex = id;
-        currentFace = (faces[currentFaceIndex]);
-        lastRefreshEpoch = 0;
-        runRenderCycle(RenderReason::FACE_CHANGE, ServerManager.getTimezonedTime());
+    if (id < 0 || static_cast<size_t>(id) >= faces.size()) {
+        return;
+    }
+
+    currentFaceIndex = id;
+    currentFace = (faces[currentFaceIndex]);
+    lastRefreshEpoch = 0;
+    resetFaceCycleTimer();
+    runRenderCycle(RenderReason::FACE_CHANGE, ServerManager.getTimezonedTime());
+}
+
+void BGDisplayManager_::showNextFace() {
+    if (!faceCycleActive) {
+        int nextFaceIndex = currentFaceIndex + 1;
+        if (static_cast<size_t>(nextFaceIndex) >= faces.size()) {
+            nextFaceIndex = 0;
+        }
+        setFace(nextFaceIndex);
+        return;
+    }
+
+    auto current = std::find(faceCycleFaces.begin(), faceCycleFaces.end(), currentFaceIndex);
+    if (current == faceCycleFaces.end()) {
+        setFace(faceCycleFaces.front());
+        return;
+    }
+
+    current++;
+    setFace(current == faceCycleFaces.end() ? faceCycleFaces.front() : *current);
+}
+
+void BGDisplayManager_::showPreviousFace() {
+    if (!faceCycleActive) {
+        int previousFaceIndex = currentFaceIndex - 1;
+        if (previousFaceIndex < 0) {
+            previousFaceIndex = static_cast<int>(faces.size()) - 1;
+        }
+        setFace(previousFaceIndex);
+        return;
+    }
+
+    auto current = std::find(faceCycleFaces.begin(), faceCycleFaces.end(), currentFaceIndex);
+    if (current == faceCycleFaces.end() || current == faceCycleFaces.begin()) {
+        setFace(faceCycleFaces.back());
+    } else {
+        setFace(*--current);
     }
 }
 
-void BGDisplayManager_::tick() { maybeRrefreshScreen(); }
+void BGDisplayManager_::resetFaceCycleTimer() {
+    lastFaceCycleMillis = millis();
+    faceCycleTimerStarted = true;
+}
+
+void BGDisplayManager_::updateFaceCycle() {
+    if (!faceCycleActive) {
+        return;
+    }
+
+    if (MATRIX_OFF) {
+        faceCycleTimerStarted = false;
+        return;
+    }
+
+    unsigned long currentMillis = millis();
+    if (!faceCycleTimerStarted) {
+        lastFaceCycleMillis = currentMillis;
+        faceCycleTimerStarted = true;
+        return;
+    }
+
+    unsigned long intervalMillis =
+        static_cast<unsigned long>(SettingsManager.settings.face_cycle_interval_seconds) * 1000UL;
+    if (currentMillis - lastFaceCycleMillis >= intervalMillis) {
+        showNextFace();
+    }
+}
+
+void BGDisplayManager_::tick() {
+    updateFaceCycle();
+    maybeRrefreshScreen();
+}
 
 void BGDisplayManager_::commitRenderedState(bool dataIsOld) {
     lastRenderedDataWasOld = dataIsOld;

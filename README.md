@@ -72,6 +72,12 @@ Nightscout Clock is a custom firmware for Ulanzi TC001. It can also run (with mi
 | Delta           | <img width="500" alt="Photo of the Nightscout Clock" src="https://github.com/user-attachments/assets/f8005f49-6e32-43f1-bd84-0bb4e4691d7f" /> |         |
 | Time and value  | <img width="500" alt="Time and value" src="https://github.com/user-attachments/assets/cd72bf15-85e3-4621-b5ca-d639c1849cd5" /> | The dots on the right side replace the trend arrow.<br>2 white dots = horizontal arrow.<br>2 colored dots (white + green) = 45° arrow.<br>3 dots = vertical arrow.<br>4 dots = double arrow.<br>Colored dots above = upward trend.<br>Colored dots below = downward trend. <br /><br /> For the bottom-side bars see "Simple" face for details |
 
+#### Automatic clock-face cycling
+
+Automatic cycling can be enabled under Device settings in the Web UI. Select at least two clock faces and choose how often the face should change: 10 or 30 seconds, or 1, 2, 3, or 5 minutes. Faces cycle in the order shown in the Web UI.
+
+While cycling is enabled, the left and right buttons move only between the selected faces and restart the interval without stopping automatic cycling. The default-face setting is disabled until automatic cycling is turned off again.
+
 ### Configuration web interface
 
 <img alt="webUI" src="https://github.com/user-attachments/assets/94222c87-3f96-46f9-a773-02f7cdb16e6b" />
@@ -101,6 +107,7 @@ Nightscout Clock is a custom firmware for Ulanzi TC001. It can also run (with mi
 - Multiple clock faces support
   - Default clock face can be selected in the Web UI
   - Clock faces can be changed using arrow buttons on the clock
+  - Selected clock faces can cycle automatically at a configurable interval
   - Simple clock face (value and trend arrow)
   - Full-width glucose graph
   - Graph, value and trend indicator
@@ -126,6 +133,10 @@ Nightscout Clock is a custom firmware for Ulanzi TC001. It can also run (with mi
   - ...more... (if you are the author of a CGM data collecting app/service and you want your data to be displayed on the Nightscout Clock, please contact me)
 
 ## Changes
+
+### 0.30
+
+- Added automatic cycling between selected clock faces, with Web UI validation requiring at least two faces, configurable intervals from 10 seconds to 5 minutes, and left/right navigation limited to the selected faces
 
 ### 0.29.1
 
