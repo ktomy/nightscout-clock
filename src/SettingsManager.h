@@ -14,7 +14,7 @@ private:
 
 public:
     static SettingsManager_& getInstance();
-    void setup();
+    bool setup();
     bool loadSettingsFromFile();
     bool saveSettingsToFile();
     bool trySaveJsonAsSettings(JsonDocument doc);
