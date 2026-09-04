@@ -40,6 +40,7 @@ void DisplayManager_::setFont(FONT_TYPE fontType) {
             break;
         case FONT_TYPE::LARGE:
             currentFont = muHeavy8ptBold;
+            break;
         default:
             break;
     }
@@ -124,8 +125,13 @@ float DisplayManager_::getTextWidth(const char* text, byte textCase) {
         if ((UPPERCASE_LETTERS && textCase == 0) || textCase == 1) {
             current_char = toupper(current_char);
         }
-        if (currentFont.charSizeMap.count(current_char) > 0) {
-            width += currentFont.charSizeMap[current_char];
+        // Single lookup (find) instead of count() + operator[]: it avoids a
+        // second tree traversal and the non-const operator[], which would insert
+        // a default entry for any unmapped glyph. getTextWidth runs per frame for
+        // the animated faces, so this matters in the hot path.
+        auto charSize = currentFont.charSizeMap.find(current_char);
+        if (charSize != currentFont.charSizeMap.end()) {
+            width += charSize->second;
         } else {
             width += 4;
         }
@@ -134,8 +140,11 @@ float DisplayManager_::getTextWidth(const char* text, byte textCase) {
 }
 void DisplayManager_::setTextColor(uint16_t color) { matrix->setTextColor(color); }
 
-void DisplayManager_::clearMatrix() {
+void DisplayManager_::clearMatrix(bool updateMatrix) {
     matrix->clear();
+    if (updateMatrix) {
+        matrix->show();
+    }
 }
 
 // DisplayManager_::printText(int16_t x, int16_t y, const char *text, TEXT_ALIGNMENT alignment, byte
@@ -143,7 +152,7 @@ void DisplayManager_::clearMatrix() {
 // }
 
 void DisplayManager_::printText(
-    int16_t x, int16_t y, const char* text, TEXT_ALIGNMENT alignment, byte textCase) {
+    int16_t x, int16_t y, const char* text, TEXT_ALIGNMENT alignment, byte textCase, bool updateMatrix) {
     if (alignment == TEXT_ALIGNMENT::LEFT) {
         matrix->setCursor(x, y);
     } else if (alignment == TEXT_ALIGNMENT::RIGHT) {
@@ -169,12 +178,18 @@ void DisplayManager_::printText(
     } else {
         matrix->print(text);
     }
+    if (updateMatrix) {
+        matrix->show();
+    }
 }
 
 void DisplayManager_::drawBitmap(
-    int16_t x, int16_t y, const uint8_t bitmap[], int16_t w, int16_t h, uint16_t color) {
+    int16_t x, int16_t y, const uint8_t bitmap[], int16_t w, int16_t h, uint16_t color, bool updateMatrix) {
     matrix->setCursor(x, y);
     matrix->drawBitmap(x, y, bitmap, w, h, color);
+    if (updateMatrix) {
+        matrix->show();
+    }
 }
 
 void DisplayManager_::scrollColorfulText(String message) {
@@ -216,6 +231,11 @@ void DisplayManager_::HSVtext(int16_t x, int16_t y, const char* text, bool clear
 
 void DisplayManager_::showFatalError(String errorMessage) {
     DEBUG_PRINTF("Fatal error: %s\n", errorMessage.c_str());
+    // currentFont is global state left behind by whichever face rendered last.
+    // The large font (yAdvance 8) at the y=6 baseline used below would be pushed
+    // up and clipped ("shifted to the top"), so pin the small font (yAdvance 6)
+    // that this baseline is centered for.
+    setFont(FONT_TYPE::SMALL);
     setTextColor(COLOR_GRAY);
 
     auto startMills = millis();
@@ -306,6 +326,10 @@ void DisplayManager_::selectButtonLong() {}
 
 void DisplayManager_::update() { matrix->show(); }
 
-void DisplayManager_::clearMatrixPart(uint8_t x, uint8_t y, uint8_t width, uint8_t height) {
+void DisplayManager_::clearMatrixPart(
+    uint8_t x, uint8_t y, uint8_t width, uint8_t height, bool updateMatrix) {
     matrix->fillRect(x, y, width, height, 0);
+    if (updateMatrix) {
+        matrix->show();
+    }
 }

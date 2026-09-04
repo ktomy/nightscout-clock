@@ -10,12 +10,15 @@ public:
         const std::list<GlucoseReading>& readings, bool dataIsOld = false) const = 0;
 
 protected:
-    void showTrendArrow(const GlucoseReading reading, int16_t x, int16_t y, bool dataIsOld) const;
+    void showTrendArrow(
+        const GlucoseReading reading, int16_t x, int16_t y, bool dataIsOld,
+        bool colorByReading = false, bool updateMatrix = true) const;
     void showTrendVerticalLine(int x, BG_TREND trend, bool dataIsOld) const;
     void showReading(
         const GlucoseReading reading, int16_t x, int16_t y, TEXT_ALIGNMENT alignment, FONT_TYPE fontType,
-        bool isOld = false) const;
+        bool isOld = false, bool updateMatrix = true) const;
     void SetDisplayColorByBGValue(const GlucoseReading& reading) const;
+    uint16_t getDisplayColorByBGValue(const GlucoseReading& reading) const;
     String getPrintableReading(const int sgv) const;
 };
 

@@ -20,10 +20,14 @@ public:
     void tick();
 
     void HSVtext(int16_t x, int16_t y, const char* text, bool clear, byte textCase);
-    void printText(int16_t x, int16_t y, const char* text, TEXT_ALIGNMENT alignment, byte textCase);
+    void printText(
+        int16_t x, int16_t y, const char* text, TEXT_ALIGNMENT alignment, byte textCase,
+        bool updateMatrix = true);
     void setTextColor(uint16_t color);
-    void clearMatrix();
-    void drawBitmap(int16_t x, int16_t y, const uint8_t bitmap[], int16_t w, int16_t h, uint16_t color);
+    void clearMatrix(bool updateMatrix = true);
+    void drawBitmap(
+        int16_t x, int16_t y, const uint8_t bitmap[], int16_t w, int16_t h, uint16_t color,
+        bool updateMatrix = true);
     void showFatalError(String errorMessage);
     void scrollColorfulText(String message);
     void drawPixel(uint8_t x, uint8_t y, uint16_t color, bool updateMatrix = false);
@@ -36,7 +40,8 @@ public:
     void setPower(bool power);
     void setBrightness(int bri);
     void update();
-    void clearMatrixPart(uint8_t x, uint8_t y, uint8_t width, uint8_t height);
+    void clearMatrixPart(
+        uint8_t x, uint8_t y, uint8_t width, uint8_t height, bool updateMatrix = true);
     float getTextWidth(const char* text, byte textCase);
     void setFont(FONT_TYPE fontType);
 };

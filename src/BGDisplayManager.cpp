@@ -48,6 +48,14 @@ void BGDisplayManager_::setup() {
     facesNames[4] = "Value and diff";
     faces.push_back(new BGDisplayFaceClock());
     facesNames[5] = "Clock and value";
+    faces.push_back(new BGDisplayFaceDiagnostics());
+    facesNames[6] = "Diagnostics";
+    faces.push_back(new BGDisplayFaceBatteryUptime());
+    facesNames[7] = "Battery and uptime";
+    faces.push_back(new BGDisplayFaceBigTextRainbow());
+    facesNames[8] = "Rainbow big text";
+    faces.push_back(new BGDisplayFaceSmiley());
+    facesNames[9] = "Smiley";
 
     configureFaceCycle();
 

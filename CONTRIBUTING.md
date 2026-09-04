@@ -12,9 +12,10 @@ My computer is running linux, but you can use Windows or MacOS as well, there ar
 - clone the project using Visual Studio Code
 - PlatformIO should detect the project
 - Configure the serial port for your machine:
-  - Copy `platformio.local.ini.example` to `platformio.local.ini`
+  - Copy `platformio.local.ini.example` to `platformio.local.ini` (`cp platformio.local.ini.example platformio.local.ini`)
   - Uncomment the appropriate `upload_port` example and set it to your device
   - Optionally uncomment `monitor_port` for PlatformIO's native serial monitor
+  - Optionally set `upload_speed` if you want a machine-specific speed override
   - Find available ports with `pio device list`; prefer a stable `/dev/serial/by-id/` path on Linux
   - `platformio.local.ini` is ignored by Git and overrides the shared settings in `platformio.ini`
 - You should be able to see PlatformIO tab in the sidebar
