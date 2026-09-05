@@ -48,6 +48,8 @@ void BGDisplayManager_::setup() {
     facesNames[4] = "Value and diff";
     faces.push_back(new BGDisplayFaceClock());
     facesNames[5] = "Clock and value";
+    faces.push_back(new BGDisplayFaceUnicorn());
+    facesNames[6] = "Unicorn";
 
     if (faces.size() != CLOCK_FACE_COUNT) {
         DEBUG_PRINTF(
