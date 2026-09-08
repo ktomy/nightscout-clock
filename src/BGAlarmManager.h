@@ -12,6 +12,7 @@ struct AlarmData {
     int snoozeTimeMinutes;
     String silenceInterval;
     String alarmSound;
+    byte alarmVolume;
     bool isSnoozed;
 };
 

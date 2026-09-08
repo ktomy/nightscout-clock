@@ -725,6 +725,7 @@
         const alarmType = $(target).attr('id').replace('_enable', '').replace('alarm_', '');
         const alarmState = $(target).is(':checked');
         $(`#alarm_${alarmType}_value`).prop('disabled', !alarmState);
+        $(`#alarm_${alarmType}_volume`).prop('disabled', !alarmState);
         $(`#alarm_${alarmType}_snooze`).prop('disabled', !alarmState);
         $(`#alarm_${alarmType}_silence`).prop('disabled', !alarmState);
         $(`#alarm_${alarmType}_melody`).prop('disabled', !alarmState);
@@ -1039,6 +1040,7 @@
     function setAlarmDataToJson(json, alarmType) {
         const alarmEnabled = $(`#alarm_${alarmType}_enable`).is(':checked');
         json[`alarm_${alarmType}_enabled`] = alarmEnabled;
+        json[`alarm_${alarmType}_volume`] = parseInt($(`#alarm_${alarmType}_volume`).val());
 
         const melody = ($(`#alarm_${alarmType}_melody`).val() || "").trim();
         json[`alarm_${alarmType}_melody`] = melody;
@@ -1410,6 +1412,7 @@
             alarmValue = ((Math.round(alarmValue / 1.8) / 10) + "").replace(",", ".")
         }
         $(`#alarm_${alarmType}_value`).val(alarmValue);
+        $(`#alarm_${alarmType}_volume`).val(json[`alarm_${alarmType}_volume`] || 250);
         $(`#alarm_${alarmType}_snooze`).val(json[`alarm_${alarmType}_snooze_interval`] || "");
         $(`#alarm_${alarmType}_silence`).val(json[`alarm_${alarmType}_silence_interval`] || "");
         $(`#alarm_${alarmType}_melody`).val(json[`alarm_${alarmType}_melody`] || "");

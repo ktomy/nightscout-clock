@@ -71,5 +71,12 @@ extern uint16_t BATTERY_RAW;
 extern bool MATRIX_OFF;
 extern uint8_t MIN_BRIGHTNESS;
 extern uint8_t MAX_BRIGHTNESS;
+// MelodyPlayer halves the value it is given, so these become PWM duty 30, 62 and 125 out
+// of 255. Half duty is the loudest a square wave gets, and is what every alert played at
+// before the volume was configurable, so HIGH is the no-change default.
+#define ALARM_VOLUME_LOW 60
+#define ALARM_VOLUME_MEDIUM 125
+#define ALARM_VOLUME_HIGH 250
+#define DEFAULT_ALARM_VOLUME ALARM_VOLUME_HIGH
 extern const String sound_boot PROGMEM;
 #endif  // Globals_H

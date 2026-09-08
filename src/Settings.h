@@ -51,6 +51,9 @@ public:
     String alarm_high_melody;
     String alarm_low_melody;
     String alarm_urgent_low_melody;
+    int alarm_high_volume;
+    int alarm_low_volume;
+    int alarm_urgent_low_volume;
     bool additional_wifi_enable;
     String additional_wifi_type;
     String additional_wifi_ssid;

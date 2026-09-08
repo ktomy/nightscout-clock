@@ -24,6 +24,7 @@ public:
     void tick();
     const char* readUptime();
     const void playRTTTLString(String rtttl);
+    const void playRTTTLString(String rtttl, byte volume);
     const bool isButtonSelectPressed();
 };
 
