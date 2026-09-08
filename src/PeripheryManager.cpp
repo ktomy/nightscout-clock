@@ -260,7 +260,13 @@ const char* PeripheryManager_::readUptime() {
 }
 
 const void PeripheryManager_::playRTTTLString(String rtttl) {
-    static char melodyName[64];
+    playRTTTLString(rtttl, DEFAULT_ALARM_VOLUME);
+}
+
+const void PeripheryManager_::playRTTTLString(String rtttl, byte volume) {
     Melody melody = MelodyFactory.loadRtttlString(rtttl.c_str());
+    // Set every time rather than once at startup, because the volume is per alert: the value left
+    // behind by the previous melody must never leak into the next one.
+    player.setVolume(volume);
     player.playAsync(melody);
 }
