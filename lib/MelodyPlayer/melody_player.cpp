@@ -111,9 +111,7 @@ void changeTone(MelodyPlayer* player) {
             if (!player->muted) {
 #ifdef ESP32
                 ledcWriteTone(player->pwmChannel, computedNote.frequency);
-                // ledcWriteTone resets the duty cycle to 50%, so the volume has to be applied
-                // AFTER it or it is silently overwritten. This was previously behind if (false),
-                // which is why setVolume() had no audible effect on ESP32.
+                // ledcWriteTone resets the duty to 50%, so the volume must be applied after it.
                 ledcWrite(player->pwmChannel, player->volume);
 #else
                 tone(player->pin, computedNote.frequency);
