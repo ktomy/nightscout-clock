@@ -86,9 +86,9 @@ JsonDocument* SettingsManager_::readConfigJsonFile() {
 
 bool SettingsManager_::isValidAlarmRepeatInterval(int intervalSeconds) {
     return intervalSeconds == 60 || intervalSeconds == 120 || intervalSeconds == 300;
+}
 
-// The three levels the web UI offers. Anything else means a hand written config, and rather than
-// guess at what was intended the alert falls back to the volume it has always played at.
+// The three levels the WebUI offers; anything else falls back to the default.
 static int readAlarmVolume(JsonVariantConst configured) {
     int volume = configured | DEFAULT_ALARM_VOLUME;
     if (volume != ALARM_VOLUME_LOW && volume != ALARM_VOLUME_MEDIUM && volume != ALARM_VOLUME_HIGH) {
