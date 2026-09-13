@@ -11,6 +11,16 @@
     let webAuthPassword = "";
     let configLoaded = false;
 
+    // IDs must match the registration order in BGDisplayManager::setup().
+    const clockFaces = {
+        0: 'Simple',
+        1: 'Full glucose graph',
+        2: 'Glucose graph and value',
+        3: 'Big text',
+        4: 'Value and delta',
+        5: 'Current time and BG value'
+    };
+
     if (window.location.href.indexOf("127.0.0.1") > 0) {
         console.log("Setting clock host to lab ESP..");
         clockHost = "http://192.168.86.24";
@@ -41,6 +51,8 @@
 
     let clockStatus = {};
 
+    renderClockFaceControls();
+
     addValidationHandlers();
 
     addButtonsHandlers();
@@ -52,6 +64,26 @@
     startPollingClockStatus();
 
     displayVersionInfo();
+
+    function renderClockFaceControls() {
+        const defaultFaceSelect = $('#default_clock_face').empty();
+        const cycleFaceOptions = $('#face_cycle_face_options').empty();
+
+        Object.entries(clockFaces).forEach(([id, name]) => {
+            $('<option>', { value: id, text: name }).appendTo(defaultFaceSelect);
+
+            const checkboxId = `face_cycle_face_${id}`;
+            cycleFaceOptions.append(`
+                <div class="col">
+                    <div class="form-check">
+                        <input class="form-check-input face-cycle-face" type="checkbox"
+                            name="face_cycle_faces" value="${id}" id="${checkboxId}" disabled />
+                        <label class="form-check-label" for="${checkboxId}">${name}</label>
+                    </div>
+                </div>
+            `);
+        });
+    }
 
     function addButtonsHandlers() {
         $('#btn_high_alarm_try').on('click', tryAlarm);
@@ -1260,7 +1292,9 @@
         $('#brightness_level').val(json['brightness_level']);
         $('#default_clock_face').val(json['default_face']);
 
-        const availableFaces = [0, 1, 2, 3, 4, 5];
+        const availableFaces = $('.face-cycle-face')
+            .map((_, face) => Number(face.value))
+            .get();
         const defaultFace = Number(json['default_face']);
         const fallbackFace = availableFaces.includes(defaultFace) ? defaultFace : 0;
         const configuredFaces = Array.isArray(json['face_cycle_faces'])

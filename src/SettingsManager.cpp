@@ -124,7 +124,7 @@ bool SettingsManager_::loadSettingsFromFile() {
     }
 
     settings.face_cycle_faces.clear();
-    bool faceAlreadyAdded[6] = {};
+    bool faceAlreadyAdded[CLOCK_FACE_COUNT] = {};
     if ((*doc)["face_cycle_faces"].is<JsonArray>()) {
         for (JsonVariant face : (*doc)["face_cycle_faces"].as<JsonArray>()) {
             if (!face.is<int>()) {
@@ -132,14 +132,14 @@ bool SettingsManager_::loadSettingsFromFile() {
             }
 
             int faceId = face.as<int>();
-            if (faceId >= 0 && faceId < 6 && !faceAlreadyAdded[faceId]) {
+            if (faceId >= 0 && faceId < CLOCK_FACE_COUNT && !faceAlreadyAdded[faceId]) {
                 settings.face_cycle_faces.push_back(faceId);
                 faceAlreadyAdded[faceId] = true;
             }
         }
     }
     if (settings.face_cycle_faces.empty()) {
-        int fallbackFace = settings.default_clockface >= 0 && settings.default_clockface < 6
+        int fallbackFace = settings.default_clockface >= 0 && settings.default_clockface < CLOCK_FACE_COUNT
                                ? settings.default_clockface
                                : 0;
         settings.face_cycle_faces.push_back(fallbackFace);

@@ -731,12 +731,6 @@
                                     face</label>
                                 <select class="form-select" id="default_clock_face" required
                                     aria-describedby="default_clock_face_cycle_help">
-                                    <option value="0">Simple</option>
-                                    <option value="1">Full glucose graph</option>
-                                    <option value="2">Glucose graph and value</option>
-                                    <option value="3">Big text</option>
-                                    <option value="4">Value and delta</option>
-                                    <option value="5">Current time and BG value</option>
                                 </select>
                                 <div class="invalid-feedback">
                                     Please select default clock face
@@ -802,54 +796,7 @@
                                     <div class="form-text mt-0 mb-3" id="face_cycle_faces_help">
                                         Select at least two faces. They will cycle in the order shown below.
                                     </div>
-                                    <div class="row row-cols-1 row-cols-sm-2 g-2">
-                                        <div class="col">
-                                            <div class="form-check">
-                                                <input class="form-check-input face-cycle-face" type="checkbox"
-                                                    name="face_cycle_faces" value="0" id="face_cycle_face_0" disabled />
-                                                <label class="form-check-label" for="face_cycle_face_0">Simple</label>
-                                            </div>
-                                        </div>
-                                        <div class="col">
-                                            <div class="form-check">
-                                                <input class="form-check-input face-cycle-face" type="checkbox"
-                                                    name="face_cycle_faces" value="1" id="face_cycle_face_1" disabled />
-                                                <label class="form-check-label" for="face_cycle_face_1">Full glucose
-                                                    graph</label>
-                                            </div>
-                                        </div>
-                                        <div class="col">
-                                            <div class="form-check">
-                                                <input class="form-check-input face-cycle-face" type="checkbox"
-                                                    name="face_cycle_faces" value="2" id="face_cycle_face_2" disabled />
-                                                <label class="form-check-label" for="face_cycle_face_2">Glucose graph
-                                                    and value</label>
-                                            </div>
-                                        </div>
-                                        <div class="col">
-                                            <div class="form-check">
-                                                <input class="form-check-input face-cycle-face" type="checkbox"
-                                                    name="face_cycle_faces" value="3" id="face_cycle_face_3" disabled />
-                                                <label class="form-check-label" for="face_cycle_face_3">Big text</label>
-                                            </div>
-                                        </div>
-                                        <div class="col">
-                                            <div class="form-check">
-                                                <input class="form-check-input face-cycle-face" type="checkbox"
-                                                    name="face_cycle_faces" value="4" id="face_cycle_face_4" disabled />
-                                                <label class="form-check-label" for="face_cycle_face_4">Value and
-                                                    delta</label>
-                                            </div>
-                                        </div>
-                                        <div class="col">
-                                            <div class="form-check">
-                                                <input class="form-check-input face-cycle-face" type="checkbox"
-                                                    name="face_cycle_faces" value="5" id="face_cycle_face_5" disabled />
-                                                <label class="form-check-label" for="face_cycle_face_5">Current time
-                                                    and BG value</label>
-                                            </div>
-                                        </div>
-                                    </div>
+                                    <div class="row row-cols-1 row-cols-sm-2 g-2" id="face_cycle_face_options"></div>
                                     <div class="text-danger fw-semibold" id="face_cycle_faces_feedback"
                                         role="status" aria-live="polite" aria-atomic="true"></div>
                                 </fieldset>

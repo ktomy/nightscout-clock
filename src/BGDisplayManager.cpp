@@ -49,6 +49,12 @@ void BGDisplayManager_::setup() {
     faces.push_back(new BGDisplayFaceClock());
     facesNames[5] = "Clock and value";
 
+    if (faces.size() != CLOCK_FACE_COUNT) {
+        DEBUG_PRINTF(
+            "Face count mismatch: %u registered, CLOCK_FACE_COUNT is %d",
+            static_cast<unsigned int>(faces.size()), CLOCK_FACE_COUNT);
+    }
+
     configureFaceCycle();
 
     if (faceCycleActive) {

@@ -394,16 +394,16 @@ void ServerManager_::setupWebServer(IPAddress ip) {
                     return;
                 }
 
-                bool selectedFaces[6] = {};
+                bool selectedFaces[CLOCK_FACE_COUNT] = {};
                 for (JsonVariant face : data["face_cycle_faces"].as<JsonArray>()) {
                     if (!face.is<int>()) {
-                        sendSaveValidationError("Face selections must use IDs from 0 to 5");
+                        sendSaveValidationError("Face selections must use valid clock face IDs");
                         return;
                     }
 
                     int faceId = face.as<int>();
-                    if (faceId < 0 || faceId >= 6) {
-                        sendSaveValidationError("Face selections must use IDs from 0 to 5");
+                    if (faceId < 0 || faceId >= CLOCK_FACE_COUNT) {
+                        sendSaveValidationError("Face selections must use valid clock face IDs");
                         return;
                     }
 
