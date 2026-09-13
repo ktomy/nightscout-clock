@@ -18,7 +18,8 @@
         2: 'Glucose graph and value',
         3: 'Big text',
         4: 'Value and delta',
-        5: 'Current time and BG value'
+        5: 'Current time and BG value',
+        6: 'Unicorn'
     };
 
     if (window.location.href.indexOf("127.0.0.1") > 0) {
