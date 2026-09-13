@@ -514,12 +514,24 @@
                             </div>
                         </div>
                         <div class="row mt-2">
-                            <div class="col-12">
-                                <label for="alarm_high_melody" class="form-label">Custom melody (RTTTL)
-                                    (optional)</label>
+                            <div class="col-sm-4">
+                                <label for="alarm_high_melody_preset" class="form-label">Alert sound</label>
+                                <select class="form-select" id="alarm_high_melody_preset" disabled>
+                                    <option value="high:d=4,o=5,b=125:4e7,p,4e7">Default</option>
+                                    <option value="doublebeep:d=8,o=6,b=180:c,p,c">Double beep</option>
+                                    <option value="triplebeep:d=16,o=6,b=200:c,p,c,p,c">Triple beep</option>
+                                    <option value="siren:d=4,o=5,b=100:a,d6,a,d6">Two tone siren</option>
+                                    <option value="urgent:d=32,o=7,b=220:c,p,c,p,c,p,c,p,c,p,c">Urgent pulse</option>
+                                    <option value="ping:d=4,o=6,b=140:8e,16p,8c">Soft ping</option>
+                                    <option value="longtone:d=1,o=5,b=90:a">Long tone</option>
+                                    <option value="custom">Custom</option>
+                                </select>
+                            </div>
+                            <div class="col-sm-8">
+                                <label for="alarm_high_melody" class="form-label">Melody (RTTTL)</label>
                                 <input type="text" class="form-control" id="alarm_high_melody"
                                     placeholder="high:d=4,o=5,b=125:4e7,p,4e7" disabled />
-                                <div class="form-text">Leave empty to use the default high alert sound.</div>
+                                <div class="form-text">Choose a sound or enter a custom RTTTL melody.</div>
                                 <div class="invalid-feedback">Enter a valid RTTTL string (e.g.,
                                     name:d=4,o=5,b=125:c6,g,4p).</div>
                             </div>
@@ -578,12 +590,24 @@
                             </div>
                         </div>
                         <div class="row mt-2">
-                            <div class="col-12">
-                                <label for="alarm_low_melody" class="form-label">Custom melody (RTTTL)
-                                    (optional)</label>
+                            <div class="col-sm-4">
+                                <label for="alarm_low_melody_preset" class="form-label">Alert sound</label>
+                                <select class="form-select" id="alarm_low_melody_preset" disabled>
+                                    <option value="low:d=4,o=5,b=200:4e5,4p,4e5,4p,4e5">Default</option>
+                                    <option value="doublebeep:d=8,o=6,b=180:c,p,c">Double beep</option>
+                                    <option value="triplebeep:d=16,o=6,b=200:c,p,c,p,c">Triple beep</option>
+                                    <option value="siren:d=4,o=5,b=100:a,d6,a,d6">Two tone siren</option>
+                                    <option value="urgent:d=32,o=7,b=220:c,p,c,p,c,p,c,p,c,p,c">Urgent pulse</option>
+                                    <option value="ping:d=4,o=6,b=140:8e,16p,8c">Soft ping</option>
+                                    <option value="longtone:d=1,o=5,b=90:a">Long tone</option>
+                                    <option value="custom">Custom</option>
+                                </select>
+                            </div>
+                            <div class="col-sm-8">
+                                <label for="alarm_low_melody" class="form-label">Melody (RTTTL)</label>
                                 <input type="text" class="form-control" id="alarm_low_melody"
-                                    placeholder="low:d=4,o=5,b=200:4e5,4p,4e5" disabled />
-                                <div class="form-text">Leave empty to use the default low alert sound.</div>
+                                    placeholder="low:d=4,o=5,b=200:4e5,4p,4e5,4p,4e5" disabled />
+                                <div class="form-text">Choose a sound or enter a custom RTTTL melody.</div>
                                 <div class="invalid-feedback">Enter a valid RTTTL string (e.g.,
                                     name:d=4,o=5,b=160:c6,8g,8p).</div>
                             </div>
@@ -645,13 +669,24 @@
                             </div>
                         </div>
                         <div class="row mt-2">
-                            <div class="col-12">
-                                <label for="alarm_urgent_low_melody" class="form-label">Custom melody
-                                    (RTTTL) (optional)</label>
+                            <div class="col-sm-4">
+                                <label for="alarm_urgent_low_melody_preset" class="form-label">Alert sound</label>
+                                <select class="form-select" id="alarm_urgent_low_melody_preset" disabled>
+                                    <option value="urgent_low:d=4,o=5,b=230:4e6,4p,4e6,4p,4e6,4p,4e6">Default</option>
+                                    <option value="doublebeep:d=8,o=6,b=180:c,p,c">Double beep</option>
+                                    <option value="triplebeep:d=16,o=6,b=200:c,p,c,p,c">Triple beep</option>
+                                    <option value="siren:d=4,o=5,b=100:a,d6,a,d6">Two tone siren</option>
+                                    <option value="urgent:d=32,o=7,b=220:c,p,c,p,c,p,c,p,c,p,c">Urgent pulse</option>
+                                    <option value="ping:d=4,o=6,b=140:8e,16p,8c">Soft ping</option>
+                                    <option value="longtone:d=1,o=5,b=90:a">Long tone</option>
+                                    <option value="custom">Custom</option>
+                                </select>
+                            </div>
+                            <div class="col-sm-8">
+                                <label for="alarm_urgent_low_melody" class="form-label">Melody (RTTTL)</label>
                                 <input type="text" class="form-control" id="alarm_urgent_low_melody"
-                                    placeholder="urgent_low:d=4,o=5,b=230:4e6,4p,4e6,4p" disabled />
-                                <div class="form-text">Leave empty to use the default urgent low alert sound.
-                                </div>
+                                    placeholder="urgent_low:d=4,o=5,b=230:4e6,4p,4e6,4p,4e6,4p,4e6" disabled />
+                                <div class="form-text">Choose a sound or enter a custom RTTTL melody.</div>
                                 <div class="invalid-feedback">Enter a valid RTTTL string (e.g.,
                                     name:d=4,o=5,b=200:c6,g,8p).</div>
                             </div>

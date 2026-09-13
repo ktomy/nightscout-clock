@@ -111,6 +111,14 @@
             updatePasswordToggleIcon(passwordField, btn);
         });
 
+        addMelodyPresetHandlers();
+    }
+
+    function addMelodyPresetHandlers() {
+        ['high', 'low', 'urgent_low'].forEach(alarmType => {
+            $(`#alarm_${alarmType}_melody_preset`).on('change', () => applyMelodyPreset(alarmType));
+            $(`#alarm_${alarmType}_melody`).on('input', () => syncMelodyPreset(alarmType));
+        });
     }
 
     function addAdditionalWifiTypeHandler() {
@@ -390,20 +398,14 @@
         const melodyField = $(`#alarm_${alarmType}_melody`);
         const customMelody = (melodyField.val() || "").trim();
 
-        let requestBody = { "alarmType": alarmType };
-        let tryAlarmUrl = "/api/alarm";
-
-        if (customMelody.length > 0) {
-            if (!validateRtttlField(melodyField)) {
-                showToastFailure("Error", "Please enter a valid RTTTL melody before testing.");
-                return;
-            }
-            requestBody = { "rtttl": customMelody };
-            tryAlarmUrl = "/api/alarm/custom";
+        if (!validateRtttlField(melodyField)) {
+            showToastFailure("Error", "Please enter a valid RTTTL melody before testing.");
+            return;
         }
 
-        tryAlarmUrl = clockHost + tryAlarmUrl;
-        
+        const requestBody = { "rtttl": customMelody };
+        const tryAlarmUrl = clockHost + "/api/alarm";
+
         fetch(tryAlarmUrl, {
             method: "POST",
             headers: {
@@ -742,6 +744,8 @@
             clearValidationStatus(`alarm_${alarmType}_silence`);
             clearValidationStatus(`alarm_${alarmType}_melody`);
         }
+
+        $(`#alarm_${alarmType}_melody_preset`).prop('disabled', !alarmState);
     }
 
     function addFocusOutValidationDropDown(fieldName) {
@@ -820,10 +824,31 @@
         }
     }
 
+    function applyMelodyPreset(alarmType) {
+        const chosen = $(`#alarm_${alarmType}_melody_preset`).val();
+        if (chosen === 'custom') {
+            $(`#alarm_${alarmType}_melody`).focus();
+            return;
+        }
+
+        const melodyField = $(`#alarm_${alarmType}_melody`);
+        melodyField.val(chosen);
+        validateRtttlField(melodyField);
+    }
+
+    // Select the preset whose value is this melody; no match means "Custom".
+    function syncMelodyPreset(alarmType) {
+        const preset = $(`#alarm_${alarmType}_melody_preset`);
+        preset.val(($(`#alarm_${alarmType}_melody`).val() || '').trim());
+        if (preset.val() === null) {
+            preset.val('custom');
+        }
+    }
+
     function isValidRtttlString(value) {
         const trimmed = (value || "").trim();
         if (trimmed === "") {
-            return true; // optional
+            return false;
         }
 
         const parts = trimmed.split(":");
@@ -1388,6 +1413,7 @@
         $(`#alarm_${alarmType}_snooze`).val(json[`alarm_${alarmType}_snooze_interval`] || "");
         $(`#alarm_${alarmType}_silence`).val(json[`alarm_${alarmType}_silence_interval`] || "");
         $(`#alarm_${alarmType}_melody`).val(json[`alarm_${alarmType}_melody`] || "");
+        syncMelodyPreset(alarmType);
 
         changeAlarmState($(`#alarm_${alarmType}_enable`));
     }

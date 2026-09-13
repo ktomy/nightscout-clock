@@ -20,29 +20,6 @@ ServerManager_& ServerManager_::getInstance() {
     return instance;
 }
 
-static String resolveAlarmMelody(const String& alarmType) {
-    if (alarmType == "high") {
-        if (SettingsManager.settings.alarm_high_melody.length() > 0) {
-            return SettingsManager.settings.alarm_high_melody;
-        }
-        return sound_high;
-    }
-    if (alarmType == "low") {
-        if (SettingsManager.settings.alarm_low_melody.length() > 0) {
-            return SettingsManager.settings.alarm_low_melody;
-        }
-        return sound_low;
-    }
-    if (alarmType == "urgent_low") {
-        if (SettingsManager.settings.alarm_urgent_low_melody.length() > 0) {
-            return SettingsManager.settings.alarm_urgent_low_melody;
-        }
-        return sound_urgent_low;
-    }
-
-    return "";
-}
-
 // Web authentication constants, cookie set for 10 minutes
 static constexpr unsigned long WEB_AUTH_TOKEN_TTL_MS = 10UL * 60UL * 1000UL;
 static constexpr int WEB_AUTH_COOKIE_MAX_AGE_SEC = 10 * 60;
@@ -455,7 +432,7 @@ void ServerManager_::setupWebServer(IPAddress ip) {
         }));
 
     ws->addHandler(new AsyncCallbackJsonWebHandler(
-        "/api/alarm/custom", [](AsyncWebServerRequest* request, JsonVariant& json) {
+        "/api/alarm", [](AsyncWebServerRequest* request, JsonVariant& json) {
             if (!ServerManager.enforceAuthentication(request)) {
                 return;
             }
@@ -480,32 +457,6 @@ void ServerManager_::setupWebServer(IPAddress ip) {
 
             PeripheryManager.playRTTTLString(melody);
             request->send(200, "application/json", "{\"status\": \"ok\"}");
-        }));
-
-    ws->addHandler(new AsyncCallbackJsonWebHandler(
-        "/api/alarm", [this](AsyncWebServerRequest* request, JsonVariant& json) {
-            if (!enforceAuthentication(request)) {
-                return;
-            }
-            if (not json.is<JsonObject>()) {
-                request->send(400, "application/json", "{\"status\": \"json parsing error\"}");
-                return;
-            }
-            auto&& data = json.as<JsonObject>();
-            if (data["alarmType"].is<String>()) {
-                auto alarmType = data["alarmType"].as<String>();
-                auto melody = resolveAlarmMelody(alarmType);
-                if (melody == "") {
-                    request->send(400, "application/json", "{\"status\": \"alarm type not found\"}");
-                    return;
-                }
-
-                PeripheryManager.playRTTTLString(melody);
-
-                request->send(200, "application/json", "{\"status\": \"ok\"}");
-            } else {
-                request->send(400, "application/json", "{\"status\": \"alarm key not found\"}");
-            }
         }));
 
     ws->on("/api/reset", HTTP_POST, [this](AsyncWebServerRequest* request) {
