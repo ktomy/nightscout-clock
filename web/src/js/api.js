@@ -242,9 +242,10 @@ const api = (() => {
     /**
      * Send an RTTTL melody to the clock for immediate playback without saving settings.
      * @param {string} rtttl - Melody to play on the clock.
+     * @param {number} volume - Alert volume selected in the form.
      * @returns {Promise<ApiReply<ActionStatus>>}
      */
-    const tryAlarm = rtttl => request("POST", "/api/alarm", { body: { rtttl } })
+    const tryAlarm = (rtttl, volume) => request("POST", "/api/alarm", { body: { rtttl, volume } })
     /**
      * Fetch LibreLinkUp patient choices from the clock's active connection.
      * @returns {Promise<ApiReply<PatientEntry[]>>}

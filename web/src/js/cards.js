@@ -674,7 +674,7 @@ async function loadFromNightscout() {
 function alarmsTab() {
     return el("div.stack",
         el("div.notice.info", el("b", "How alarms work. "),
-            "The volume is moderate, so test each sound with Try on clock. An alarm beeps 2 times (high), 3 times (low) or 4 times (urgent low), then pauses for the repeat interval; intensive mode keeps beeping without a pause. This continues until glucose is back in range or you press the clock's middle button to snooze, which shows SNOOZED for the snooze time. An alert with alert windows stays silent outside them."),
+            "Choose the volume for each alert and test it with Try on clock. An alarm beeps 2 times (high), 3 times (low) or 4 times (urgent low), then pauses for the repeat interval; intensive mode keeps beeping without a pause. This continues until glucose is back in range or you press the clock's middle button to snooze, which shows SNOOZED for the snooze time. An alert with alert windows stays silent outside them."),
         ...ALARMS.map(alarmCard),
         card("Repeat", null, el("div.stack",
             reactive(["alarm_intensive_mode"], () => {
@@ -739,7 +739,7 @@ function alarmCard(a) {
         const tryIt = el("button.btn.sm", { type: "button", dataset: { alwaysOn: "1" }, onclick: async () => {
             if (!isValidRtttl(melody.value)) return toast("Please enter a valid RTTTL melody before testing.", "warn")
             try {
-                const r = await api.tryAlarm(melody.value.trim())
+                const r = await api.tryAlarm(melody.value.trim(), form.get(key("volume")))
                 const ok = r.ok && r.data && r.data.status === "ok"
                 toast(ok ? "You should hear the alert playing." : "Could not play the alert.", ok ? "ok" : "bad")
             } catch (e) { toast(e.message, "bad") }
@@ -750,6 +750,7 @@ function alarmCard(a) {
                 field(key("value"), a.compare, numberInput(key("value"), { units })),
                 field(key("snooze_interval"), "Snooze for", selectInput(key("snooze_interval"), SNOOZES, { numeric: true }))),
             field(key("melody"), "Alert sound", el("div.stack", el("div.row.melody-row", preset, tryIt), melody), "Choose a sound or enter a custom RTTTL melody."),
+            field(key("volume"), "Alert volume", selectInput(key("volume"), ALARM_VOLUMES, { numeric: true })),
             alertWindows(a))
     })
     fs.append(body)
