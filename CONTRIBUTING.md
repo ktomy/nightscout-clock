@@ -27,6 +27,36 @@ My computer is running linux, but you can use Windows or MacOS as well, there ar
 - You should be able to see the debug output in the VS Code terminal
 - If something goes wrong and you are stuck, feel free to start a [discussion](https://github.com/ktomy/nightscout-clock/discussions)
 
+### Updating the web UI screenshot
+
+`scripts/screenshot_web_ui.py` renders the current `data/` web UI in headless Chromium
+and saves a full-page PNG to `docs/images/web-ui.png`, the image used in the README.
+It uses factory defaults plus sample WiFi, Nightscout, and status data. No clock or
+running web server is needed, and rendering makes no external network requests.
+The current checkout's version is also used as the simulated latest version.
+Collapsible settings retain their normal initial state. The default viewport width
+is 1440 pixels, which activates Bootstrap's wider desktop container so the glucose
+threshold labels and their color indicators fit on one line.
+
+Install the screenshot dependencies once (Python 3.9 or newer):
+
+```sh
+python3 -m venv /tmp/nsclock-screenshot-venv
+/tmp/nsclock-screenshot-venv/bin/python -m pip install playwright
+/tmp/nsclock-screenshot-venv/bin/python -m playwright install chromium
+```
+
+Then regenerate the screenshot after changing the UI:
+
+```sh
+/tmp/nsclock-screenshot-venv/bin/python scripts/screenshot_web_ui.py
+```
+
+Use `--output /tmp/web-ui.png` for a preview, or `--width 390 --height 844` for a
+narrow viewport. The image always includes the full page. To use an existing
+Chrome/Chromium installation instead of downloading Chromium, pass
+`--browser /path/to/chrome`. Commit the regenerated README image with relevant UI changes.
+
 ### Release procedure
 
 Use `scripts/release.py` for `patch`, `minor`, and `major` releases.

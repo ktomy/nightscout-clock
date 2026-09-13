@@ -81,7 +81,7 @@ While cycling is enabled, the left and right buttons move only between the selec
 
 ### Configuration web interface
 
-<img alt="webUI" src="https://github.com/user-attachments/assets/94222c87-3f96-46f9-a773-02f7cdb16e6b" />
+<img alt="Nightscout Clock configuration web interface" src="docs/images/web-ui.png" />
 
 ### Alarm settings
 
