@@ -360,20 +360,14 @@
         const melodyField = $(`#alarm_${alarmType}_melody`);
         const customMelody = (melodyField.val() || "").trim();
 
-        let requestBody = { "alarmType": alarmType };
-        let tryAlarmUrl = "/api/alarm";
-
-        if (customMelody.length > 0) {
-            if (!validateRtttlField(melodyField)) {
-                showToastFailure("Error", "Please enter a valid RTTTL melody before testing.");
-                return;
-            }
-            requestBody = { "rtttl": customMelody };
-            tryAlarmUrl = "/api/alarm/custom";
+        if (!validateRtttlField(melodyField)) {
+            showToastFailure("Error", "Please enter a valid RTTTL melody before testing.");
+            return;
         }
 
-        tryAlarmUrl = clockHost + tryAlarmUrl;
-        
+        const requestBody = { "rtttl": customMelody };
+        const tryAlarmUrl = clockHost + "/api/alarm";
+
         fetch(tryAlarmUrl, {
             method: "POST",
             headers: {
@@ -816,7 +810,7 @@
     function isValidRtttlString(value) {
         const trimmed = (value || "").trim();
         if (trimmed === "") {
-            return true; // optional
+            return false;
         }
 
         const parts = trimmed.split(":");

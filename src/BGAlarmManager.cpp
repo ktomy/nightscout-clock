@@ -9,13 +9,6 @@
 #define ALARM_REPEAT_INTERVAL_SECONDS 300
 #define ALARM_REPEAT_INTERVAL_INTENSIVE_SECONDS 2
 
-static String pickAlarmMelody(const String& customMelody, const String& fallbackMelody) {
-    if (customMelody.length() > 0) {
-        return customMelody;
-    }
-    return fallbackMelody;
-}
-
 // The getter for the instantiated singleton instance
 BGAlarmManager_& BGAlarmManager_::getInstance() {
     static BGAlarmManager_ instance;
@@ -46,8 +39,7 @@ void BGAlarmManager_::setup() {
         alarmData.snoozeTimeMinutes = SettingsManager.settings.alarm_urgent_low_snooze_minutes;
         alarmData.silenceInterval = SettingsManager.settings.alarm_urgent_low_silence_interval;
         alarmData.lastAlarmTime = 0;
-        alarmData.alarmSound =
-            pickAlarmMelody(SettingsManager.settings.alarm_urgent_low_melody, sound_urgent_low);
+        alarmData.alarmSound = SettingsManager.settings.alarm_urgent_low_melody;
         enabledAlarms.push_back(alarmData);
     }
     if (SettingsManager.settings.alarm_low_enabled) {
@@ -57,7 +49,7 @@ void BGAlarmManager_::setup() {
         alarmData.snoozeTimeMinutes = SettingsManager.settings.alarm_low_snooze_minutes;
         alarmData.silenceInterval = SettingsManager.settings.alarm_low_silence_interval;
         alarmData.lastAlarmTime = 0;
-        alarmData.alarmSound = pickAlarmMelody(SettingsManager.settings.alarm_low_melody, sound_low);
+        alarmData.alarmSound = SettingsManager.settings.alarm_low_melody;
         enabledAlarms.push_back(alarmData);
     }
     if (SettingsManager.settings.alarm_high_enabled) {
@@ -67,7 +59,7 @@ void BGAlarmManager_::setup() {
         alarmData.snoozeTimeMinutes = SettingsManager.settings.alarm_high_snooze_minutes;
         alarmData.silenceInterval = SettingsManager.settings.alarm_high_silence_interval;
         alarmData.lastAlarmTime = 0;
-        alarmData.alarmSound = pickAlarmMelody(SettingsManager.settings.alarm_high_melody, sound_high);
+        alarmData.alarmSound = SettingsManager.settings.alarm_high_melody;
         enabledAlarms.push_back(alarmData);
     }
 
