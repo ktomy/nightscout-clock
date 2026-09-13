@@ -33,27 +33,18 @@ const uint16_t paletteNormal[8] PROGMEM = {
 };
 
 const uint16_t paletteWarning[8] PROGMEM = {
-    0xFE87, 0xF79D, 0x18C3,
-    BG_COLOR_WARNING, BG_COLOR_WARNING, BG_COLOR_WARNING, BG_COLOR_WARNING, BG_COLOR_WARNING,
+    0xFE87,           0xF79D,           0x18C3,           BG_COLOR_WARNING,
+    BG_COLOR_WARNING, BG_COLOR_WARNING, BG_COLOR_WARNING, BG_COLOR_WARNING,
 };
 
 const uint16_t paletteUrgent[8] PROGMEM = {
-    0xFE87, 0xF79D, 0x18C3,
-    BG_COLOR_URGENT, BG_COLOR_URGENT, BG_COLOR_URGENT, BG_COLOR_URGENT, BG_COLOR_URGENT,
-};
-
-const uint16_t paletteStale[8] PROGMEM = {
-    0x7B28, 0x94B2, 0x18C3,
-    BG_COLOR_OLD, BG_COLOR_OLD, BG_COLOR_OLD, BG_COLOR_OLD, BG_COLOR_OLD,
+    0xFE87,          0xF79D,          0x18C3,          BG_COLOR_URGENT,
+    BG_COLOR_URGENT, BG_COLOR_URGENT, BG_COLOR_URGENT, BG_COLOR_URGENT,
 };
 
 }  // namespace
 
-const uint16_t* BGDisplayFaceUnicorn::getManePalette(BG_LEVEL level, bool dataIsOld) const {
-    if (dataIsOld) {
-        return paletteStale;
-    }
-
+const uint16_t* BGDisplayFaceUnicorn::getManePalette(BG_LEVEL level) const {
     switch (level) {
         case BG_LEVEL::URGENT_LOW:
         case BG_LEVEL::URGENT_HIGH:
@@ -73,7 +64,13 @@ void BGDisplayFaceUnicorn::showReadings(
     auto lastReading = readings.back();
     auto bgLevel = bgDisplayManager.getGlucoseIntervals().getBGLevel(lastReading.sgv);
 
-    DisplayManager.drawIndexedSprite(0, 0, unicornSprite, 12, 8, getManePalette(bgLevel, dataIsOld));
+    const uint16_t staleColor = getDataOldColor();
+    // Keep the eye dark so it remains distinct from the stale-colored face.
+    const uint16_t paletteStale[8] = {
+        staleColor, staleColor, 0x18C3, staleColor, staleColor, staleColor, staleColor, staleColor,
+    };
+    const uint16_t* palette = dataIsOld ? paletteStale : getManePalette(bgLevel);
+    DisplayManager.drawIndexedSprite(0, 0, unicornSprite, 12, 8, palette);
 
     showReading(lastReading, MATRIX_WIDTH - 1, 6, TEXT_ALIGNMENT::RIGHT, FONT_TYPE::MEDIUM, dataIsOld);
 
