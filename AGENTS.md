@@ -34,7 +34,7 @@ Use the IDE's PlatformIO actions or the helper scripts in `scripts/`; avoid call
 
 ### Less common helpers
 
-- `scripts/monitor.sh`: opens the serial monitor directly and saves logs under `log/`.
+- `scripts/monitor.sh`: opens the serial monitor directly and saves logs under `logs/` using PlatformIO's `log2file` filter.
 - `scripts/reset.sh`: use this if the device becomes unstable and does not restart cleanly after upload.
 - `scripts/upload.sh --all`: use only for a full device refresh, when bootloader, partitions, firmware, and LittleFS all need to be reflashed.
 - `scripts/ns_emulator.py`: sends sample glucose entries to the device API for testing data processing and display behavior.
