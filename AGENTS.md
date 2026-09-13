@@ -65,6 +65,12 @@ Use the repository's current naming patterns instead of introducing a new scheme
 
 For the web UI, keep JavaScript style consistent with the existing files in `data/` and `data_dev/`: semicolon-light, mostly `const`/`let`, early returns for small guards, and descriptive handler names such as `toggleWebAuthSettings`. Reuse the existing HTML/JS structure instead of introducing new frontend tooling or frameworks.
 
+## Compatibility and Validation Scope
+
+- Firmware upgrades use a full reflash, including replacement of the configuration from `data/config_initial.json`. Do not add migration code, legacy-setting fallbacks, or downgrade compatibility unless explicitly requested.
+- Configuration is managed through the provided Web UI. Hand-edited configurations and hostile configuration submissions to `/api/save` are outside the supported workflow. Validate user-editable fields in the UI; avoid duplicating those checks throughout the firmware without a concrete need.
+- Keep checks required for normal operational failures, such as failed network requests, unavailable time, missing files, and malformed responses from external services. Keep bounds checks needed for memory safety and existing authentication controls.
+
 ## Testing Guidelines
 
 There is no formal automated test suite in the repository yet, so every change should be validated by building and testing on a real device. The normal workflow is `scripts/build.sh --upload --monitor`, or `scripts/build.sh --fs --upload --monitor` when files in `data/` changed.
@@ -75,7 +81,11 @@ Watch the serial monitor for boot issues, configuration errors, Wi-Fi problems, 
 
 ## Commit & Pull Request Guidelines
 
-Keep commit messages short, imperative, and specific, following the existing history (for example, `Fixed typo in WebUI javascript` or `Added web auth in the advanced settings`). Avoid vague summaries that do not say what changed.
+- Every commit must have a short, specific title and a body.
+- Use an imperative title that summarizes the change.
+- Explain what changed and why in the body.
+- Describe the final result, without recounting the conversation, implementation attempts, or sequence of events.
+- Do not include testing or validation details in commit messages.
 
 Before opening a pull request, start a discussion or issue for non-trivial changes so the approach can be aligned early. Pull requests should clearly state what changed, why it was needed, and how it was tested on hardware. Include screenshots when the change affects the web UI or display behavior.
 
