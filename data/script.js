@@ -880,24 +880,6 @@
         return firstProblem === '';
     }
 
-    // Alert windows replaced the fixed silence intervals. A clock that has not saved its settings
-    // since the upgrade still reports the old key, so translate it exactly as the firmware does.
-    function alertWindowsFromJson(json, alarmType) {
-        const configured = json[`alarm_${alarmType}_alert_windows`];
-        if (Array.isArray(configured)) {
-            return configured;
-        }
-
-        const silence = json[`alarm_${alarmType}_silence_interval`];
-        if (silence === '22_8') {
-            return [{ days: '0123456', from: '08:00', to: '22:00' }];
-        }
-        if (silence === '8_22') {
-            return [{ days: '0123456', from: '22:00', to: '08:00' }];
-        }
-        return [];
-    }
-
     function addFocusOutValidationDropDown(fieldName) {
         const field = $(`#${fieldName}`);
         field.on('focusout', (e) => {
@@ -1196,9 +1178,6 @@
         // Written even for a disabled alarm so that turning one off and saving does not throw
         // away the schedule the user built for it.
         json[`alarm_${alarmType}_alert_windows`] = collectAlertWindows(alarmType);
-        // The saved form is the loaded configuration mutated in place, so the superseded key
-        // would otherwise ride along and could be migrated again if the windows were ever lost.
-        delete json[`alarm_${alarmType}_silence_interval`];
 
         if (!alarmEnabled) {
             return;
@@ -1566,7 +1545,7 @@
         }
         $(`#alarm_${alarmType}_value`).val(alarmValue);
         $(`#alarm_${alarmType}_snooze`).val(json[`alarm_${alarmType}_snooze_interval`] || "");
-        renderAlertWindows(alarmType, alertWindowsFromJson(json, alarmType));
+        renderAlertWindows(alarmType, json[`alarm_${alarmType}_alert_windows`]);
         $(`#alarm_${alarmType}_melody`).val(json[`alarm_${alarmType}_melody`] || "");
         syncMelodyPreset(alarmType);
 

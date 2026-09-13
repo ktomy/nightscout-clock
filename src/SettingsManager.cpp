@@ -101,41 +101,9 @@ std::vector<AlertWindow> readAlertWindows(JsonVariantConst configured) {
     return windows;
 }
 
-// Translate a pre-window silence interval into the equivalent alert window (lossless).
-std::vector<AlertWindow> alertWindowsFromSilenceInterval(const String& silenceInterval) {
-    std::vector<AlertWindow> windows;
-    AlertWindow window;
-    window.days = 0x7F;  // every day
-
-    if (silenceInterval == "22_8") {
-        window.startMinutes = 8 * 60;  // silent 22:00 - 08:00, so alerting 08:00 - 22:00
-        window.endMinutes = 22 * 60;
-    } else if (silenceInterval == "8_22") {
-        window.startMinutes = 22 * 60;  // silent 08:00 - 22:00, so alerting 22:00 - 08:00
-        window.endMinutes = 8 * 60;
-    } else {
-        return windows;  // "0", empty or unrecognised: alert at any time
-    }
-
-    windows.push_back(window);
-    return windows;
-}
-
-std::vector<AlertWindow> loadAlertWindows(JsonDocument& doc, const char* windowsKey,
-                                          const char* legacySilenceKey) {
-    if (doc[windowsKey].is<JsonArrayConst>()) {
-        return readAlertWindows(doc[windowsKey]);
-    }
-
-    DEBUG_PRINTF("No alert windows for %s, migrating the silence interval instead\n", windowsKey);
-    return alertWindowsFromSilenceInterval(doc[legacySilenceKey].as<String>());
-}
-
-void writeAlertWindows(JsonDocument& doc, const char* windowsKey, const char* legacySilenceKey,
+void writeAlertWindows(JsonDocument& doc, const char* windowsKey,
                        const std::vector<AlertWindow>& windows) {
     doc.remove(windowsKey);
-    // Drop the old key once windows are written, or the migration would re-run on the next load.
-    doc.remove(legacySilenceKey);
 
     JsonArray configured = doc[windowsKey].to<JsonArray>();
     for (const AlertWindow& window : windows) {
@@ -364,17 +332,17 @@ bool SettingsManager_::loadSettingsFromFile() {
     settings.alarm_urgent_low_mgdl = (*doc)["alarm_urgent_low_value"].as<int>();
     settings.alarm_urgent_low_snooze_minutes = (*doc)["alarm_urgent_low_snooze_interval"].as<int>();
     settings.alarm_urgent_low_alert_windows =
-        loadAlertWindows(*doc, "alarm_urgent_low_alert_windows", "alarm_urgent_low_silence_interval");
+        readAlertWindows((*doc)["alarm_urgent_low_alert_windows"]);
     settings.alarm_low_enabled = (*doc)["alarm_low_enabled"].as<bool>();
     settings.alarm_low_mgdl = (*doc)["alarm_low_value"].as<int>();
     settings.alarm_low_snooze_minutes = (*doc)["alarm_low_snooze_interval"].as<int>();
     settings.alarm_low_alert_windows =
-        loadAlertWindows(*doc, "alarm_low_alert_windows", "alarm_low_silence_interval");
+        readAlertWindows((*doc)["alarm_low_alert_windows"]);
     settings.alarm_high_enabled = (*doc)["alarm_high_enabled"].as<bool>();
     settings.alarm_high_mgdl = (*doc)["alarm_high_value"].as<int>();
     settings.alarm_high_snooze_minutes = (*doc)["alarm_high_snooze_interval"].as<int>();
     settings.alarm_high_alert_windows =
-        loadAlertWindows(*doc, "alarm_high_alert_windows", "alarm_high_silence_interval");
+        readAlertWindows((*doc)["alarm_high_alert_windows"]);
     settings.alarm_high_melody = (*doc)["alarm_high_melody"].as<String>();
     settings.alarm_low_melody = (*doc)["alarm_low_melody"].as<String>();
     settings.alarm_urgent_low_melody = (*doc)["alarm_urgent_low_melody"].as<String>();
@@ -514,16 +482,16 @@ bool SettingsManager_::saveSettingsToFile() {
     (*doc)["alarm_urgent_low_value"] = settings.alarm_urgent_low_mgdl;
     (*doc)["alarm_urgent_low_snooze_interval"] = settings.alarm_urgent_low_snooze_minutes;
     writeAlertWindows(*doc, "alarm_urgent_low_alert_windows",
-                      "alarm_urgent_low_silence_interval", settings.alarm_urgent_low_alert_windows);
+                      settings.alarm_urgent_low_alert_windows);
     (*doc)["alarm_low_enabled"] = settings.alarm_low_enabled;
     (*doc)["alarm_low_value"] = settings.alarm_low_mgdl;
     (*doc)["alarm_low_snooze_interval"] = settings.alarm_low_snooze_minutes;
-    writeAlertWindows(*doc, "alarm_low_alert_windows", "alarm_low_silence_interval",
+    writeAlertWindows(*doc, "alarm_low_alert_windows",
                       settings.alarm_low_alert_windows);
     (*doc)["alarm_high_enabled"] = settings.alarm_high_enabled;
     (*doc)["alarm_high_value"] = settings.alarm_high_mgdl;
     (*doc)["alarm_high_snooze_interval"] = settings.alarm_high_snooze_minutes;
-    writeAlertWindows(*doc, "alarm_high_alert_windows", "alarm_high_silence_interval",
+    writeAlertWindows(*doc, "alarm_high_alert_windows",
                       settings.alarm_high_alert_windows);
     (*doc)["alarm_high_melody"] = settings.alarm_high_melody;
     (*doc)["alarm_low_melody"] = settings.alarm_low_melody;
