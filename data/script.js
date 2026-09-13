@@ -751,48 +751,25 @@
 
     // Alert windows: the times an alarm is allowed to sound. Days are stored as tm_wday digits so
     // that "12345" is Monday to Friday, matching what the firmware parses.
-    const ALERT_WINDOW_DAYS = [
-        { value: 1, label: 'Mon' },
-        { value: 2, label: 'Tue' },
-        { value: 3, label: 'Wed' },
-        { value: 4, label: 'Thu' },
-        { value: 5, label: 'Fri' },
-        { value: 6, label: 'Sat' },
-        { value: 0, label: 'Sun' },
-    ];
-
     let alertWindowRowCount = 0;
 
-    // Builds one window row. Stored times are applied with .val(), never interpolated into markup.
     function buildAlertWindowRow(alarmType, alertWindow) {
+        const template = document.getElementById('alert_window_template');
+        const row = $(template.content.firstElementChild.cloneNode(true));
         const rowId = `alert_window_${++alertWindowRowCount}`;
         const days = (alertWindow && alertWindow.days) || '0123456';
 
-        const dayButtons = ALERT_WINDOW_DAYS.map(day => {
-            const dayId = `${rowId}_day_${day.value}`;
-            const checked = days.indexOf(String(day.value)) >= 0 ? ' checked' : '';
-            return `<input type="checkbox" class="btn-check alert-window-day" id="${dayId}" value="${day.value}" autocomplete="off"${checked}>`
-                + `<label class="btn btn-outline-primary" for="${dayId}">${day.label}</label>`;
-        }).join('');
+        row.find('.alert-window-day').each((_, checkbox) => {
+            checkbox.id = `${rowId}_day_${checkbox.value}`;
+            checkbox.checked = days.includes(checkbox.value);
+            $(checkbox).next('label').attr('for', checkbox.id);
+        });
 
-        const row = $(`<div class="row g-2 align-items-center alert-window mb-2 p-1" id="${rowId}">
-                <div class="col-lg-6">
-                    <div class="btn-group btn-group-sm w-100" role="group" aria-label="Days">${dayButtons}</div>
-                </div>
-                <div class="col-5 col-lg-2">
-                    <input type="time" class="form-control form-control-sm alert-window-from" aria-label="Alert window start">
-                </div>
-                <div class="col-5 col-lg-2">
-                    <input type="time" class="form-control form-control-sm alert-window-to" aria-label="Alert window end">
-                </div>
-                <div class="col-2 col-lg-2">
-                    <button type="button" class="btn btn-outline-danger btn-sm w-100 alert-window-remove" aria-label="Remove alert window">Remove</button>
-                </div>
-            </div>`);
-
-        // A new row defaults to a daytime window, which is valid immediately and obvious to edit.
-        row.find('.alert-window-from').val((alertWindow && alertWindow.from) || '08:00');
-        row.find('.alert-window-to').val((alertWindow && alertWindow.to) || '22:00');
+        for (const [field, fallback] of [['from', '08:00'], ['to', '22:00']]) {
+            const input = row.find(`.alert-window-${field}`).attr('id', `${rowId}_${field}`);
+            input.prev('label').attr('for', input.attr('id'));
+            input.val((alertWindow && alertWindow[field]) || fallback);
+        }
 
         row.find('.alert-window-remove').on('click', () => {
             row.remove();
@@ -825,24 +802,18 @@
         $(`#alarm_${alarmType}_add_window`).prop('disabled', disabled);
     }
 
-    function collectAlertWindows(alarmType) {
-        const alertWindows = [];
-        $(`#alarm_${alarmType}_windows`).find('.alert-window').each((_, element) => {
-            const row = $(element);
-            // Sorted so the saved configuration does not change just because the boxes were
-            // ticked in a different order. Single digits sort numerically either way.
-            const days = row.find('.alert-window-day:checked')
-                .map((_, checkbox) => checkbox.value).get().sort().join('');
-            const from = row.find('.alert-window-from').val() || '';
-            const to = row.find('.alert-window-to').val() || '';
+    function readAlertWindowRow(element) {
+        const row = $(element);
+        return {
+            days: row.find('.alert-window-day:checked').map((_, day) => day.value).get().sort().join(''),
+            from: row.find('.alert-window-from').val() || '',
+            to: row.find('.alert-window-to').val() || '',
+        };
+    }
 
-            // An unusable row belongs to a disabled alarm; the firmware would drop it anyway.
-            if (days === '' || from === '' || to === '' || from === to) {
-                return;
-            }
-            alertWindows.push({ days: days, from: from, to: to });
-        });
-        return alertWindows;
+    function collectAlertWindows(alarmType) {
+        return $(`#alarm_${alarmType}_windows .alert-window`).get().map(readAlertWindowRow)
+            .filter(({ days, from, to }) => days && from && to && from !== to);
     }
 
     function validateAlertWindows(alarmType) {
@@ -858,11 +829,10 @@
         let firstProblem = '';
         rows.each((_, element) => {
             const row = $(element);
-            const from = row.find('.alert-window-from').val() || '';
-            const to = row.find('.alert-window-to').val() || '';
+            const { days, from, to } = readAlertWindowRow(element);
 
             let problem = '';
-            if (row.find('.alert-window-day:checked').length === 0) {
+            if (days === '') {
                 problem = 'Choose at least one day for every alert window.';
             } else if (from === '' || to === '') {
                 problem = 'Every alert window needs a start and an end time.';

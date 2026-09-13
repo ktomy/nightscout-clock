@@ -1109,6 +1109,41 @@
         </div>
     </div>
 
+    <template id="alert_window_template">
+        <div class="row g-2 align-items-center alert-window mb-2 p-1">
+            <div class="col-12">
+                <div class="btn-group btn-group-sm w-100" role="group" aria-label="Days">
+                    <input type="checkbox" class="btn-check alert-window-day" value="1" autocomplete="off">
+                    <label class="btn btn-outline-primary">Mon</label>
+                    <input type="checkbox" class="btn-check alert-window-day" value="2" autocomplete="off">
+                    <label class="btn btn-outline-primary">Tue</label>
+                    <input type="checkbox" class="btn-check alert-window-day" value="3" autocomplete="off">
+                    <label class="btn btn-outline-primary">Wed</label>
+                    <input type="checkbox" class="btn-check alert-window-day" value="4" autocomplete="off">
+                    <label class="btn btn-outline-primary">Thu</label>
+                    <input type="checkbox" class="btn-check alert-window-day" value="5" autocomplete="off">
+                    <label class="btn btn-outline-primary">Fri</label>
+                    <input type="checkbox" class="btn-check alert-window-day" value="6" autocomplete="off">
+                    <label class="btn btn-outline-primary">Sat</label>
+                    <input type="checkbox" class="btn-check alert-window-day" value="0" autocomplete="off">
+                    <label class="btn btn-outline-primary">Sun</label>
+                </div>
+            </div>
+            <div class="col-6 col-sm-5">
+                <label class="form-text mb-1">From</label>
+                <input type="time" class="form-control form-control-sm alert-window-from" step="60" required>
+            </div>
+            <div class="col-6 col-sm-5">
+                <label class="form-text mb-1">To</label>
+                <input type="time" class="form-control form-control-sm alert-window-to" step="60" required>
+            </div>
+            <div class="col-12 col-sm-2 align-self-end">
+                <button type="button" class="btn btn-outline-danger btn-sm w-100 alert-window-remove"
+                    aria-label="Remove alert window">Remove</button>
+            </div>
+        </div>
+    </template>
+
     <script src="bootstrap.bundle.min.js"></script>
     <script src="../data_dev/bootstrap.bundle.js"></script>
     <script src="jquery.min.js"></script>
