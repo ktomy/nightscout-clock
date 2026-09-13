@@ -11,6 +11,16 @@
     let webAuthPassword = "";
     let configLoaded = false;
 
+    // IDs must match the registration order in BGDisplayManager::setup().
+    const clockFaces = {
+        0: 'Simple',
+        1: 'Full glucose graph',
+        2: 'Glucose graph and value',
+        3: 'Big text',
+        4: 'Value and delta',
+        5: 'Current time and BG value'
+    };
+
     if (window.location.href.indexOf("127.0.0.1") > 0) {
         console.log("Setting clock host to lab ESP..");
         clockHost = "http://192.168.86.24";
@@ -41,6 +51,8 @@
 
     let clockStatus = {};
 
+    renderClockFaceControls();
+
     addValidationHandlers();
 
     addButtonsHandlers();
@@ -52,6 +64,26 @@
     startPollingClockStatus();
 
     displayVersionInfo();
+
+    function renderClockFaceControls() {
+        const defaultFaceSelect = $('#default_clock_face').empty();
+        const cycleFaceOptions = $('#face_cycle_face_options').empty();
+
+        Object.entries(clockFaces).forEach(([id, name]) => {
+            $('<option>', { value: id, text: name }).appendTo(defaultFaceSelect);
+
+            const checkboxId = `face_cycle_face_${id}`;
+            cycleFaceOptions.append(`
+                <div class="col">
+                    <div class="form-check">
+                        <input class="form-check-input face-cycle-face" type="checkbox"
+                            name="face_cycle_faces" value="${id}" id="${checkboxId}" disabled />
+                        <label class="form-check-label" for="${checkboxId}">${name}</label>
+                    </div>
+                </div>
+            `);
+        });
+    }
 
     function addButtonsHandlers() {
         $('#btn_high_alarm_try').on('click', tryAlarm);
@@ -68,6 +100,7 @@
         $('#custom_hostname_enable').on('change', toggleCustomHostnameSettings);
         $('#custom_nodatatimer_enable').on('change', toggleCustomNoDataSettings);
         $('#web_auth_enable').on('change', toggleWebAuthSettings);
+        $('#alarm_intensive_mode').on('change', toggleAlarmRepeatSettings);
         $('#face_cycle_enabled').on('change', toggleFaceCycleSettings);
         $('.face-cycle-face').on('change', validateFaceCycleSelection);
         $('#open_wifi_network').on('change', toggleWifiPasswordField);
@@ -81,6 +114,14 @@
             updatePasswordToggleIcon(passwordField, btn);
         });
 
+        addMelodyPresetHandlers();
+    }
+
+    function addMelodyPresetHandlers() {
+        ['high', 'low', 'urgent_low'].forEach(alarmType => {
+            $(`#alarm_${alarmType}_melody_preset`).on('change', () => applyMelodyPreset(alarmType));
+            $(`#alarm_${alarmType}_melody`).on('input', () => syncMelodyPreset(alarmType));
+        });
     }
 
     function addAdditionalWifiTypeHandler() {
@@ -105,6 +146,11 @@
 
             };
         });
+    }
+
+    function toggleAlarmRepeatSettings() {
+        const intensiveMode = $('#alarm_intensive_mode').is(':checked');
+        $('#alarm_repeat_interval_seconds').prop('disabled', intensiveMode);
     }
 
     function toggleAdditionalWifiSettings() {
@@ -355,20 +401,14 @@
         const melodyField = $(`#alarm_${alarmType}_melody`);
         const customMelody = (melodyField.val() || "").trim();
 
-        let requestBody = { "alarmType": alarmType };
-        let tryAlarmUrl = "/api/alarm";
-
-        if (customMelody.length > 0) {
-            if (!validateRtttlField(melodyField)) {
-                showToastFailure("Error", "Please enter a valid RTTTL melody before testing.");
-                return;
-            }
-            requestBody = { "rtttl": customMelody };
-            tryAlarmUrl = "/api/alarm/custom";
+        if (!validateRtttlField(melodyField)) {
+            showToastFailure("Error", "Please enter a valid RTTTL melody before testing.");
+            return;
         }
 
-        tryAlarmUrl = clockHost + tryAlarmUrl;
-        
+        const requestBody = { "rtttl": customMelody };
+        const tryAlarmUrl = clockHost + "/api/alarm";
+
         fetch(tryAlarmUrl, {
             method: "POST",
             headers: {
@@ -705,6 +745,8 @@
             validateAlertWindows(alarmType);
             clearValidationStatus(`alarm_${alarmType}_melody`);
         }
+
+        $(`#alarm_${alarmType}_melody_preset`).prop('disabled', !alarmState);
     }
 
     // Alert windows: the times an alarm is allowed to sound. Days are stored as tm_wday digits so
@@ -932,10 +974,31 @@
         }
     }
 
+    function applyMelodyPreset(alarmType) {
+        const chosen = $(`#alarm_${alarmType}_melody_preset`).val();
+        if (chosen === 'custom') {
+            $(`#alarm_${alarmType}_melody`).focus();
+            return;
+        }
+
+        const melodyField = $(`#alarm_${alarmType}_melody`);
+        melodyField.val(chosen);
+        validateRtttlField(melodyField);
+    }
+
+    // Select the preset whose value is this melody; no match means "Custom".
+    function syncMelodyPreset(alarmType) {
+        const preset = $(`#alarm_${alarmType}_melody_preset`);
+        preset.val(($(`#alarm_${alarmType}_melody`).val() || '').trim());
+        if (preset.val() === null) {
+            preset.val('custom');
+        }
+    }
+
     function isValidRtttlString(value) {
         const trimmed = (value || "").trim();
         if (trimmed === "") {
-            return true; // optional
+            return false;
         }
 
         const parts = trimmed.split(":");
@@ -1093,6 +1156,7 @@
         setAlarmDataToJson(json, 'low');
         setAlarmDataToJson(json, 'urgent_low');
         json['alarm_intensive_mode'] = $('#alarm_intensive_mode').is(':checked');
+        json['alarm_repeat_interval_seconds'] = parseInt($('#alarm_repeat_interval_seconds').val());
 
         // Additional WiFi
         json['additional_wifi_enable'] = $('#additional_wifi_enable').is(':checked');
@@ -1408,7 +1472,9 @@
         $('#brightness_level').val(json['brightness_level']);
         $('#default_clock_face').val(json['default_face']);
 
-        const availableFaces = [0, 1, 2, 3, 4, 5];
+        const availableFaces = $('.face-cycle-face')
+            .map((_, face) => Number(face.value))
+            .get();
         const defaultFace = Number(json['default_face']);
         const fallbackFace = availableFaces.includes(defaultFace) ? defaultFace : 0;
         const configuredFaces = Array.isArray(json['face_cycle_faces'])
@@ -1449,6 +1515,11 @@
         loadAlarmDataFromJson(json, 'low');
         loadAlarmDataFromJson(json, 'urgent_low');
         $('#alarm_intensive_mode').prop('checked', json['alarm_intensive_mode']);
+        const repeatInterval = json['alarm_repeat_interval_seconds'];
+        $('#alarm_repeat_interval_seconds').val(
+            [60, 120, 300].includes(repeatInterval) ? repeatInterval : 300
+        );
+        toggleAlarmRepeatSettings();
 
         // Additional WiFi
         $('#additional_wifi_enable').prop('checked', json['additional_wifi_enable']);
@@ -1497,6 +1568,7 @@
         $(`#alarm_${alarmType}_snooze`).val(json[`alarm_${alarmType}_snooze_interval`] || "");
         renderAlertWindows(alarmType, alertWindowsFromJson(json, alarmType));
         $(`#alarm_${alarmType}_melody`).val(json[`alarm_${alarmType}_melody`] || "");
+        syncMelodyPreset(alarmType);
 
         changeAlarmState($(`#alarm_${alarmType}_enable`));
     }

@@ -6,15 +6,7 @@
 #include "ServerManager.h"
 #include "globals.h"
 
-#define ALARM_REPEAT_INTERVAL_SECONDS 300
 #define ALARM_REPEAT_INTERVAL_INTENSIVE_SECONDS 2
-
-static String pickAlarmMelody(const String& customMelody, const String& fallbackMelody) {
-    if (customMelody.length() > 0) {
-        return customMelody;
-    }
-    return fallbackMelody;
-}
 
 // The getter for the instantiated singleton instance
 BGAlarmManager_& BGAlarmManager_::getInstance() {
@@ -43,8 +35,7 @@ void BGAlarmManager_::setup() {
         alarmData.snoozeTimeMinutes = SettingsManager.settings.alarm_urgent_low_snooze_minutes;
         alarmData.alertWindows = SettingsManager.settings.alarm_urgent_low_alert_windows;
         alarmData.lastAlarmTime = 0;
-        alarmData.alarmSound =
-            pickAlarmMelody(SettingsManager.settings.alarm_urgent_low_melody, sound_urgent_low);
+        alarmData.alarmSound = SettingsManager.settings.alarm_urgent_low_melody;
         enabledAlarms.push_back(alarmData);
     }
     if (SettingsManager.settings.alarm_low_enabled) {
@@ -54,7 +45,7 @@ void BGAlarmManager_::setup() {
         alarmData.snoozeTimeMinutes = SettingsManager.settings.alarm_low_snooze_minutes;
         alarmData.alertWindows = SettingsManager.settings.alarm_low_alert_windows;
         alarmData.lastAlarmTime = 0;
-        alarmData.alarmSound = pickAlarmMelody(SettingsManager.settings.alarm_low_melody, sound_low);
+        alarmData.alarmSound = SettingsManager.settings.alarm_low_melody;
         enabledAlarms.push_back(alarmData);
     }
     if (SettingsManager.settings.alarm_high_enabled) {
@@ -64,14 +55,14 @@ void BGAlarmManager_::setup() {
         alarmData.snoozeTimeMinutes = SettingsManager.settings.alarm_high_snooze_minutes;
         alarmData.alertWindows = SettingsManager.settings.alarm_high_alert_windows;
         alarmData.lastAlarmTime = 0;
-        alarmData.alarmSound = pickAlarmMelody(SettingsManager.settings.alarm_high_melody, sound_high);
+        alarmData.alarmSound = SettingsManager.settings.alarm_high_melody;
         enabledAlarms.push_back(alarmData);
     }
 
     if (SettingsManager.settings.alarm_intensive_mode) {
         alarmIntervalSeconds = ALARM_REPEAT_INTERVAL_INTENSIVE_SECONDS;  // repeat every 2 seconds
     } else {
-        alarmIntervalSeconds = ALARM_REPEAT_INTERVAL_SECONDS;
+        alarmIntervalSeconds = SettingsManager.settings.alarm_repeat_interval_seconds;
     }
 }
 

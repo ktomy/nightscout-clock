@@ -29,6 +29,9 @@
 #define DEBUG_PRINTF(format, ...)
 #endif
 
+// How many clock faces BGDisplayManager registers. Face ids are validated against this both in
+// the settings API and when loading a config, so this must be updated when a face is added.
+#define CLOCK_FACE_COUNT 6
 #define CONFIG_JSON "/config.json"
 #define CONFIG_JSON_FACTORY "/config_initial.json"
 #define WIFI_CONNECT_TIMEOUT 15000
@@ -68,8 +71,5 @@ extern uint16_t BATTERY_RAW;
 extern bool MATRIX_OFF;
 extern uint8_t MIN_BRIGHTNESS;
 extern uint8_t MAX_BRIGHTNESS;
-extern const String sound_urgent_low PROGMEM;
-extern const String sound_low PROGMEM;
-extern const String sound_high PROGMEM;
 extern const String sound_boot PROGMEM;
 #endif  // Globals_H

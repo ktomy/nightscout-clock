@@ -21,6 +21,8 @@ public:
     // Returns NULL when the alert window list is usable, otherwise why it is not.
     static const char* validateAlertWindows(JsonVariantConst configured);
     void factoryReset();
+    // The repeat intervals the WebUI offers; shared with the save endpoint.
+    static bool isValidAlarmRepeatInterval(int intervalSeconds);
 
     Settings settings;
 };
