@@ -5,15 +5,8 @@
 
 #include <vector>
 
+#include "SettingsAlarm.h"
 #include "enums.h"
-
-// One window during which an alarm is allowed to sound. `days` is a tm_wday bitmask
-// (bit 0 = Sunday) naming the day the window starts on, so it may run past midnight.
-struct AlertWindow {
-    uint8_t days = 0;
-    int startMinutes = 0;  // minutes since midnight, 0-1439
-    int endMinutes = 0;
-};
 
 class Settings {
 public:

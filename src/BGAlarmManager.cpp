@@ -85,25 +85,19 @@ static bool isInsideAlertWindow(const std::vector<AlertWindow>& alertWindows) {
     const int yesterday = (today + 6) % 7;
 
     for (const AlertWindow& window : alertWindows) {
-        if (window.startMinutes == window.endMinutes) {
-            // A zero length window can never be open. SettingsManager drops these, so reaching
-            // one here means a hand written config; skip it rather than treat it as all day.
-            continue;
-        }
-
         if (window.startMinutes < window.endMinutes) {
             // Contained in one day, for example Monday to Friday 09:00 - 17:00.
-            if ((window.days & (1 << today)) && nowMinutes >= window.startMinutes &&
+            if (window.days[today] && nowMinutes >= window.startMinutes &&
                 nowMinutes < window.endMinutes) {
                 return true;
             }
         } else {
             // Runs past midnight, for example every day 18:00 - 08:00. The evening half belongs
             // to today's window and the morning half to the one that opened yesterday.
-            if ((window.days & (1 << today)) && nowMinutes >= window.startMinutes) {
+            if (window.days[today] && nowMinutes >= window.startMinutes) {
                 return true;
             }
-            if ((window.days & (1 << yesterday)) && nowMinutes < window.endMinutes) {
+            if (window.days[yesterday] && nowMinutes < window.endMinutes) {
                 return true;
             }
         }

@@ -4,6 +4,7 @@
 #include <ArduinoJson.h>
 #include <LittleFS.h>
 
+#include "SettingsAlarm.h"
 #include "globals.h"
 
 namespace {
@@ -12,107 +13,6 @@ bool isValidFaceCycleInterval(int intervalSeconds) {
            intervalSeconds == 120 || intervalSeconds == 180 || intervalSeconds == 300;
 }
 
-// "HH:MM" as minutes since midnight, or -1 when it is not a readable time of day.
-int parseTimeOfDayMinutes(const String& value) {
-    int colon = value.indexOf(':');
-    if (colon < 1 || (int)value.length() - colon != 3) {
-        return -1;
-    }
-    for (unsigned int i = 0; i < value.length(); i++) {
-        if ((int)i != colon && !isDigit(value[i])) {
-            return -1;
-        }
-    }
-
-    int hours = value.substring(0, colon).toInt();
-    int minutes = value.substring(colon + 1).toInt();
-    if (hours > 23 || minutes > 59) {
-        return -1;
-    }
-    return hours * 60 + minutes;
-}
-
-String minutesAsTimeOfDay(int minutes) {
-    char buffer[6];
-    snprintf(buffer, sizeof(buffer), "%02d:%02d", minutes / 60, minutes % 60);
-    return String(buffer);
-}
-
-// Days are tm_wday digits ("12345" = Monday to Friday). Anything unreadable is refused,
-// not skipped, because a partial day list would silence an alarm on the wrong days.
-bool parseAlertWindowDays(const String& value, uint8_t& days) {
-    days = 0;
-    if (value.length() == 0 || value.length() > 7) {
-        return false;
-    }
-
-    for (unsigned int i = 0; i < value.length(); i++) {
-        char day = value[i];
-        if (day < '0' || day > '6') {
-            return false;
-        }
-
-        uint8_t dayBit = (uint8_t)(1 << (day - '0'));
-        if (days & dayBit) {
-            return false;
-        }
-        days |= dayBit;
-    }
-
-    return true;
-}
-
-String alertWindowDaysAsString(uint8_t days) {
-    String value = "";
-    for (int day = 0; day < 7; day++) {
-        if (days & (1 << day)) {
-            value += (char)('0' + day);
-        }
-    }
-    return value;
-}
-
-std::vector<AlertWindow> readAlertWindows(JsonVariantConst configured) {
-    std::vector<AlertWindow> windows;
-    if (!configured.is<JsonArrayConst>()) {
-        return windows;
-    }
-
-    for (JsonVariantConst entry : configured.as<JsonArrayConst>()) {
-        if (!entry.is<JsonObjectConst>()) {
-            continue;
-        }
-
-        AlertWindow window;
-        const bool daysAreReadable = parseAlertWindowDays(entry["days"].as<String>(), window.days);
-        window.startMinutes = parseTimeOfDayMinutes(entry["from"].as<String>());
-        window.endMinutes = parseTimeOfDayMinutes(entry["to"].as<String>());
-
-        // A window that cannot be read can never open; drop it rather than let it silence an alarm.
-        if (!daysAreReadable || window.startMinutes < 0 || window.endMinutes < 0 ||
-            window.startMinutes == window.endMinutes) {
-            DEBUG_PRINTLN("Ignoring an alert window that could never open");
-            continue;
-        }
-
-        windows.push_back(window);
-    }
-
-    return windows;
-}
-
-void writeAlertWindows(JsonDocument& doc, const char* windowsKey,
-                       const std::vector<AlertWindow>& windows) {
-    doc.remove(windowsKey);
-
-    JsonArray configured = doc[windowsKey].to<JsonArray>();
-    for (const AlertWindow& window : windows) {
-        JsonObject entry = configured.add<JsonObject>();
-        entry["days"] = alertWindowDaysAsString(window.days);
-        entry["from"] = minutesAsTimeOfDay(window.startMinutes);
-        entry["to"] = minutesAsTimeOfDay(window.endMinutes);
-    }
-}
 }  // namespace
 
 // The getter for the instantiated singleton instance
@@ -125,37 +25,6 @@ SettingsManager_& SettingsManager_::getInstance() {
 SettingsManager_& SettingsManager = SettingsManager.getInstance();
 
 void SettingsManager_::setup() { LittleFS.begin(); }
-
-const char* SettingsManager_::validateAlertWindows(JsonVariantConst configured) {
-    if (configured.isNull()) {
-        return NULL;
-    }
-    if (!configured.is<JsonArrayConst>()) {
-        return "Alert windows must be an array";
-    }
-
-    for (JsonVariantConst entry : configured.as<JsonArrayConst>()) {
-        if (!entry.is<JsonObjectConst>()) {
-            return "Every alert window must be an object";
-        }
-        uint8_t days;
-        if (!parseAlertWindowDays(entry["days"].as<String>(), days)) {
-            return "Alert window days must be digits from 0 to 6 where 0 is Sunday, each used "
-                   "at most once";
-        }
-
-        int startMinutes = parseTimeOfDayMinutes(entry["from"].as<String>());
-        int endMinutes = parseTimeOfDayMinutes(entry["to"].as<String>());
-        if (startMinutes < 0 || endMinutes < 0) {
-            return "Alert window times must be written as HH:MM";
-        }
-        if (startMinutes == endMinutes) {
-            return "An alert window cannot start and end at the same time";
-        }
-    }
-
-    return NULL;
-}
 
 bool copyFile(const char* srcPath, const char* destPath) {
     File srcFile = LittleFS.open(srcPath, "r");

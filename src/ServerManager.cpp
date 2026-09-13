@@ -396,19 +396,6 @@ void ServerManager_::setupWebServer(IPAddress ip) {
                 return;
             }
 
-            // A window the clock cannot read would be dropped on load, leaving the alarm quiet
-            // during hours the caller believed it had covered. Refuse the save instead.
-            const char* alertWindowKeys[] = {"alarm_high_alert_windows", "alarm_low_alert_windows",
-                                             "alarm_urgent_low_alert_windows"};
-            for (const char* alertWindowKey : alertWindowKeys) {
-                const char* alertWindowError =
-                    SettingsManager_::validateAlertWindows(data[alertWindowKey]);
-                if (alertWindowError != NULL) {
-                    sendSaveValidationError(alertWindowError);
-                    return;
-                }
-            }
-
             bool hasFaceCycleInterval = !data["face_cycle_interval_seconds"].isNull();
             if (faceCycleEnabled || hasFaceCycleInterval) {
                 if (!data["face_cycle_interval_seconds"].is<int>()) {

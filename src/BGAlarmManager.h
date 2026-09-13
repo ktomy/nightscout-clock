@@ -2,7 +2,7 @@
 #define BGAlarmManager_h
 
 #include <Arduino.h>
-#include <Settings.h>
+#include <SettingsAlarm.h>
 
 #include <vector>
 
