@@ -403,7 +403,10 @@
             return;
         }
 
-        const requestBody = { "rtttl": customMelody };
+        const requestBody = {
+            "rtttl": customMelody,
+            "volume": parseInt($(`#alarm_${alarmType}_volume`).val())
+        };
         const tryAlarmUrl = clockHost + "/api/alarm";
 
         fetch(tryAlarmUrl, {
