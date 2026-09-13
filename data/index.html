@@ -476,7 +476,7 @@
                                     Try
                                 </button>
                             </div>
-                            <div class="col-sm-3">
+                            <div class="col-sm-4">
                                 <label for="alarm_high_value" class="form-label">Alert when above</label>
                                 <input type="text" class="form-control" id="alarm_high_value" placeholder="" required
                                     disabled />
@@ -484,7 +484,7 @@
                                     High alert threshold value is required
                                 </div>
                             </div>
-                            <div class="col-sm-3">
+                            <div class="col-sm-5">
                                 <label for="alarm_high_snooze" class="form-label">Snooze for</label>
                                 <select class="form-select" id="alarm_high_snooze" required disabled>
                                     <option value="">Choose...</option>
@@ -500,17 +500,22 @@
                                     Please select high alert snooze interval
                                 </div>
                             </div>
-                            <div class="col-sm-3">
-                                <label for="alarm_high_silence" class="form-label">Silence interval</label>
-                                <select class="form-select" id="alarm_high_silence" required disabled>
-                                    <option value="">Choose...</option>
-                                    <option value="0">No silence</option>
-                                    <option value="22_8">22:00 - 8:00</option>
-                                    <option value="8_22">08:00 - 22:00</option>
-                                </select>
-                                <div class="invalid-feedback">
-                                    Please choose High alert silence interval
+                        </div>
+                        <div class="row mt-2">
+                            <div class="col-12">
+                                <label class="form-label" for="alarm_high_add_window">Alert windows</label>
+                                <div class="form-text mb-2">
+                                    Leave this empty to alert at any time. With one or more windows the
+                                    High alert only sounds inside them. A window whose end time is earlier
+                                    than its start time runs past midnight into the next morning, and the days
+                                    you pick are the days it starts on.
                                 </div>
+                                <div id="alarm_high_windows"></div>
+                                <button type="button" class="btn btn-outline-secondary btn-sm"
+                                    id="alarm_high_add_window" disabled>
+                                    Add window
+                                </button>
+                                <div class="text-danger small mt-2 d-none" id="alarm_high_windows_error"></div>
                             </div>
                         </div>
                         <div class="row mt-2">
@@ -552,7 +557,7 @@
                                     Try
                                 </button>
                             </div>
-                            <div class="col-sm-3">
+                            <div class="col-sm-4">
                                 <label for="alarm_low_value" class="form-label">Alert when below</label>
                                 <input type="text" class="form-control" id="alarm_low_value" placeholder="" required
                                     disabled />
@@ -560,7 +565,7 @@
                                     Low alert threshold value is required
                                 </div>
                             </div>
-                            <div class="col-sm-3">
+                            <div class="col-sm-5">
                                 <label for="alarm_low_snooze" class="form-label">Snooze for</label>
                                 <select class="form-select" id="alarm_low_snooze" required disabled>
                                     <option value="">Choose...</option>
@@ -576,17 +581,22 @@
                                     Please select Low alert snooze interval
                                 </div>
                             </div>
-                            <div class="col-sm-3">
-                                <label for="alarm_low_silence" class="form-label">Silence interval</label>
-                                <select class="form-select" id="alarm_low_silence" required disabled>
-                                    <option value="">Choose...</option>
-                                    <option value="0">No silence</option>
-                                    <option value="22_8">22:00 - 8:00</option>
-                                    <option value="8_22">08:00 - 22:00</option>
-                                </select>
-                                <div class="invalid-feedback">
-                                    Please choose Low alert silence interval
+                        </div>
+                        <div class="row mt-2">
+                            <div class="col-12">
+                                <label class="form-label" for="alarm_low_add_window">Alert windows</label>
+                                <div class="form-text mb-2">
+                                    Leave this empty to alert at any time. With one or more windows the
+                                    Low alert only sounds inside them. A window whose end time is earlier
+                                    than its start time runs past midnight into the next morning, and the days
+                                    you pick are the days it starts on.
                                 </div>
+                                <div id="alarm_low_windows"></div>
+                                <button type="button" class="btn btn-outline-secondary btn-sm"
+                                    id="alarm_low_add_window" disabled>
+                                    Add window
+                                </button>
+                                <div class="text-danger small mt-2 d-none" id="alarm_low_windows_error"></div>
                             </div>
                         </div>
                         <div class="row mt-2">
@@ -630,7 +640,7 @@
                                     Try
                                 </button>
                             </div>
-                            <div class="col-sm-3">
+                            <div class="col-sm-4">
                                 <label for="alarm_urgent_low_value" class="form-label">Alert when below</label>
                                 <input type="text" class="form-control" id="alarm_urgent_low_value" placeholder=""
                                     required disabled />
@@ -638,7 +648,7 @@
                                     Urgent Low alert threshold value is required
                                 </div>
                             </div>
-                            <div class="col-sm-3">
+                            <div class="col-sm-5">
                                 <label for="alarm_urgent_low_snooze" class="form-label">Snooze for</label>
                                 <select class="form-select" id="alarm_urgent_low_snooze" required disabled>
                                     <option value="">Choose...</option>
@@ -654,18 +664,22 @@
                                     Please select Urgent Low alert snooze interval
                                 </div>
                             </div>
-                            <div class="col-sm-3">
-                                <label for="alarm_urgent_low_silence" class="form-label">Silence
-                                    interval</label>
-                                <select class="form-select" id="alarm_urgent_low_silence" required disabled>
-                                    <option value="">Choose...</option>
-                                    <option value="0">No silence</option>
-                                    <option value="22_8">22:00 - 8:00</option>
-                                    <option value="8_22">08:00 - 22:00</option>
-                                </select>
-                                <div class="invalid-feedback">
-                                    Please choose Urgent Low alert silence interval
+                        </div>
+                        <div class="row mt-2">
+                            <div class="col-12">
+                                <label class="form-label" for="alarm_urgent_low_add_window">Alert windows</label>
+                                <div class="form-text mb-2">
+                                    Leave this empty to alert at any time. With one or more windows the
+                                    Urgent Low alert only sounds inside them. A window whose end time is earlier
+                                    than its start time runs past midnight into the next morning, and the days
+                                    you pick are the days it starts on.
                                 </div>
+                                <div id="alarm_urgent_low_windows"></div>
+                                <button type="button" class="btn btn-outline-secondary btn-sm"
+                                    id="alarm_urgent_low_add_window" disabled>
+                                    Add window
+                                </button>
+                                <div class="text-danger small mt-2 d-none" id="alarm_urgent_low_windows_error"></div>
                             </div>
                         </div>
                         <div class="row mt-2">
@@ -729,7 +743,8 @@
                                         return to normal or until you press the "Select" (center) button to snooze.
                                         When snoozed, the clock displays "SNOOZED" for your selected snooze
                                         interval. If levels remain low or high after the snooze interval ends, the
-                                        alarm will sound again.
+                                        alarm will sound again. Each alert can also be given one or more alert
+                                        windows, and an alert that has them stays silent outside those windows.
                                     </p>
                                 </div>
                             </div>
@@ -1093,6 +1108,41 @@
             </div>
         </div>
     </div>
+
+    <template id="alert_window_template">
+        <div class="row g-2 align-items-center alert-window mb-2 p-1">
+            <div class="col-12">
+                <div class="btn-group btn-group-sm w-100" role="group" aria-label="Days">
+                    <input type="checkbox" class="btn-check alert-window-day" value="1" autocomplete="off">
+                    <label class="btn btn-outline-primary">Mon</label>
+                    <input type="checkbox" class="btn-check alert-window-day" value="2" autocomplete="off">
+                    <label class="btn btn-outline-primary">Tue</label>
+                    <input type="checkbox" class="btn-check alert-window-day" value="3" autocomplete="off">
+                    <label class="btn btn-outline-primary">Wed</label>
+                    <input type="checkbox" class="btn-check alert-window-day" value="4" autocomplete="off">
+                    <label class="btn btn-outline-primary">Thu</label>
+                    <input type="checkbox" class="btn-check alert-window-day" value="5" autocomplete="off">
+                    <label class="btn btn-outline-primary">Fri</label>
+                    <input type="checkbox" class="btn-check alert-window-day" value="6" autocomplete="off">
+                    <label class="btn btn-outline-primary">Sat</label>
+                    <input type="checkbox" class="btn-check alert-window-day" value="0" autocomplete="off">
+                    <label class="btn btn-outline-primary">Sun</label>
+                </div>
+            </div>
+            <div class="col-6 col-sm-5">
+                <label class="form-text mb-1">From</label>
+                <input type="time" class="form-control form-control-sm alert-window-from" step="60" required>
+            </div>
+            <div class="col-6 col-sm-5">
+                <label class="form-text mb-1">To</label>
+                <input type="time" class="form-control form-control-sm alert-window-to" step="60" required>
+            </div>
+            <div class="col-12 col-sm-2 align-self-end">
+                <button type="button" class="btn btn-outline-danger btn-sm w-100 alert-window-remove"
+                    aria-label="Remove alert window">Remove</button>
+            </div>
+        </div>
+    </template>
 
     <script src="bootstrap.bundle.min.js"></script>
     <script src="../data_dev/bootstrap.bundle.js"></script>

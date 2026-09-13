@@ -629,6 +629,15 @@ tm ServerManager_::getTimezonedTime() {
     return timeinfo;
 }
 
+// Like getTimezonedTime(), but reports whether the clock actually knows the time. Reads the
+// clock directly: getLocalTime() waits up to 5 s when it is unset, and can skip the read on a zero timeout.
+bool ServerManager_::tryGetTimezonedTime(tm& timeinfo) {
+    time_t now;
+    time(&now);
+    localtime_r(&now, &timeinfo);
+    return timeinfo.tm_year > (2016 - 1900);
+}
+
 void ServerManager_::stop() {
     ws->end();
     delete ws;

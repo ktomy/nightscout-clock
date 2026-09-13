@@ -22,9 +22,6 @@ BGAlarmManager_& bgAlarmManager = bgAlarmManager.getInstance();
 int debounceTicks = 0;
 int debounceTicks2 = 0;
 int debounceTicks3 = 0;
-int debounceTicks4 = 0;
-int debounceTicks5 = 0;
-int debounceTicks6 = 0;
 int debounceTicks7 = 0;
 int debounceTicks8 = 0;
 
@@ -36,7 +33,7 @@ void BGAlarmManager_::setup() {
         alarmData.bottom = 1;
         alarmData.top = SettingsManager.settings.alarm_urgent_low_mgdl;
         alarmData.snoozeTimeMinutes = SettingsManager.settings.alarm_urgent_low_snooze_minutes;
-        alarmData.silenceInterval = SettingsManager.settings.alarm_urgent_low_silence_interval;
+        alarmData.alertWindows = SettingsManager.settings.alarm_urgent_low_alert_windows;
         alarmData.lastAlarmTime = 0;
         alarmData.alarmSound = SettingsManager.settings.alarm_urgent_low_melody;
         enabledAlarms.push_back(alarmData);
@@ -46,7 +43,7 @@ void BGAlarmManager_::setup() {
         alarmData.bottom = SettingsManager.settings.alarm_urgent_low_mgdl + 1;
         alarmData.top = SettingsManager.settings.alarm_low_mgdl - 1;
         alarmData.snoozeTimeMinutes = SettingsManager.settings.alarm_low_snooze_minutes;
-        alarmData.silenceInterval = SettingsManager.settings.alarm_low_silence_interval;
+        alarmData.alertWindows = SettingsManager.settings.alarm_low_alert_windows;
         alarmData.lastAlarmTime = 0;
         alarmData.alarmSound = SettingsManager.settings.alarm_low_melody;
         enabledAlarms.push_back(alarmData);
@@ -56,7 +53,7 @@ void BGAlarmManager_::setup() {
         alarmData.bottom = SettingsManager.settings.alarm_high_mgdl;
         alarmData.top = 401;
         alarmData.snoozeTimeMinutes = SettingsManager.settings.alarm_high_snooze_minutes;
-        alarmData.silenceInterval = SettingsManager.settings.alarm_high_silence_interval;
+        alarmData.alertWindows = SettingsManager.settings.alarm_high_alert_windows;
         alarmData.lastAlarmTime = 0;
         alarmData.alarmSound = SettingsManager.settings.alarm_high_melody;
         enabledAlarms.push_back(alarmData);
@@ -69,62 +66,43 @@ void BGAlarmManager_::setup() {
     }
 }
 
-bool isInSilentInterval(String silenceInterval) {
-    if (silenceInterval == "" || silenceInterval == "0") {
-#ifdef DEBUG_ALARMS
-
-        if (debounceTicks3 % 5000 == 0) {
-            DEBUG_PRINTLN("Alarms: no silence interval defined");
-        }
-        debounceTicks3++;
-        if (debounceTicks3 > 5000) {
-            debounceTicks3 = 0;
-        }
-
-#endif
-        return false;
-    }
-
-    auto time = ServerManager.getTimezonedTime();
-
-    if (silenceInterval == "22_8" && (time.tm_hour >= 22 || time.tm_hour < 8)) {
-#ifdef DEBUG_ALARMS
-
-        if (debounceTicks4 % 5000 == 0) {
-            DEBUG_PRINTLN("Alarms: silence interval 22_8 active");
-        }
-        debounceTicks4++;
-        if (debounceTicks4 > 5000) {
-            debounceTicks4 = 0;
-        }
-#endif
+// True when this alarm is allowed to sound now: no windows means at any time,
+// otherwise only while one of them is open.
+static bool isInsideAlertWindow(const std::vector<AlertWindow>& alertWindows) {
+    if (alertWindows.empty()) {
         return true;
     }
 
-    if (silenceInterval == "8_22" && (time.tm_hour >= 8 && time.tm_hour < 22)) {
-#ifdef DEBUG_ALARMS
-
-        if (debounceTicks5 % 5000 == 0) {
-            DEBUG_PRINTLN("Alarms: silence interval 8_22 active");
-        }
-        debounceTicks5++;
-        if (debounceTicks5 > 5000) {
-            debounceTicks5 = 0;
-        }
-#endif
+    tm now;
+    if (!ServerManager.tryGetTimezonedTime(now)) {
+        // Unknown time (no NTP yet) must never silence an alarm.
+        DEBUG_PRINTLN("Alarms: time is not known, ignoring alert windows and alerting anyway");
         return true;
     }
 
-#ifdef DEBUG_ALARMS
+    const int nowMinutes = now.tm_hour * 60 + now.tm_min;
+    const int today = now.tm_wday;  // 0 is Sunday, matching AlertWindow::days
+    const int yesterday = (today + 6) % 7;
 
-    if (debounceTicks6 % 5000 == 0) {
-        DEBUG_PRINTLN("Alarms: silence interval exists but not active");
+    for (const AlertWindow& window : alertWindows) {
+        if (window.startMinutes < window.endMinutes) {
+            // Contained in one day, for example Monday to Friday 09:00 - 17:00.
+            if (window.days[today] && nowMinutes >= window.startMinutes &&
+                nowMinutes < window.endMinutes) {
+                return true;
+            }
+        } else {
+            // Runs past midnight, for example every day 18:00 - 08:00. The evening half belongs
+            // to today's window and the morning half to the one that opened yesterday.
+            if (window.days[today] && nowMinutes >= window.startMinutes) {
+                return true;
+            }
+            if (window.days[yesterday] && nowMinutes < window.endMinutes) {
+                return true;
+            }
+        }
     }
-    debounceTicks6++;
-    if (debounceTicks6 > 5000) {
-        debounceTicks6 = 0;
-    }
-#endif
+
     return false;
 }
 
@@ -165,7 +143,17 @@ void BGAlarmManager_::tick() {
 
 #endif
 
-            if (isInSilentInterval(alarmData.silenceInterval)) {
+            if (!isInsideAlertWindow(alarmData.alertWindows)) {
+#ifdef DEBUG_ALARMS
+
+                if (debounceTicks3 % 5000 == 0) {
+                    DEBUG_PRINTLN("Alarms: outside every alert window, staying quiet");
+                }
+                debounceTicks3++;
+                if (debounceTicks3 > 5000) {
+                    debounceTicks3 = 0;
+                }
+#endif
                 if (activeAlarm != NULL) {
                     activeAlarm->isSnoozed = false;
                     activeAlarm->lastAlarmTime = 0;

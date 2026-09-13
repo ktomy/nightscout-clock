@@ -4,6 +4,7 @@
 #include <ArduinoJson.h>
 #include <LittleFS.h>
 
+#include "SettingsAlarm.h"
 #include "globals.h"
 
 namespace {
@@ -11,6 +12,7 @@ bool isValidFaceCycleInterval(int intervalSeconds) {
     return intervalSeconds == 10 || intervalSeconds == 30 || intervalSeconds == 60 ||
            intervalSeconds == 120 || intervalSeconds == 180 || intervalSeconds == 300;
 }
+
 }  // namespace
 
 // The getter for the instantiated singleton instance
@@ -198,16 +200,18 @@ bool SettingsManager_::loadSettingsFromFile() {
     settings.alarm_urgent_low_enabled = (*doc)["alarm_urgent_low_enabled"].as<bool>();
     settings.alarm_urgent_low_mgdl = (*doc)["alarm_urgent_low_value"].as<int>();
     settings.alarm_urgent_low_snooze_minutes = (*doc)["alarm_urgent_low_snooze_interval"].as<int>();
-    settings.alarm_urgent_low_silence_interval =
-        (*doc)["alarm_urgent_low_silence_interval"].as<String>();
+    settings.alarm_urgent_low_alert_windows =
+        readAlertWindows((*doc)["alarm_urgent_low_alert_windows"]);
     settings.alarm_low_enabled = (*doc)["alarm_low_enabled"].as<bool>();
     settings.alarm_low_mgdl = (*doc)["alarm_low_value"].as<int>();
     settings.alarm_low_snooze_minutes = (*doc)["alarm_low_snooze_interval"].as<int>();
-    settings.alarm_low_silence_interval = (*doc)["alarm_low_silence_interval"].as<String>();
+    settings.alarm_low_alert_windows =
+        readAlertWindows((*doc)["alarm_low_alert_windows"]);
     settings.alarm_high_enabled = (*doc)["alarm_high_enabled"].as<bool>();
     settings.alarm_high_mgdl = (*doc)["alarm_high_value"].as<int>();
     settings.alarm_high_snooze_minutes = (*doc)["alarm_high_snooze_interval"].as<int>();
-    settings.alarm_high_silence_interval = (*doc)["alarm_high_silence_interval"].as<String>();
+    settings.alarm_high_alert_windows =
+        readAlertWindows((*doc)["alarm_high_alert_windows"]);
     settings.alarm_high_melody = (*doc)["alarm_high_melody"].as<String>();
     settings.alarm_low_melody = (*doc)["alarm_low_melody"].as<String>();
     settings.alarm_urgent_low_melody = (*doc)["alarm_urgent_low_melody"].as<String>();
@@ -346,15 +350,18 @@ bool SettingsManager_::saveSettingsToFile() {
     (*doc)["alarm_urgent_low_enabled"] = settings.alarm_urgent_low_enabled;
     (*doc)["alarm_urgent_low_value"] = settings.alarm_urgent_low_mgdl;
     (*doc)["alarm_urgent_low_snooze_interval"] = settings.alarm_urgent_low_snooze_minutes;
-    (*doc)["alarm_urgent_low_silence_interval"] = settings.alarm_urgent_low_silence_interval;
+    writeAlertWindows(*doc, "alarm_urgent_low_alert_windows",
+                      settings.alarm_urgent_low_alert_windows);
     (*doc)["alarm_low_enabled"] = settings.alarm_low_enabled;
     (*doc)["alarm_low_value"] = settings.alarm_low_mgdl;
     (*doc)["alarm_low_snooze_interval"] = settings.alarm_low_snooze_minutes;
-    (*doc)["alarm_low_silence_interval"] = settings.alarm_low_silence_interval;
+    writeAlertWindows(*doc, "alarm_low_alert_windows",
+                      settings.alarm_low_alert_windows);
     (*doc)["alarm_high_enabled"] = settings.alarm_high_enabled;
     (*doc)["alarm_high_value"] = settings.alarm_high_mgdl;
     (*doc)["alarm_high_snooze_interval"] = settings.alarm_high_snooze_minutes;
-    (*doc)["alarm_high_silence_interval"] = settings.alarm_high_silence_interval;
+    writeAlertWindows(*doc, "alarm_high_alert_windows",
+                      settings.alarm_high_alert_windows);
     (*doc)["alarm_high_melody"] = settings.alarm_high_melody;
     (*doc)["alarm_low_melody"] = settings.alarm_low_melody;
     (*doc)["alarm_urgent_low_melody"] = settings.alarm_urgent_low_melody;
