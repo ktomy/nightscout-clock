@@ -9,10 +9,13 @@ void BGDisplayFaceTextBase::showReading(
     const GlucoseReading reading, int16_t x, int16_t y, TEXT_ALIGNMENT alignment, FONT_TYPE font,
     bool isOld) const {
     String readingToDisplay = getPrintableReading(reading.sgv);
-    if (!isOld) {
-        SetDisplayColorByBGValue(reading);
-    } else {
+    // Fully old wins over early stale, which wins over the glucose band.
+    if (isOld) {
         DisplayManager.setTextColor(getDataOldColor());
+    } else if (isReadingEarlyStale(reading)) {
+        DisplayManager.setTextColor(getEarlyStaleColor());
+    } else {
+        SetDisplayColorByBGValue(reading);
     }
 
     DisplayManager.setFont(font);
@@ -100,6 +103,8 @@ void BGDisplayFaceTextBase::showTrendArrow(
     uint16_t color = COLOR_WHITE;
     if (dataIsOld) {
         color = getDataOldColor();
+    } else if (isReadingEarlyStale(reading)) {
+        color = getEarlyStaleColor();
     }
 
     DisplayManager.drawBitmap(x, y, glucoseTrendSymbols.at(reading.trend), 5, 5, color);

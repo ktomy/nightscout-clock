@@ -250,6 +250,25 @@ bool SettingsManager_::loadSettingsFromFile() {
     settings.data_old_color = displayColorFromString(
         (*doc)["data_old_color"].as<String>(), DISPLAY_COLOR::GRAY);
 
+    // Early stale indicator. isNull() rather than operator| because the WebUI may write the
+    // minutes as a string, and as<int>() parses that where | would return the default.
+    settings.stale_early_enable = (*doc)["stale_early_enable"].as<bool>();
+    settings.stale_early_minutes =
+        (*doc)["stale_early_minutes"].isNull() ? 6 : (*doc)["stale_early_minutes"].as<int>();
+    settings.stale_early_color =
+        displayColorFromString((*doc)["stale_early_color"].as<String>(), DISPLAY_COLOR::CYAN);
+
+    // The early threshold only makes sense inside (2 min, data-is-old); otherwise disable it.
+    const int minimumEarlyStaleMinutes = 2;
+    if (settings.stale_early_enable &&
+        (settings.stale_early_minutes < minimumEarlyStaleMinutes ||
+         settings.stale_early_minutes >= settings.bg_data_too_old_threshold_minutes)) {
+        DEBUG_PRINTLN(
+            "Early stale threshold must be at least 2 minutes and below the data-is-old threshold, "
+            "disabling the early stale indicator.");
+        settings.stale_early_enable = false;
+    }
+
     // Web interface authentication
     settings.web_auth_enable = (*doc)["web_auth_enable"].as<bool>();
     settings.web_auth_password = (*doc)["web_auth_password"].as<String>();
@@ -383,6 +402,9 @@ bool SettingsManager_::saveSettingsToFile() {
     (*doc)["custom_nodatatimer_enable"] = settings.custom_nodatatimer_enable;
     (*doc)["custom_nodatatimer"] = settings.custom_nodatatimer;
     (*doc)["data_old_color"] = toString(settings.data_old_color);
+    (*doc)["stale_early_enable"] = settings.stale_early_enable;
+    (*doc)["stale_early_minutes"] = settings.stale_early_minutes;
+    (*doc)["stale_early_color"] = toString(settings.stale_early_color);
 
     // Web interface authentication
     (*doc)["web_auth_enable"] = settings.web_auth_enable;

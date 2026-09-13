@@ -44,6 +44,7 @@
         email_format: /^[\w-\.]+(\+[A-Za-z0-9]+)?@([\w-]+\.)+[\w-]{2,4}$/,
         not_empty: /^.{1,}$/,
         custom_nodatatimer: /^(?:[6-9]|[1-5][0-9]|60)?$/,
+        stale_early_minutes: /^(?:[2-9]|[1-5][0-9])?$/,
         web_auth_password: /^.{8,64}$/,
 
     };
@@ -100,6 +101,7 @@
         $('#additional_wifi_enable').on('change', toggleAdditionalWifiSettings);
         $('#custom_hostname_enable').on('change', toggleCustomHostnameSettings);
         $('#custom_nodatatimer_enable').on('change', toggleCustomNoDataSettings);
+        $('#stale_early_enable').on('change', toggleStaleEarlySettings);
         $('#web_auth_enable').on('change', toggleWebAuthSettings);
         $('#alarm_intensive_mode').on('change', toggleAlarmRepeatSettings);
         $('#face_cycle_enabled').on('change', toggleFaceCycleSettings);
@@ -170,6 +172,14 @@
         $('#custom_nodatatimer_settings').toggleClass('d-none', !isChecked);
     }
 
+    function toggleStaleEarlySettings() {
+        const isChecked = $('#stale_early_enable').is(':checked');
+        $('#stale_early_settings').toggleClass('d-none', !isChecked);
+        if (!isChecked) {
+            clearValidationStatus('stale_early_minutes');
+        }
+    }
+
     function toggleWebAuthSettings() {
         const isChecked = $('#web_auth_enable').is(':checked');
         $('#web_auth_settings').toggleClass('d-none', !isChecked);
@@ -191,6 +201,30 @@
         } else {
             clearFaceCycleValidation();
         }
+    }
+
+    // Checked against the No Data Timer actually in force rather than a constant, matching the
+    // same check the firmware repeats on load.
+    function validateStaleEarly() {
+        const field = $('#stale_early_minutes');
+        if (!$('#stale_early_enable').is(':checked')) {
+            clearValidationStatus('stale_early_minutes');
+            return true;
+        }
+
+        if (!validate(field, patterns.stale_early_minutes) || field.val() === '') {
+            return false;
+        }
+
+        const staleThreshold = $('#custom_nodatatimer_enable').is(':checked')
+            ? parseInt($('#custom_nodatatimer').val(), 10)
+            : 20;
+        const isValid = parseInt(field.val(), 10) < staleThreshold;
+
+        field.toggleClass('is-invalid', !isValid);
+        field.toggleClass('is-valid', isValid);
+
+        return isValid;
     }
 
     function validateFaceCycleSelection() {
@@ -451,6 +485,7 @@
         addFocusOutValidation('time_format');
 
         addFocusOutValidation('custom_nodatatimer');
+        addFocusOutValidation('stale_early_minutes');
 
         $('#alarm_high_enable').change((e) => { changeAlarmState(e.target) });
         $('#alarm_low_enable').change((e) => { changeAlarmState(e.target) });
@@ -502,6 +537,8 @@
         console.log("Validated alarms, result: " + allValid);
         allValid &= validate($('#custom_nodatatimer'), patterns.custom_nodatatimer);
         console.log("Validated custom no data timer, result: " + allValid);
+        allValid &= validateStaleEarly();
+        console.log("Validated early stale indicator, result: " + allValid);
         allValid &= validateFaceCycleSelection();
         console.log("Validated face cycling, result: " + allValid);
         if ($('#web_auth_enable').is(':checked')) {
@@ -1126,6 +1163,10 @@
         json['custom_nodatatimer_enable'] = $('#custom_nodatatimer_enable').is(':checked');
         json['custom_nodatatimer'] = $('#custom_nodatatimer').val();
         json['data_old_color'] = $('#data_old_color').val();
+        json['stale_early_enable'] = $('#stale_early_enable').is(':checked');
+        // Store a number, like face_cycle_interval_seconds; an empty field falls back to 6.
+        json['stale_early_minutes'] = parseInt($('#stale_early_minutes').val()) || 6;
+        json['stale_early_color'] = $('#stale_early_color').val();
 
         // Web interface authentication
         json['web_auth_enable'] = $('#web_auth_enable').is(':checked');
@@ -1493,6 +1534,13 @@
         toggleCustomNoDataSettings();
 
         $('#data_old_color').val(json['data_old_color'] || 'gray');
+
+        $('#stale_early_enable').prop('checked', json['stale_early_enable'] === true);
+        const staleEarlyMinutes = json['stale_early_minutes'];
+        patterns.stale_early_minutes.test(staleEarlyMinutes) ? $('#stale_early_minutes').val(staleEarlyMinutes)
+            : $('#stale_early_minutes').val(6);
+        $('#stale_early_color').val(json['stale_early_color'] || 'cyan');
+        toggleStaleEarlySettings();
 
         // Web interface authentication
         webAuthPassword = json['web_auth_password'] || "";

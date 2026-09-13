@@ -77,6 +77,7 @@ private:
     GlucoseIntervals glucoseIntervals;
     std::map<int, String> facesNames;
     bool lastRenderedDataWasOld = false;
+    bool lastRenderedDataWasEarlyStale = false;
     bool faceCycleActive = false;
     bool faceCycleTimerStarted = false;
     unsigned long lastFaceCycleMillis = 0;
@@ -86,7 +87,7 @@ private:
     void updateFaceCycle();
     void resetFaceCycleTimer();
     void runRenderCycle(RenderReason reason, const tm& timeInfo);
-    void commitRenderedState(bool dataIsOld);
+    void commitRenderedState(bool dataIsOld, bool dataIsEarlyStale);
 
 public:
     static BGDisplayManager_& getInstance();

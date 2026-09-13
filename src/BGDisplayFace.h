@@ -26,8 +26,14 @@ struct RenderContext {
     tm currentTime;
     bool dataIsOld;
     bool wasDataOld;
+    bool dataIsEarlyStale;
+    bool wasDataEarlyStale;
     const std::list<GlucoseReading>& readings;
 };
+
+// True while a reading is past the early-stale threshold but not yet data-is-old.
+// A free function because the render loop needs the same answer the faces do.
+bool isReadingEarlyStale(const GlucoseReading& reading);
 
 class BGDisplayFace {
 public:
@@ -41,6 +47,8 @@ protected:
     // Configurable color for old readings and no-data screens;
     // gray can be invisible at minimum brightness.
     uint16_t getDataOldColor() const;
+
+    uint16_t getEarlyStaleColor() const;
 };
 
 #endif

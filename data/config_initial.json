@@ -59,6 +59,9 @@
     "custom_nodatatimer_enable": false,
     "custom_nodatatimer": 20,
     "data_old_color": "gray",
+    "stale_early_enable": false,
+    "stale_early_minutes": 6,
+    "stale_early_color": "cyan",
     "web_auth_enable": false,
     "web_auth_password": ""
 }

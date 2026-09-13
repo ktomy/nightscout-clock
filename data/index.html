@@ -1034,6 +1034,50 @@
                                 </div>
                             </div>
                         </div>
+                        <hr />
+                        <div class="row">
+                            <div class="col-12">
+                                <table>
+                                    <tr>
+                                        <td>
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" value=""
+                                                    id="stale_early_enable" />
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <h5>Early Stale Indicator</h5>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="row d-none" id="stale_early_settings">
+                            <div class="col-12">
+                                <p class="text-muted small">
+                                    Colors the value and trend arrow once a reading is older than the time
+                                    below, before it becomes fully stale. Useful on clock faces that have no
+                                    age bars, such as Big text.
+                                </p>
+                            </div>
+                            <div class="col-6" id="stale_early_minutes_cell">
+                                <label for="stale_early_minutes" class="form-label">Early stale after (in
+                                    minutes)</label>
+                                <input type="text" class="form-control" id="stale_early_minutes" placeholder=""
+                                    required />
+                                <div class="invalid-feedback">
+                                    A valid time between 2 and 59 minutes, below the No Data Timer, is required
+                                </div>
+                            </div>
+                            <div class="col-6" id="stale_early_color_cell">
+                                <label for="stale_early_color" class="form-label">Early stale color</label>
+                                <select class="form-select" id="stale_early_color">
+                                    <option value="cyan">Cyan</option>
+                                    <option value="magenta">Magenta</option>
+                                    <option value="blue">Blue (dimmest at low brightness)</option>
+                                </select>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <br />
