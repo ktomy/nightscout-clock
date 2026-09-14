@@ -16,6 +16,11 @@ protected:
         const GlucoseReading reading, int16_t x, int16_t y, TEXT_ALIGNMENT alignment, FONT_TYPE fontType,
         bool isOld = false) const;
     void SetDisplayColorByBGValue(const GlucoseReading& reading) const;
+    uint16_t getColorByBGValue(const GlucoseReading& reading) const;
+    void showReadingInColor(
+        const GlucoseReading reading, int16_t x, int16_t y, TEXT_ALIGNMENT alignment, FONT_TYPE fontType,
+        uint16_t color) const;
+    void showTrendArrowInColor(const GlucoseReading reading, int16_t x, int16_t y, uint16_t color) const;
     String getPrintableReading(const int sgv) const;
 };
 

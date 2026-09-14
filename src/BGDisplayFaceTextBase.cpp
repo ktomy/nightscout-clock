@@ -8,12 +8,15 @@
 void BGDisplayFaceTextBase::showReading(
     const GlucoseReading reading, int16_t x, int16_t y, TEXT_ALIGNMENT alignment, FONT_TYPE font,
     bool isOld) const {
+    showReadingInColor(
+        reading, x, y, alignment, font, isOld ? getDataOldColor() : getColorByBGValue(reading));
+}
+
+void BGDisplayFaceTextBase::showReadingInColor(
+    const GlucoseReading reading, int16_t x, int16_t y, TEXT_ALIGNMENT alignment, FONT_TYPE font,
+    uint16_t color) const {
     String readingToDisplay = getPrintableReading(reading.sgv);
-    if (!isOld) {
-        SetDisplayColorByBGValue(reading);
-    } else {
-        DisplayManager.setTextColor(getDataOldColor());
-    }
+    DisplayManager.setTextColor(color);
 
     DisplayManager.setFont(font);
 
@@ -21,6 +24,10 @@ void BGDisplayFaceTextBase::showReading(
 }
 
 void BGDisplayFaceTextBase::SetDisplayColorByBGValue(const GlucoseReading& reading) const {
+    DisplayManager.setTextColor(getColorByBGValue(reading));
+}
+
+uint16_t BGDisplayFaceTextBase::getColorByBGValue(const GlucoseReading& reading) const {
     auto bgLevel = bgDisplayManager.getGlucoseIntervals().getBGLevel(reading.sgv);
     auto textColor = COLOR_GRAY;
 
@@ -38,7 +45,7 @@ void BGDisplayFaceTextBase::SetDisplayColorByBGValue(const GlucoseReading& readi
             break;
     }
 
-    DisplayManager.setTextColor(textColor);
+    return textColor;
 }
 
 String BGDisplayFaceTextBase::getPrintableReading(const int sgv) const {
@@ -97,11 +104,11 @@ const std::map<BG_TREND, const uint8_t*> glucoseTrendSymbols = {
 
 void BGDisplayFaceTextBase::showTrendArrow(
     const GlucoseReading reading, int16_t x, int16_t y, bool dataIsOld) const {
-    uint16_t color = COLOR_WHITE;
-    if (dataIsOld) {
-        color = getDataOldColor();
-    }
+    showTrendArrowInColor(reading, x, y, dataIsOld ? getDataOldColor() : COLOR_WHITE);
+}
 
+void BGDisplayFaceTextBase::showTrendArrowInColor(
+    const GlucoseReading reading, int16_t x, int16_t y, uint16_t color) const {
     DisplayManager.drawBitmap(x, y, glucoseTrendSymbols.at(reading.trend), 5, 5, color);
 }
 

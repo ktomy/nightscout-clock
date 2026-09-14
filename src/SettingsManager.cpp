@@ -250,6 +250,18 @@ bool SettingsManager_::loadSettingsFromFile() {
     settings.data_old_color = displayColorFromString(
         (*doc)["data_old_color"].as<String>(), DISPLAY_COLOR::GRAY);
 
+    JsonObject simpleDark = (*doc)["face_simple_dark"].as<JsonObject>();
+    settings.face_simple_dark.urgent_low_color =
+        displayColorFromString(simpleDark["urgent_low_color"].as<String>(), DISPLAY_COLOR::WHITE);
+    settings.face_simple_dark.low_color =
+        displayColorFromString(simpleDark["low_color"].as<String>(), DISPLAY_COLOR::WHITE);
+    settings.face_simple_dark.in_range_color =
+        displayColorFromString(simpleDark["in_range_color"].as<String>(), DISPLAY_COLOR::WHITE);
+    settings.face_simple_dark.high_color =
+        displayColorFromString(simpleDark["high_color"].as<String>(), DISPLAY_COLOR::WHITE);
+    settings.face_simple_dark.urgent_high_color =
+        displayColorFromString(simpleDark["urgent_high_color"].as<String>(), DISPLAY_COLOR::WHITE);
+
     // Web interface authentication
     settings.web_auth_enable = (*doc)["web_auth_enable"].as<bool>();
     settings.web_auth_password = (*doc)["web_auth_password"].as<String>();
@@ -383,6 +395,13 @@ bool SettingsManager_::saveSettingsToFile() {
     (*doc)["custom_nodatatimer_enable"] = settings.custom_nodatatimer_enable;
     (*doc)["custom_nodatatimer"] = settings.custom_nodatatimer;
     (*doc)["data_old_color"] = toString(settings.data_old_color);
+
+    JsonObject simpleDark = (*doc)["face_simple_dark"].to<JsonObject>();
+    simpleDark["urgent_low_color"] = toString(settings.face_simple_dark.urgent_low_color);
+    simpleDark["low_color"] = toString(settings.face_simple_dark.low_color);
+    simpleDark["in_range_color"] = toString(settings.face_simple_dark.in_range_color);
+    simpleDark["high_color"] = toString(settings.face_simple_dark.high_color);
+    simpleDark["urgent_high_color"] = toString(settings.face_simple_dark.urgent_high_color);
 
     // Web interface authentication
     (*doc)["web_auth_enable"] = settings.web_auth_enable;

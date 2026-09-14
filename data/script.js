@@ -19,8 +19,19 @@
         3: 'Big text',
         4: 'Value and delta',
         5: 'Current time and BG value',
-        6: 'Unicorn'
+        6: 'Unicorn',
+        7: 'Simple (dark)'
     };
+
+    // Per-face settings for Simple (dark): one reading colour per glucose band.
+    const simpleDarkBands = {
+        urgent_low_color: 'Urgent low',
+        low_color: 'Low',
+        in_range_color: 'In range',
+        high_color: 'High',
+        urgent_high_color: 'Urgent high'
+    };
+    const simpleDarkColors = ['white', 'magenta', 'blue', 'cyan', 'green', 'yellow', 'red'];
 
     if (window.location.href.indexOf("127.0.0.1") > 0) {
         console.log("Setting clock host to lab ESP..");
@@ -83,6 +94,20 @@
                     </div>
                 </div>
             `);
+        });
+
+        const simpleDarkColorCells = $('#face_simple_dark_colors').empty();
+        Object.entries(simpleDarkBands).forEach(([key, label]) => {
+            const selectId = `face_simple_dark_${key}`;
+            const select = $('<select>', { class: 'form-select', id: selectId });
+            simpleDarkColors.forEach(color => {
+                $('<option>', { value: color, text: color.charAt(0).toUpperCase() + color.slice(1) })
+                    .appendTo(select);
+            });
+            $('<div class="col-6 col-md">')
+                .append($('<label>', { for: selectId, class: 'form-label', text: label }))
+                .append(select)
+                .appendTo(simpleDarkColorCells);
         });
     }
 
@@ -1126,6 +1151,10 @@
         json['custom_nodatatimer_enable'] = $('#custom_nodatatimer_enable').is(':checked');
         json['custom_nodatatimer'] = $('#custom_nodatatimer').val();
         json['data_old_color'] = $('#data_old_color').val();
+        json['face_simple_dark'] = {};
+        Object.keys(simpleDarkBands).forEach(key => {
+            json['face_simple_dark'][key] = $(`#face_simple_dark_${key}`).val();
+        });
 
         // Web interface authentication
         json['web_auth_enable'] = $('#web_auth_enable').is(':checked');
@@ -1493,6 +1522,11 @@
         toggleCustomNoDataSettings();
 
         $('#data_old_color').val(json['data_old_color'] || 'gray');
+        const simpleDark = json['face_simple_dark'] || {};
+        Object.keys(simpleDarkBands).forEach(key => {
+            const color = simpleDarkColors.includes(simpleDark[key]) ? simpleDark[key] : 'white';
+            $(`#face_simple_dark_${key}`).val(color);
+        });
 
         // Web interface authentication
         webAuthPassword = json['web_auth_password'] || "";

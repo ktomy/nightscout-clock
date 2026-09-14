@@ -59,6 +59,13 @@
     "custom_nodatatimer_enable": false,
     "custom_nodatatimer": 20,
     "data_old_color": "gray",
+    "face_simple_dark": {
+        "urgent_low_color": "white",
+        "low_color": "white",
+        "in_range_color": "white",
+        "high_color": "white",
+        "urgent_high_color": "white"
+    },
     "web_auth_enable": false,
     "web_auth_password": ""
 }
