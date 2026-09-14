@@ -71,5 +71,10 @@ extern uint16_t BATTERY_RAW;
 extern bool MATRIX_OFF;
 extern uint8_t MIN_BRIGHTNESS;
 extern uint8_t MAX_BRIGHTNESS;
+// MelodyPlayer halves these into PWM duty; HIGH is the level alerts have always played at.
+#define ALARM_VOLUME_LOW 60
+#define ALARM_VOLUME_MEDIUM 125
+#define ALARM_VOLUME_HIGH 250
+#define DEFAULT_ALARM_VOLUME ALARM_VOLUME_HIGH
 extern const String sound_boot PROGMEM;
 #endif  // Globals_H

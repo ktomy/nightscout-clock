@@ -88,6 +88,16 @@ bool SettingsManager_::isValidAlarmRepeatInterval(int intervalSeconds) {
     return intervalSeconds == 60 || intervalSeconds == 120 || intervalSeconds == 300;
 }
 
+// The three levels the WebUI offers; anything else falls back to the default.
+static int readAlarmVolume(JsonVariantConst configured) {
+    int volume = configured | DEFAULT_ALARM_VOLUME;
+    if (volume != ALARM_VOLUME_LOW && volume != ALARM_VOLUME_MEDIUM && volume != ALARM_VOLUME_HIGH) {
+        DEBUG_PRINTLN("Invalid alarm volume in config, falling back to the default");
+        return DEFAULT_ALARM_VOLUME;
+    }
+    return volume;
+}
+
 bool SettingsManager_::loadSettingsFromFile() {
     auto doc = readConfigJsonFile();
     if (doc == NULL)
@@ -215,6 +225,9 @@ bool SettingsManager_::loadSettingsFromFile() {
     settings.alarm_high_melody = (*doc)["alarm_high_melody"].as<String>();
     settings.alarm_low_melody = (*doc)["alarm_low_melody"].as<String>();
     settings.alarm_urgent_low_melody = (*doc)["alarm_urgent_low_melody"].as<String>();
+    settings.alarm_high_volume = readAlarmVolume((*doc)["alarm_high_volume"]);
+    settings.alarm_low_volume = readAlarmVolume((*doc)["alarm_low_volume"]);
+    settings.alarm_urgent_low_volume = readAlarmVolume((*doc)["alarm_urgent_low_volume"]);
     settings.alarm_intensive_mode = (*doc)["alarm_intensive_mode"].as<bool>();
 
     settings.alarm_repeat_interval_seconds = (*doc)["alarm_repeat_interval_seconds"] | 300;
@@ -365,6 +378,9 @@ bool SettingsManager_::saveSettingsToFile() {
     (*doc)["alarm_high_melody"] = settings.alarm_high_melody;
     (*doc)["alarm_low_melody"] = settings.alarm_low_melody;
     (*doc)["alarm_urgent_low_melody"] = settings.alarm_urgent_low_melody;
+    (*doc)["alarm_high_volume"] = settings.alarm_high_volume;
+    (*doc)["alarm_low_volume"] = settings.alarm_low_volume;
+    (*doc)["alarm_urgent_low_volume"] = settings.alarm_urgent_low_volume;
     (*doc)["alarm_intensive_mode"] = settings.alarm_intensive_mode;
     (*doc)["alarm_repeat_interval_seconds"] = settings.alarm_repeat_interval_seconds;
 
