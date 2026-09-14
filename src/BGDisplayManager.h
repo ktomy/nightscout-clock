@@ -16,6 +16,7 @@
 #include "BGDisplayFaceUnicorn.h"
 #include "BGDisplayFaceValueAndDiff.h"
 #include "BGSource.h"
+#include "SettingsSchedule.h"
 
 struct GlucoseInterval {
     int low_boundary;
@@ -81,9 +82,15 @@ private:
     bool faceCycleTimerStarted = false;
     unsigned long lastFaceCycleMillis = 0;
     std::vector<int> faceCycleFaces;
+    std::vector<FaceScheduleEntry> faceSchedule;  // sorted by start time
+    bool faceScheduleActive = false;
+    int appliedScheduleEntry = -1;
 
     void configureFaceCycle();
     void updateFaceCycle();
+    void configureFaceSchedule();
+    void updateFaceSchedule();
+    void applyScheduleEntry(const FaceScheduleEntry& entry);
     void resetFaceCycleTimer();
     void runRenderCycle(RenderReason reason, const tm& timeInfo);
     void commitRenderedState(bool dataIsOld);

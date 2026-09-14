@@ -104,6 +104,8 @@
         $('#alarm_intensive_mode').on('change', toggleAlarmRepeatSettings);
         $('#face_cycle_enabled').on('change', toggleFaceCycleSettings);
         $('.face-cycle-face').on('change', validateFaceCycleSelection);
+        $('#face_schedule_enabled').on('change', toggleFaceScheduleSettings);
+        $('#face_schedule_add').on('click', () => addFaceScheduleRow());
         $('#open_wifi_network').on('change', toggleWifiPasswordField);
         $('.btn-password-toggle').on('click', togglePasswordVisibility);
         $('.btn-password-toggle').each((_, el) => {
@@ -185,12 +187,109 @@
         $('#default_clock_face').prop('disabled', isEnabled);
         $('#default_clock_face_cycle_help').toggleClass('d-none', !isEnabled);
         $('#face_cycle_enabled').attr('aria-expanded', isEnabled ? 'true' : 'false');
+        $('#face_schedule_enabled').prop('disabled', isEnabled);
 
         if (isEnabled) {
             validateFaceCycleSelection();
         } else {
             clearFaceCycleValidation();
         }
+    }
+
+    // Face schedule: rows of time, face and brightness. Exclusive with cycling, which would
+    // otherwise take the face back at its next interval.
+    let faceScheduleRowCount = 0;
+
+    function buildFaceScheduleRow(entry) {
+        const template = document.getElementById('face_schedule_row_template');
+        const row = $(template.content.firstElementChild.cloneNode(true));
+        const rowId = `face_schedule_row_${++faceScheduleRowCount}`;
+
+        const time = row.find('.face-schedule-time').attr('id', `${rowId}_time`);
+        time.prev('label').attr('for', time.attr('id'));
+        time.val((entry && entry.time) || '22:00');
+
+        const face = row.find('.face-schedule-face').attr('id', `${rowId}_face`);
+        face.prev('label').attr('for', face.attr('id'));
+        Object.entries(clockFaces).forEach(([id, name]) => {
+            $('<option>', { value: id, text: name }).appendTo(face);
+        });
+        face.val(entry && clockFaces[entry.face] !== undefined ? entry.face : 0);
+
+        const brightness = row.find('.face-schedule-brightness').attr('id', `${rowId}_brightness`);
+        brightness.prev('label').attr('for', brightness.attr('id'));
+        $('#brightness_level option').clone().appendTo(brightness);
+        const hasBrightness = entry && brightness.find(`option[value="${entry.brightness}"]`).length > 0;
+        brightness.val(hasBrightness ? entry.brightness : 100);
+
+        row.find('.face-schedule-remove').on('click', () => {
+            row.remove();
+            validateFaceSchedule();
+        });
+        row.find('input, select').on('input change', validateFaceSchedule);
+        return row;
+    }
+
+    function addFaceScheduleRow(entry) {
+        $('#face_schedule_rows').append(buildFaceScheduleRow(entry));
+        validateFaceSchedule();
+    }
+
+    function renderFaceSchedule(entries) {
+        const container = $('#face_schedule_rows').empty();
+        (Array.isArray(entries) ? entries : []).forEach(entry => {
+            container.append(buildFaceScheduleRow(entry));
+        });
+    }
+
+    function collectFaceSchedule() {
+        return $('#face_schedule_rows .face-schedule-row').get().map(element => {
+            const row = $(element);
+            return {
+                time: row.find('.face-schedule-time').val() || '',
+                face: parseInt(row.find('.face-schedule-face').val(), 10),
+                brightness: parseInt(row.find('.face-schedule-brightness').val(), 10),
+            };
+        });
+    }
+
+    function validateFaceSchedule() {
+        const error = $('#face_schedule_error');
+        const rows = $('#face_schedule_rows .face-schedule-row');
+
+        if (!$('#face_schedule_enabled').is(':checked')) {
+            rows.removeClass('border border-danger rounded');
+            error.addClass('d-none').text('');
+            return true;
+        }
+
+        const times = collectFaceSchedule().map(entry => entry.time);
+        let problem = '';
+        if (rows.length === 0) {
+            problem = 'Add at least one time, or turn the schedule off.';
+        } else if (rows.length > 8) {
+            problem = 'A schedule can have at most 8 times.';
+        } else if (times.includes('')) {
+            problem = 'Every row needs a time.';
+        } else if (new Set(times).size !== times.length) {
+            problem = 'Two rows have the same time.';
+        }
+
+        rows.each((_, element) => {
+            const time = $(element).find('.face-schedule-time').val() || '';
+            const duplicate = times.filter(other => other === time).length > 1;
+            $(element).toggleClass('border border-danger rounded', time === '' || duplicate);
+        });
+        error.toggleClass('d-none', problem === '').text(problem);
+        return problem === '';
+    }
+
+    function toggleFaceScheduleSettings() {
+        const isEnabled = $('#face_schedule_enabled').is(':checked');
+        $('#face_schedule_settings').toggleClass('d-none', !isEnabled);
+        $('#face_schedule_enabled').attr('aria-expanded', isEnabled ? 'true' : 'false');
+        $('#face_cycle_enabled').prop('disabled', isEnabled);
+        validateFaceSchedule();
     }
 
     function validateFaceCycleSelection() {
@@ -504,6 +603,8 @@
         console.log("Validated custom no data timer, result: " + allValid);
         allValid &= validateFaceCycleSelection();
         console.log("Validated face cycling, result: " + allValid);
+        allValid &= validateFaceSchedule();
+        console.log("Validated face schedule, result: " + allValid);
         if ($('#web_auth_enable').is(':checked')) {
             const passwordField = $('#web_auth_password');
             const requiresPassword = !webAuthHasPassword || (passwordField.val() || "").length > 0;
@@ -1099,6 +1200,8 @@
             .map((_, face) => parseInt(face.value))
             .get();
         json['face_cycle_interval_seconds'] = parseInt($('#face_cycle_interval_seconds').val());
+        json['face_schedule_enabled'] = $('#face_schedule_enabled').is(':checked');
+        json['face_schedule'] = collectFaceSchedule();
         json['tz_libc'] = $('#clock_timezone').val();
         json['tz'] = $('#clock_timezone option:selected').text();
         json['time_format'] = $('#time_format').val();
@@ -1443,6 +1546,12 @@
         $('#face_cycle_interval_seconds').val(faceCycleInterval);
         $('#face_cycle_enabled').prop('checked', json['face_cycle_enabled'] === true);
         toggleFaceCycleSettings();
+
+        // Cycling wins over the schedule in the firmware, so a config with both on shows it that way.
+        renderFaceSchedule(json['face_schedule']);
+        $('#face_schedule_enabled').prop(
+            'checked', json['face_schedule_enabled'] === true && json['face_cycle_enabled'] !== true);
+        toggleFaceScheduleSettings();
 
         $('#time_format').val(json['time_format']);
 

@@ -58,6 +58,7 @@ void BGDisplayManager_::setup() {
     }
 
     configureFaceCycle();
+    configureFaceSchedule();
 
     if (faceCycleActive) {
         currentFaceIndex = faceCycleFaces.front();
@@ -187,8 +188,69 @@ void BGDisplayManager_::updateFaceCycle() {
 }
 
 void BGDisplayManager_::tick() {
+    updateFaceSchedule();
     updateFaceCycle();
     maybeRrefreshScreen();
+}
+
+// Cycling and the schedule both own the face, so cycling wins when both are on.
+void BGDisplayManager_::configureFaceSchedule() {
+    faceSchedule = SettingsManager.settings.face_schedule;
+    std::sort(
+        faceSchedule.begin(), faceSchedule.end(),
+        [](const FaceScheduleEntry& a, const FaceScheduleEntry& b) {
+            return a.startMinutes < b.startMinutes;
+        });
+    appliedScheduleEntry = -1;
+    faceScheduleActive =
+        SettingsManager.settings.face_schedule_enabled && !faceCycleActive && !faceSchedule.empty();
+}
+
+// The row in force is the latest one whose time has passed today, or the last row before the
+// first one of the day. No known time means no row applies.
+void BGDisplayManager_::updateFaceSchedule() {
+    if (!faceScheduleActive) {
+        return;
+    }
+
+    static unsigned long lastCheckMillis = 0;
+    if (millis() - lastCheckMillis < 1000) {
+        return;
+    }
+    lastCheckMillis = millis();
+
+    tm now;
+    if (!ServerManager.tryGetTimezonedTime(now)) {
+        return;
+    }
+    const int minuteOfDay = now.tm_hour * 60 + now.tm_min;
+
+    int current = static_cast<int>(faceSchedule.size()) - 1;
+    for (size_t i = 0; i < faceSchedule.size(); i++) {
+        if (faceSchedule[i].startMinutes <= minuteOfDay) {
+            current = static_cast<int>(i);
+        }
+    }
+
+    if (current == appliedScheduleEntry) {
+        return;
+    }
+    appliedScheduleEntry = current;
+    applyScheduleEntry(faceSchedule[current]);
+}
+
+// Applied the way the Web UI or the buttons would: the brightness settings change in memory,
+// so the automatic modes carry on from there, and the face is switched.
+void BGDisplayManager_::applyScheduleEntry(const FaceScheduleEntry& entry) {
+    DEBUG_PRINTF("Schedule: face %d, brightness %d\n", entry.face, entry.brightness);
+    if (entry.brightness >= 100) {
+        SettingsManager.settings.brightness_mode = static_cast<BRIGHTNES_MODE>(entry.brightness);
+    } else {
+        SettingsManager.settings.brightness_mode = BRIGHTNES_MODE::MANUAL;
+        SettingsManager.settings.brightness_level = entry.brightness - 1;
+    }
+    DisplayManager.applySettings();
+    setFace(entry.face);
 }
 
 void BGDisplayManager_::commitRenderedState(bool dataIsOld) {

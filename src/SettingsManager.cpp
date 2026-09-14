@@ -151,6 +151,9 @@ bool SettingsManager_::loadSettingsFromFile() {
         settings.face_cycle_enabled = false;
     }
 
+    settings.face_schedule_enabled = (*doc)["face_schedule_enabled"] | false;
+    settings.face_schedule = readFaceSchedule((*doc)["face_schedule"]);
+
     String data_source = (*doc)["data_source"].as<String>();
     if (data_source == "nightscout") {
         settings.bg_source = BG_SOURCE::NIGHTSCOUT;
@@ -287,6 +290,8 @@ bool SettingsManager_::saveSettingsToFile() {
     for (int faceId : settings.face_cycle_faces) {
         faceCycleFaces.add(faceId);
     }
+    (*doc)["face_schedule_enabled"] = settings.face_schedule_enabled;
+    writeFaceSchedule(*doc, "face_schedule", settings.face_schedule);
 
     String data_source = "no_source";
     switch (settings.bg_source) {

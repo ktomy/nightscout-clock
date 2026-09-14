@@ -4,8 +4,6 @@
 
 #include "globals.h"
 
-namespace {
-// "HH:MM" as minutes since midnight, or -1 when it is not a readable time of day.
 int parseTimeOfDayMinutes(const String& value) {
     int colon = value.indexOf(':');
     if (colon < 1 || (int)value.length() - colon != 3) {
@@ -31,6 +29,7 @@ String minutesAsTimeOfDay(int minutes) {
     return String(buffer);
 }
 
+namespace {
 // Days use tm_wday numbering: "12345" means Monday to Friday.
 bool parseAlertWindowDays(const String& value, AlertWindow& window) {
     if (value.length() == 0 || value.length() > 7) {
