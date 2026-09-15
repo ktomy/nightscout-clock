@@ -85,6 +85,7 @@ private:
     std::vector<FaceScheduleEntry> faceSchedule;  // sorted by start time
     bool faceScheduleActive = false;
     int appliedScheduleEntry = -1;
+    int lastScheduleMinuteOfDay = -1;
 
     void configureFaceCycle();
     void updateFaceCycle();

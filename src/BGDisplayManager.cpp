@@ -202,12 +202,13 @@ void BGDisplayManager_::configureFaceSchedule() {
             return a.startMinutes < b.startMinutes;
         });
     appliedScheduleEntry = -1;
+    lastScheduleMinuteOfDay = -1;
     faceScheduleActive =
         SettingsManager.settings.face_schedule_enabled && !faceCycleActive && !faceSchedule.empty();
 }
 
-// The row in force is the latest one whose time has passed today, or the last row before the
-// first one of the day. No known time means no row applies.
+// The row in force is the latest one passed today, else the last row; each row re-applies daily
+// at its time, even a single row. No known time means no row applies.
 void BGDisplayManager_::updateFaceSchedule() {
     if (!faceScheduleActive) {
         return;
@@ -232,7 +233,11 @@ void BGDisplayManager_::updateFaceSchedule() {
         }
     }
 
-    if (current == appliedScheduleEntry) {
+    const bool reachedRowTime = minuteOfDay == faceSchedule[current].startMinutes &&
+                                minuteOfDay != lastScheduleMinuteOfDay;
+    lastScheduleMinuteOfDay = minuteOfDay;
+
+    if (current == appliedScheduleEntry && !reachedRowTime) {
         return;
     }
     appliedScheduleEntry = current;
