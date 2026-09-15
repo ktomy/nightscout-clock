@@ -25,6 +25,8 @@
     "face_cycle_enabled": false,
     "face_cycle_faces": [3],
     "face_cycle_interval_seconds": 60,
+    "face_schedule_enabled": false,
+    "face_schedule": [],
     "tz_libc": "",
     "tz": "",
     "time_format": "24",

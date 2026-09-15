@@ -79,6 +79,10 @@ Automatic cycling can be enabled under Device settings in the Web UI. Select at 
 
 While cycling is enabled, the left and right buttons move only between the selected faces and restart the interval without stopping automatic cycling. The default-face setting is disabled until automatic cycling is turned off again.
 
+#### Face and brightness schedule
+
+Under Device settings the clock can change its face and brightness on a schedule. Each row gives a time of day, a face and a brightness, either a manual level or one of the automatic modes. From that time the clock shows that face at that brightness until the next row, and the last row of the day runs overnight, so a Big text row in the morning and a Simple row at brightness 1 in the evening make a bedside clock that is readable by day and easy to sleep next to. The buttons still change the face between rows. The schedule and automatic cycling cannot both be on, and a clock that does not know the time yet stays on its default face.
+
 ### Configuration web interface
 
 <img alt="Nightscout Clock configuration web interface" src="docs/images/web-ui.png" />
@@ -117,6 +121,7 @@ High, low, and urgent-low alarms each have their own threshold, snooze duration,
   - Default clock face can be selected in the Web UI
   - Clock faces can be changed using arrow buttons on the clock
   - Selected clock faces can cycle automatically at a configurable interval
+  - Face and brightness can follow a daily schedule
   - Simple clock face (value and trend arrow)
   - Full-width glucose graph
   - Graph, value and trend indicator

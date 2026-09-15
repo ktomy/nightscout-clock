@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "SettingsAlarm.h"
+#include "SettingsSchedule.h"
 #include "enums.h"
 
 class Settings {
@@ -27,6 +28,8 @@ public:
     bool face_cycle_enabled = false;
     std::vector<int> face_cycle_faces;
     int face_cycle_interval_seconds = 60;
+    bool face_schedule_enabled = false;
+    std::vector<FaceScheduleEntry> face_schedule;
     BG_SOURCE bg_source;
     String dexcom_username;
     String dexcom_password;
