@@ -12,10 +12,6 @@ struct AlertWindow {
     int endMinutes = 0;
 };
 
-// Time-of-day helpers, shared with the face schedule.
-int parseTimeOfDayMinutes(const String& value);  // "HH:MM" as minutes since midnight, or -1
-String minutesAsTimeOfDay(int minutes);
-
 std::vector<AlertWindow> readAlertWindows(JsonVariantConst configured);
 void writeAlertWindows(
     JsonDocument& doc, const char* windowsKey, const std::vector<AlertWindow>& windows);

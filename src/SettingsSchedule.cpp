@@ -2,7 +2,7 @@
 
 #include <Arduino.h>
 
-#include "SettingsAlarm.h"
+#include "SettingsTime.h"
 #include "globals.h"
 
 std::vector<FaceScheduleEntry> readFaceSchedule(JsonVariantConst configured) {
