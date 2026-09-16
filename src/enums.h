@@ -85,6 +85,12 @@ enum class DISPLAY_COLOR : uint16_t {
     WHITE = 0xFFFF,
 };
 
+enum class ANIMATION_SPEED : uint8_t {
+    CALM = 0,
+    NORMAL = 1,
+    LIVELY = 2,
+};
+
 inline String toString(BG_TREND trend) {
     switch (trend) {
         case BG_TREND::NONE:
@@ -230,6 +236,24 @@ inline String toString(BG_SOURCE source) {
         default:
             return "unknown";
     }
+}
+
+inline String toString(ANIMATION_SPEED speed) {
+    switch (speed) {
+        case ANIMATION_SPEED::CALM:
+            return "calm";
+        case ANIMATION_SPEED::LIVELY:
+            return "lively";
+        default:
+            return "normal";
+    }
+}
+
+// A speed name; anything else is normal.
+inline ANIMATION_SPEED animationSpeedFromString(const String& value) {
+    return value == "calm"     ? ANIMATION_SPEED::CALM
+           : value == "lively" ? ANIMATION_SPEED::LIVELY
+                               : ANIMATION_SPEED::NORMAL;
 }
 
 #endif

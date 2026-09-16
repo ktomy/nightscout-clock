@@ -36,11 +36,24 @@ public:
     virtual void showNoData() const;
     virtual RenderDecision getRenderDecision(const RenderContext& ctx) const;
     virtual void renderPartial(const RenderContext& ctx) const;
+    // How often a moving face redraws its moving part; 0 for a still face.
+    virtual unsigned long getAnimationStepMillis() const { return 0; }
+    // Redraws only the moving part of the face for animation step `frame`.
+    virtual void showAnimationFrame(
+        const std::list<GlucoseReading>& readings, unsigned long frame) const {}
 
 protected:
     // Configurable color for old readings and no-data screens;
     // gray can be invisible at minimum brightness.
     uint16_t getDataOldColor() const;
+    // The display color of a glucose range.
+    static uint16_t getLevelColor(BG_LEVEL level);
+    // Which quarter of the low or high range a reading is in: 0 next to in range, 3 next to urgent.
+    static int getWarningQuarter(int sgv, BG_LEVEL level);
+    // The glucose color of pixel `index` of a moving part at step `frame`: a lighter stripe in low or
+    // high, urgent color near the urgent limit, and every third pixel dark past an urgent limit.
+    uint16_t getMotionColor(BG_LEVEL level, int quarter, int index, unsigned long frame) const;
+    static unsigned long getStepMillis(ANIMATION_SPEED speed);
 };
 
 #endif

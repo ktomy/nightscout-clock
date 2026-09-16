@@ -300,7 +300,7 @@ function facesCard() {
 }
 
 // Settings that belong to one face, by face id, shown in a drawer while that face is active.
-const FACE_DRAWERS = { 3: bigTextSettings }
+const FACE_DRAWERS = { 3: bigTextSettings, 6: unicornSettings }
 
 function faceDrawers() {
     return reactive(["inactive_faces"], () => {
@@ -335,6 +335,15 @@ function bigTextSettings() {
         field("face_big_text_early_stale_color", "Color when a reading is late", segmented("face_big_text", EARLY_STALE_COLORS, { prop: "early_stale_color", label: "Color when a reading is late" }),
             "Color late readings until the old-data threshold. Off keeps the usual glucose colors."),
         field("face_big_text_early_stale_minutes", "Late after", segmented("face_big_text", EARLY_STALE_MINUTES, { numeric: true, prop: "early_stale_minutes", label: "Late after" })))
+}
+
+function unicornSettings() {
+    return reactive(["face_unicorn"], () => el("div.stack",
+        field("face_unicorn_mane", "Mane", segmented("face_unicorn", MANE_MODES, { prop: "mane", label: "Mane" }),
+            "A moving mane rolls its colors while the reading is fresh, and stops in the old data color when data is old."),
+        (form.get("face_unicorn") || {}).mane === "moving"
+            ? field("face_unicorn_speed", "Speed", segmented("face_unicorn", ANIMATION_SPEEDS, { prop: "speed", label: "Speed" }))
+            : null))
 }
 
 /**
