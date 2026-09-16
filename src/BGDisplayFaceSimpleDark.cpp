@@ -5,7 +5,12 @@
 
 void BGDisplayFaceSimpleDark::showReadings(
     const std::list<GlucoseReading>& readings, bool dataIsOld) const {
-    const auto& reading = readings.back();
+    showDarkReading(readings.back(), dataIsOld, 0, 6, TEXT_ALIGNMENT::CENTER, FONT_TYPE::MEDIUM);
+}
+
+void BGDisplayFaceSimpleDark::showDarkReading(
+    const GlucoseReading& reading, bool dataIsOld, int16_t x, int16_t y, TEXT_ALIGNMENT alignment,
+    FONT_TYPE font) const {
     const uint16_t bandColor = getColorByBGValue(reading);
     const auto level = bgDisplayManager.getGlucoseIntervals().getBGLevel(reading.sgv);
     // An urgent number takes the urgent color, so it stays obvious even without a trend arrow.
@@ -14,7 +19,7 @@ void BGDisplayFaceSimpleDark::showReadings(
         urgent ? bandColor
                : static_cast<uint16_t>(SettingsManager.settings.face_simple_dark.value_color);
     DisplayManager.setTextColor(dataIsOld ? getDataOldColor() : valueColor);
-    printReading(reading, 0, 6, TEXT_ALIGNMENT::CENTER, FONT_TYPE::MEDIUM);
+    printReading(reading, x, y, alignment, font);
 
     showTrendArrow(reading, MATRIX_WIDTH - 5, 1, dataIsOld, bandColor);
 }
