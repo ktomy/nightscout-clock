@@ -69,6 +69,7 @@ const FACES = [
     { id: 4, name: "Value and delta" },
     { id: 5, name: "Current time and BG value" },
     { id: 6, name: "Unicorn" },
+    { id: 7, name: "Simple (dark)" },
 ]
 
 // The config stores the faces switched off, so a face added later starts active.
@@ -103,6 +104,8 @@ const OLD_DATA_COLORS = [["gray", "Gray"], ["cyan", "Cyan"], ["magenta", "Magent
 // No red, yellow or green: those are glucose colors.
 const EARLY_STALE_COLORS = [["off", "Off"], ["cyan", "Cyan"], ["blue", "Blue"], ["magenta", "Magenta"]]
 const EARLY_STALE_MINUTES = [[6, "6 min"], [10, "10 min"], [15, "15 min"]]
+// Calm colors for a dark room; the glucose colors stay on the trend arrow.
+const DARK_VALUE_COLORS = [["white", "White"], ["magenta", "Magenta"], ["blue", "Blue"]]
 const CYCLE_INTERVALS = [[10, "10 s"], [30, "30 s"], [60, "1 min"], [120, "2 min"], [180, "3 min"], [300, "5 min"]]
 const TIME_FORMATS = [["24", "24h"], ["12", "AM/PM"]]
 const SNOOZES = [[5, "5 minutes"], [10, "10 minutes"], [15, "15 minutes"], [30, "30 minutes"], [60, "1 hour"], [120, "2 hours"], [0, "Until next trigger"]]
@@ -333,6 +336,12 @@ function validateConfig(c, ctx) {
             `The Big text late color must differ from the old data color (${OLD_DATA_COLORS.find(([v]) => v === oldColor)[1]}), or the two can't be told apart.`)
         need("face_big_text_early_stale_minutes", bigText.early_stale_minutes < oldMinutes,
             `The Big text late color must start before data counts as old (${oldMinutes} minutes). Choose fewer minutes, a longer no data timer, or Off.`)
+    }
+    // A fresh number in the old data color would read as old data.
+    const darkValueColor = (c.face_simple_dark || {}).value_color
+    if (active.includes(7)) {
+        need("face_simple_dark_value_color", darkValueColor !== oldColor,
+            `The Simple (dark) number color must differ from the old data color (${OLD_DATA_COLORS.find(([v]) => v === oldColor)[1]}), or a fresh reading would look old.`)
     }
     need("tz", RX.timezone.test(text(c.tz_libc)) && (!ctx.tzNames || ctx.tzNames.has(c.tz)), "Please select your time zone.")
     need("time_format", inOptions(c.time_format, TIME_FORMATS), "Please select the time format (AM/PM or 24h).")

@@ -300,7 +300,7 @@ function facesCard() {
 }
 
 // Settings that belong to one face, by face id, shown in a drawer while that face is active.
-const FACE_DRAWERS = { 3: bigTextSettings }
+const FACE_DRAWERS = { 3: bigTextSettings, 7: simpleDarkSettings }
 
 function faceDrawers() {
     return reactive(["inactive_faces"], () => {
@@ -335,6 +335,11 @@ function bigTextSettings() {
         field("face_big_text_early_stale_color", "Color when a reading is late", segmented("face_big_text", EARLY_STALE_COLORS, { prop: "early_stale_color", label: "Color when a reading is late" }),
             "Color late readings until the old-data threshold. Off keeps the usual glucose colors."),
         field("face_big_text_early_stale_minutes", "Late after", segmented("face_big_text", EARLY_STALE_MINUTES, { numeric: true, prop: "early_stale_minutes", label: "Late after" })))
+}
+
+function simpleDarkSettings() {
+    return field("face_simple_dark_value_color", "Number color", segmented("face_simple_dark", DARK_VALUE_COLORS, { prop: "value_color", label: "Number color" }),
+        "The trend arrow keeps the glucose colors, and old data still uses the old data color.")
 }
 
 /**

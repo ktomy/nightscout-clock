@@ -72,6 +72,7 @@ Nightscout Clock is a custom firmware for Ulanzi TC001. It can also run (with mi
 | Delta           | <img width="500" alt="Photo of the Nightscout Clock" src="https://github.com/user-attachments/assets/f8005f49-6e32-43f1-bd84-0bb4e4691d7f" /> |         |
 | Time and value  | <img width="500" alt="Time and value" src="https://github.com/user-attachments/assets/cd72bf15-85e3-4621-b5ca-d639c1849cd5" /> | The dots on the right side replace the trend arrow.<br>2 white dots = horizontal arrow.<br>2 colored dots (white + green) = 45° arrow.<br>3 dots = vertical arrow.<br>4 dots = double arrow.<br>Colored dots above = upward trend.<br>Colored dots below = downward trend. <br /><br /> For the bottom-side bars see "Simple" face for details |
 | Unicorn         | <img width="500" alt="Unicorn and value" src="https://github.com/user-attachments/assets/78dd56a8-1501-493d-98be-5fb59ac9778d" /> | Rainbow mane for normal readings, warning or urgent colors outside the configured limits, and the configured old-data color for stale readings. Age bars appear below the value. |
+| Simple (dark)   |  | Simple for a dark room: the number in white, magenta or blue (set in the Simple (dark) drawer of the Clock faces card), the trend arrow in the glucose range color, and no age bars. Urgent readings draw the number in the urgent color. Old data uses the old-data color. |
 
 #### Active clock faces
 
@@ -134,6 +135,7 @@ High, low, and urgent-low alarms each have their own threshold, snooze duration,
   - Value, trend and delta
   - Clock and BG value (timezone is set in the clock's web interface)
   - Unicorn and glucose value, with mane colors based on glucose limits
+  - Simple (dark): a calm number with the glucose color on the trend arrow, for night
 - Configurable color for old readings and no-data screens: gray (default), cyan, magenta, or blue. Choose it on the Display tab of the Web UI; the alternatives help keep stale readings visible at low brightness
 - Smart data and screen update timings: read data once it appears, refresh screen when needed
 - API data source. The clock has a simple Nightscout-like API which can receive glucose values from an external source. The main purpose of this feature is the ability to test the clock during the clockfaces development. In order to activate this feature, select the API data source within the clock's Web UI. Here are the endpoints:
