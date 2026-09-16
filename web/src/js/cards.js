@@ -155,6 +155,31 @@ function segmented(key, options, { numeric = false, label, prop } = {}) {
 }
 
 /**
+ * Build a color picker as labelled swatches, for palettes too long to read as a row of text buttons.
+ * @param {string} key - Draft setting to bind.
+ * @param {SelectOption[]} options - Color names and labels.
+ * @param {{prop?: string, label?: string, fallback?: string}} [settings={}] - Nested property, accessible group label, and the color shown while the setting is unset.
+ * @returns {HTMLElement}
+ */
+function swatches(key, options, { prop, label, fallback } = {}) {
+    const name = prop ? `${key}_${prop}` : key
+    const get = () => (prop ? (form.get(key) || {})[prop] : form.get(key)) || fallback
+    const put = v => form.set(key, prop ? { ...form.get(key), [prop]: v } : v)
+    const box = el("div.swatches", { role: "group", "aria-label": label, id: idFor(name) })
+    /**
+     * Mark the swatch matching the draft as selected.
+     * @returns {void}
+     */
+    const paint = () => $$("button", box).forEach(b => b.setAttribute("aria-pressed", String(b.dataset.value === get())))
+    for (const [value, text] of options) {
+        box.append(el("button.swatch", { type: "button", dataset: { value }, onclick: () => { put(value); form.touch(name); paint() } },
+            el("i", { style: `background:${COLOR_HEX[value]}` }), text))
+    }
+    paint()
+    return box
+}
+
+/**
  * Subscribe a DOM block to form changes and unsubscribe on the next change after it leaves the page.
  * @param {Node} node - Element whose attachment controls the subscription lifetime.
  * @param {(key: string) => void} fn - Callback for a changed setting or context key.
@@ -300,7 +325,7 @@ function facesCard() {
 }
 
 // Settings that belong to one face, by face id, shown in a drawer while that face is active.
-const FACE_DRAWERS = { 3: bigTextSettings }
+const FACE_DRAWERS = { 3: bigTextSettings, 7: simpleDarkSettings }
 
 function faceDrawers() {
     return reactive(["inactive_faces"], () => {
@@ -335,6 +360,11 @@ function bigTextSettings() {
         field("face_big_text_early_stale_color", "Color when a reading is late", segmented("face_big_text", EARLY_STALE_COLORS, { prop: "early_stale_color", label: "Color when a reading is late" }),
             "Color late readings until the old-data threshold. Off keeps the usual glucose colors."),
         field("face_big_text_early_stale_minutes", "Late after", segmented("face_big_text", EARLY_STALE_MINUTES, { numeric: true, prop: "early_stale_minutes", label: "Late after" })))
+}
+
+function simpleDarkSettings() {
+    return field("face_simple_dark_value_color", "Number color", swatches("face_simple_dark", DARK_VALUE_COLORS, { prop: "value_color", label: "Number color", fallback: "white" }),
+        "The trend arrow keeps the glucose colors and old data still uses the old data color, so red, yellow and green here do not track the reading.")
 }
 
 /**
@@ -460,19 +490,8 @@ function brightnessCard() {
  * @returns {HTMLElement}
  */
 function oldDataCard() {
-    const box = el("div.swatches", { role: "group", "aria-label": "Color when data is old", id: idFor("data_old_color") })
-    /**
-     * Mark the color swatch matching the draft as selected, defaulting to gray when unset.
-     * @returns {void}
-     */
-    const paint = () => $$("button", box).forEach(b => b.setAttribute("aria-pressed", String(b.dataset.value === (form.get("data_old_color") || "gray"))))
-    for (const [value, text] of OLD_DATA_COLORS) {
-        box.append(el("button.swatch", { type: "button", dataset: { value }, onclick: () => { form.set("data_old_color", value); paint() } },
-            el("i", { style: `background:${COLOR_HEX[value]}` }), text))
-    }
-    paint()
     return card("When data is old", null, el("div.stack",
-        field("data_old_color", "Color", box,
+        field("data_old_color", "Color", swatches("data_old_color", OLD_DATA_COLORS, { label: "Color when data is old", fallback: "gray" }),
             "Also used for the \"no data\" screen. Gray is not visible at the lowest brightness, so if you run the clock dim, choose one of the others to keep stale readings readable."),
         el("hr.divider"),
         toggleRow("custom_nodatatimer_enable", "Custom no data timer", "Minutes without a reading before the clock shows data as old. Otherwise 20 minutes."),

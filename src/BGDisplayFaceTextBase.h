@@ -10,7 +10,10 @@ public:
         const std::list<GlucoseReading>& readings, bool dataIsOld = false) const = 0;
 
 protected:
-    void showTrendArrow(const GlucoseReading reading, int16_t x, int16_t y, bool dataIsOld) const;
+    // Draws the arrow in freshColor, or in the old-data color once the data is old.
+    void showTrendArrow(
+        const GlucoseReading reading, int16_t x, int16_t y, bool dataIsOld,
+        uint16_t freshColor = static_cast<uint16_t>(DISPLAY_COLOR::WHITE)) const;
     void showTrendVerticalLine(int x, BG_TREND trend, bool dataIsOld) const;
     void showReading(
         const GlucoseReading reading, int16_t x, int16_t y, TEXT_ALIGNMENT alignment, FONT_TYPE fontType,
@@ -19,7 +22,7 @@ protected:
     void printReading(
         const GlucoseReading& reading, int16_t x, int16_t y, TEXT_ALIGNMENT alignment,
         FONT_TYPE font) const;
-    void SetDisplayColorByBGValue(const GlucoseReading& reading) const;
+    uint16_t getColorByBGValue(const GlucoseReading& reading) const;
     String getPrintableReading(const int sgv) const;
 };
 

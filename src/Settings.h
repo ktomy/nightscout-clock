@@ -16,6 +16,11 @@ struct BigTextFaceSettings {
     int early_stale_minutes = 6;
 };
 
+// Simple (dark) face: the color of the number while the reading is fresh.
+struct SimpleDarkFaceSettings {
+    DISPLAY_COLOR value_color = DISPLAY_COLOR::WHITE;
+};
+
 class Settings {
 public:
     String ssid;
@@ -77,6 +82,7 @@ public:
     int bg_data_too_old_threshold_minutes = 20;
     DISPLAY_COLOR data_old_color = DISPLAY_COLOR::GRAY;
     BigTextFaceSettings face_big_text;
+    SimpleDarkFaceSettings face_simple_dark;
     bool alarm_intensive_mode;
     int alarm_repeat_interval_seconds = 300;
     bool web_auth_enable;

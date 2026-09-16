@@ -136,4 +136,4 @@ function icon(name) {
 }
 
 // Color names the firmware understands, as swatches on the page.
-const COLOR_HEX = { green: "#22c55e", yellow: "#facc15", red: "#ef4444", cyan: "#22d3ee", blue: "#3b82f6", magenta: "#e879f9", gray: "#9ca3af" }
+const COLOR_HEX = { green: "#22c55e", yellow: "#facc15", red: "#ef4444", cyan: "#22d3ee", blue: "#3b82f6", magenta: "#e879f9", gray: "#9ca3af", white: "#f8fafc" }
