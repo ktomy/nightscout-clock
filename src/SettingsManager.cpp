@@ -248,6 +248,14 @@ bool SettingsManager_::loadSettingsFromFile() {
     settings.data_old_color = displayColorFromString(
         (*doc)["data_old_color"].as<String>(), DISPLAY_COLOR::GRAY);
 
+    // Big text face
+    JsonObject bigText = (*doc)["face_big_text"].as<JsonObject>();
+    String earlyStaleColor = bigText["early_stale_color"] | "off";
+    settings.face_big_text.early_stale_enabled = earlyStaleColor != "off";
+    settings.face_big_text.early_stale_color =
+        displayColorFromString(earlyStaleColor, DISPLAY_COLOR::CYAN);
+    settings.face_big_text.early_stale_minutes = bigText["early_stale_minutes"] | 6;
+
     // Web interface authentication
     settings.web_auth_enable = (*doc)["web_auth_enable"].as<bool>();
     settings.web_auth_password = (*doc)["web_auth_password"].as<String>();
@@ -383,6 +391,13 @@ bool SettingsManager_::saveSettingsToFile() {
     (*doc)["custom_nodatatimer_enable"] = settings.custom_nodatatimer_enable;
     (*doc)["custom_nodatatimer"] = settings.custom_nodatatimer;
     (*doc)["data_old_color"] = toString(settings.data_old_color);
+
+    // Big text face
+    JsonObject bigText = (*doc)["face_big_text"].to<JsonObject>();
+    bigText["early_stale_color"] = settings.face_big_text.early_stale_enabled
+                                       ? toString(settings.face_big_text.early_stale_color)
+                                       : "off";
+    bigText["early_stale_minutes"] = settings.face_big_text.early_stale_minutes;
 
     // Web interface authentication
     (*doc)["web_auth_enable"] = settings.web_auth_enable;
