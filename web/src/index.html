@@ -55,6 +55,48 @@
 </div>
 
 <main class="wrap" id="app" hidden>
+  <div class="card" id="card_preview">
+    <div class="card-head"><h2>Clock preview</h2><span class="face-status" id="preview_face"></span></div>
+    <canvas id="preview_canvas" width="384" height="96" role="img" aria-label="The clock's display"></canvas>
+    <p class="help" id="preview_note">Loading the preview…</p>
+    <div class="stack" id="preview_controls" hidden>
+      <div class="row preview-buttons" role="group" aria-label="Clock buttons">
+        <button class="btn sm" type="button" data-button="0">◀ Left</button>
+        <button class="btn sm" type="button" data-button="1">Select</button>
+        <button class="btn sm" type="button" data-button="2">Right ▶</button>
+      </div>
+      <details>
+        <summary>Try a reading</summary>
+        <div class="grid">
+          <div class="field">
+            <label for="preview_bg">Glucose <output id="preview_bg_out"></output></label>
+            <input type="range" id="preview_bg" min="40" max="400" value="118">
+          </div>
+          <div class="field">
+            <label for="preview_trend">Trend</label>
+            <select id="preview_trend">
+              <option value="1">⇈ Rising fast</option>
+              <option value="2">↑ Rising</option>
+              <option value="3">↗ Rising slowly</option>
+              <option value="4" selected>→ Steady</option>
+              <option value="5">↘ Falling slowly</option>
+              <option value="6">↓ Falling</option>
+              <option value="7">⇊ Falling fast</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="preview_age">Last reading</label>
+            <select id="preview_age">
+              <option value="1" selected>1 minute ago</option>
+              <option value="10">10 minutes ago</option>
+              <option value="61">An hour ago</option>
+              <option value="none">No readings</option>
+            </select>
+          </div>
+        </div>
+      </details>
+    </div>
+  </div>
   <section id="tab_display" role="tabpanel" aria-label="Display"></section>
   <section id="tab_glucose" role="tabpanel" aria-label="Glucose" hidden></section>
   <section id="tab_alarms" role="tabpanel" aria-label="Alarms" hidden></section>

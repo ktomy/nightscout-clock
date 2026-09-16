@@ -233,6 +233,7 @@ async function loadSettings() {
     showApp()
     // Background loads, after the form is usable.
     await loadTimezones()
+    preview.start()
     loadVersions()
 }
 

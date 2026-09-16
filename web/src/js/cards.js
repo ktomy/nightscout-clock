@@ -955,6 +955,8 @@ function renderAll() { Object.keys(TABS).forEach(rerenderTab) }
 function showTab(name) {
     ui.tab = name
     for (const n of Object.keys(TABS)) $(`#tab_${n}`).hidden = n !== name
+    // The preview shows what the Display and Glucose settings change.
+    $("#card_preview").hidden = name !== "display" && name !== "glucose"
     $$("[data-tab]").forEach(b => b.setAttribute("aria-selected", String(b.dataset.tab === name)))
     try { sessionStorage.setItem("tab", name) } catch (e) { /* private mode */ }
 }
