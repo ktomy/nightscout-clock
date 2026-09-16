@@ -38,6 +38,11 @@ fieldset.off input, fieldset.off select, fieldset.off .windows { opacity: .55; }
 .top-inner { max-width: 880px; margin: 0 auto; padding: 12px var(--pad); display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
 .brand { display: flex; align-items: center; gap: 12px; min-width: 0; flex: 1 1 auto; }
 .brand-mark { width: 36px; height: 36px; border-radius: 9px; display: grid; place-items: center; background: linear-gradient(135deg, #03b5d3, #2563eb); color: #fff; font-weight: 700; flex: none; }
+.brand-text { min-width: 0; flex: 1 1 auto; }
+.brand-name { display: flex; align-items: center; gap: 4px; min-width: 0; }
+.brand-name h1 { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* The pencil keeps its 44px tap target without making the header taller. */
+.brand-name .btn.icon { margin: -8px 0; }
 .brand-sub { font: 13px/18px var(--mono); color: var(--muted); }
 .pills { display: flex; flex-wrap: wrap; gap: 8px; width: 100%; order: 3; }
 .pill { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border: 1px solid var(--line); border-radius: 999px; font-size: 13px; line-height: 18px; color: var(--text-2); background: var(--surface-low); white-space: nowrap; }
