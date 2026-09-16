@@ -81,13 +81,13 @@ private:
     bool faceCycleActive = false;
     bool faceCycleTimerStarted = false;
     unsigned long lastFaceCycleMillis = 0;
-    std::vector<int> faceCycleFaces;
+    std::vector<int> activeFaces;
     std::vector<FaceScheduleEntry> faceSchedule;  // sorted by start time
     bool faceScheduleActive = false;
     int appliedScheduleEntry = -1;
     int lastScheduleMinuteOfDay = -1;
 
-    void configureFaceCycle();
+    void configureActiveFaces();
     void updateFaceCycle();
     void configureFaceSchedule();
     void updateFaceSchedule();

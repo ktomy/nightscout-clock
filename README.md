@@ -73,11 +73,15 @@ Nightscout Clock is a custom firmware for Ulanzi TC001. It can also run (with mi
 | Time and value  | <img width="500" alt="Time and value" src="https://github.com/user-attachments/assets/cd72bf15-85e3-4621-b5ca-d639c1849cd5" /> | The dots on the right side replace the trend arrow.<br>2 white dots = horizontal arrow.<br>2 colored dots (white + green) = 45° arrow.<br>3 dots = vertical arrow.<br>4 dots = double arrow.<br>Colored dots above = upward trend.<br>Colored dots below = downward trend. <br /><br /> For the bottom-side bars see "Simple" face for details |
 | Unicorn         | <img width="500" alt="Unicorn and value" src="https://github.com/user-attachments/assets/78dd56a8-1501-493d-98be-5fb59ac9778d" /> | Rainbow mane for normal readings, warning or urgent colors outside the configured limits, and the configured old-data color for stale readings. Age bars appear below the value. |
 
+#### Active clock faces
+
+The Web UI's Clock faces card selects which faces are active. All of them are active out of the box, and so is any face added by a later update; turning off the ones you never use shortens what the left and right buttons move between, and the default face is chosen among the active ones.
+
 #### Automatic clock-face cycling
 
-Automatic cycling can be enabled on the Display tab of the Web UI. Select at least two clock faces and choose how often the face should change: 10 or 30 seconds, or 1, 2, 3, or 5 minutes. Faces cycle in the order shown in the Web UI.
+Automatic cycling can be enabled in the same card, and runs through the active faces in the order shown, so at least two of them must be active. Choose how often the face should change: 10 or 30 seconds, or 1, 2, 3, or 5 minutes.
 
-While cycling is enabled, the left and right buttons move only between the selected faces and restart the interval without stopping automatic cycling. The default-face setting is disabled until automatic cycling is turned off again.
+While cycling is enabled, the left and right buttons restart the interval without stopping automatic cycling. The default-face setting is hidden until automatic cycling is turned off again.
 
 #### Face and brightness schedule
 
@@ -120,7 +124,8 @@ High, low, and urgent-low alarms each have their own threshold, snooze duration,
 - Multiple clock faces support
   - Default clock face can be selected in the Web UI
   - Clock faces can be changed using arrow buttons on the clock
-  - Selected clock faces can cycle automatically at a configurable interval
+  - Faces you do not use can be turned off in the Web UI
+  - Active clock faces can cycle automatically at a configurable interval
   - Face and brightness can follow a daily schedule
   - Simple clock face (value and trend arrow)
   - Full-width glucose graph
