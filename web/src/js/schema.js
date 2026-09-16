@@ -90,13 +90,20 @@ const LLU_REGIONS = [
     ["LA", "Latin America"], ["RU", "Russia"],
 ]
 const UNITS = [["mgdl", "mg/dl"], ["mmol", "mmol/l"]]
-// Lowest range first, in the clock's fixed colors. `limit` is the key that ends (or starts) the range.
+// Lowest range first. `color` is the key of the range's color; `limit` is the key that ends (or starts) the range.
 const BANDS = [
-    { name: "Urgent low", color: "red", limit: "low_urgent_mgdl", label: "Up to" },
-    { name: "Low", color: "yellow", limit: "low_mgdl", label: "Up to" },
-    { name: "In range", color: "green", limit: null, label: "" },
-    { name: "High", color: "yellow", limit: "high_mgdl", label: "From" },
-    { name: "Urgent high", color: "red", limit: "high_urgent_mgdl", label: "From" },
+    { name: "Urgent low", color: "bg_color_urgent_low", limit: "low_urgent_mgdl", label: "Up to" },
+    { name: "Low", color: "bg_color_low", limit: "low_mgdl", label: "Up to" },
+    { name: "In range", color: "bg_color_normal", limit: null, label: "" },
+    { name: "High", color: "bg_color_high", limit: "high_mgdl", label: "From" },
+    { name: "Urgent high", color: "bg_color_urgent_high", limit: "high_urgent_mgdl", label: "From" },
+]
+// No black, which never lights, and no gray, which is dark at the lowest brightness.
+const BAND_COLORS = [["green", "Green"], ["yellow", "Yellow"], ["red", "Red"], ["cyan", "Cyan"], ["blue", "Blue"], ["magenta", "Magenta"], ["white", "White"]]
+// Ranges that must differ, so an out-of-range reading never looks in range and an urgent one never looks milder.
+const BAND_COLORS_APART = [
+    ["bg_color_normal", "bg_color_urgent_low"], ["bg_color_normal", "bg_color_low"], ["bg_color_normal", "bg_color_high"],
+    ["bg_color_normal", "bg_color_urgent_high"], ["bg_color_urgent_low", "bg_color_low"], ["bg_color_urgent_high", "bg_color_high"],
 ]
 const LIMIT_KEYS = ["low_urgent_mgdl", "low_mgdl", "high_mgdl", "high_urgent_mgdl"]
 const OLD_DATA_COLORS = [["gray", "Gray"], ["cyan", "Cyan"], ["magenta", "Magenta"], ["blue", "Blue"]]
@@ -302,6 +309,19 @@ function validateConfig(c, ctx) {
     // Glucose
     need("units", inOptions(units, UNITS), "Please select blood glucose units type.")
     for (const k of LIMIT_KEYS) need(k, isGlucose(c[k], units), units === "mmol" ? "Enter 2.0 to 29.9." : "Enter 30 to 399.")
+    for (const b of BANDS) need(b.color, inOptions(c[b.color], BAND_COLORS), "Please choose a color.")
+    const bandName = key => BANDS.find(b => b.color === key).name
+    for (const [a, b] of BAND_COLORS_APART) {
+        if (c[a] !== c[b]) continue
+        need(a, false, `Choose a color different from ${bandName(b)}.`)
+        need(b, false, `Choose a color different from ${bandName(a)}.`)
+    }
+    // A fresh reading must not look like old data.
+    for (const b of BANDS) {
+        if (!inOptions(c[b.color], BAND_COLORS) || c[b.color] !== c.data_old_color) continue
+        need(b.color, false, "Old data is shown in this color (Display tab). Choose another color.")
+        need("data_old_color", false, `${b.name} readings use this color. Choose another color for old data.`)
+    }
     if (c.custom_nodatatimer_enable) need("custom_nodatatimer", RX.noDataMinutes.test(text(c.custom_nodatatimer)), "A valid time between 6 and 60 minutes is required.")
 
     // Display
@@ -395,7 +415,7 @@ function normalizeLoaded(c) {
 function tabOfKey(key) {
     if (/^(ssid|password|additional_|custom_hostname|web_auth)/.test(key)) return "system"
     if (/^alarm_/.test(key)) return "alarms"
-    if (/^(data_source|ns_|api_secret|nightscout|dexcom|librelinkup|medtrum|units|low_|high_)/.test(key)) return "glucose"
+    if (/^(data_source|ns_|api_secret|nightscout|dexcom|librelinkup|medtrum|units|low_|high_|bg_color)/.test(key)) return "glucose"
     return "display"
 }
 

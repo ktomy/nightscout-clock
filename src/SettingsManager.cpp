@@ -101,6 +101,16 @@ bool SettingsManager_::loadSettingsFromFile() {
     settings.bg_low_urgent_limit = (*doc)["low_urgent_mgdl"].as<int>();
     settings.bg_high_urgent_limit = (*doc)["high_urgent_mgdl"].as<int>();
     settings.bg_units = (*doc)["units"].as<String>() == "mmol" ? BG_UNIT::MMOLL : BG_UNIT::MGDL;
+    settings.bg_color_urgent_low =
+        displayColorFromString((*doc)["bg_color_urgent_low"].as<String>(), DISPLAY_COLOR::RED);
+    settings.bg_color_low =
+        displayColorFromString((*doc)["bg_color_low"].as<String>(), DISPLAY_COLOR::YELLOW);
+    settings.bg_color_normal =
+        displayColorFromString((*doc)["bg_color_normal"].as<String>(), DISPLAY_COLOR::GREEN);
+    settings.bg_color_high =
+        displayColorFromString((*doc)["bg_color_high"].as<String>(), DISPLAY_COLOR::YELLOW);
+    settings.bg_color_urgent_high =
+        displayColorFromString((*doc)["bg_color_urgent_high"].as<String>(), DISPLAY_COLOR::RED);
 
     String brightness_mode = (*doc)["brightness_mode"].as<String>();
     if (brightness_mode == "manual") {
@@ -270,6 +280,11 @@ bool SettingsManager_::saveSettingsToFile() {
     (*doc)["high_mgdl"] = settings.bg_high_warn_limit;
     (*doc)["low_urgent_mgdl"] = settings.bg_low_urgent_limit;
     (*doc)["high_urgent_mgdl"] = settings.bg_high_urgent_limit;
+    (*doc)["bg_color_urgent_low"] = toString(settings.bg_color_urgent_low);
+    (*doc)["bg_color_low"] = toString(settings.bg_color_low);
+    (*doc)["bg_color_normal"] = toString(settings.bg_color_normal);
+    (*doc)["bg_color_high"] = toString(settings.bg_color_high);
+    (*doc)["bg_color_urgent_high"] = toString(settings.bg_color_urgent_high);
 
     (*doc)["units"] = settings.bg_units == BG_UNIT::MMOLL ? "mmol" : "mgdl";
 

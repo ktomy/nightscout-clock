@@ -430,7 +430,7 @@ function oldDataCard() {
      */
     const paint = () => $$("button", box).forEach(b => b.setAttribute("aria-pressed", String(b.dataset.value === (form.get("data_old_color") || "gray"))))
     for (const [value, text] of OLD_DATA_COLORS) {
-        box.append(el("button.swatch", { type: "button", dataset: { value }, onclick: () => { form.set("data_old_color", value); paint() } },
+        box.append(el("button.swatch", { type: "button", dataset: { value }, onclick: () => { form.set("data_old_color", value); form.touch("data_old_color"); paint() } },
             el("i", { style: `background:${COLOR_HEX[value]}` }), text))
     }
     paint()
@@ -605,8 +605,10 @@ function rangesCard() {
     syncBtn()
     onChangeWhileAttached(loadBtn, k => { if (k === "data_source") syncBtn() })
 
-    // The bar and the in-range text follow the limits as they are typed.
-    const bar = el("div.bandbar", { "aria-hidden": "true" }, ...BANDS.map(b => el("i", { style: `background:${COLOR_HEX[b.color]}` })))
+    // The bar and the in-range text follow the limits and colours as they change.
+    const colorKeys = BANDS.map(b => b.color)
+    const swatch = key => COLOR_HEX[form.get(key)] || "transparent"
+    const bar = el("div.bandbar", { "aria-hidden": "true" }, ...BANDS.map(() => el("i")))
     const normal = el("p.help")
     /**
      * Calculate color-band widths from ordered glucose limits, using equal widths for invalid ordering.
@@ -620,15 +622,33 @@ function rangesCard() {
         const edges = ordered ? [40, ...lim.map(v => Math.min(400, Math.max(40, v))), 400] : [0, 1, 2, 3, 4, 5]
         const widths = edges.slice(1).map((v, i) => Math.max(v - edges[i], 4))
         const sum = widths.reduce((a, b) => a + b, 0)
-        $$("i", bar).forEach((seg, i) => { seg.style.width = `${(widths[i] / sum) * 100}%` })
+        $$("i", bar).forEach((seg, i) => {
+            seg.style.width = `${(widths[i] / sum) * 100}%`
+            seg.style.background = swatch(BANDS[i].color)
+        })
         normal.textContent = `${mgdlToText(form.get("low_mgdl"), units)} – ${mgdlToText(form.get("high_mgdl"), units)}`
     }
     drawBar()
-    onChangeWhileAttached(bar, k => { if (LIMIT_KEYS.includes(k) || k === "units") drawBar() })
+    onChangeWhileAttached(bar, k => { if (LIMIT_KEYS.includes(k) || colorKeys.includes(k) || k === "units") drawBar() })
 
-    const bands = reactive(["units"], () => el("div.bands", ...BANDS.map(b => el("div.band",
-        el("div.band-top", el("i", { style: `background:${COLOR_HEX[b.color]}` }), el("span", b.name)),
-        b.limit ? field(b.limit, b.label, numberInput(b.limit, { units: form.get("units") })) : normal))))
+    // Each range shows its colour; the pencil opens the colour choice, which stays open while it is invalid.
+    const bands = reactive(["units", "data_old_color", ...colorKeys], () => el("div.bands", ...BANDS.map(b => {
+        const pick = selectInput(b.color, BAND_COLORS)
+        pick.setAttribute("aria-label", `${b.name} color`)
+        pick.hidden = !form.errors[b.color]
+        const pencil = el("button.btn.ghost.icon", {
+            type: "button", "aria-label": `Change ${b.name.toLowerCase()} color`, "aria-expanded": String(!pick.hidden),
+            onclick: () => {
+                pick.hidden = !pick.hidden
+                pencil.setAttribute("aria-expanded", String(!pick.hidden))
+                if (!pick.hidden) pick.focus()
+            },
+        }, icon("pencil"))
+        return el("div.band", { dataset: { field: b.color } },
+            el("div.band-top", el("i", { style: `background:${swatch(b.color)}` }), el("span", b.name), pencil),
+            pick, el("p.err", { hidden: true }),
+            b.limit ? field(b.limit, b.label, numberInput(b.limit, { units: form.get("units") })) : normal)
+    })))
     return card("Glucose-related settings", null, el("div.stack",
         field("units", "Blood glucose units", segmented("units", UNITS, { label: "Blood glucose units" })), bar, bands),
         { aside: loadBtn, id: "card_ranges" })

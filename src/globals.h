@@ -53,10 +53,6 @@
 #define COLOR_CYAN static_cast<uint16_t>(DISPLAY_COLOR::CYAN)
 #define COLOR_MAGENTA static_cast<uint16_t>(DISPLAY_COLOR::MAGENTA)
 
-#define BG_COLOR_NORMAL COLOR_GREEN
-#define BG_COLOR_WARNING COLOR_YELLOW
-#define BG_COLOR_URGENT COLOR_RED
-
 extern bool BLOCK_NAVIGATION;
 extern float TEMP_OFFSET;
 extern float HUM_OFFSET;

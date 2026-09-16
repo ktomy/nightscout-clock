@@ -22,6 +22,11 @@ public:
     int bg_high_warn_limit;
     int bg_low_urgent_limit;
     int bg_high_urgent_limit;
+    DISPLAY_COLOR bg_color_urgent_low;
+    DISPLAY_COLOR bg_color_low;
+    DISPLAY_COLOR bg_color_normal;
+    DISPLAY_COLOR bg_color_high;
+    DISPLAY_COLOR bg_color_urgent_high;
     BRIGHTNES_MODE brightness_mode;
     int brightness_level;
     int default_clockface;

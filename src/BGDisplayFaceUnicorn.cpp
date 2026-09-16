@@ -32,32 +32,7 @@ const uint16_t paletteNormal[8] PROGMEM = {
     0x9AFE,  // 8 unused
 };
 
-const uint16_t paletteWarning[8] PROGMEM = {
-    0xFE87,           0xF79D,           0x18C3,           BG_COLOR_WARNING,
-    BG_COLOR_WARNING, BG_COLOR_WARNING, BG_COLOR_WARNING, BG_COLOR_WARNING,
-};
-
-const uint16_t paletteUrgent[8] PROGMEM = {
-    0xFE87,          0xF79D,          0x18C3,          BG_COLOR_URGENT,
-    BG_COLOR_URGENT, BG_COLOR_URGENT, BG_COLOR_URGENT, BG_COLOR_URGENT,
-};
-
 }  // namespace
-
-const uint16_t* BGDisplayFaceUnicorn::getManePalette(BG_LEVEL level) const {
-    switch (level) {
-        case BG_LEVEL::URGENT_LOW:
-        case BG_LEVEL::URGENT_HIGH:
-            return paletteUrgent;
-        case BG_LEVEL::WARNING_LOW:
-        case BG_LEVEL::WARNING_HIGH:
-            return paletteWarning;
-        case BG_LEVEL::NORMAL:
-        case BG_LEVEL::INVALID:
-        default:
-            return paletteNormal;
-    }
-}
 
 void BGDisplayFaceUnicorn::showReadings(
     const std::list<GlucoseReading>& readings, bool dataIsOld) const {
@@ -69,7 +44,13 @@ void BGDisplayFaceUnicorn::showReadings(
     const uint16_t paletteStale[8] = {
         staleColor, staleColor, 0x18C3, staleColor, staleColor, staleColor, staleColor, staleColor,
     };
-    const uint16_t* palette = dataIsOld ? paletteStale : getManePalette(bgLevel);
+    // Outside the normal range the whole mane takes that range's color.
+    const uint16_t bandColor = getBandColor(bgLevel);
+    const uint16_t paletteBand[8] = {
+        0xFE87, 0xF79D, 0x18C3, bandColor, bandColor, bandColor, bandColor, bandColor,
+    };
+    const bool inRange = bgLevel == BG_LEVEL::NORMAL || bgLevel == BG_LEVEL::INVALID;
+    const uint16_t* palette = dataIsOld ? paletteStale : inRange ? paletteNormal : paletteBand;
     DisplayManager.drawIndexedSprite(0, 0, unicornSprite, 12, 8, palette);
 
     showReading(lastReading, MATRIX_WIDTH - 1, 6, TEXT_ALIGNMENT::RIGHT, FONT_TYPE::MEDIUM, dataIsOld);
