@@ -235,3 +235,5 @@ void BGAlarmManager_::snoozeAlarm() {
         activeAlarm->isSnoozed = true;
     }
 }
+
+bool BGAlarmManager_::isAlarmActive() const { return activeAlarm != NULL; }
