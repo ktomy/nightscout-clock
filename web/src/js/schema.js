@@ -325,6 +325,7 @@ function validateConfig(c, ctx) {
     }
     need("tz", RX.timezone.test(text(c.tz_libc)) && (!ctx.tzNames || ctx.tzNames.has(c.tz)), "Please select your time zone.")
     need("time_format", inOptions(c.time_format, TIME_FORMATS), "Please select the time format (AM/PM or 24h).")
+    need("clock_name", text(c.clock_name).length <= 32, "The clock name can be at most 32 characters.")
 
     // Alarms
     for (const a of ALARMS) {

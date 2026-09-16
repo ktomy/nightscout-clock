@@ -8,6 +8,36 @@
  */
 function setState(state) { document.body.dataset.state = state }
 
+// ---------- header ----------
+// A name tells several clocks in one home apart; without one the page keeps its default heading.
+function renderName() {
+    const name = form.get("clock_name") || "Nightscout clock"
+    $("#clock_title").textContent = name
+    document.title = name
+}
+
+function editName(open) {
+    $("#title_row").hidden = open
+    $("#rename_box").hidden = !open
+}
+
+function wireName() {
+    const input = $("#clock_name")
+    $("#rename").addEventListener("click", () => {
+        input.value = form.get("clock_name") || ""
+        editName(true)
+        input.focus()
+    })
+    input.addEventListener("input", () => {
+        form.set("clock_name", input.value.trim())
+        form.touch("clock_name")
+        renderName()
+    })
+    const done = () => (form.errors.clock_name ? input.focus() : editName(false))
+    $("#rename_done").addEventListener("click", done)
+    input.addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); done() } })
+}
+
 /**
  * ---------- header ----------
  * Update a header status badge by changing its dot class and displayed value.
@@ -153,7 +183,8 @@ async function reloadAfterSave() {
  */
 function showLock(message) {
     setState("locked")
-    for (const id of ["#app", "#savebar", "#loading_screen"]) $(id).hidden = true
+    for (const id of ["#app", "#savebar", "#loading_screen", "#rename"]) $(id).hidden = true
+    editName(false)
     $("#lock_screen").hidden = false
     $("#lock_message").textContent = message || "Authentication is enabled. Log in to change settings."
     $("#lock_password").value = ""
@@ -207,6 +238,7 @@ function showApp() {
     $("#lock_screen").hidden = true
     $("#app").hidden = false
     $("#savebar").hidden = false
+    $("#rename").hidden = false
 }
 
 /**
@@ -322,6 +354,7 @@ async function start() {
     const lockInput = $("#lock_password")
     lockInput.parentNode.insertBefore(passwordGroup(lockInput), null)
     $$("[data-icon]").forEach(n => n.prepend(icon(n.dataset.icon)))
+    wireName()
     $("#save").addEventListener("click", save)
     $("#discard").addEventListener("click", () => { form.discard(); renderAll() })
     $("#lock_form").addEventListener("submit", unlock)
@@ -331,6 +364,7 @@ async function start() {
     form.on("change", renderDirty)
     form.on("load", renderDirty)
     form.on("load", () => { ui.fileReport = null })
+    form.on("load", () => { renderName(); editName(false) })
     form.on("errors", () => applyErrors())
     api.on("status", renderStatus)
     api.on("status-error", renderStatusError)

@@ -18,7 +18,7 @@ const DATA = path.join(ROOT, "data");
 const JS = ["util.js", "api.js", "schema.js", "form.js", "cards.js", "app.js"];
 
 // Gzipped page budget. The whole LittleFS partition is 1 MB.
-const BUDGET_BYTES = 42000;
+const BUDGET_BYTES = 43000;
 
 /**
  * Compress an asset at maximum gzip compression and normalize the OS header byte for consistent output.

@@ -108,6 +108,7 @@ High, low, and urgent-low alarms each have their own threshold, snooze duration,
   - Support for a secondary WiFi (e.g. if you want to take the clock in your car for a long trip)
   - Support for WPA-Enterprise
   - Ability to set a custom hostname in case you have multiple NSClocks on the same network
+  - A name for each clock (such as Kitchen or Bedroom), set with the pencil beside the Web UI heading and shown as the page heading and browser tab title
 - Simple glucose value display with trend arrow
 - Changing color based on limits
 - Nightscout data source, the clock gets units type and value boundaries from Nightscout (see [how to](https://youtu.be/GGiep2gdx_o) set up using [Nightscout.pro](https://www.nightscout.pro/) as data source)
