@@ -16,7 +16,7 @@ struct BigTextFaceSettings {
     int early_stale_minutes = 6;
 };
 
-// Simple (dark) face: the color of the number while the reading is fresh.
+// Simple (dark) and Big text (dark) faces: the color of the number while the reading is fresh.
 struct SimpleDarkFaceSettings {
     DISPLAY_COLOR value_color = DISPLAY_COLOR::WHITE;
 };
