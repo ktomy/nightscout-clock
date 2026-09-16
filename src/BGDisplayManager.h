@@ -12,6 +12,7 @@
 #include "BGDisplayFaceClock.h"
 #include "BGDisplayFaceGraph.h"
 #include "BGDisplayFaceGraphAndBG.h"
+#include "BGDisplayFaceRaceCar.h"
 #include "BGDisplayFaceSimple.h"
 #include "BGDisplayFaceUnicorn.h"
 #include "BGDisplayFaceValueAndDiff.h"

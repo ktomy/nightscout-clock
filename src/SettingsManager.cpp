@@ -262,6 +262,10 @@ bool SettingsManager_::loadSettingsFromFile() {
     settings.face_unicorn.speed = animationSpeedFromString(unicorn["speed"].as<String>());
     settings.face_unicorn.flow = maneFlowFromString(unicorn["flow"].as<String>());
 
+    // Race car face
+    JsonObject raceCar = (*doc)["face_race_car"].as<JsonObject>();
+    settings.face_race_car.speed = animationSpeedFromString(raceCar["speed"].as<String>());
+
     // Web interface authentication
     settings.web_auth_enable = (*doc)["web_auth_enable"].as<bool>();
     settings.web_auth_password = (*doc)["web_auth_password"].as<String>();
@@ -410,6 +414,10 @@ bool SettingsManager_::saveSettingsToFile() {
     unicorn["mane"] = settings.face_unicorn.mane_moving ? "moving" : "still";
     unicorn["speed"] = toString(settings.face_unicorn.speed);
     unicorn["flow"] = toString(settings.face_unicorn.flow);
+
+    // Race car face
+    JsonObject raceCar = (*doc)["face_race_car"].to<JsonObject>();
+    raceCar["speed"] = toString(settings.face_race_car.speed);
 
     // Web interface authentication
     (*doc)["web_auth_enable"] = settings.web_auth_enable;

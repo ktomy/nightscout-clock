@@ -70,6 +70,9 @@
         "speed": "normal",
         "flow": "down"
     },
+    "face_race_car": {
+        "speed": "normal"
+    },
     "web_auth_enable": false,
     "web_auth_password": ""
 }
