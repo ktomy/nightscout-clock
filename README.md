@@ -66,7 +66,7 @@ Nightscout Clock is a custom firmware for Ulanzi TC001. It can also run (with mi
 | Name            | Look                                                                                                 | Comment |
 | --------------- | ---------------------------------------------------------------------------------------------------- |---------|
 | Simple          | <img width="500" alt="Simple" src="https://github.com/user-attachments/assets/ad281e9f-8c7f-41ff-ba82-23c634171158" /> |   Horizontal bars in the bottom of the display <br /> indicate the time since the last reading <br />No bars: less than one minute <br /> 1..5 green bars: 1..5 minutes <br /> 5 yellow bars: 6..19 minutes <br /> value and bars use the configured old-data color from 20 minutes (default threshold) <br /> and the trend arrow is replaced by an X in the same color       |
-| BIG DIGITS      | <img width="500" alt="Big Digits" src="https://github.com/user-attachments/assets/1feae65b-21e9-4c20-8960-b75583baa142" /> |         |
+| BIG DIGITS      | <img width="500" alt="Big Digits" src="https://github.com/user-attachments/assets/1feae65b-21e9-4c20-8960-b75583baa142" /> | Has no age bars, so it can color the value cyan, blue or magenta once the reading is 6, 10 or 15 minutes old, in a color different from the old-data color. The old-data color still takes over at the data-is-old threshold. Off by default; set it in the Big text drawer of the Clock faces card. |
 | 3-hours graph   | <img width="500" alt="graph" src="https://github.com/user-attachments/assets/45d92097-f459-44d4-b1ae-a35c3cb38700" /> |         |
 | Graph and value | <img width="500" alt="Graph and value" src="https://github.com/user-attachments/assets/db9046aa-5121-43fa-b367-807cdf3c5ef3" /> |  The dots on the right side replace the trend arrow.<br>2 white dots = horizontal arrow.<br>2 colored dots (white + green) = 45° arrow.<br>3 dots = vertical arrow.<br>4 dots = double arrow.<br>Colored dots above = upward trend.<br>Colored dots below = downward trend. <br /><br /> Dots under the value are the same as <br /> horizontal bars on the other faces.<br /> See "Simple" face for details |
 | Delta           | <img width="500" alt="Photo of the Nightscout Clock" src="https://github.com/user-attachments/assets/f8005f49-6e32-43f1-bd84-0bb4e4691d7f" /> |         |
@@ -130,7 +130,7 @@ High, low, and urgent-low alarms each have their own threshold, snooze duration,
   - Simple clock face (value and trend arrow)
   - Full-width glucose graph
   - Graph, value and trend indicator
-  - BIG DIGITS
+  - BIG DIGITS, with an optional color for a late reading
   - Value, trend and delta
   - Clock and BG value (timezone is set in the clock's web interface)
   - Unicorn and glucose value, with mane colors based on glucose limits
