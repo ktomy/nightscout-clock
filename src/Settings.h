@@ -23,6 +23,11 @@ struct UnicornFaceSettings {
     MANE_FLOW flow = MANE_FLOW::DOWN;
 };
 
+// Dragon face: the flame moves at `speed` while the reading is fresh.
+struct DragonFaceSettings {
+    ANIMATION_SPEED speed = ANIMATION_SPEED::NORMAL;
+};
+
 class Settings {
 public:
     String ssid;
@@ -85,6 +90,7 @@ public:
     DISPLAY_COLOR data_old_color = DISPLAY_COLOR::GRAY;
     BigTextFaceSettings face_big_text;
     UnicornFaceSettings face_unicorn;
+    DragonFaceSettings face_dragon;
     bool alarm_intensive_mode;
     int alarm_repeat_interval_seconds = 300;
     bool web_auth_enable;

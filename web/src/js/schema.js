@@ -69,6 +69,7 @@ const FACES = [
     { id: 4, name: "Value and delta" },
     { id: 5, name: "Current time and BG value" },
     { id: 6, name: "Unicorn" },
+    { id: 7, name: "Dragon" },
 ]
 
 // The config stores the faces switched off, so a face added later starts active.
