@@ -228,6 +228,9 @@ const inOptions = (v, options) => options.some(o => String(o[0]) === String(v))
  * @returns {boolean}
  */
 const isGlucose = (mgdl, units) => isInt(mgdl) && (units === "mmol" ? RX.bgMmol : RX.bgMgdl).test(mgdlToText(mgdl, units))
+const isOpenNetwork = c => !String(c.password || "").trim() && !!String(c.ssid || "").trim()
+// A settings object such as a face's own settings, as opposed to a list.
+const isBlock = v => v !== null && typeof v === "object" && !Array.isArray(v)
 
 /**
  * Check the melody's name, default duration/octave/tempo fields, and allowed note characters.
@@ -399,6 +402,77 @@ function tabOfKey(key) {
     return "display"
 }
 
+// ---------- settings file ----------
+// Never taken from a file, so a file can't lock anyone out of the clock.
+const NEVER_FROM_FILE = ["web_auth_enable", "web_auth_password"]
+// Taken only when asked: another clock's file would move this clock to that network.
+const NETWORK_KEYS = ["ssid", "password", "dhcp", "ip", "netmask", "gateway", "dns1", "dns2",
+    "additional_wifi_enable", "additional_wifi_type", "additional_ssid", "additional_wifi_username", "additional_wifi_password"]
+// The list the page offers for each setting that is picked from one.
+const KEY_OPTIONS = {
+    data_source: SOURCES, dexcom_server: DEXCOM_SERVERS, librelinkup_region: LLU_REGIONS, units: UNITS, data_old_color: OLD_DATA_COLORS,
+    face_cycle_interval_seconds: CYCLE_INTERVALS, time_format: TIME_FORMATS, alarm_repeat_interval_seconds: REPEATS, additional_wifi_type: WIFI_TYPES,
+    default_face: FACES.map(f => [f.id]), inactive_faces: FACES.map(f => [f.id]),
+    brightness_level: [...Array.from({ length: 10 }, (_, i) => [i + 1]), ...BRIGHTNESS_MODES.filter(m => m[2] != null).map(m => [m[2]])],
+    ...Object.fromEntries(ALARMS.map(a => [`alarm_${a.t}_snooze_interval`, SNOOZES])),
+}
+// Alert windows, as the day buttons and time inputs write them; the clock's own list is often empty.
+const KEY_ITEMS = Object.fromEntries(ALARMS.map(a => [`alarm_${a.t}_alert_windows`,
+    w => isBlock(w) && typeof w.days === "string" && /^[0-6]+$/.test(w.days) && isTime(w.from) && isTime(w.to)]))
+
+KEY_ITEMS.face_schedule = row => isBlock(row) && isTime(row.time) && isInt(row.face)
+    && inOptions(row.face, KEY_OPTIONS.default_face) && isInt(row.brightness)
+    && inOptions(row.brightness, KEY_OPTIONS.brightness_level)
+
+// Whether a value from a file has the shape of the clock's own value and, for a list, is one of its options.
+// A block's settings take their options from "<key>.<setting>".
+function fitsSetting(key, value, clockValue) {
+    const options = KEY_OPTIONS[key]
+    if (typeof clockValue === "number") return (isInt(value) || /^\d+$/.test(typeof value === "string" ? value.trim() : "")) && (!options || inOptions(value, options))
+    if (Array.isArray(clockValue)) {
+        if (!Array.isArray(value)) return false
+        if (KEY_ITEMS[key]) return value.every(KEY_ITEMS[key])
+        // Items shaped like the clock's first item; an empty list takes numbers or blocks, and the checks decide.
+        const [sample] = clockValue
+        return value.every(item => sample === undefined ? (isInt(item) && (!options || inOptions(item, options))) || isBlock(item)
+            : typeof item === typeof sample && fitsSetting(key, item, sample) && (!isBlock(sample) || Object.keys(item).length === Object.keys(sample).length))
+    }
+    // A block: only settings the clock has, each of the clock's type.
+    if (isBlock(clockValue)) {
+        return isBlock(value) && Object.keys(value).every(p => p in clockValue && typeof value[p] === typeof clockValue[p] && fitsSetting(`${key}.${p}`, value[p], clockValue[p]))
+    }
+    return clockValue !== null && typeof value === typeof clockValue && (!options || value === "" || inOptions(value, options))
+}
+
+// The clock's settings with a file's values applied. A value that doesn't fit, or that the checks run before a save
+// reject, keeps the clock's value and is listed in `kept`. Keys the clock doesn't have are ignored.
+function mergeSettingsFile(file, clock, { network, tzNames }) {
+    const config = clone(clock)
+    const taken = [], kept = []
+    for (const key of Object.keys(clock)) {
+        if (!(key in file) || sameJson(file[key], clock[key]) || NEVER_FROM_FILE.includes(key) || (!network && NETWORK_KEYS.includes(key))) continue
+        if (fitsSetting(key, file[key], clock[key])) {
+            config[key] = isBlock(clock[key]) ? { ...clone(clock[key]), ...clone(file[key]) } : clone(file[key])
+            taken.push(key)
+        } else {
+            kept.push(key)
+        }
+    }
+    // Alarms and the no-data timer are checked as if switched on, so a file can't carry a bad value in one that is off.
+    const allOn = { custom_nodatatimer_enable: true, ...Object.fromEntries(ALARMS.map(a => [`alarm_${a.t}_enabled`, true])) }
+    const errorKeys = key => (key === "nightscout_url" ? ["ns_host", "ns_port"] : key === "tz_libc" ? ["tz"] : [key])
+    // A block's checks report as "<key>_<setting>".
+    const hasError = (errors, key) => errorKeys(key).some(k => errors[k] || (isBlock(clock[key]) && Object.keys(errors).some(e => e.startsWith(`${k}_`))))
+    for (;;) {
+        const c = normalizeLoaded(config)
+        const errors = validateConfig({ ...c, ...allOn }, { openNetwork: isOpenNetwork(c), tzNames })
+        const rejected = taken.filter(key => !kept.includes(key) && hasError(errors, key))
+        if (!rejected.length) return { config: c, kept }
+        rejected.forEach(key => { config[key] = clone(clock[key]); kept.push(key) })
+    }
+}
+
+// SHA-1 for Nightscout's api-secret header; crypto.subtle needs HTTPS and the clock serves plain HTTP.
 /**
  * Hash a UTF-8 string into SHA-1 hex for Nightscout's api-secret header.
  * Implement SHA-1 locally because crypto.subtle is unavailable on the clock's plain HTTP page.
