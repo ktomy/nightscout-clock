@@ -40,6 +40,7 @@ function renderStatus(s) {
     pill("pill_reading", s.sgv ? "info" : "", s.sgv ? `${mgdlToText(s.sgv, units)} ${unitLabel(units)}` : "–")
     $("#clock_sub").textContent = `${ui.versions.current ? "v" + ui.versions.current + " · " : ""}${location.host}`
     if (s.bgSource === "LIBRELINKUP" && !wasLlu) form.setCtx("status", s.bgSource)
+    renderDirty()
 }
 
 /**
@@ -51,6 +52,11 @@ function renderStatusError() {
     $("#clock_sub").textContent = `${location.host} · not answering`
 }
 
+// ---------- save ----------
+const inSetupMode = () => !!(ui.status && ui.status.isInAPMode)
+// Setup mode restarts to join the WiFi; otherwise only settings the clock reads when it starts need a restart.
+const restartsOnSave = changes => inSetupMode() || changes.some(k => RESTART_KEYS.includes(k))
+
 /**
  * ---------- save ----------
  * Count differences from the saved configuration, update the save bar, and mark tabs containing edits.
@@ -60,6 +66,7 @@ function renderDirty() {
     const changes = form.changes()
     const n = changes.length
     $("#dirty_text").textContent = n ? `${n} unsaved change${n > 1 ? "s" : ""}` : "No unsaved changes"
+    $("#save_label").textContent = restartsOnSave(changes) ? "Save and restart" : "Save"
     $("#discard").hidden = !n
     $$("[data-tab]").forEach(b => {
         const dirty = changes.some(k => tabOfKey(k) === b.dataset.tab)
@@ -107,8 +114,11 @@ async function save() {
         saving: ["Saving", "Sending the settings to the clock…"],
         restarting: ["Restarting", "The clock is restarting to apply the changes."],
     }
+    const changes = form.changes()
+    const restart = restartsOnSave(changes)
     const result = await api.saveSettings(form.saveJson(), {
-        setupMode: !!(ui.status && ui.status.isInAPMode),
+        restart,
+        setupMode: inSetupMode(),
         onPhase: (phase, seconds) => overlay(phases[phase][0], phases[phase][1] + (seconds ? ` ${seconds} s` : "")),
     })
     if (!result.ok) {
@@ -122,27 +132,34 @@ async function save() {
         $("#overlay .spinner").hidden = true
         return
     }
-    await reloadAfterSave()
+    await reloadAfterSave(restart, !restart && changes.some(k => k.startsWith("web_auth_")))
     overlay(null)
 }
 
-/**
- * Check authentication after restart, then reload the saved settings and rebuild the controls.
- * Show the login screen or a warning if the new configuration cannot be read.
- * @returns {Promise<void>}
- */
-async function reloadAfterSave() {
-    const auth = await api.authStatus().catch(() => null)
+// A login change applies when the clock loads the save, which can be a few seconds after it answers.
+async function authAfterSave(config) {
+    const enabled = !!(config.web_auth_enable && String(config.web_auth_password || ""))
+    let auth = null
+    for (let i = 0; i < 20; i++) {
+        auth = await api.authStatus().catch(() => null)
+        if (auth && auth.ok && auth.data.enabled === enabled && !(enabled && auth.data.authenticated)) break
+        await sleep(1000)
+    }
+    return auth
+}
+
+async function reloadAfterSave(restarted, loginChanged) {
+    const auth = loginChanged ? await authAfterSave(form.saveJson()) : await api.authStatus().catch(() => null)
     if (auth && auth.ok && auth.data.enabled && !auth.data.authenticated) {
         form.load(form.saveJson())
-        return showLock("Saved. The clock restarted; unlock to continue.")
+        return showLock(restarted ? "Saved. The clock restarted; unlock to continue." : "Saved. Unlock to continue.")
     }
     const r = await api.loadConfig().catch(() => null)
-    if (!(r && r.ok)) return toast("Saved and restarted, but the settings couldn't be read back. Reload the page.", "warn", 8000)
+    if (!(r && r.ok)) return toast("Saved, but the settings couldn't be read back. Reload the page.", "warn", 8000)
     form.load(r.data)
     ui.patients = null
     renderAll()
-    toast("Saved. The clock restarted with the new settings.")
+    toast(restarted ? "Saved. The clock restarted with the new settings." : "Saved. The clock is using the new settings.")
 }
 
 /**
