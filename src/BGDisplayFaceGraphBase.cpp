@@ -100,23 +100,23 @@ void BGDisplayFaceGraphBase::showGraph(
         switch (intervals.getBGLevel(average)) {
             case BG_LEVEL::URGENT_HIGH:
                 y = 0;
-                color = BG_COLOR_URGENT;
+                color = getBandColor(BG_LEVEL::URGENT_HIGH);
                 break;
             case BG_LEVEL::WARNING_HIGH:
                 y = 1;
-                color = BG_COLOR_WARNING;
+                color = getBandColor(BG_LEVEL::WARNING_HIGH);
                 break;
             case BG_LEVEL::NORMAL:
                 y = getNormalIntervalYPosition(average, normalInterval);
-                color = BG_COLOR_NORMAL;
+                color = getBandColor(BG_LEVEL::NORMAL);
                 break;
             case BG_LEVEL::WARNING_LOW:
                 y = 6;
-                color = BG_COLOR_WARNING;
+                color = getBandColor(BG_LEVEL::WARNING_LOW);
                 break;
             case BG_LEVEL::URGENT_LOW:
                 y = 7;
-                color = BG_COLOR_URGENT;
+                color = getBandColor(BG_LEVEL::URGENT_LOW);
                 break;
             default:
                 y = 7;

@@ -193,9 +193,9 @@ bool BGDisplayFaceUnicorn::maneNeighbour(int sgv, BG_LEVEL level, uint16_t& colo
     }
     const int quarters = 4 * (sgv - low);
     if (quarters < width) {
-        color = getLevelColor(below);
+        color = getBandColor(below);
     } else if (quarters > 3 * width) {
-        color = getLevelColor(above);
+        color = getBandColor(above);
     } else {
         return false;
     }
@@ -252,7 +252,7 @@ void BGDisplayFaceUnicorn::drawMane(int sgv, bool dataIsOld, bool moving, unsign
                     const bool banded =
                         scramble(cellId + 11, (frame % LOOP_STEPS) / TWINKLE_PERIOD) % 5 < 2;
                     color = age < 0 || age >= 2 ? LOWEST_MANE[band / 2]
-                            : banded            ? getLevelColor(level)
+                            : banded            ? getBandColor(level)
                                                 : LOWEST_MANE[(band / 2 + 1) % 3];
                 } else if (inRange && !mixes) {
                     // The bands hold their colors while single cells twinkle at random: a flash of the
@@ -266,7 +266,7 @@ void BGDisplayFaceUnicorn::drawMane(int sgv, bool dataIsOld, bool moving, unsign
                     // Past an urgent limit the lights are steady dark stripes.
                     const int dash =
                         ((2 * col - static_cast<int>(frame % 16) + 3 * band) % 16 + 16) % 16;
-                    color = dash % 8 < 2 ? 0 : getLevelColor(level);
+                    color = dash % 8 < 2 ? 0 : getBandColor(level);
                 } else {
                     // Near a limit, or low or high, lights run along each band toward the tips at
                     // irregular times.
@@ -294,7 +294,7 @@ void BGDisplayFaceUnicorn::drawMane(int sgv, bool dataIsOld, bool moving, unsign
                 color = IN_RANGE_COLORS[std::min(4, band)];
             } else {
                 // One color would merge the bands into a block, so odd bands are darker.
-                color = band % 2 == 1 ? shade(getLevelColor(level), 0.62f) : getLevelColor(level);
+                color = band % 2 == 1 ? shade(getBandColor(level), 0.62f) : getBandColor(level);
             }
             // A moving tip drifts a row up or down, into an empty cell only, so the mane looks wispy.
             int drawRow = row;
