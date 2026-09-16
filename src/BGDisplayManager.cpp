@@ -20,21 +20,7 @@ BGDisplayManager_& BGDisplayManager_::getInstance() {
 BGDisplayManager_& bgDisplayManager = bgDisplayManager.getInstance();
 
 void BGDisplayManager_::setup() {
-    glucoseIntervals = GlucoseIntervals();
-    /// TODO: Add urgent values to settings
-
-    glucoseIntervals.addInterval(1, SettingsManager.settings.bg_low_urgent_limit, BG_LEVEL::URGENT_LOW);
-    glucoseIntervals.addInterval(
-        SettingsManager.settings.bg_low_urgent_limit + 1, SettingsManager.settings.bg_low_warn_limit - 1,
-        BG_LEVEL::WARNING_LOW);
-    glucoseIntervals.addInterval(
-        SettingsManager.settings.bg_low_warn_limit, SettingsManager.settings.bg_high_warn_limit,
-        BG_LEVEL::NORMAL);
-    glucoseIntervals.addInterval(
-        SettingsManager.settings.bg_high_warn_limit, SettingsManager.settings.bg_high_urgent_limit - 1,
-        BG_LEVEL::WARNING_HIGH);
-    glucoseIntervals.addInterval(
-        SettingsManager.settings.bg_high_urgent_limit, 401, BG_LEVEL::URGENT_HIGH);
+    configureGlucoseIntervals();
 
     // Stable IDs identify faces; registration order only controls navigation.
     faces = {
@@ -55,20 +41,61 @@ void BGDisplayManager_::setup() {
     configureActiveFaces();
     configureFaceSchedule();
 
-    if (faceCycleActive) {
-        currentFaceIndex = activeFaces.front();
-    } else {
-        currentFaceIndex = findFaceIndex(SettingsManager.settings.default_clockface);
-    }
-
-    if (currentFaceIndex < 0 || static_cast<size_t>(currentFaceIndex) >= faces.size()) {
-        currentFaceIndex = 0;
-    }
-
+    currentFaceIndex = configuredFaceIndex();
     currentFace = faces[currentFaceIndex].instance;
 }
 
-// The active faces are the ones the buttons move between, and the ones cycling runs through.
+// The face to start on: the first face of the cycle, otherwise the default face.
+int BGDisplayManager_::configuredFaceIndex() const {
+    int index = faceCycleActive ? activeFaces.front()
+                                : findFaceIndex(SettingsManager.settings.default_clockface);
+    return index >= 0 && static_cast<size_t>(index) < faces.size() ? index : 0;
+}
+
+void BGDisplayManager_::configureGlucoseIntervals() {
+    glucoseIntervals = GlucoseIntervals();
+    /// TODO: Add urgent values to settings
+
+    glucoseIntervals.addInterval(1, SettingsManager.settings.bg_low_urgent_limit, BG_LEVEL::URGENT_LOW);
+    glucoseIntervals.addInterval(
+        SettingsManager.settings.bg_low_urgent_limit + 1, SettingsManager.settings.bg_low_warn_limit - 1,
+        BG_LEVEL::WARNING_LOW);
+    glucoseIntervals.addInterval(
+        SettingsManager.settings.bg_low_warn_limit, SettingsManager.settings.bg_high_warn_limit,
+        BG_LEVEL::NORMAL);
+    glucoseIntervals.addInterval(
+        SettingsManager.settings.bg_high_warn_limit, SettingsManager.settings.bg_high_urgent_limit - 1,
+        BG_LEVEL::WARNING_HIGH);
+    glucoseIntervals.addInterval(
+        SettingsManager.settings.bg_high_urgent_limit, 401, BG_LEVEL::URGENT_HIGH);
+}
+
+// The face moves only when the face settings changed; the redraw shows new colours, units and limits.
+void BGDisplayManager_::reloadSettings(const Settings& previous) {
+    configureGlucoseIntervals();
+    configureActiveFaces();
+
+    bool faceSettingsChanged =
+        previous.default_clockface != SettingsManager.settings.default_clockface ||
+        previous.face_cycle_enabled != SettingsManager.settings.face_cycle_enabled ||
+        previous.inactive_faces != SettingsManager.settings.inactive_faces;
+    const auto& settings = SettingsManager.settings;
+    bool scheduleChanged = faceSettingsChanged ||
+        previous.face_schedule_enabled != settings.face_schedule_enabled ||
+        previous.tz_libc_value != settings.tz_libc_value ||
+        previous.face_schedule.size() != settings.face_schedule.size() ||
+        !std::equal(previous.face_schedule.begin(), previous.face_schedule.end(),
+                    settings.face_schedule.begin(),
+                    [](const FaceScheduleEntry& a, const FaceScheduleEntry& b) {
+                        return a.startMinutes == b.startMinutes && a.face == b.face &&
+                               a.brightness == b.brightness;
+                    });
+    if (scheduleChanged) {
+        configureFaceSchedule();
+    }
+    setFaceByIndex(faceSettingsChanged ? configuredFaceIndex() : currentFaceIndex);
+}
+
 void BGDisplayManager_::configureActiveFaces() {
     activeFaces.clear();
     faceCycleActive = false;

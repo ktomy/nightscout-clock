@@ -100,7 +100,9 @@ private:
     bool drawAnimationFrame(bool dataIsOld, bool redraw);
     int findFaceIndex(const String& id) const;
     void setFaceByIndex(int index);
+    void configureGlucoseIntervals();
     void configureActiveFaces();
+    int configuredFaceIndex() const;
     void updateFaceCycle();
     void configureFaceSchedule();
     void updateFaceSchedule();
@@ -112,6 +114,7 @@ private:
 public:
     static BGDisplayManager_& getInstance();
     void setup();
+    void reloadSettings(const Settings& previous);
     void tick();
     void maybeRrefreshScreen(bool force = false);
     void showData(std::list<GlucoseReading> glucoseReadings);

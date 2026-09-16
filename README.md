@@ -128,6 +128,8 @@ Set up WiFi, an optional secondary network, a custom MAC address or hostname, an
 
 The **Backup and restore** card downloads the clock's settings as a file and loads a file into the page for review before saving. WiFi settings are loaded only when requested; the web login is never imported. The file contains WiFi and data source passwords, so keep it private.
 
+Saved settings apply immediately. Changing the WiFi, host name or data source restarts the clock, and the Save button says so.
+
 ### Alarm settings
 
 High, low, and urgent-low alarms each have their own threshold, snooze duration, sound, and optional alert windows in the Web UI.
