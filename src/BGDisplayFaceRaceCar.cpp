@@ -39,6 +39,14 @@ void BGDisplayFaceRaceCar::drawRace(int sgv, bool dataIsOld, unsigned long frame
     const int quarter = dataIsOld ? 0 : getWarningQuarter(sgv, level);
 
     DisplayManager.clearMatrixPart(0, 0, AREA_WIDTH, AREA_HEIGHT);
+    // Old data draws every other pixel of the race in the old-data color, so it looks faded in any of them.
+    auto put = [&](int x, int y, uint16_t color) {
+        if (!dataIsOld) {
+            DisplayManager.drawPixel(x, y, color);
+        } else if ((x + y) % 2 == 0) {
+            DisplayManager.drawPixel(x, y, stale);
+        }
+    };
 
     // Dashes stream away from the car while the glucose stripes run toward it.
     for (int line = 0; line < 4; line++) {
@@ -46,15 +54,13 @@ void BGDisplayFaceRaceCar::drawRace(int sgv, bool dataIsOld, unsigned long frame
             if ((x + frame + SPEED_LINE_OFFSETS[line]) % 7 >= 3) {
                 continue;
             }
-            const uint16_t color =
-                dataIsOld ? stale : getMotionColor(level, quarter, CAR_X - 1 - x + line, frame);
-            DisplayManager.drawPixel(x, CAR_Y + line, color);
+            put(x, CAR_Y + line, getMotionColor(level, quarter, CAR_X - 1 - x + line, frame));
         }
     }
 
     for (int x = 0; x < AREA_WIDTH - 1; x++) {
         if ((x + frame) % 4 < 2) {
-            DisplayManager.drawPixel(x, AREA_HEIGHT - 1, dataIsOld ? stale : ROAD);
+            put(x, AREA_HEIGHT - 1, ROAD);
         }
     }
 
@@ -64,15 +70,14 @@ void BGDisplayFaceRaceCar::drawRace(int sgv, bool dataIsOld, unsigned long frame
             if (cell == '.') {
                 continue;
             }
-            const uint16_t color = cell == 'H' ? HELMET : BODY;
-            DisplayManager.drawPixel(CAR_X + col, CAR_Y + row, dataIsOld ? stale : color);
+            put(CAR_X + col, CAR_Y + row, cell == 'H' ? HELMET : BODY);
         }
     }
 
     const bool spin = frame % 2 == 1;
     for (int wheel : WHEELS) {
-        DisplayManager.drawPixel(wheel, CAR_Y + 3, dataIsOld ? stale : spin ? SPOKE : WHEEL);
-        DisplayManager.drawPixel(wheel + 1, CAR_Y + 3, dataIsOld ? stale : spin ? WHEEL : SPOKE);
+        put(wheel, CAR_Y + 3, spin ? SPOKE : WHEEL);
+        put(wheel + 1, CAR_Y + 3, spin ? WHEEL : SPOKE);
     }
 }
 

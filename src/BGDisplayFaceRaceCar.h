@@ -7,7 +7,7 @@
 #include "enums.h"
 
 // A race car speeds toward the value: speed lines in the glucose color stream past, the road slides back
-// and the wheels spin. When data is old the whole race stops in the old-data color.
+// and the wheels spin. When data is old the whole race stops, drawn faded in the old-data color.
 class BGDisplayFaceRaceCar : public BGDisplayFaceTextBase, public BGDisplayFaceWithAge {
 public:
     void showReadings(const std::list<GlucoseReading>& readings, bool dataIsOld = false) const override;
