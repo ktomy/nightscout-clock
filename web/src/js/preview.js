@@ -1,174 +1,302 @@
 // The clock preview: the firmware's display code, compiled to WebAssembly by web/emulator/build.sh, runs in
-// this browser with the settings on the page, unsaved changes included. The clock only serves the file.
-// It loads after the settings are usable, and the page works without it.
+// this browser with the settings on the page, unsaved changes included. The clock only serves the file, so
+// the preview works in setup mode and costs the clock nothing after the one download.
 
 const preview = (() => {
-    const W = 32, H = 8, CELL = 12
-    const ROOM_LUX = 40
-    // History slope in mg/dl per 5 minutes for each trend arrow.
-    const SLOPES = { 1: 15, 2: 10, 3: 5, 4: 0, 5: -5, 6: -10, 7: -15 }
-    let createClock = null
-    let clock = null
-    let bootSeq = 0, bootTimer = null, dirty = true
-    let timer = null, onScreen = false
-    let lastLoop = 0, lastMinute = -1, lastFrame = ""
-    let viewedFace = null
+    const W = 32, H = 8
+    // PeripheryManager's buttons, as web/emulator/emu.cpp numbers them.
+    const BUTTON = { LEFT: 0, SELECT: 1, RIGHT: 2, LEFT_HOLD: 3, RIGHT_HOLD: 4, SELECT_DOUBLE: 5 }
+    const events = emitter()
+    let loading = null
+    let config = null
+    let main = null          // module driving the big panel; only the person's choices change its face
+    let thumbModule = null   // a second module for the face cards, so drawing them never moves the big panel
+    let faceCount = 0        // faces this firmware has; a face the page knows and the firmware lacks gets no picture
+    let bootSeq = 0
+    let thumbSeq = 0
+    let liveTimer = null
+    let sound = false
+    let scenario = { bg: 118, trend: 4, age: 1, history: "steady" }
+    let lux = 40
+    let canvas = null
+    let faceIndex = null     // face the big panel shows; null = the config's default face
+    let thumbs = []          // [{canvas, face}] drawn after each boot
+    let toneLog = []         // buzzer changes while the preview ran: [[ms, hz], ...]
 
-    // The clock's UTC offset in its own time zone; the firmware is given an offset instead of a POSIX rule.
-    function tzOffset(epoch) {
-        const minute = epoch - (epoch % 60)
+    function loadScript() {
+        if (window.createClockEmu) return Promise.resolve()
+        loading = loading || new Promise((resolve, reject) => document.head.append(el("script", {
+            src: "clockemu.js", onload: resolve, onerror: () => reject(new Error("The clock preview could not be loaded.")),
+        })))
+        return loading
+    }
+
+    async function start(panelCanvas) {
+        canvas = panelCanvas
+        await whenIdle()
+        await loadScript()
+        if (config) await reboot()
+    }
+
+    // The clock's time: the real time, or a time the person sets that can run faster than real time.
+    let timeMode = "now"
+    let timeBase = 0          // epoch seconds at timeStartedMs
+    let timeStartedMs = 0
+    let timeSpeed = 0         // emulated seconds per real second; 0 = paused
+    function clockEpoch() {
+        if (timeMode === "now") return Math.floor(Date.now() / 1000)
+        return Math.floor(timeBase + ((performance.now() - timeStartedMs) / 1000) * timeSpeed)
+    }
+    // The clock's own time zone (settings), not this browser's: its UTC offset in seconds at a moment.
+    let timeZone = null
+    function tzOffsetAt(epoch) {
         try {
-            const parts = new Intl.DateTimeFormat("en-US", { timeZone: form.get("tz") || undefined, hourCycle: "h23",
-                year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric" }).formatToParts(new Date(minute * 1000))
-            const p = Object.fromEntries(parts.map(x => [x.type, Number(x.value)]))
-            return Date.UTC(p.year, p.month - 1, p.day, p.hour, p.minute) / 1000 - minute
+            const parts = Object.fromEntries(new Intl.DateTimeFormat("en-US", {
+                timeZone: timeZone || undefined, hourCycle: "h23", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit",
+            }).formatToParts(new Date(epoch * 1000)).map(p => [p.type, p.value]))
+            const asUtc = Date.UTC(+parts.year, +parts.month - 1, +parts.day, +parts.hour % 24, +parts.minute, +parts.second)
+            return Math.round((asUtc / 1000 - epoch) / 60) * 60
         } catch (e) {
-            return -new Date(minute * 1000).getTimezoneOffset() * 60
+            return -new Date(epoch * 1000).getTimezoneOffset() * 60
         }
     }
 
-    // Three hours of readings ending in the chosen one, as a data source would deliver them.
-    function showReading(now) {
-        const bg = Number($("#preview_bg").value), trend = Number($("#preview_trend").value), age = $("#preview_age").value
+    // Three hours of readings, 5 minutes apart, the newest `age` minutes before the clock's time.
+    function buildReadings(s, now) {
+        if (s.history === "none") return []
+        const slope = s.history === "rising" ? 4 : s.history === "falling" ? -4 : 0
         const rows = []
-        if (age !== "none") {
-            for (let k = 35; k >= 0; k--) rows.push([Math.min(400, Math.max(40, bg - SLOPES[trend] * k)), trend, now - Number(age) * 60 - k * 300])
-        }
-        clock.ccall("emu_show_readings", null, ["string"], [JSON.stringify(rows)])
+        for (let k = 35; k >= 0; k--) rows.push([Math.max(40, Math.min(400, Math.round(s.bg - slope * k))), s.trend, now - (s.age * 60 + k * 300)])
+        return rows
     }
 
-    // A dim LED is still visible on the clock, so low values are lifted to show on a screen.
+    function showReadings(M, now = clockEpoch()) {
+        M._emu_set_clock(now, tzOffsetAt(now))
+        M.ccall("emu_show_readings", null, ["string"], [JSON.stringify(buildReadings(scenario, now))])
+    }
+
+    // The panel as rows of [r, g, b]: sent to the LEDs, or the frame before brightness.
+    function panel(M, frame) {
+        const ptr = frame ? M._emu_frame() : M._emu_wire()
+        const bytes = M.HEAPU8.subarray(ptr, ptr + W * H * 3)
+        return Array.from({ length: H }, (_, y) => Array.from({ length: W }, (_, x) => {
+            const i = M._emu_xy(x, y) * 3
+            return [bytes[i], bytes[i + 1], bytes[i + 2]]
+        }))
+    }
+
+    // An LED at 1/255 is dim but visible, so low values are lifted to show on a screen; 0 stays dark.
     const lift = c => (c ? Math.round(255 * (0.22 + 0.78 * Math.sqrt(c / 255))) : 0)
 
-    function draw() {
-        const ptr = clock._emu_wire()
-        const bytes = clock.HEAPU8.slice(ptr, ptr + W * H * 3)
-        const frame = bytes.join()
-        if (frame === lastFrame) return
-        lastFrame = frame
-        const ctx = $("#preview_canvas").getContext("2d")
+    function drawPanel(target, M, cell, glow) {
+        const rows = panel(M)
+        const ctx = target.getContext("2d")
+        target.width = W * cell
+        target.height = H * cell
         ctx.fillStyle = "#050505"
-        ctx.fillRect(0, 0, W * CELL, H * CELL)
-        for (let y = 0; y < H; y++) {
-            for (let x = 0; x < W; x++) {
-                const i = clock._emu_xy(x, y) * 3
-                const [r, g, b] = [bytes[i], bytes[i + 1], bytes[i + 2]]
-                ctx.fillStyle = r || g || b ? `rgb(${lift(r)},${lift(g)},${lift(b)})` : "#1a1c1e"
-                ctx.beginPath()
-                ctx.arc(x * CELL + CELL / 2, y * CELL + CELL / 2, CELL * 0.38, 0, Math.PI * 2)
-                ctx.fill()
-            }
-        }
-        const face = FACES.find(f => f.id === clock._emu_get_face())
-        $("#preview_face").textContent = face ? face.name : ""
+        ctx.fillRect(0, 0, target.width, target.height)
+        rows.forEach((row, y) => row.forEach((p, x) => {
+            const lit = p[0] || p[1] || p[2]
+            ctx.beginPath()
+            ctx.arc(x * cell + cell / 2, y * cell + cell / 2, cell * 0.38, 0, Math.PI * 2)
+            ctx.fillStyle = lit ? `rgb(${lift(p[0])},${lift(p[1])},${lift(p[2])})` : "#1a1c1e"
+            ctx.shadowBlur = lit && glow ? cell * 0.5 : 0
+            ctx.shadowColor = ctx.fillStyle
+            ctx.fill()
+        }))
+        ctx.shadowBlur = 0
     }
 
-    // One pass of the firmware's loop per second while the preview is on screen; nothing runs otherwise.
-    function tick() {
-        timer = null
-        if (!clock || !onScreen || document.hidden) return
-        const now = Math.floor(Date.now() / 1000), ms = performance.now()
-        clock._emu_set_clock(now, tzOffset(now))
-        // Re-sent every minute so the reading keeps its chosen age.
-        if (Math.floor(now / 60) !== lastMinute) {
-            lastMinute = Math.floor(now / 60)
-            showReading(now)
-        }
-        clock._emu_loop(ms - lastLoop)
-        lastLoop = ms
-        draw()
-        timer = setTimeout(tick, 1000)
+    // drawn: LEDs the face draws; lost: drawn but 0 on every channel at this brightness (invisible on the clock);
+    // partial: still lit but a channel went to 0 (the colour shifts).
+    function stats(M) {
+        const frame = panel(M, true).flat(), wire = panel(M).flat()
+        let drawn = 0, lost = 0, partial = 0
+        frame.forEach((f, i) => {
+            const w = wire[i]
+            if (!(f[0] || f[1] || f[2])) return
+            drawn++
+            if (!(w[0] || w[1] || w[2])) lost++
+            else if (f.some((c, k) => c && !w[k])) partial++
+        })
+        return { drawn, lost, partial, brightness: M._emu_brightness(), face: M._emu_get_face(), displayOn: M._emu_display_on() === 1 }
     }
 
-    // A fresh emulated clock for every settings change, as the device restarts after a save.
-    async function boot() {
+    // Buzzer changes, played as a square wave like the clock's PWM buzzer.
+    let audio = null
+    function playTones(list) {
+        const Ctx = window.AudioContext || window.webkitAudioContext
+        if (!list.length || !Ctx) return
+        audio = audio || new Ctx()
+        const startAt = audio.currentTime + 0.05, first = list[0][0]
+        list.forEach(([ms, hz], i) => {
+            if (!hz) return
+            const end = i + 1 < list.length ? list[i + 1][0] : ms + 300
+            const osc = audio.createOscillator(), gain = audio.createGain()
+            osc.type = "square"
+            osc.frequency.value = hz
+            gain.gain.value = 0.05
+            osc.connect(gain).connect(audio.destination)
+            osc.start(startAt + (ms - first) / 1000)
+            osc.stop(startAt + (end - first) / 1000)
+        })
+    }
+    function takeNewTones(M) {
+        const list = JSON.parse(M.ccall("emu_drain_tones", "string", [], []))
+        toneLog.push(...list)
+        if (toneLog.length > 2000) toneLog = toneLog.slice(-1000)
+        return list
+    }
+
+    async function boot(cfg) {
+        const M = await window.createClockEmu({ print() {}, printErr() {} })
+        const now = clockEpoch()
+        M._emu_set_clock(now, tzOffsetAt(now))
+        if (!M.ccall("emu_boot", "number", ["string", "number"], [JSON.stringify(cfg), lux])) throw new Error("The preview can't show these settings.")
+        return M
+    }
+
+    // A fresh emulated clock for every settings change, as the device loads a save.
+    async function reboot() {
+        if (!window.createClockEmu || !config) return
         const seq = ++bootSeq
-        let next
+        let M, T
         try {
-            next = await createClock({ print() {}, printErr() {} })
-            const now = Math.floor(Date.now() / 1000)
-            next._emu_set_clock(now, tzOffset(now))
-            if (!next.ccall("emu_boot", "number", ["string", "number"], [JSON.stringify(form.saveJson()), ROOM_LUX])) throw new Error("boot")
+            M = await boot(config)
+            T = await boot(config)
         } catch (e) {
-            if (seq === bootSeq) $("#preview_note").textContent = "The preview can't show these settings."
-            return resume()
-        }
-        if (seq !== bootSeq) return
-        clock = next
-        if (viewedFace != null) clock._emu_set_face(viewedFace)
-        $("#preview_note").textContent = "Drawn by the clock's own code with the settings on this page, unsaved changes included."
-        lastLoop = performance.now()
-        lastMinute = -1
-        lastFrame = ""
-        clearTimeout(timer)
-        tick()
-    }
-
-    function resume() {
-        if (!createClock || !onScreen || document.hidden) return
-        if (dirty) {
-            dirty = false
-            return boot()
-        }
-        if (clock && !timer) tick()
-    }
-
-    function changed() {
-        dirty = true
-        clearTimeout(bootTimer)
-        bootTimer = setTimeout(resume, 150)
-    }
-
-    function showBg() {
-        const units = form.get("units")
-        $("#preview_bg_out").textContent = `${mgdlToText(Number($("#preview_bg").value), units)} ${unitLabel(units)}`
-    }
-
-    function tryReading() {
-        showBg()
-        if (!clock) return
-        showReading(Math.floor(Date.now() / 1000))
-        draw()
-    }
-
-    let started = false
-    async function start() {
-        if (started) return
-        started = true
-        try {
-            await new Promise((resolve, reject) => document.head.append(el("script", { src: "clockemu.js", onload: resolve, onerror: reject })))
-            createClock = window.createClockEmu
-            if (!createClock) throw new Error("no emulator")
-        } catch (e) {
-            $("#preview_note").textContent = "The clock preview is not available."
+            if (seq === bootSeq) events.emit("error", e)
             return
         }
-        $("#preview_controls").hidden = false
-        showBg()
-        $$("[data-button]").forEach(b => b.addEventListener("click", () => {
-            if (!clock) return
-            clock._emu_button(Number(b.dataset.button))
-            viewedFace = clock._emu_get_face()
-            draw()
-        }))
-        $("#preview_bg").addEventListener("input", tryReading)
-        $("#preview_trend").addEventListener("change", tryReading)
-        $("#preview_age").addEventListener("change", tryReading)
-        form.on("change", key => {
-            if (key.startsWith("ctx.")) return
-            // A setting that chooses faces, not a face's own settings object, lets the clock pick the face again.
-            const value = form.get(key)
-            if (key.includes("face") && (Array.isArray(value) || typeof value !== "object")) viewedFace = null
-            if (key === "units") showBg()
-            changed()
-        })
-        form.on("load", () => { viewedFace = null; showBg(); changed() })
-        new IntersectionObserver(entries => {
-            onScreen = entries[entries.length - 1].isIntersecting
-            resume()
-        }).observe($("#preview_canvas"))
-        document.addEventListener("visibilitychange", resume)
+        if (seq !== bootSeq) return
+        main = M
+        thumbModule = T
+        faceCount = M._emu_face_count()
+        if (faceIndex != null && faceIndex < faceCount) M._emu_set_face(faceIndex)
+        showReadings(M)
+        draw()
+        drawThumbs()
     }
 
-    return { start }
+    function draw() {
+        if (!main || !canvas) return
+        drawPanel(canvas, main, 12, true)
+        events.emit("render", stats(main))
+    }
+
+    // Face cards: their own module, one face at a time, yielding between faces. A newer call stops an older loop.
+    async function drawThumbs() {
+        const seq = ++thumbSeq
+        const T = thumbModule
+        if (!T) return
+        for (const t of thumbs) {
+            if (seq !== thumbSeq || T !== thumbModule) return
+            t.canvas.hidden = t.face >= faceCount
+            if (t.canvas.hidden) continue
+            T._emu_set_face(t.face)
+            showReadings(T)
+            drawPanel(t.canvas, T, 6, false)
+            await nextFrame()
+        }
+    }
+    const scheduleThumbs = debounce(drawThumbs, 120)
+    const scheduleReboot = debounce(reboot, 150)
+
+    // A change of scene: the readings follow the clock's time, and the face cards follow the big panel.
+    function refresh() {
+        if (!main) return
+        showReadings(main)
+        draw()
+        scheduleThumbs()
+    }
+
+    return {
+        on: events.on,
+        start,
+        // Keep showing the face the person is looking at; only a new default face switches it.
+        setConfig(next) {
+            if (!config || next.default_face !== config.default_face) faceIndex = null
+            config = clone(next)
+            scheduleReboot()
+        },
+        setScenario(next) {
+            scenario = { ...scenario, ...next }
+            refresh()
+        },
+        setLux(next) {
+            lux = next
+            if (!main) return
+            main._emu_set_lux(lux)
+            draw()
+        },
+        showFace(id) {
+            faceIndex = id
+            if (!main || id >= faceCount) return
+            main._emu_set_face(id)
+            showReadings(main)
+            draw()
+        },
+        press(button) {
+            if (!main) return
+            main._emu_button(BUTTON[button])
+            faceIndex = main._emu_get_face()
+            draw()
+        },
+        setThumbs(list) { thumbs = list; drawThumbs() },
+        setLive(on) {
+            clearInterval(liveTimer)
+            liveTimer = null
+            if (!on) return
+            let lastMinute = -1
+            // The firmware's loop (display, alarms, light sensor) at the clock's time, with readings that keep
+            // their age.
+            liveTimer = setInterval(() => {
+                if (!main || document.hidden) return
+                const now = clockEpoch()
+                if (Math.floor(now / 60) !== lastMinute) {
+                    lastMinute = Math.floor(now / 60)
+                    showReadings(main, now)
+                }
+                main._emu_set_clock(now, tzOffsetAt(now))
+                main._emu_loop(250)
+                const tones = takeNewTones(main)
+                if (sound) playTones(tones)
+                draw()
+                events.emit("time", now)
+            }, 250)
+        },
+        // mode "now" | "set"; epoch in seconds (for "set"); speed in emulated seconds per real second.
+        setTime({ mode, epoch, speed }) {
+            if (mode) timeMode = mode
+            if (epoch != null) { timeBase = epoch; timeStartedMs = performance.now() }
+            if (speed != null) { timeBase = clockEpoch(); timeStartedMs = performance.now(); timeSpeed = speed }
+            refresh()
+            events.emit("time", clockEpoch())
+        },
+        clockEpoch,
+        tzOffsetAt,
+        setTimeZone(name) {
+            timeZone = name || null
+            refresh()
+        },
+        setSound(on) { sound = on },
+        // What the clock plays for "Try on clock", through the firmware's own melody code.
+        playMelody(rtttl) {
+            if (!main) return false
+            main.ccall("emu_play_rtttl", null, ["string"], [rtttl])
+            const started = performance.now()
+            const pump = () => {
+                main._emu_loop(50)
+                playTones(takeNewTones(main))
+                if (performance.now() - started < 8000) setTimeout(pump, 50)
+            }
+            pump()
+            return true
+        },
+        get faceCount() { return faceCount },
+        stats() { return main ? stats(main) : null },
+        // For tests: buzzer changes since the last call, and the panel as rows of [r, g, b] on the LEDs.
+        takeTones() { const t = toneLog; toneLog = []; return t },
+        wire() { return main ? panel(main) : null },
+    }
 })()
