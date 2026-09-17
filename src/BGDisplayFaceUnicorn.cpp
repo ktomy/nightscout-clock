@@ -101,13 +101,51 @@ void BGDisplayFaceUnicorn::showAnimationFrame(
     drawMane(readings.back().sgv, false, true, frame);
 }
 
+// In the outer quarter of the in-range, low or high band the colour of the band beyond it mixes in; `color` is that
+// colour. The middle half of a band, and the urgent bands, show one colour.
+bool BGDisplayFaceUnicorn::maneNeighbour(int sgv, BG_LEVEL level, uint16_t& color) const {
+    const auto& s = SettingsManager.settings;
+    int low, high;
+    BG_LEVEL below, above;
+    switch (level) {
+        case BG_LEVEL::WARNING_LOW:
+            low = s.bg_low_urgent_limit, high = s.bg_low_warn_limit;
+            below = BG_LEVEL::URGENT_LOW, above = BG_LEVEL::NORMAL;
+            break;
+        case BG_LEVEL::WARNING_HIGH:
+            low = s.bg_high_warn_limit, high = s.bg_high_urgent_limit;
+            below = BG_LEVEL::NORMAL, above = BG_LEVEL::URGENT_HIGH;
+            break;
+        case BG_LEVEL::NORMAL:
+            low = s.bg_low_warn_limit, high = s.bg_high_warn_limit;
+            below = BG_LEVEL::WARNING_LOW, above = BG_LEVEL::WARNING_HIGH;
+            break;
+        default:
+            return false;
+    }
+    const int width = high - low;
+    if (width <= 0) {
+        return false;
+    }
+    const int quarters = 4 * (sgv - low);
+    if (quarters < width) {
+        color = getLevelColor(below);
+    } else if (quarters > 3 * width) {
+        color = getLevelColor(above);
+    } else {
+        return false;
+    }
+    return true;
+}
+
 void BGDisplayFaceUnicorn::drawMane(int sgv, bool dataIsOld, bool moving, unsigned long frame) const {
     const BG_LEVEL level = bgDisplayManager.getGlucoseIntervals().getBGLevel(sgv);
-    const int quarter = getWarningQuarter(sgv, level);
     const bool inRange = level == BG_LEVEL::NORMAL || level == BG_LEVEL::INVALID;
     const bool urgent = level == BG_LEVEL::URGENT_LOW || level == BG_LEVEL::URGENT_HIGH;
     const MANE_FLOW flow = SettingsManager.settings.face_unicorn.flow;
     const bool wisps = moving && !dataIsOld;
+    uint16_t neighbour = 0;
+    const bool mixes = moving && !dataIsOld && maneNeighbour(sgv, level, neighbour);
 
     // Moving tips drift a row up or down into empty cells, so those cells are cleared before the mane is drawn.
     if (wisps) {
@@ -144,8 +182,10 @@ void BGDisplayFaceUnicorn::drawMane(int sgv, bool dataIsOld, bool moving, unsign
                 if (urgent) {
                     color = dash % 8 < 2 ? 0 : getLevelColor(level);
                 } else {
-                    const uint16_t held =
-                        inRange ? RAINBOW[std::min(4, band)] : getMotionColor(level, quarter, index, 0);
+                    // Every third band holds the neighbouring band's colour when the reading is near it.
+                    const uint16_t held = mixes && index % 3 == 0 ? neighbour
+                                          : inRange              ? RAINBOW[std::min(4, band)]
+                                                                 : getMotionColor(level, 1, index, 0);
                     // A shadow trails the light, so it reads as a comet rather than a blink.
                     color = dash < 2 ? lighten(held) : dash < 6 ? shade(held, 0.62f) : held;
                 }
@@ -154,8 +194,9 @@ void BGDisplayFaceUnicorn::drawMane(int sgv, bool dataIsOld, bool moving, unsign
                 // count wraps after whole color loops, so the motion never jumps.
                 const unsigned long step =
                     flow == MANE_FLOW::BACK ? (SPRITE_WIDTH - 1 - col + frame % 30) / 5 : frame;
-                color = inRange ? RAINBOW[(index + step) % MANE_BANDS]
-                                : getMotionColor(level, quarter, index, step);
+                color = mixes && (index + step) % 3 == 0 ? neighbour
+                        : inRange                         ? RAINBOW[(index + step) % MANE_BANDS]
+                                                          : getMotionColor(level, 1, index, step);
             } else if (inRange) {
                 color = RAINBOW[std::min(4, band)];
             } else {

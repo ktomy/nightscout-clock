@@ -20,6 +20,7 @@ public:
 
 private:
     void drawMane(int sgv, bool dataIsOld, bool moving, unsigned long frame) const;
+    bool maneNeighbour(int sgv, BG_LEVEL level, uint16_t& color) const;
 };
 
 #endif  // BGDISPLAYFACEUNICORN_H
