@@ -91,6 +91,14 @@ enum class ANIMATION_SPEED : uint8_t {
     LIVELY = 2,
 };
 
+// How a moving Unicorn mane moves: colors flow down the bands, slide back toward the tips, or stay while
+// a light runs along the bands.
+enum class MANE_FLOW : uint8_t {
+    DOWN = 0,
+    BACK = 1,
+    RUN = 2,
+};
+
 inline String toString(BG_TREND trend) {
     switch (trend) {
         case BG_TREND::NONE:
@@ -254,6 +262,22 @@ inline ANIMATION_SPEED animationSpeedFromString(const String& value) {
     return value == "calm"     ? ANIMATION_SPEED::CALM
            : value == "lively" ? ANIMATION_SPEED::LIVELY
                                : ANIMATION_SPEED::NORMAL;
+}
+
+inline String toString(MANE_FLOW flow) {
+    switch (flow) {
+        case MANE_FLOW::BACK:
+            return "back";
+        case MANE_FLOW::RUN:
+            return "run";
+        default:
+            return "down";
+    }
+}
+
+// A flow name; anything else is down.
+inline MANE_FLOW maneFlowFromString(const String& value) {
+    return value == "back" ? MANE_FLOW::BACK : value == "run" ? MANE_FLOW::RUN : MANE_FLOW::DOWN;
 }
 
 #endif

@@ -92,6 +92,8 @@ void BGDisplayFaceUnicorn::drawMane(int sgv, bool dataIsOld, bool moving, unsign
     const BG_LEVEL level = bgDisplayManager.getGlucoseIntervals().getBGLevel(sgv);
     const int quarter = getWarningQuarter(sgv, level);
     const bool inRange = level == BG_LEVEL::NORMAL || level == BG_LEVEL::INVALID;
+    const bool urgent = level == BG_LEVEL::URGENT_LOW || level == BG_LEVEL::URGENT_HIGH;
+    const MANE_FLOW flow = SettingsManager.settings.face_unicorn.flow;
 
     for (int row = 0; row < SPRITE_HEIGHT; row++) {
         for (int col = 0; col < SPRITE_WIDTH; col++) {
@@ -105,9 +107,24 @@ void BGDisplayFaceUnicorn::drawMane(int sgv, bool dataIsOld, bool moving, unsign
             uint16_t color;
             if (dataIsOld) {
                 color = getDataOldColor();
+            } else if (moving && flow == MANE_FLOW::RUN) {
+                // The bands hold their colors while a light runs along each toward the tips, half a
+                // column a step; past an urgent limit the light is a dark stripe.
+                const int dash = ((2 * col - static_cast<int>(frame % 16) + 3 * band) % 16 + 16) % 16;
+                if (urgent) {
+                    color = dash % 8 < 2 ? 0 : getLevelColor(level);
+                } else {
+                    const uint16_t held =
+                        inRange ? RAINBOW[std::min(4, band)] : getMotionColor(level, quarter, index, 0);
+                    color = dash < 2 ? lighten(held) : held;
+                }
             } else if (moving) {
-                color = inRange ? RAINBOW[(index + frame) % MANE_BANDS]
-                                : getMotionColor(level, quarter, index, frame);
+                // Back: a new color every five columns slides toward the tips, a column a step. The step
+                // count wraps after whole color loops, so the motion never jumps.
+                const unsigned long step =
+                    flow == MANE_FLOW::BACK ? (SPRITE_WIDTH - 1 - col + frame % 30) / 5 : frame;
+                color = inRange ? RAINBOW[(index + step) % MANE_BANDS]
+                                : getMotionColor(level, quarter, index, step);
             } else if (inRange) {
                 color = RAINBOW[std::min(4, band)];
             } else {

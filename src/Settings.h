@@ -16,10 +16,11 @@ struct BigTextFaceSettings {
     int early_stale_minutes = 6;
 };
 
-// Unicorn face: a moving mane rolls its colors at `speed` while the reading is fresh.
+// Unicorn face: a moving mane moves its colors at `speed` in the `flow` style while the reading is fresh.
 struct UnicornFaceSettings {
     bool mane_moving = false;
     ANIMATION_SPEED speed = ANIMATION_SPEED::NORMAL;
+    MANE_FLOW flow = MANE_FLOW::DOWN;
 };
 
 class Settings {

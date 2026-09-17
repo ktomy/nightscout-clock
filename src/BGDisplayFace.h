@@ -50,6 +50,8 @@ protected:
     static uint16_t getLevelColor(BG_LEVEL level);
     // Which quarter of the low or high range a reading is in: 0 next to in range, 3 next to urgent.
     static int getWarningQuarter(int sgv, BG_LEVEL level);
+    // Seven eighths of the way to white: the lighter stripe of a moving part, lit at the lowest brightness.
+    static uint16_t lighten(uint16_t color);
     // The glucose color of pixel `index` of a moving part at step `frame`: a lighter stripe in low or
     // high, urgent color near the urgent limit, and every third pixel dark past an urgent limit.
     uint16_t getMotionColor(BG_LEVEL level, int quarter, int index, unsigned long frame) const;

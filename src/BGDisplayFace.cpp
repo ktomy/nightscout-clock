@@ -4,17 +4,12 @@
 
 #include "globals.h"
 
-namespace {
-
-// Seven eighths of the way to white, so every channel still lights at the lowest brightness.
-uint16_t lighten(uint16_t color) {
+uint16_t BGDisplayFace::lighten(uint16_t color) {
     const uint16_t r = (color >> 11) & 0x1F;
     const uint16_t g = (color >> 5) & 0x3F;
     const uint16_t b = color & 0x1F;
     return ((r + 7 * 0x1F) / 8 << 11) | ((g + 7 * 0x3F) / 8 << 5) | ((b + 7 * 0x1F) / 8);
 }
-
-}  // namespace
 
 void BGDisplayFace::showNoData() const {
     DisplayManager.clearMatrix();

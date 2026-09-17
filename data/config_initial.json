@@ -67,7 +67,8 @@
     },
     "face_unicorn": {
         "mane": "still",
-        "speed": "normal"
+        "speed": "normal",
+        "flow": "down"
     },
     "web_auth_enable": false,
     "web_auth_password": ""

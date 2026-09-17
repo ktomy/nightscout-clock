@@ -338,12 +338,15 @@ function bigTextSettings() {
 }
 
 function unicornSettings() {
-    return reactive(["face_unicorn"], () => el("div.stack",
-        field("face_unicorn_mane", "Mane", segmented("face_unicorn", MANE_MODES, { prop: "mane", label: "Mane" }),
-            "A moving mane rolls its colors while the reading is fresh, and stops in the old data color when data is old."),
-        (form.get("face_unicorn") || {}).mane === "moving"
-            ? field("face_unicorn_speed", "Speed", segmented("face_unicorn", ANIMATION_SPEEDS, { prop: "speed", label: "Speed" }))
-            : null))
+    return reactive(["face_unicorn"], () => {
+        const moving = (form.get("face_unicorn") || {}).mane === "moving"
+        return el("div.stack",
+            field("face_unicorn_mane", "Mane", segmented("face_unicorn", MANE_MODES, { prop: "mane", label: "Mane" }),
+                "A moving mane moves its colors while the reading is fresh, and stops in the old data color when data is old."),
+            moving ? field("face_unicorn_speed", "Speed", segmented("face_unicorn", ANIMATION_SPEEDS, { prop: "speed", label: "Speed" })) : null,
+            moving ? field("face_unicorn_flow", "Motion", segmented("face_unicorn", MANE_FLOWS, { prop: "flow", label: "Motion" }),
+                "Top to bottom rolls the colors down the bands. Colors scroll back slides them from the head toward the tips. Light runs along the bands keeps each band's color and runs a light toward the tips.") : null)
+    })
 }
 
 /**
