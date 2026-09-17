@@ -50,6 +50,19 @@ uint16_t dim(uint16_t color) {
     return (r << 11) | (g << 5) | b;
 }
 
+// A darker shade of a color. From a fifth of the brightness range up it is the fraction asked for; below
+// that the shade is capped so it still lights.
+uint16_t shade(uint16_t color, float fraction) {
+    const int rich = MIN_BRIGHTNESS + (MAX_BRIGHTNESS - MIN_BRIGHTNESS) / 8;
+    if (DisplayManager.getBrightness() < rich) {
+        return dim(color);
+    }
+    const uint16_t r = static_cast<uint16_t>(((color >> 11) & 0x1F) * fraction);
+    const uint16_t g = static_cast<uint16_t>(((color >> 5) & 0x3F) * fraction);
+    const uint16_t b = static_cast<uint16_t>((color & 0x1F) * fraction);
+    return (r << 11) | (g << 5) | b;
+}
+
 }  // namespace
 
 void BGDisplayFaceUnicorn::showReadings(
@@ -94,6 +107,23 @@ void BGDisplayFaceUnicorn::drawMane(int sgv, bool dataIsOld, bool moving, unsign
     const bool inRange = level == BG_LEVEL::NORMAL || level == BG_LEVEL::INVALID;
     const bool urgent = level == BG_LEVEL::URGENT_LOW || level == BG_LEVEL::URGENT_HIGH;
     const MANE_FLOW flow = SettingsManager.settings.face_unicorn.flow;
+    const bool wisps = moving && !dataIsOld;
+
+    // Moving tips drift a row up or down into empty cells, so those cells are cleared before the mane is drawn.
+    if (wisps) {
+        for (int row = 0; row < SPRITE_HEIGHT; row++) {
+            for (int col = 0; col < SPRITE_WIDTH; col++) {
+                if (UNICORN_ART[row][col] < 'a') {
+                    continue;
+                }
+                for (int near = std::max(0, row - 1); near <= std::min(SPRITE_HEIGHT - 1, row + 1); near++) {
+                    if (UNICORN_ART[near][col] == '.') {
+                        DisplayManager.drawPixel(col, near, 0);
+                    }
+                }
+            }
+        }
+    }
 
     for (int row = 0; row < SPRITE_HEIGHT; row++) {
         for (int col = 0; col < SPRITE_WIDTH; col++) {
@@ -116,7 +146,8 @@ void BGDisplayFaceUnicorn::drawMane(int sgv, bool dataIsOld, bool moving, unsign
                 } else {
                     const uint16_t held =
                         inRange ? RAINBOW[std::min(4, band)] : getMotionColor(level, quarter, index, 0);
-                    color = dash < 2 ? lighten(held) : held;
+                    // A shadow trails the light, so it reads as a comet rather than a blink.
+                    color = dash < 2 ? lighten(held) : dash < 6 ? shade(held, 0.62f) : held;
                 }
             } else if (moving) {
                 // Back: a new color every five columns slides toward the tips, a column a step. The step
@@ -129,9 +160,20 @@ void BGDisplayFaceUnicorn::drawMane(int sgv, bool dataIsOld, bool moving, unsign
                 color = RAINBOW[std::min(4, band)];
             } else {
                 // One color would merge the bands into a block, so odd bands are darker.
-                color = band % 2 == 1 ? dim(getLevelColor(level)) : getLevelColor(level);
+                color = band % 2 == 1 ? shade(getLevelColor(level), 0.62f) : getLevelColor(level);
             }
-            DisplayManager.drawPixel(col, row, cell >= 'a' ? dim(color) : color);
+            // A moving tip drifts a row up or down, into an empty cell only, so the mane looks wispy.
+            int drawRow = row;
+            if (wisps && cell >= 'a') {
+                const int phase = static_cast<int>((frame + 2 * col + 3 * row) % 12);
+                const int drift = phase < 3 ? -1 : phase < 6 ? 1 : 0;
+                const int near = row + drift;
+                if (near >= 0 && near < SPRITE_HEIGHT && UNICORN_ART[near][col] == '.') {
+                    drawRow = near;
+                    DisplayManager.drawPixel(col, row, 0);
+                }
+            }
+            DisplayManager.drawPixel(col, drawRow, cell >= 'a' ? shade(color, 0.5f) : color);
         }
     }
 }
