@@ -450,9 +450,12 @@ function mergeSettingsFile(file, clock, { network, tzNames }) {
     const config = clone(clock)
     const taken = [], kept = []
     for (const key of Object.keys(clock)) {
-        if (!(key in file) || sameJson(file[key], clock[key]) || NEVER_FROM_FILE.includes(key) || (!network && NETWORK_KEYS.includes(key))) continue
-        if (fitsSetting(key, file[key], clock[key])) {
-            config[key] = isBlock(clock[key]) ? { ...clone(clock[key]), ...clone(file[key]) } : clone(file[key])
+        if (!(key in file) || NEVER_FROM_FILE.includes(key) || (!network && NETWORK_KEYS.includes(key))) continue
+        // A number in the file for a text setting (an older page wrote time_format as 24) is read as that text.
+        const value = typeof clock[key] === "string" && typeof file[key] === "number" ? String(file[key]) : file[key]
+        if (sameJson(value, clock[key])) continue
+        if (fitsSetting(key, value, clock[key])) {
+            config[key] = isBlock(clock[key]) ? { ...clone(clock[key]), ...clone(file[key]) } : clone(value)
             taken.push(key)
         } else {
             kept.push(key)
