@@ -77,6 +77,27 @@ const sameJson = (a, b) => JSON.stringify(a) === JSON.stringify(b)
  */
 const sleep = ms => new Promise(r => setTimeout(r, ms))
 
+function debounce(fn, ms) {
+    let t = null
+    return (...args) => {
+        clearTimeout(t)
+        t = setTimeout(() => fn(...args), ms)
+    }
+}
+
+// Yield to the browser between chunks of work so typing and scrolling stay smooth. A frame callback
+// doesn't run while the page isn't painting (a background tab, a hidden pane), so a timer also ends the wait.
+function nextFrame() {
+    return new Promise(resolve => {
+        let done = false
+        const finish = () => { if (!done) { done = true; resolve() } }
+        if (window.requestAnimationFrame) requestAnimationFrame(finish)
+        setTimeout(finish, 50)
+    })
+}
+const whenIdle = () => new Promise(r => (window.requestIdleCallback ? requestIdleCallback(() => r(), { timeout: 1500 }) : setTimeout(r, 200)))
+
+// Minimal event hub.
 /**
  * Create a private event hub so the form, API, and UI can notify each other without direct calls.
  * @returns {EventHub}
@@ -118,6 +139,8 @@ const ICON_PATHS = {
     bell: "M6 16V11a6 6 0 1 1 12 0v5l2 2H4l2-2zM10 20a2 2 0 0 0 4 0",
     drop: "M12 3s6 7 6 11a6 6 0 0 1-12 0c0-4 6-11 6-11z",
     chip: "M7 7h10v10H7zM10 3v4M14 3v4M10 17v4M14 17v4M3 10h4M3 14h4M17 10h4M17 14h4",
+    info: "M12 8h.01M11 12h1v5h1M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z",
+    play: "M7 5l12 7-12 7z",
 }
 /**
  * Build an inline SVG from the named path, avoiding external icon files or fonts.

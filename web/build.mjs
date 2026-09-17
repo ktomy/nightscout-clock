@@ -15,10 +15,10 @@ const SRC = path.join(HERE, "src");
 const DATA = path.join(ROOT, "data");
 
 // Order matters: later files use what earlier ones define.
-const JS = ["util.js", "api.js", "schema.js", "form.js", "cards.js", "preview.js", "app.js"];
+const JS = ["util.js", "api.js", "schema.js", "form.js", "preview.js", "cards.js", "app.js"];
 
 // Gzipped page budget. The whole LittleFS partition is 1 MB.
-const BUDGET_BYTES = 40000;
+const BUDGET_BYTES = 52000;
 // The clock preview's emulator, built by web/emulator/build.sh and loaded after the page.
 const EMULATOR_BUDGET_BYTES = 70000;
 

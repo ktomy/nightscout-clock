@@ -8,6 +8,8 @@
 #include <Wire.h>
 
 #include <algorithm>
+#include <string>
+#include <utility>
 #include <vector>
 
 #include "BGSourceManager.h"
@@ -79,12 +81,43 @@ extern "C" uint16_t analogRead(uint8_t pin) {
     return static_cast<uint16_t>(lround(lightFraction * ((1 << adcBits) - 1)));
 }
 
-// The buzzer is silent.
+// The buzzer: each change of tone is kept with its time, for the page to play.
+namespace {
+std::vector<std::pair<double, double>> tones;
+double currentTone = 0;
+
+void recordTone(double frequency) {
+    if (frequency == currentTone)
+        return;
+    currentTone = frequency;
+    tones.push_back({nowMillis, frequency});
+    if (tones.size() > 512)
+        tones.erase(tones.begin());
+}
+}  // namespace
+
+std::string emuDrainTones() {
+    std::string json = "[";
+    for (size_t i = 0; i < tones.size(); i++) {
+        char item[48];
+        snprintf(item, sizeof(item), "%s[%.0f,%.1f]", i ? "," : "", tones[i].first, tones[i].second);
+        json += item;
+    }
+    tones.clear();
+    return json + "]";
+}
+
 extern "C" double ledcSetup(uint8_t, double frequency, uint8_t) { return frequency; }
 extern "C" void ledcAttachPin(uint8_t, uint8_t) {}
-extern "C" void ledcDetachPin(uint8_t) {}
-extern "C" void ledcWrite(uint8_t, uint32_t) {}
-extern "C" double ledcWriteTone(uint8_t, double frequency) { return frequency; }
+extern "C" void ledcDetachPin(uint8_t) { recordTone(0); }
+extern "C" void ledcWrite(uint8_t, uint32_t duty) {
+    if (duty == 0)
+        recordTone(0);
+}
+extern "C" double ledcWriteTone(uint8_t, double frequency) {
+    recordTone(frequency);
+    return frequency;
+}
 
 TwoWire Wire;
 fs::FS SPIFFS;
