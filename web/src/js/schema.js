@@ -62,22 +62,22 @@
 
 // Stable IDs must match BGDisplayManager::setup(); array order controls UI display order.
 const FACES = [
-    { id: "simple", name: "Simple" },
-    { id: "graph", name: "Full glucose graph" },
-    { id: "graph_and_bg", name: "Glucose graph and value" },
-    { id: "big_text", name: "Big text" },
-    { id: "value_and_diff", name: "Value and delta" },
-    { id: "clock", name: "Current time and BG value" },
-    { id: "unicorn", name: "Unicorn" },
-    { id: "time_only", name: "Time only" },
-    { id: "simple_dark", name: "Simple (dark)" },
-    { id: "race_car", name: "Race car" },
-    { id: "dragon", name: "Dragon" },
-    { id: "big_text_dark", name: "Big text (dark)" },
-    { id: "rainbow_clock", name: "Rainbow clock" },
-    { id: "big_text_rainbow", name: "Rainbow big text" },
-    { id: "rainbow_mood", name: "Rainbow mood" },
-    { id: "battery_uptime", name: "Battery and uptime" },
+    { id: "simple", name: "Simple", about: "Value, trend arrow and age bars" },
+    { id: "graph", name: "Full glucose graph", about: "Three hours of readings across the panel" },
+    { id: "graph_and_bg", name: "Glucose graph and value", about: "Recent readings beside the current value" },
+    { id: "big_text", name: "Big text", about: "Large value, readable across a room" },
+    { id: "value_and_diff", name: "Value and delta", about: "Value and the change since the last reading" },
+    { id: "clock", name: "Current time and BG value", about: "The time and the current value" },
+    { id: "unicorn", name: "Unicorn", about: "A unicorn whose mane shows the glucose colour" },
+    { id: "time_only", name: "Time only", about: "Time without glucose; suppresses new alarms" },
+    { id: "simple_dark", name: "Simple (dark)", about: "Single-color value with glucose-colored trend" },
+    { id: "race_car", name: "Race car", about: "Moving race car and glucose value" },
+    { id: "dragon", name: "Dragon", about: "A fire-breathing dragon and glucose value" },
+    { id: "big_text_dark", name: "Big text (dark)", about: "Large single-color value for a dark room" },
+    { id: "rainbow_clock", name: "Rainbow clock", about: "The time in moving rainbow colors; suppresses new alarms" },
+    { id: "big_text_rainbow", name: "Rainbow big text", about: "Large value in a moving rainbow" },
+    { id: "rainbow_mood", name: "Rainbow mood", about: "A smiley whose expression follows the glucose range" },
+    { id: "battery_uptime", name: "Battery and uptime", about: "Battery level and time since start, no glucose" },
 ]
 
 // Clocks set up on 1.0.0 or earlier stored each face as its number, the face's index in this order.
@@ -266,6 +266,9 @@ const isInt = v => Number.isInteger(v)
  * @returns {boolean}
  */
 const inOptions = (v, options) => options.some(o => String(o[0]) === String(v))
+// The firmware's no-data time: the custom timer when it is on and 6-60, otherwise 20 minutes.
+const noDataMinutes = c => (c.custom_nodatatimer_enable && isInt(c.custom_nodatatimer) && c.custom_nodatatimer > 5 && c.custom_nodatatimer <= 60 ? c.custom_nodatatimer : 20)
+// A glucose value as typed in the selected units.
 /**
  * Require integer mg/dl storage and check that its displayed value fits the selected units' input range.
  * @param {number | string} mgdl - Stored value or unfinished input.

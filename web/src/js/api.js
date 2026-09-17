@@ -160,11 +160,14 @@ const api = (() => {
         }, delay)
     }
 
+    let statusStarted = false
     /**
      * Start status polling and watch tab visibility to pause hidden pages and refresh on return.
      * @returns {void}
      */
     function startStatus() {
+        if (statusStarted) return
+        statusStarted = true
         pollOnce().then(() => schedulePoll())
         // Stop the scheduled poll when hidden; request fresh status shortly after the user returns.
         document.addEventListener("visibilitychange", () => {
@@ -251,6 +254,7 @@ const api = (() => {
      * @returns {Promise<TimezoneEntry[]>}
      */
     const timezones = () => request("GET", "/tzdata.json", { raw: true }).then(r => r.json())
+    const factoryConfig = () => request("GET", "/config_initial.json", { raw: true }).then(r => (r.ok ? r.text() : ""))
     /**
      * Send an RTTTL melody to the clock for immediate playback without saving settings.
      * @param {string} rtttl - Melody to play on the clock.
@@ -298,5 +302,8 @@ const api = (() => {
         })
     }
 
-    return { on: events.on, startStatus, saveSettings, authStatus, login, logout, loadConfig, version, downloadLogs, timezones, tryAlarm, patients }
+    return {
+        on: events.on, startStatus, saveSettings,
+        authStatus, login, logout, loadConfig, version, downloadLogs, factoryConfig, timezones, tryAlarm, patients,
+    }
 })()
