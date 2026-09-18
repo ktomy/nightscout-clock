@@ -1,5 +1,5 @@
 // Stand-in for FastLED 3.6.0 with only what Framebuffer_GFX, FastLED_NeoMatrix and DisplayManager use.
-// The colour math is FastLED's, so `wire` holds the bytes the ESP32 sends to the LEDs.
+// The color math is FastLED's, so `wire` holds the bytes the ESP32 sends to the LEDs.
 #ifndef EMU_FASTLED_H
 #define EMU_FASTLED_H
 

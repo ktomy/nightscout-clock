@@ -225,7 +225,7 @@ function wirePreview() {
     const labelAges = () => {
         const n = noDataMinutes(form.saveJson())
         age.querySelector('option[value="stale"]').textContent = `Past the no-data time (${n + 1} min)`
-        $("#sim_age_help").textContent = `Readings are 5 minutes apart. The age bars fill up to 5 minutes; the old-data colour appears after ${n} minutes (the no-data time).`
+        $("#sim_age_help").textContent = `Readings are 5 minutes apart. The age bars fill up to 5 minutes; the old-data color appears after ${n} minutes (the no-data time).`
     }
     const push = () => {
         const minutes = age.value === "stale" ? noDataMinutes(form.saveJson()) + 1 : age.value === "none" ? 1 : Number(age.value)
@@ -240,7 +240,7 @@ function wirePreview() {
     const buttons = { sim_left: "LEFT", sim_select: "SELECT", sim_right: "RIGHT", sim_left_hold: "LEFT_HOLD", sim_right_hold: "RIGHT_HOLD", sim_select_double: "SELECT_DOUBLE" }
     for (const [id, button] of Object.entries(buttons)) $(`#${id}`).addEventListener("click", () => preview.press(button))
 
-    // A strip in the range colours under the glucose slider, so you can see where the limits fall.
+    // A strip in the range colors under the glucose slider, so you can see where the limits fall.
     const drawBands = () => {
         const min = 40, max = 400
         const lim = LIMIT_KEYS.map(k => form.get(k))
@@ -304,7 +304,7 @@ function wirePreview() {
         warn.hidden = !s.lost && !s.partial
         warn.textContent = s.lost
             ? `${s.lost} of ${s.drawn} LEDs this face draws get 0 at this brightness: they are invisible on the clock.`
-            : s.partial ? `${s.partial} LEDs lose a colour channel at this brightness, so the colour shifts on the clock.` : ""
+            : s.partial ? `${s.partial} LEDs lose a color channel at this brightness, so the color shifts on the clock.` : ""
         $("#sim_lux_row").hidden = !(level === 100 || level === 101)
     })
     preview.on("error", e => { $("#sim_note").textContent = e.message })
