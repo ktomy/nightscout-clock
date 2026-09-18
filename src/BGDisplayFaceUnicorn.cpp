@@ -52,7 +52,7 @@ uint32_t scramble(uint32_t a, uint32_t b) {
 }
 
 // How far a column is behind the nearest light running along a band, in half columns: 0-1 is the light,
-// 2-5 its shadow, more the band colour. Each band starts its lights at irregular times and each light
+// 2-5 its shadow, more the band color. Each band starts its lights at irregular times and each light
 // runs at a whole or a half half-column a step, so the bands never move in step.
 int runDash(int band, int col, unsigned long frame) {
     const unsigned long SLOT = 12;
@@ -140,8 +140,8 @@ void BGDisplayFaceUnicorn::showAnimationFrame(
     drawMane(readings.back().sgv, false, true, frame);
 }
 
-// In the outer quarter of the in-range, low or high band the colour of the band beyond it mixes in; `color` is that
-// colour. The middle half of a band, and the urgent bands, show one colour.
+// In the outer quarter of the in-range, low or high band the color of the band beyond it mixes in; `color` is that
+// color. The middle half of a band, and the urgent bands, show one color.
 bool BGDisplayFaceUnicorn::maneNeighbour(int sgv, BG_LEVEL level, uint16_t& color) const {
     const auto& s = SettingsManager.settings;
     int low, high;
@@ -223,12 +223,12 @@ void BGDisplayFaceUnicorn::drawMane(int sgv, bool dataIsOld, bool moving, unsign
                     color = dash % 8 < 2 ? 0 : getLevelColor(level);
                 } else {
                     const int dash = runDash(band, col, frame);
-                    // Every third band holds the neighbouring band's colour when the reading is near it.
+                    // Every third band holds the neighbouring band's color when the reading is near it.
                     const uint16_t held = mixes && index % 3 == 0 ? neighbour
                                           : inRange              ? IN_RANGE_COLORS[std::min(4, band)]
                                                                  : getMotionColor(level, 1, index, 0);
                     // A shadow trails the light, so it reads as a comet rather than a blink.
-                    // The light is the next band's colour in range, so the mane never shows white.
+                    // The light is the next band's color in range, so the mane never shows white.
                     const uint16_t light = inRange && !(mixes && index % 3 == 0)
                                                ? IN_RANGE_COLORS[(std::min(4, band) + 1) % MANE_BANDS]
                                                : held;
