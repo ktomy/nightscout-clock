@@ -68,7 +68,7 @@ const FACES = [
     { id: "big_text", name: "Big text", about: "Large value, readable across a room" },
     { id: "value_and_diff", name: "Value and delta", about: "Value and the change since the last reading" },
     { id: "clock", name: "Current time and BG value", about: "The time and the current value" },
-    { id: "unicorn", name: "Unicorn", about: "A unicorn whose mane shows the glucose colour" },
+    { id: "unicorn", name: "Unicorn", about: "A unicorn whose mane shows the glucose color" },
     { id: "time_only", name: "Time only", about: "Time without glucose; suppresses new alarms" },
     { id: "simple_dark", name: "Simple (dark)", about: "Single-color value with glucose-colored trend" },
     { id: "race_car", name: "Race car", about: "Moving race car and glucose value" },

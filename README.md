@@ -130,7 +130,7 @@ The **Backup and restore** card downloads the clock's settings as a file and loa
 
 #### Clock preview
 
-The Display and Glucose tabs show a preview of the clock's display with the settings on the page, before they are saved. Use its left, select and right buttons like the clock's, and try a glucose value, trend and reading age. The preview runs the firmware's own display code, compiled to WebAssembly (`data/clockemu.js.gz`), in the browser, so it needs no internet and no work from the clock. It shows the colours the firmware sends to the LEDs, which look different on the real display.
+The Display and Glucose tabs show a preview of the clock's display with the settings on the page, before they are saved. Use its left, select and right buttons like the clock's, and try a glucose value, trend and reading age. The preview runs the firmware's own display code, compiled to WebAssembly (`data/clockemu.js.gz`), in the browser, so it needs no internet and no work from the clock. It shows the colors the firmware sends to the LEDs, which look different on the real display.
 
 The preview is built from `src/` by `web/emulator/build.sh`, which needs [Emscripten](https://emscripten.org/docs/getting_started/downloads.html) 6.0.9 and one PlatformIO build of the `ulanzi` environment. After changing the display code, run it and commit the rebuilt `data/clockemu.js.gz`.
 
