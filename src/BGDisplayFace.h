@@ -52,6 +52,10 @@ protected:
     static int getWarningQuarter(int sgv, BG_LEVEL level);
     // Seven eighths of the way to white: the lighter stripe of a moving part, lit at the lowest brightness.
     static uint16_t lighten(uint16_t color);
+    // The Unicorn's in-range colours: magenta, orchid, purple, violet, indigo and blue. No glucose
+    // colour, no data-old cyan, no white, and after the LED gamma none leans red at any brightness;
+    // the lowest brightness shows them as magenta and blue.
+    static const uint16_t IN_RANGE_COLORS[6];
     // The glucose color of pixel `index` of a moving part at step `frame`: a lighter stripe in low or
     // high, urgent color near the urgent limit, and every third pixel dark past an urgent limit.
     uint16_t getMotionColor(BG_LEVEL level, int quarter, int index, unsigned long frame) const;

@@ -4,6 +4,8 @@
 
 #include "globals.h"
 
+const uint16_t BGDisplayFace::IN_RANGE_COLORS[6] = {0xF81F, 0xE01F, 0xB19F, 0x781F, 0x401F, 0x1C9F};
+
 uint16_t BGDisplayFace::lighten(uint16_t color) {
     const uint16_t r = (color >> 11) & 0x1F;
     const uint16_t g = (color >> 5) & 0x3F;

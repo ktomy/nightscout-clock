@@ -29,10 +29,6 @@ const uint16_t HORN = 0xFF58;  // gold
 const uint16_t BODY = 0xF79D;  // cream white
 const uint16_t EYE = 0x18C3;   // near black
 
-// In range, top band to bottom: magenta, pink, coral, peach and gold; purple closes the moving loop.
-// Each keeps its blue lit at the lowest brightness, where an orange would show as the urgent red.
-const uint16_t RAINBOW[MANE_BANDS] = {0xF81F, 0xFA38, 0xFC98, 0xFE38, 0xFF58, 0xB19F};
-
 // The mane band of a cell or of its tip, or -1 for the rest of the unicorn.
 int bandOf(char cell) {
     if (cell >= '0' && cell <= '5') {
@@ -40,6 +36,43 @@ int bandOf(char cell) {
     }
     const char* tip = cell == '\0' ? nullptr : std::strchr(TIPS, cell);
     return tip != nullptr ? static_cast<int>(tip - TIPS) : -1;
+}
+
+// Every mane pattern repeats after this many steps, so the motion never jumps when the step count wraps.
+const unsigned long LOOP_STEPS = 240;
+
+// A cheap integer hash: the same inputs always give the same value, so a random-looking mane is still a
+// function of the step number.
+uint32_t scramble(uint32_t a, uint32_t b) {
+    uint32_t h = a * 0x9E3779B1u + b * 0x85EBCA77u + 0x27D4EB2Fu;
+    h ^= h >> 15;
+    h *= 0x2C1B3C6Du;
+    h ^= h >> 12;
+    return h;
+}
+
+// How far a column is behind the nearest light running along a band, in half columns: 0-1 is the light,
+// 2-5 its shadow, more the band colour. Each band starts its lights at irregular times and each light
+// runs at a whole or a half half-column a step, so the bands never move in step.
+int runDash(int band, int col, unsigned long frame) {
+    const unsigned long SLOT = 12;
+    const unsigned long step = frame % LOOP_STEPS;
+    int nearest = 16;
+    const unsigned long SLOTS = LOOP_STEPS / SLOT;
+    for (unsigned long slot = 0; slot < SLOTS; slot++) {
+        const uint32_t h = scramble(band + 1, slot);
+        // A slot may skip its light, but never two in a row, so no band sits still for long.
+        if (h % 8 >= 5 && scramble(band + 1, (slot + SLOTS - 1) % SLOTS) % 8 < 5) {
+            continue;
+        }
+        const unsigned long start = slot * SLOT + (h >> 8) % SLOT;
+        const unsigned long elapsed = (step + LOOP_STEPS - start) % LOOP_STEPS;
+        const int dash = 2 * col - static_cast<int>(elapsed / (1 + (h >> 16) % 2));
+        if (dash >= 0 && dash < nearest) {
+            nearest = dash;
+        }
+    }
+    return nearest;
 }
 
 // The darkest shade of a color whose lit channels still light at the lowest brightness.
@@ -176,18 +209,24 @@ void BGDisplayFaceUnicorn::drawMane(int sgv, bool dataIsOld, bool moving, unsign
             if (dataIsOld) {
                 color = getDataOldColor();
             } else if (moving && flow == MANE_FLOW::RUN) {
-                // The bands hold their colors while a light runs along each toward the tips, half a
-                // column a step; past an urgent limit the light is a dark stripe.
-                const int dash = ((2 * col - static_cast<int>(frame % 16) + 3 * band) % 16 + 16) % 16;
+                // The bands hold their colors while lights run along each toward the tips at irregular
+                // times; past an urgent limit the lights are steady dark stripes.
                 if (urgent) {
+                    const int dash =
+                        ((2 * col - static_cast<int>(frame % 16) + 3 * band) % 16 + 16) % 16;
                     color = dash % 8 < 2 ? 0 : getLevelColor(level);
                 } else {
+                    const int dash = runDash(band, col, frame);
                     // Every third band holds the neighbouring band's colour when the reading is near it.
                     const uint16_t held = mixes && index % 3 == 0 ? neighbour
-                                          : inRange              ? RAINBOW[std::min(4, band)]
+                                          : inRange              ? IN_RANGE_COLORS[std::min(4, band)]
                                                                  : getMotionColor(level, 1, index, 0);
                     // A shadow trails the light, so it reads as a comet rather than a blink.
-                    color = dash < 2 ? lighten(held) : dash < 6 ? shade(held, 0.62f) : held;
+                    // The light is the next band's colour in range, so the mane never shows white.
+                    const uint16_t light = inRange && !(mixes && index % 3 == 0)
+                                               ? IN_RANGE_COLORS[(std::min(4, band) + 1) % MANE_BANDS]
+                                               : held;
+                    color = dash < 2 ? light : dash < 6 ? shade(held, 0.62f) : held;
                 }
             } else if (moving) {
                 // Back: a new color every five columns slides toward the tips, a column a step. The step
@@ -195,10 +234,10 @@ void BGDisplayFaceUnicorn::drawMane(int sgv, bool dataIsOld, bool moving, unsign
                 const unsigned long step =
                     flow == MANE_FLOW::BACK ? (SPRITE_WIDTH - 1 - col + frame % 30) / 5 : frame;
                 color = mixes && (index + step) % 3 == 0 ? neighbour
-                        : inRange                         ? RAINBOW[(index + step) % MANE_BANDS]
+                        : inRange                         ? IN_RANGE_COLORS[(index + step) % MANE_BANDS]
                                                           : getMotionColor(level, 1, index, step);
             } else if (inRange) {
-                color = RAINBOW[std::min(4, band)];
+                color = IN_RANGE_COLORS[std::min(4, band)];
             } else {
                 // One color would merge the bands into a block, so odd bands are darker.
                 color = band % 2 == 1 ? shade(getLevelColor(level), 0.62f) : getLevelColor(level);
@@ -206,8 +245,10 @@ void BGDisplayFaceUnicorn::drawMane(int sgv, bool dataIsOld, bool moving, unsign
             // A moving tip drifts a row up or down, into an empty cell only, so the mane looks wispy.
             int drawRow = row;
             if (wisps && cell >= 'a') {
-                const int phase = static_cast<int>((frame + 2 * col + 3 * row) % 12);
-                const int drift = phase < 3 ? -1 : phase < 6 ? 1 : 0;
+                // Each tip picks up, down or stay at its own irregular moments, four steps at a time.
+                const uint32_t tip = scramble(col * SPRITE_HEIGHT + row, 0);
+                const uint32_t pick = scramble(tip, ((frame + tip % 4) % LOOP_STEPS) / 4);
+                const int drift = pick % 4 == 0 ? -1 : pick % 4 == 1 ? 1 : 0;
                 const int near = row + drift;
                 if (near >= 0 && near < SPRITE_HEIGHT && UNICORN_ART[near][col] == '.') {
                     drawRow = near;
