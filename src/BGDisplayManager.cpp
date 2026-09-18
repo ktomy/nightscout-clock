@@ -74,7 +74,7 @@ void BGDisplayManager_::configureGlucoseIntervals() {
         SettingsManager.settings.bg_high_urgent_limit, 401, BG_LEVEL::URGENT_HIGH);
 }
 
-// The face moves only when the face settings changed; the redraw shows new colours, units and limits.
+// The face moves only when the face settings changed; the redraw shows new colors, units and limits.
 void BGDisplayManager_::reloadSettings(const Settings& previous) {
     configureGlucoseIntervals();
     configureActiveFaces();
