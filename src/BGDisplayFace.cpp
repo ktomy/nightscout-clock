@@ -77,7 +77,7 @@ unsigned long BGDisplayFace::getStepMillis(ANIMATION_SPEED speed) {
         case ANIMATION_SPEED::CALM:
             return 180;
         case ANIMATION_SPEED::LIVELY:
-            return 60;
+            return 50;
         default:
             return 110;
     }
