@@ -32,10 +32,6 @@ const uint16_t WING = 0x073F;     // cyan
 const uint16_t WHITE = 0xFFFF;    // horn, eye and tooth
 const uint16_t EYE_OLD = 0x18C3;  // near black
 
-// In-range fire from the core out: white, gold and peach. Their blue lights them white at the lowest
-// brightness, where an orange would show as the high yellow or the urgent red.
-const uint16_t FIRE[4] = {0xFFFF, 0xFF58, 0xFE38, 0xFE38};
-
 uint16_t dragonColor(char cell) {
     switch (cell) {
         case 'S':
@@ -106,9 +102,12 @@ void BGDisplayFaceDragon::drawFlame(int sgv, unsigned long frame) const {
                 const int shift = bob > 0.5f ? -1 : bob < -0.5f ? 1 : 0;
                 drawRow = std::min(SPRITE_HEIGHT - 1, std::max(0, row + shift));
             }
-            // Counted back from the end of the flame, so the motion colors run out of the mouth.
+            // In range the fire is the first four in-range colours, magenta at the core out to violet.
+            // Out of range the motion colors are counted back from the end of the flame, so they run out
+            // of the mouth.
             const uint16_t color =
-                inRange ? FIRE[layer] : getMotionColor(level, quarter, FLAME_END - col, frame);
+                inRange ? IN_RANGE_COLORS[layer]
+                        : getMotionColor(level, quarter, FLAME_END - col, frame);
             DisplayManager.drawPixel(col, drawRow, color);
         }
     }
