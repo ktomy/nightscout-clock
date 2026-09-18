@@ -605,7 +605,7 @@ function rangesCard() {
     syncBtn()
     onChangeWhileAttached(loadBtn, k => { if (k === "data_source") syncBtn() })
 
-    // The bar and the in-range text follow the limits and colours as they change.
+    // The bar and the in-range text follow the limits and colors as they change.
     const colorKeys = BANDS.map(b => b.color)
     const swatch = key => COLOR_HEX[form.get(key)] || "transparent"
     const bar = el("div.bandbar", { "aria-hidden": "true" }, ...BANDS.map(() => el("i")))
@@ -631,7 +631,7 @@ function rangesCard() {
     drawBar()
     onChangeWhileAttached(bar, k => { if (LIMIT_KEYS.includes(k) || colorKeys.includes(k) || k === "units") drawBar() })
 
-    // Each range shows its colour; the pencil opens the colour choice, which stays open while it is invalid.
+    // Each range shows its color; the pencil opens the color choice, which stays open while it is invalid.
     const bands = reactive(["units", "data_old_color", ...colorKeys], () => el("div.bands", ...BANDS.map(b => {
         const pick = selectInput(b.color, BAND_COLORS)
         pick.setAttribute("aria-label", `${b.name} color`)
