@@ -119,8 +119,14 @@ void BGDisplayFaceUnicorn::showReadings(
     }
     drawMane(lastReading.sgv, dataIsOld, false, 0);
 
-    // The reading and the age bars end at the right edge, clear of the mane's tips.
-    showReading(lastReading, MATRIX_WIDTH + 1, 6, TEXT_ALIGNMENT::RIGHT, FONT_TYPE::MEDIUM, dataIsOld);
+    // The reading sits two dark columns from the mane's tips; one too wide for that moves out to the
+    // right edge. The age bars stay at the edge.
+    DisplayManager.setFont(FONT_TYPE::MEDIUM);
+    const int width = DisplayManager.getTextWidth(getPrintableReading(lastReading.sgv).c_str(), 2);
+    const bool fits = MATRIX_WIDTH - 1 - width >= SPRITE_WIDTH + 2;
+    showReading(
+        lastReading, fits ? MATRIX_WIDTH - 1 : MATRIX_WIDTH + 1, 6, TEXT_ALIGNMENT::RIGHT,
+        FONT_TYPE::MEDIUM, dataIsOld);
     drawTimerBlocks(lastReading, 16, 17, 7);
 }
 
