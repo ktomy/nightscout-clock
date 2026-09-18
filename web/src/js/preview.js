@@ -108,7 +108,7 @@ const preview = (() => {
     }
 
     // drawn: LEDs the face draws; lost: drawn but 0 on every channel at this brightness (invisible on the clock);
-    // partial: still lit but a channel went to 0 (the colour shifts).
+    // partial: still lit but a channel went to 0 (the color shifts).
     function stats(M) {
         const frame = panel(M, true).flat(), wire = panel(M).flat()
         let drawn = 0, lost = 0, partial = 0
