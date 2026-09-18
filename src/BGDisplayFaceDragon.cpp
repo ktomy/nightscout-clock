@@ -102,7 +102,7 @@ void BGDisplayFaceDragon::drawFlame(int sgv, unsigned long frame) const {
                 const int shift = bob > 0.5f ? -1 : bob < -0.5f ? 1 : 0;
                 drawRow = std::min(SPRITE_HEIGHT - 1, std::max(0, row + shift));
             }
-            // In range the fire is the first four in-range colours, magenta at the core out to violet.
+            // In range the fire is the first four in-range colors, magenta at the core out to violet.
             // Out of range the motion colors are counted back from the end of the flame, so they run out
             // of the mouth.
             const uint16_t color =
