@@ -71,7 +71,20 @@ uint16_t BGDisplayFace::getMotionColor(
     }
 
     const uint16_t color = getLevelColor(shown);
-    return light ? lighten(color) : color;
+    if (!light) {
+        return color;
+    }
+    // The fleck is the band at 80%, so the motion shows without white; darker, yellow drifts toward
+    // green on the LEDs. Below an eighth of the brightness range that lights the same LEDs as the band,
+    // so only a lighter fleck still moves.
+    const int rich = MIN_BRIGHTNESS + (MAX_BRIGHTNESS - MIN_BRIGHTNESS) / 8;
+    if (DisplayManager.getBrightness() < rich) {
+        return lighten(color);
+    }
+    const uint16_t r = static_cast<uint16_t>(((color >> 11) & 0x1F) * 0.8f);
+    const uint16_t g = static_cast<uint16_t>(((color >> 5) & 0x3F) * 0.8f);
+    const uint16_t b = static_cast<uint16_t>((color & 0x1F) * 0.8f);
+    return (r << 11) | (g << 5) | b;
 }
 
 unsigned long BGDisplayFace::getStepMillis(ANIMATION_SPEED speed) {
