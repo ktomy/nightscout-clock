@@ -293,6 +293,8 @@ function wirePreview() {
     preview.on("render", () => { if (!$("#sim_live").checked) timeOut.textContent = fmt(preview.clockEpoch()) })
     $("#sim_sound").addEventListener("change", e => preview.setSound(e.target.checked))
 
+    const warnSeen = []
+    let warnKey = ""
     preview.on("render", s => {
         document.body.dataset.preview = "ready"
         const face = FACES.find(f => f.id === s.face)
@@ -300,15 +302,25 @@ function wirePreview() {
         const level = form.get("brightness_level")
         $("#sim_brightness").textContent = level === 100 ? "auto" : level === 101 ? "auto, darker" : `level ${level}`
         $("#sim_note").textContent = s.displayOn ? `${s.drawn} LEDs lit` : "display off"
+        // An animated face can lose a channel on a few frames only, so the warning shows the worst of the last
+        // 3 s; otherwise it blinks on and off and moves the page. A new face, brightness or setting starts afresh.
+        const now = Date.now(), key = `${s.face}|${s.brightness}`
+        if (key !== warnKey) { warnKey = key; warnSeen.length = 0 }
+        warnSeen.push({ t: now, lost: s.lost, partial: s.partial, drawn: s.drawn })
+        while (now - warnSeen[0].t > 3000) warnSeen.shift()
+        const worst = warnSeen.reduce((a, w) => ({
+            lost: Math.max(a.lost, w.lost), partial: Math.max(a.partial, w.partial), drawn: Math.max(a.drawn, w.drawn),
+        }), { lost: 0, partial: 0, drawn: 0 })
         const warn = $("#sim_warn")
-        warn.hidden = !s.lost && !s.partial
-        warn.textContent = s.lost
-            ? `${s.lost} of ${s.drawn} LEDs this face draws get 0 at this brightness: they are invisible on the clock.`
-            : s.partial ? `${s.partial} LEDs lose a color channel at this brightness, so the color shifts on the clock.` : ""
+        warn.hidden = !worst.lost && !worst.partial
+        warn.textContent = worst.lost
+            ? `${worst.lost} of ${worst.drawn} LEDs this face draws get 0 at this brightness: they are invisible on the clock.`
+            : worst.partial ? `${worst.partial} LEDs lose a color channel at this brightness, so the color shifts on the clock.` : ""
         $("#sim_lux_row").hidden = !(level === 100 || level === 101)
     })
     preview.on("error", e => { $("#sim_note").textContent = e.message })
     form.on("change", key => {
+        warnSeen.length = 0
         if (key === "units") push()
         if (key === "tz") preview.setTimeZone(form.get("tz"))
         // The "past the no-data time" choice follows the timer setting.
