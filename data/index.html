@@ -868,6 +868,27 @@
                                 </select>
                             </div>
                         </div>
+                        <hr class="my-4" />
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" role="switch" id="face_schedule_enabled"
+                                aria-controls="face_schedule_settings" aria-describedby="face_schedule_help"
+                                aria-expanded="false" />
+                            <label class="form-check-label fw-semibold" for="face_schedule_enabled">
+                                Change face and brightness on a schedule
+                            </label>
+                        </div>
+                        <div class="form-text" id="face_schedule_help">
+                            From each time the clock shows that face at that brightness until the next row; the last
+                            row runs overnight. The buttons still change the face in between. Cannot be combined with
+                            automatic cycling.
+                        </div>
+                        <div class="mt-2 d-none" id="face_schedule_settings">
+                            <div id="face_schedule_rows"></div>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" id="face_schedule_add">
+                                Add time
+                            </button>
+                            <div class="text-danger small mt-2 d-none" id="face_schedule_error"></div>
+                        </div>
                     </div>
                 </div>
                 <br />
@@ -1114,6 +1135,26 @@
         </div>
     </div>
 
+    <template id="face_schedule_row_template">
+        <div class="row g-2 align-items-end face-schedule-row mb-2 p-1">
+            <div class="col-4 col-sm-3">
+                <label class="form-text mb-1">From</label>
+                <input type="time" class="form-control form-control-sm face-schedule-time" step="60" required>
+            </div>
+            <div class="col-8 col-sm-4">
+                <label class="form-text mb-1">Face</label>
+                <select class="form-select form-select-sm face-schedule-face"></select>
+            </div>
+            <div class="col-8 col-sm-3">
+                <label class="form-text mb-1">Brightness</label>
+                <select class="form-select form-select-sm face-schedule-brightness"></select>
+            </div>
+            <div class="col-4 col-sm-2">
+                <button type="button" class="btn btn-outline-danger btn-sm w-100 face-schedule-remove"
+                    aria-label="Remove schedule row">Remove</button>
+            </div>
+        </div>
+    </template>
     <template id="alert_window_template">
         <div class="row g-2 align-items-center alert-window mb-2 p-1">
             <div class="col-12">
