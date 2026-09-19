@@ -45,7 +45,7 @@ void BGDisplayFaceWithAge::drawTimerBlocks(
 
     uint16_t color = COLOR_GREEN;
     if (lastReading.getSecondsAgo() >= 60 * SettingsManager.settings.bg_data_too_old_threshold_minutes) {
-        color = COLOR_GRAY;
+        color = getDataOldColor();
     } else if (lastReading.getSecondsAgo() >= (MAX_BLOCKS + 1) * 60) {
         color = COLOR_YELLOW;
     }

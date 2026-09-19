@@ -2,6 +2,7 @@
 #define BGAlarmManager_h
 
 #include <Arduino.h>
+#include <SettingsAlarm.h>
 
 #include <vector>
 
@@ -10,7 +11,7 @@ struct AlarmData {
     int top;
     unsigned long lastAlarmTime;
     int snoozeTimeMinutes;
-    String silenceInterval;
+    std::vector<AlertWindow> alertWindows;
     String alarmSound;
     bool isSnoozed;
 };

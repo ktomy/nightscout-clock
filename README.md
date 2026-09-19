@@ -3,6 +3,7 @@
 ![Nightscout clock logo](https://github.com/ktomy/nightscout-clock/assets/1446257/1198c06d-b017-409d-aca3-2bca63581ecb)
 
 > [!IMPORTANT]
+>
 > ## This project is looking for a new maintainer or co-maintainer
 >
 > Over the past few months, I have not been able to spend as much time as this project deserves on support, maintenance, and development.
@@ -13,7 +14,7 @@
 >
 > You can reach me at **artiom@gmail.com**.
 
-### Current version: 0.30.0
+### Current version: 0.31.0
 
 ![Build and Release](https://github.com/ktomy/nightscout-clock/actions/workflows/build_release.yml/badge.svg)
 
@@ -23,7 +24,7 @@ _Nightscout Clock (or NSClock) is an open-source product aimed at helping caregi
 
 ## Here is what it can do
 
-- 10 colorful clockfaces
+- 7 colorful clockfaces
 - Can get glucose data from Dexcom Share, Nightscout, LibreLink Up or Medtrum EasyFollow
 - Supports mg/dl and mmol/l
 - 10 minutes setup through web browser
@@ -63,15 +64,15 @@ Nightscout Clock is a custom firmware for Ulanzi TC001. It can also run (with mi
 
 ### Clockfaces
 
-| Name            | Look                                                                                                 | Comment |
-| --------------- | ---------------------------------------------------------------------------------------------------- |---------|
-| Simple          | <img width="500" alt="Simple" src="https://github.com/user-attachments/assets/ad281e9f-8c7f-41ff-ba82-23c634171158" /> |   Horizontal bars in the bottom of the display <br /> indicate the time since the last reading <br />No bars: less than one minute <br /> 1..5 green bars: 1..5 minutes <br /> 5 yellow bars: 6..20 minutes <br /> gray-colored value and vars: 20+ minutes       |
-| BIG DIGITS      | <img width="500" alt="Big Digits" src="https://github.com/user-attachments/assets/1feae65b-21e9-4c20-8960-b75583baa142" /> |         |
-| 3-hours graph   | <img width="500" alt="graph" src="https://github.com/user-attachments/assets/45d92097-f459-44d4-b1ae-a35c3cb38700" /> |         |
-| Graph and value | <img width="500" alt="Graph and value" src="https://github.com/user-attachments/assets/db9046aa-5121-43fa-b367-807cdf3c5ef3" /> |  The dots on the right side replace the trend arrow.<br>2 white dots = horizontal arrow.<br>2 colored dots (white + green) = 45° arrow.<br>3 dots = vertical arrow.<br>4 dots = double arrow.<br>Colored dots above = upward trend.<br>Colored dots below = downward trend. <br /><br /> Dots under the value are the same as <br /> horizontal bars on the other faces.<br /> See "Simple" face for details |
-| Delta           | <img width="500" alt="Photo of the Nightscout Clock" src="https://github.com/user-attachments/assets/f8005f49-6e32-43f1-bd84-0bb4e4691d7f" /> |         |
-| Time and value  | <img width="500" alt="Time and value" src="https://github.com/user-attachments/assets/cd72bf15-85e3-4621-b5ca-d639c1849cd5" /> | The dots on the right side replace the trend arrow.<br>2 white dots = horizontal arrow.<br>2 colored dots (white + green) = 45° arrow.<br>3 dots = vertical arrow.<br>4 dots = double arrow.<br>Colored dots above = upward trend.<br>Colored dots below = downward trend. <br /><br /> For the bottom-side bars see "Simple" face for details |
-| Smiley          | _(screenshot to be added)_ | A round face whose expression reflects the glucose level next to the value: <br /> happy (green) when in range <br /> sad (blue) when below the low limit <br /> angry (red) when above the high limit <br /> neutral (gray) when the data is missing or too old. <br /><br /> The value uses large digits, falling back to a smaller font when it is too wide to fit (e.g. 4-character mmol/l readings). |
+| Name            | Look                                                                                                                                          | Comment                                                                                                                                                                                                                                                                                                                                                                                                     |
+| --------------- | --------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Simple          | <img width="500" alt="Simple" src="https://github.com/user-attachments/assets/ad281e9f-8c7f-41ff-ba82-23c634171158" />                        | Horizontal bars in the bottom of the display <br /> indicate the time since the last reading <br />No bars: less than one minute <br /> 1..5 green bars: 1..5 minutes <br /> 5 yellow bars: 6..19 minutes <br /> value and bars use the configured old-data color from 20 minutes (default threshold)                                                                                                       |
+| BIG DIGITS      | <img width="500" alt="Big Digits" src="https://github.com/user-attachments/assets/1feae65b-21e9-4c20-8960-b75583baa142" />                    |                                                                                                                                                                                                                                                                                                                                                                                                             |
+| 3-hours graph   | <img width="500" alt="graph" src="https://github.com/user-attachments/assets/45d92097-f459-44d4-b1ae-a35c3cb38700" />                         |                                                                                                                                                                                                                                                                                                                                                                                                             |
+| Graph and value | <img width="500" alt="Graph and value" src="https://github.com/user-attachments/assets/db9046aa-5121-43fa-b367-807cdf3c5ef3" />               | The dots on the right side replace the trend arrow.<br>2 white dots = horizontal arrow.<br>2 colored dots (white + green) = 45° arrow.<br>3 dots = vertical arrow.<br>4 dots = double arrow.<br>Colored dots above = upward trend.<br>Colored dots below = downward trend. <br /><br /> Dots under the value are the same as <br /> horizontal bars on the other faces.<br /> See "Simple" face for details |
+| Delta           | <img width="500" alt="Photo of the Nightscout Clock" src="https://github.com/user-attachments/assets/f8005f49-6e32-43f1-bd84-0bb4e4691d7f" /> |                                                                                                                                                                                                                                                                                                                                                                                                             |
+| Time and value  | <img width="500" alt="Time and value" src="https://github.com/user-attachments/assets/cd72bf15-85e3-4621-b5ca-d639c1849cd5" />                | The dots on the right side replace the trend arrow.<br>2 white dots = horizontal arrow.<br>2 colored dots (white + green) = 45° arrow.<br>3 dots = vertical arrow.<br>4 dots = double arrow.<br>Colored dots above = upward trend.<br>Colored dots below = downward trend. <br /><br /> For the bottom-side bars see "Simple" face for details                                                              |
+| Unicorn         | <img width="500" alt="Unicorn and value" src="https://github.com/user-attachments/assets/78dd56a8-1501-493d-98be-5fb59ac9778d" />             | Rainbow mane for normal readings, warning or urgent colors outside the configured limits, and the configured old-data color for stale readings. Age bars appear below the value.                                                                                                                                                                                                                            |
 
 #### Automatic clock-face cycling
 
@@ -81,7 +82,15 @@ While cycling is enabled, the left and right buttons move only between the selec
 
 ### Configuration web interface
 
-<img alt="webUI" src="https://github.com/user-attachments/assets/94222c87-3f96-46f9-a773-02f7cdb16e6b" />
+<img alt="Nightscout Clock configuration web interface" src="docs/images/web-ui.png" />
+
+### Alarm settings
+
+High, low, and urgent-low alarms each have their own threshold, snooze duration, sound, and optional alert windows in the Web UI.
+
+- Choose one or more alert windows by weekday and start/end time. With no windows, an enabled alarm can sound at any time. Windows use the clock's configured timezone; an overnight window starts on the selected weekday and continues into the next morning. If the clock has not obtained the time yet, it allows alarms regardless of their windows.
+- Set the repeat interval to 1, 2, or 5 minutes (default). Intensive mode overrides this and repeats every 2 seconds.
+- Choose the default sound, one of six sound presets, or a custom RTTTL melody. The **Try** button plays the current melody on the clock without saving, even if that alarm is disabled.
 
 ### Features (technical stuff, feel free to ignore)
 
@@ -115,15 +124,15 @@ While cycling is enabled, the left and right buttons move only between the selec
   - BIG DIGITS
   - Value, trend and delta
   - Clock and BG value (timezone is set in the clock's web interface)
-  - Smiley face (round face that is happy in range, sad below the low limit, angry above the high limit)
-- Changes color to gray if the data is too old
+  - Unicorn and glucose value, with mane colors based on glucose limits
+- Configurable color for old readings and no-data screens: gray (default), cyan, magenta, or blue. Choose it under Device settings in the Web UI; the alternatives help keep stale readings visible at low brightness
 - Smart data and screen update timings: read data once it appears, refresh screen when needed
 - API data source. The clock has a simple Nightscout-like API which can receive glucose values from an external source. The main purpose of this feature is the ability to test the clock during the clockfaces development. In order to activate this feature, select the API data source within the clock's Web UI. Here are the endpoints:
   - /api/v1/entries POST endpoint receives an array of Nightscout-like entries. The only significant fields are `sgv`, `date` and `trend` or `direction`. Due to the limited memory the API is stable when sent less than 10 recotds
   - /api/v1/entries DELETE endpoint deletes all entries regardless of the payload
   - `scripts/ns_emulator.py` is a helper that pushes sample readings to this API for testing (e.g. to exercise clock-face moods). Point its `nightscout_url` at your clock, then run `python scripts/ns_emulator.py --one-value 110` for a single reading or `--sin` for a sinusoid history; see the script header for a curl example. The script's docstring lists handy values for the different faces.
 - Firmware versioning
-- Alarms with configurable Thresholds, snooze times and silence intervals
+- Alarms with configurable thresholds, snooze times, repeat interval, sounds, and weekday/time alert windows
 - To turn the device on or off press both arrow buttons for 3 seconds
 - To reset the device to factory defaults (hard reset) during boot sequence (when version number is displayed) keep the center (select) button pressed.
 
@@ -136,6 +145,17 @@ While cycling is enabled, the left and right buttons move only between the selec
   - ...more... (if you are the author of a CGM data collecting app/service and you want your data to be displayed on the Nightscout Clock, please contact me)
 
 ## Changes
+
+### 0.31
+
+- Added the Unicorn clock face, showing glucose beside a unicorn whose mane changes color with glucose limits, thanks [@JuanMiste](https://github.com/JuanMiste) ([#181](https://github.com/ktomy/nightscout-clock/pull/181))
+- Added configurable colors for old readings and no-data screens, with gray, cyan, magenta, and blue options, thanks [@nishanm](https://github.com/nishanm) ([#177](https://github.com/ktomy/nightscout-clock/pull/177))
+- Replaced fixed alarm silence intervals with per-alarm alert windows supporting weekday selection, multiple windows, and overnight schedules, thanks [@nishanm](https://github.com/nishanm) ([#183](https://github.com/ktomy/nightscout-clock/pull/183))
+- Added a configurable alarm repeat interval of 1, 2, or 5 minutes; intensive mode still repeats every 2 seconds, thanks [@nishanm](https://github.com/nishanm) ([#184](https://github.com/ktomy/nightscout-clock/pull/184))
+- Added six alarm sound presets alongside the default and custom RTTTL melodies, thanks [@nishanm](https://github.com/nishanm) ([#185](https://github.com/ktomy/nightscout-clock/pull/185))
+- Improved Dexcom credential guidance and added password-manager autocomplete hints, thanks [@miqcie](https://github.com/miqcie) ([#154](https://github.com/ktomy/nightscout-clock/pull/154))
+- Fixed oversized no-data text and clock rendering after switching from a face that uses large text, thanks [@nishanm](https://github.com/nishanm) ([#177](https://github.com/ktomy/nightscout-clock/pull/177))
+- Centralized clock face definitions to simplify adding new faces, thanks [@nishanm](https://github.com/nishanm) ([#188](https://github.com/ktomy/nightscout-clock/pull/188))
 
 ### 0.30
 

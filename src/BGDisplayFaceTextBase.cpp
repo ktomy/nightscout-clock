@@ -12,7 +12,7 @@ void BGDisplayFaceTextBase::showReading(
     if (!isOld) {
         SetDisplayColorByBGValue(reading);
     } else {
-        DisplayManager.setTextColor(BG_COLOR_OLD);
+        DisplayManager.setTextColor(getDataOldColor());
     }
 
     DisplayManager.setFont(font);
@@ -100,16 +100,13 @@ const std::map<BG_TREND, const uint8_t*> glucoseTrendSymbols = {
 };
 
 void BGDisplayFaceTextBase::showTrendArrow(
-    const GlucoseReading reading, int16_t x, int16_t y, bool dataIsOld, bool colorByReading,
-    bool updateMatrix) const {
+    const GlucoseReading reading, int16_t x, int16_t y, bool dataIsOld) const {
     uint16_t color = COLOR_WHITE;
     if (dataIsOld) {
-        color = BG_COLOR_OLD;
-    } else if (colorByReading) {
-        color = getDisplayColorByBGValue(reading);
+        color = getDataOldColor();
     }
 
-    DisplayManager.drawBitmap(x, y, glucoseTrendSymbols.at(reading.trend), 5, 5, color, updateMatrix);
+    DisplayManager.drawBitmap(x, y, glucoseTrendSymbols.at(reading.trend), 5, 5, color);
 }
 
 #pragma endregion Show arrow

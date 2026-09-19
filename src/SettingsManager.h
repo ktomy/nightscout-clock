@@ -19,6 +19,8 @@ public:
     bool saveSettingsToFile();
     bool trySaveJsonAsSettings(JsonDocument doc);
     void factoryReset();
+    // The repeat intervals the WebUI offers; shared with the save endpoint.
+    static bool isValidAlarmRepeatInterval(int intervalSeconds);
 
     Settings settings;
 };

@@ -39,6 +39,7 @@ public:
     DNSServer dnsServer;
     unsigned long getUtcEpoch();
     tm getTimezonedTime();
+    bool tryGetTimezonedTime(tm& timeinfo);
     AsyncWebHandler addHandler(AsyncWebHandler* handler);
     void removeStaticFileHandler();
     void addStaticFileHandler();

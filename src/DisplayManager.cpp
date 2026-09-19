@@ -192,6 +192,20 @@ void DisplayManager_::drawBitmap(
     }
 }
 
+void DisplayManager_::drawIndexedSprite(
+    int16_t x, int16_t y, const uint8_t sprite[], int16_t w, int16_t h, const uint16_t palette[]) {
+    for (int16_t row = 0; row < h; row++) {
+        for (int16_t col = 0; col < w; col++) {
+            uint8_t paletteIndex = pgm_read_byte(&sprite[row * w + col]);
+            if (paletteIndex == 0) {
+                continue;  // transparent, leave whatever is already on the matrix
+            }
+            uint16_t color = pgm_read_word(&palette[paletteIndex - 1]);
+            matrix->drawPixel(x + col, y + row, color);
+        }
+    }
+}
+
 void DisplayManager_::scrollColorfulText(String message) {
     auto finalPosition = -1 * getTextWidth(message.c_str(), 1);
 

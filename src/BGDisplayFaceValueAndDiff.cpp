@@ -20,7 +20,7 @@ void BGDisplayFaceValueAndDiff::showReadings(
     String diff = getDiff(readings);
 
     if (dataIsOld) {
-        DisplayManager.setTextColor(BG_COLOR_OLD);
+        DisplayManager.setTextColor(getDataOldColor());
     } else {
         DisplayManager.setTextColor(COLOR_WHITE);
     }

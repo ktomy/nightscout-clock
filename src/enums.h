@@ -72,6 +72,19 @@ enum class BRIGHTNES_MODE : uint8_t {
     AUTO_DIMMED = 101,
 };
 
+// RGB565 values; cast to uint16_t when passing a color to the display.
+enum class DISPLAY_COLOR : uint16_t {
+    BLACK = 0x0000,
+    BLUE = 0x001F,
+    GREEN = 0x07E0,
+    CYAN = 0x07FF,
+    GRAY = 0xA514,
+    RED = 0xF800,
+    MAGENTA = 0xF81F,
+    YELLOW = 0xFFE0,
+    WHITE = 0xFFFF,
+};
+
 inline String toString(BG_TREND trend) {
     switch (trend) {
         case BG_TREND::NONE:
@@ -97,6 +110,62 @@ inline String toString(BG_TREND trend) {
         default:
             return "unknown";
     }
+}
+
+inline String toString(DISPLAY_COLOR color) {
+    switch (color) {
+        case DISPLAY_COLOR::BLACK:
+            return "black";
+        case DISPLAY_COLOR::BLUE:
+            return "blue";
+        case DISPLAY_COLOR::GREEN:
+            return "green";
+        case DISPLAY_COLOR::CYAN:
+            return "cyan";
+        case DISPLAY_COLOR::RED:
+            return "red";
+        case DISPLAY_COLOR::MAGENTA:
+            return "magenta";
+        case DISPLAY_COLOR::YELLOW:
+            return "yellow";
+        case DISPLAY_COLOR::WHITE:
+            return "white";
+        case DISPLAY_COLOR::GRAY:
+        default:
+            return "gray";
+    }
+}
+
+// Parse lowercase color names; return fallback for unrecognized values.
+inline DISPLAY_COLOR displayColorFromString(const String& value, DISPLAY_COLOR fallback) {
+    if (value == "black") {
+        return DISPLAY_COLOR::BLACK;
+    }
+    if (value == "blue") {
+        return DISPLAY_COLOR::BLUE;
+    }
+    if (value == "green") {
+        return DISPLAY_COLOR::GREEN;
+    }
+    if (value == "cyan") {
+        return DISPLAY_COLOR::CYAN;
+    }
+    if (value == "red") {
+        return DISPLAY_COLOR::RED;
+    }
+    if (value == "magenta") {
+        return DISPLAY_COLOR::MAGENTA;
+    }
+    if (value == "yellow") {
+        return DISPLAY_COLOR::YELLOW;
+    }
+    if (value == "white") {
+        return DISPLAY_COLOR::WHITE;
+    }
+    if (value == "gray") {
+        return DISPLAY_COLOR::GRAY;
+    }
+    return fallback;
 }
 
 inline String toString(BRIGHTNES_MODE mode) {

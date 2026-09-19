@@ -20,29 +20,6 @@ ServerManager_& ServerManager_::getInstance() {
     return instance;
 }
 
-static String resolveAlarmMelody(const String& alarmType) {
-    if (alarmType == "high") {
-        if (SettingsManager.settings.alarm_high_melody.length() > 0) {
-            return SettingsManager.settings.alarm_high_melody;
-        }
-        return sound_high;
-    }
-    if (alarmType == "low") {
-        if (SettingsManager.settings.alarm_low_melody.length() > 0) {
-            return SettingsManager.settings.alarm_low_melody;
-        }
-        return sound_low;
-    }
-    if (alarmType == "urgent_low") {
-        if (SettingsManager.settings.alarm_urgent_low_melody.length() > 0) {
-            return SettingsManager.settings.alarm_urgent_low_melody;
-        }
-        return sound_urgent_low;
-    }
-
-    return "";
-}
-
 // Web authentication constants, cookie set for 10 minutes
 static constexpr unsigned long WEB_AUTH_TOKEN_TTL_MS = 10UL * 60UL * 1000UL;
 static constexpr int WEB_AUTH_COOKIE_MAX_AGE_SEC = 10 * 60;
@@ -373,7 +350,7 @@ void ServerManager_::setupWebServer(IPAddress ip) {
                 return;
             }
             auto&& data = json.as<JsonObject>();
-            auto sendFaceCycleValidationError = [request](const char* error) {
+            auto sendSaveValidationError = [request](const char* error) {
                 String response = "{\"status\": \"error\", \"error\": \"";
                 response += error;
                 response += "\"}";
@@ -381,7 +358,7 @@ void ServerManager_::setupWebServer(IPAddress ip) {
             };
 
             if (!data["face_cycle_enabled"].isNull() && !data["face_cycle_enabled"].is<bool>()) {
-                sendFaceCycleValidationError("face_cycle_enabled must be a boolean");
+                sendSaveValidationError("face_cycle_enabled must be a boolean");
                 return;
             }
 
@@ -390,20 +367,20 @@ void ServerManager_::setupWebServer(IPAddress ip) {
             int uniqueFaceCount = 0;
             if (faceCycleEnabled || hasFaceCycleFaces) {
                 if (!data["face_cycle_faces"].is<JsonArray>()) {
-                    sendFaceCycleValidationError("face_cycle_faces must be an array");
+                    sendSaveValidationError("face_cycle_faces must be an array");
                     return;
                 }
 
-                bool selectedFaces[6] = {};
+                bool selectedFaces[CLOCK_FACE_COUNT] = {};
                 for (JsonVariant face : data["face_cycle_faces"].as<JsonArray>()) {
                     if (!face.is<int>()) {
-                        sendFaceCycleValidationError("Face selections must use IDs from 0 to 5");
+                        sendSaveValidationError("Face selections must use valid clock face IDs");
                         return;
                     }
 
                     int faceId = face.as<int>();
-                    if (faceId < 0 || faceId >= 6) {
-                        sendFaceCycleValidationError("Face selections must use IDs from 0 to 5");
+                    if (faceId < 0 || faceId >= CLOCK_FACE_COUNT) {
+                        sendSaveValidationError("Face selections must use valid clock face IDs");
                         return;
                     }
 
@@ -415,14 +392,14 @@ void ServerManager_::setupWebServer(IPAddress ip) {
             }
 
             if (faceCycleEnabled && uniqueFaceCount < 2) {
-                sendFaceCycleValidationError("Select at least two different clock faces");
+                sendSaveValidationError("Select at least two different clock faces");
                 return;
             }
 
             bool hasFaceCycleInterval = !data["face_cycle_interval_seconds"].isNull();
             if (faceCycleEnabled || hasFaceCycleInterval) {
                 if (!data["face_cycle_interval_seconds"].is<int>()) {
-                    sendFaceCycleValidationError(
+                    sendSaveValidationError(
                         "Face cycle period must be 10, 30, 60, 120, 180, or 300 seconds");
                     return;
                 }
@@ -430,8 +407,19 @@ void ServerManager_::setupWebServer(IPAddress ip) {
                 int intervalSeconds = data["face_cycle_interval_seconds"].as<int>();
                 if (intervalSeconds != 10 && intervalSeconds != 30 && intervalSeconds != 60 &&
                     intervalSeconds != 120 && intervalSeconds != 180 && intervalSeconds != 300) {
-                    sendFaceCycleValidationError(
+                    sendSaveValidationError(
                         "Face cycle period must be 10, 30, 60, 120, 180, or 300 seconds");
+                    return;
+                }
+            }
+
+            // Refuse a value the loader would silently correct; the accepted set lives in SettingsManager.
+            if (!data["alarm_repeat_interval_seconds"].isNull()) {
+                if (!data["alarm_repeat_interval_seconds"].is<int>() ||
+                    !SettingsManager_::isValidAlarmRepeatInterval(
+                        data["alarm_repeat_interval_seconds"].as<int>())) {
+                    sendSaveValidationError(
+                        "Alarm repeat interval must be 60, 120, or 300 seconds");
                     return;
                 }
             }
@@ -444,7 +432,7 @@ void ServerManager_::setupWebServer(IPAddress ip) {
         }));
 
     ws->addHandler(new AsyncCallbackJsonWebHandler(
-        "/api/alarm/custom", [](AsyncWebServerRequest* request, JsonVariant& json) {
+        "/api/alarm", [](AsyncWebServerRequest* request, JsonVariant& json) {
             if (!ServerManager.enforceAuthentication(request)) {
                 return;
             }
@@ -469,32 +457,6 @@ void ServerManager_::setupWebServer(IPAddress ip) {
 
             PeripheryManager.playRTTTLString(melody);
             request->send(200, "application/json", "{\"status\": \"ok\"}");
-        }));
-
-    ws->addHandler(new AsyncCallbackJsonWebHandler(
-        "/api/alarm", [this](AsyncWebServerRequest* request, JsonVariant& json) {
-            if (!enforceAuthentication(request)) {
-                return;
-            }
-            if (not json.is<JsonObject>()) {
-                request->send(400, "application/json", "{\"status\": \"json parsing error\"}");
-                return;
-            }
-            auto&& data = json.as<JsonObject>();
-            if (data["alarmType"].is<String>()) {
-                auto alarmType = data["alarmType"].as<String>();
-                auto melody = resolveAlarmMelody(alarmType);
-                if (melody == "") {
-                    request->send(400, "application/json", "{\"status\": \"alarm type not found\"}");
-                    return;
-                }
-
-                PeripheryManager.playRTTTLString(melody);
-
-                request->send(200, "application/json", "{\"status\": \"ok\"}");
-            } else {
-                request->send(400, "application/json", "{\"status\": \"alarm key not found\"}");
-            }
         }));
 
     ws->on("/api/reset", HTTP_POST, [this](AsyncWebServerRequest* request) {
@@ -665,6 +627,15 @@ tm ServerManager_::getTimezonedTime() {
         DEBUG_PRINTLN("Failed to obtain time");
     }
     return timeinfo;
+}
+
+// Like getTimezonedTime(), but reports whether the clock actually knows the time. Reads the
+// clock directly: getLocalTime() waits up to 5 s when it is unset, and can skip the read on a zero timeout.
+bool ServerManager_::tryGetTimezonedTime(tm& timeinfo) {
+    time_t now;
+    time(&now);
+    localtime_r(&now, &timeinfo);
+    return timeinfo.tm_year > (2016 - 1900);
 }
 
 void ServerManager_::stop() {

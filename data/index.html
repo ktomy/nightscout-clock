@@ -196,10 +196,13 @@
                     <div class="card">
                         <h5 class="card-header" id="headingTwo">Dexcom connection</h5>
                         <div class="card-body">
+                            <p class="form-text mt-0 mb-2">Use the same credentials you use to log into the Dexcom app on your phone.</p>
                             <div class="row">
                                 <div class="col-lg-5 col-md-6 col-12 mb-3 mb-md-0">
                                     <label for="dexcom_username" class="form-label">Dexcom username</label>
-                                    <input type="text" class="form-control" id="dexcom_username" />
+                                    <input type="text" class="form-control" id="dexcom_username"
+                                        autocomplete="username"
+                                        placeholder="Your Dexcom app login" />
                                     <div class="invalid-feedback">
                                         Dexcom username is required
                                     </div>
@@ -207,7 +210,9 @@
                                 <div class="col-lg-5 col-md-6 col-12 mb-3 mb-md-0">
                                     <label for="dexcom_password" class="form-label">Dexcom password</label>
                                     <div class="input-group">
-                                        <input type="password" class="form-control" id="dexcom_password" />
+                                        <input type="password" class="form-control" id="dexcom_password"
+                                            autocomplete="current-password"
+                                            placeholder="Your Dexcom app password" />
                                         <button class="btn btn-outline-secondary btn-password-toggle" type="button"
                                             data-target="#dexcom_password" aria-label="Show or hide Dexcom password">
                                             <i class="bi bi-eye-slash"></i>
@@ -476,7 +481,7 @@
                                     Try
                                 </button>
                             </div>
-                            <div class="col-sm-3">
+                            <div class="col-sm-4">
                                 <label for="alarm_high_value" class="form-label">Alert when above</label>
                                 <input type="text" class="form-control" id="alarm_high_value" placeholder="" required
                                     disabled />
@@ -484,7 +489,7 @@
                                     High alert threshold value is required
                                 </div>
                             </div>
-                            <div class="col-sm-3">
+                            <div class="col-sm-5">
                                 <label for="alarm_high_snooze" class="form-label">Snooze for</label>
                                 <select class="form-select" id="alarm_high_snooze" required disabled>
                                     <option value="">Choose...</option>
@@ -500,26 +505,43 @@
                                     Please select high alert snooze interval
                                 </div>
                             </div>
-                            <div class="col-sm-3">
-                                <label for="alarm_high_silence" class="form-label">Silence interval</label>
-                                <select class="form-select" id="alarm_high_silence" required disabled>
-                                    <option value="">Choose...</option>
-                                    <option value="0">No silence</option>
-                                    <option value="22_8">22:00 - 8:00</option>
-                                    <option value="8_22">08:00 - 22:00</option>
-                                </select>
-                                <div class="invalid-feedback">
-                                    Please choose High alert silence interval
-                                </div>
-                            </div>
                         </div>
                         <div class="row mt-2">
                             <div class="col-12">
-                                <label for="alarm_high_melody" class="form-label">Custom melody (RTTTL)
-                                    (optional)</label>
+                                <label class="form-label" for="alarm_high_add_window">Alert windows</label>
+                                <div class="form-text mb-2">
+                                    Leave this empty to alert at any time. With one or more windows the
+                                    High alert only sounds inside them. A window whose end time is earlier
+                                    than its start time runs past midnight into the next morning, and the days
+                                    you pick are the days it starts on.
+                                </div>
+                                <div id="alarm_high_windows"></div>
+                                <button type="button" class="btn btn-outline-secondary btn-sm"
+                                    id="alarm_high_add_window" disabled>
+                                    Add window
+                                </button>
+                                <div class="text-danger small mt-2 d-none" id="alarm_high_windows_error"></div>
+                            </div>
+                        </div>
+                        <div class="row mt-2">
+                            <div class="col-sm-4">
+                                <label for="alarm_high_melody_preset" class="form-label">Alert sound</label>
+                                <select class="form-select" id="alarm_high_melody_preset" disabled>
+                                    <option value="high:d=4,o=5,b=125:4e7,p,4e7">Default</option>
+                                    <option value="doublebeep:d=8,o=6,b=180:c,p,c">Double beep</option>
+                                    <option value="triplebeep:d=16,o=6,b=200:c,p,c,p,c">Triple beep</option>
+                                    <option value="siren:d=4,o=5,b=100:a,d6,a,d6">Two tone siren</option>
+                                    <option value="urgent:d=32,o=7,b=220:c,p,c,p,c,p,c,p,c,p,c">Urgent pulse</option>
+                                    <option value="ping:d=4,o=6,b=140:8e,16p,8c">Soft ping</option>
+                                    <option value="longtone:d=1,o=5,b=90:a">Long tone</option>
+                                    <option value="custom">Custom</option>
+                                </select>
+                            </div>
+                            <div class="col-sm-8">
+                                <label for="alarm_high_melody" class="form-label">Melody (RTTTL)</label>
                                 <input type="text" class="form-control" id="alarm_high_melody"
                                     placeholder="high:d=4,o=5,b=125:4e7,p,4e7" disabled />
-                                <div class="form-text">Leave empty to use the default high alert sound.</div>
+                                <div class="form-text">Choose a sound or enter a custom RTTTL melody.</div>
                                 <div class="invalid-feedback">Enter a valid RTTTL string (e.g.,
                                     name:d=4,o=5,b=125:c6,g,4p).</div>
                             </div>
@@ -540,7 +562,7 @@
                                     Try
                                 </button>
                             </div>
-                            <div class="col-sm-3">
+                            <div class="col-sm-4">
                                 <label for="alarm_low_value" class="form-label">Alert when below</label>
                                 <input type="text" class="form-control" id="alarm_low_value" placeholder="" required
                                     disabled />
@@ -548,7 +570,7 @@
                                     Low alert threshold value is required
                                 </div>
                             </div>
-                            <div class="col-sm-3">
+                            <div class="col-sm-5">
                                 <label for="alarm_low_snooze" class="form-label">Snooze for</label>
                                 <select class="form-select" id="alarm_low_snooze" required disabled>
                                     <option value="">Choose...</option>
@@ -564,26 +586,43 @@
                                     Please select Low alert snooze interval
                                 </div>
                             </div>
-                            <div class="col-sm-3">
-                                <label for="alarm_low_silence" class="form-label">Silence interval</label>
-                                <select class="form-select" id="alarm_low_silence" required disabled>
-                                    <option value="">Choose...</option>
-                                    <option value="0">No silence</option>
-                                    <option value="22_8">22:00 - 8:00</option>
-                                    <option value="8_22">08:00 - 22:00</option>
-                                </select>
-                                <div class="invalid-feedback">
-                                    Please choose Low alert silence interval
-                                </div>
-                            </div>
                         </div>
                         <div class="row mt-2">
                             <div class="col-12">
-                                <label for="alarm_low_melody" class="form-label">Custom melody (RTTTL)
-                                    (optional)</label>
+                                <label class="form-label" for="alarm_low_add_window">Alert windows</label>
+                                <div class="form-text mb-2">
+                                    Leave this empty to alert at any time. With one or more windows the
+                                    Low alert only sounds inside them. A window whose end time is earlier
+                                    than its start time runs past midnight into the next morning, and the days
+                                    you pick are the days it starts on.
+                                </div>
+                                <div id="alarm_low_windows"></div>
+                                <button type="button" class="btn btn-outline-secondary btn-sm"
+                                    id="alarm_low_add_window" disabled>
+                                    Add window
+                                </button>
+                                <div class="text-danger small mt-2 d-none" id="alarm_low_windows_error"></div>
+                            </div>
+                        </div>
+                        <div class="row mt-2">
+                            <div class="col-sm-4">
+                                <label for="alarm_low_melody_preset" class="form-label">Alert sound</label>
+                                <select class="form-select" id="alarm_low_melody_preset" disabled>
+                                    <option value="low:d=4,o=5,b=200:4e5,4p,4e5,4p,4e5">Default</option>
+                                    <option value="doublebeep:d=8,o=6,b=180:c,p,c">Double beep</option>
+                                    <option value="triplebeep:d=16,o=6,b=200:c,p,c,p,c">Triple beep</option>
+                                    <option value="siren:d=4,o=5,b=100:a,d6,a,d6">Two tone siren</option>
+                                    <option value="urgent:d=32,o=7,b=220:c,p,c,p,c,p,c,p,c,p,c">Urgent pulse</option>
+                                    <option value="ping:d=4,o=6,b=140:8e,16p,8c">Soft ping</option>
+                                    <option value="longtone:d=1,o=5,b=90:a">Long tone</option>
+                                    <option value="custom">Custom</option>
+                                </select>
+                            </div>
+                            <div class="col-sm-8">
+                                <label for="alarm_low_melody" class="form-label">Melody (RTTTL)</label>
                                 <input type="text" class="form-control" id="alarm_low_melody"
-                                    placeholder="low:d=4,o=5,b=200:4e5,4p,4e5" disabled />
-                                <div class="form-text">Leave empty to use the default low alert sound.</div>
+                                    placeholder="low:d=4,o=5,b=200:4e5,4p,4e5,4p,4e5" disabled />
+                                <div class="form-text">Choose a sound or enter a custom RTTTL melody.</div>
                                 <div class="invalid-feedback">Enter a valid RTTTL string (e.g.,
                                     name:d=4,o=5,b=160:c6,8g,8p).</div>
                             </div>
@@ -606,7 +645,7 @@
                                     Try
                                 </button>
                             </div>
-                            <div class="col-sm-3">
+                            <div class="col-sm-4">
                                 <label for="alarm_urgent_low_value" class="form-label">Alert when below</label>
                                 <input type="text" class="form-control" id="alarm_urgent_low_value" placeholder=""
                                     required disabled />
@@ -614,7 +653,7 @@
                                     Urgent Low alert threshold value is required
                                 </div>
                             </div>
-                            <div class="col-sm-3">
+                            <div class="col-sm-5">
                                 <label for="alarm_urgent_low_snooze" class="form-label">Snooze for</label>
                                 <select class="form-select" id="alarm_urgent_low_snooze" required disabled>
                                     <option value="">Choose...</option>
@@ -630,34 +669,61 @@
                                     Please select Urgent Low alert snooze interval
                                 </div>
                             </div>
-                            <div class="col-sm-3">
-                                <label for="alarm_urgent_low_silence" class="form-label">Silence
-                                    interval</label>
-                                <select class="form-select" id="alarm_urgent_low_silence" required disabled>
-                                    <option value="">Choose...</option>
-                                    <option value="0">No silence</option>
-                                    <option value="22_8">22:00 - 8:00</option>
-                                    <option value="8_22">08:00 - 22:00</option>
-                                </select>
-                                <div class="invalid-feedback">
-                                    Please choose Urgent Low alert silence interval
-                                </div>
-                            </div>
                         </div>
                         <div class="row mt-2">
                             <div class="col-12">
-                                <label for="alarm_urgent_low_melody" class="form-label">Custom melody
-                                    (RTTTL) (optional)</label>
-                                <input type="text" class="form-control" id="alarm_urgent_low_melody"
-                                    placeholder="urgent_low:d=4,o=5,b=230:4e6,4p,4e6,4p" disabled />
-                                <div class="form-text">Leave empty to use the default urgent low alert sound.
+                                <label class="form-label" for="alarm_urgent_low_add_window">Alert windows</label>
+                                <div class="form-text mb-2">
+                                    Leave this empty to alert at any time. With one or more windows the
+                                    Urgent Low alert only sounds inside them. A window whose end time is earlier
+                                    than its start time runs past midnight into the next morning, and the days
+                                    you pick are the days it starts on.
                                 </div>
+                                <div id="alarm_urgent_low_windows"></div>
+                                <button type="button" class="btn btn-outline-secondary btn-sm"
+                                    id="alarm_urgent_low_add_window" disabled>
+                                    Add window
+                                </button>
+                                <div class="text-danger small mt-2 d-none" id="alarm_urgent_low_windows_error"></div>
+                            </div>
+                        </div>
+                        <div class="row mt-2">
+                            <div class="col-sm-4">
+                                <label for="alarm_urgent_low_melody_preset" class="form-label">Alert sound</label>
+                                <select class="form-select" id="alarm_urgent_low_melody_preset" disabled>
+                                    <option value="urgent_low:d=4,o=5,b=230:4e6,4p,4e6,4p,4e6,4p,4e6">Default</option>
+                                    <option value="doublebeep:d=8,o=6,b=180:c,p,c">Double beep</option>
+                                    <option value="triplebeep:d=16,o=6,b=200:c,p,c,p,c">Triple beep</option>
+                                    <option value="siren:d=4,o=5,b=100:a,d6,a,d6">Two tone siren</option>
+                                    <option value="urgent:d=32,o=7,b=220:c,p,c,p,c,p,c,p,c,p,c">Urgent pulse</option>
+                                    <option value="ping:d=4,o=6,b=140:8e,16p,8c">Soft ping</option>
+                                    <option value="longtone:d=1,o=5,b=90:a">Long tone</option>
+                                    <option value="custom">Custom</option>
+                                </select>
+                            </div>
+                            <div class="col-sm-8">
+                                <label for="alarm_urgent_low_melody" class="form-label">Melody (RTTTL)</label>
+                                <input type="text" class="form-control" id="alarm_urgent_low_melody"
+                                    placeholder="urgent_low:d=4,o=5,b=230:4e6,4p,4e6,4p,4e6,4p,4e6" disabled />
+                                <div class="form-text">Choose a sound or enter a custom RTTTL melody.</div>
                                 <div class="invalid-feedback">Enter a valid RTTTL string (e.g.,
                                     name:d=4,o=5,b=200:c6,g,8p).</div>
                             </div>
                         </div>
                         <div class="row mt-3">
-                            <div class="col-12">
+                            <div class="col-sm-4">
+                                <label for="alarm_repeat_interval_seconds" class="form-label">Repeat every</label>
+                                <select class="form-select" id="alarm_repeat_interval_seconds" required>
+                                    <option value="60">1 minute</option>
+                                    <option value="120">2 minutes</option>
+                                    <option value="300">5 minutes</option>
+                                </select>
+                                <div class="form-text">
+                                    Time between alarm repeats when not snoozed. Intensive mode overrides
+                                    this setting.
+                                </div>
+                            </div>
+                            <div class="col-sm-8 align-content-center">
                                 <div class="form-check">
                                     <input class="form-check-input" type="checkbox" id="alarm_intensive_mode">
                                     <label class="form-check-label" for="alarm_intensive_mode">
@@ -675,13 +741,15 @@
                                         When an alarm condition is met (BG is low or high), the alarm will sound if
                                         enabled. The volume is moderate, so we recommend testing it with the "Try"
                                         buttons before enabling. The alarm will beep 2 times (high), 3 times (low),
-                                        or 4 times (urgent low), then pause for 5 minutes before sounding again. If
-                                        "intense mode" is selected, the alarm will continue beeping every few
+                                        or 4 times (urgent low), then pause for the selected repeat interval
+                                        before sounding again. If "Intensive mode" is selected, the alarm will
+                                        continue beeping every few
                                         seconds without pause. This cycle continues until blood glucose levels
                                         return to normal or until you press the "Select" (center) button to snooze.
                                         When snoozed, the clock displays "SNOOZED" for your selected snooze
                                         interval. If levels remain low or high after the snooze interval ends, the
-                                        alarm will sound again.
+                                        alarm will sound again. Each alert can also be given one or more alert
+                                        windows, and an alert that has them stays silent outside those windows.
                                     </p>
                                 </div>
                             </div>
@@ -718,16 +786,6 @@
                                     face</label>
                                 <select class="form-select" id="default_clock_face" required
                                     aria-describedby="default_clock_face_cycle_help">
-                                    <option value="0">Simple</option>
-                                    <option value="1">Full glucose graph</option>
-                                    <option value="2">Glucose graph and value</option>
-                                    <option value="3">Big text</option>
-                                    <option value="4">Value and delta</option>
-                                    <option value="5">Current time and BG value</option>
-                                    <option value="6">Diagnostics</option>
-                                    <option value="7">Battery and uptime</option>
-                                    <option value="8">Rainbow big text</option>
-                                    <option value="9">Smiley</option>
                                 </select>
                                 <div class="invalid-feedback">
                                     Please select default clock face
@@ -757,6 +815,22 @@
                                 </div>
                             </div>
                         </div>
+                        <div class="row mt-3">
+                            <div class="col-md-3 col-lg-3" id="data_old_color_cell">
+                                <label for="data_old_color" class="form-label">Color when data is old</label>
+                                <select class="form-select" id="data_old_color">
+                                    <option value="gray">Gray (default)</option>
+                                    <option value="cyan">Cyan</option>
+                                    <option value="magenta">Magenta</option>
+                                    <option value="blue">Blue</option>
+                                </select>
+                                <div class="form-text">
+                                    Also used for the &quot;no data&quot; screen. Gray is not visible at the lowest
+                                    brightness, so if you run the clock dim, choose one of the others to keep stale
+                                    readings readable.
+                                </div>
+                            </div>
+                        </div>
                         <hr class="my-4" />
                         <div class="form-check form-switch">
                             <input class="form-check-input" type="checkbox" role="switch" id="face_cycle_enabled"
@@ -777,54 +851,7 @@
                                     <div class="form-text mt-0 mb-3" id="face_cycle_faces_help">
                                         Select at least two faces. They will cycle in the order shown below.
                                     </div>
-                                    <div class="row row-cols-1 row-cols-sm-2 g-2">
-                                        <div class="col">
-                                            <div class="form-check">
-                                                <input class="form-check-input face-cycle-face" type="checkbox"
-                                                    name="face_cycle_faces" value="0" id="face_cycle_face_0" disabled />
-                                                <label class="form-check-label" for="face_cycle_face_0">Simple</label>
-                                            </div>
-                                        </div>
-                                        <div class="col">
-                                            <div class="form-check">
-                                                <input class="form-check-input face-cycle-face" type="checkbox"
-                                                    name="face_cycle_faces" value="1" id="face_cycle_face_1" disabled />
-                                                <label class="form-check-label" for="face_cycle_face_1">Full glucose
-                                                    graph</label>
-                                            </div>
-                                        </div>
-                                        <div class="col">
-                                            <div class="form-check">
-                                                <input class="form-check-input face-cycle-face" type="checkbox"
-                                                    name="face_cycle_faces" value="2" id="face_cycle_face_2" disabled />
-                                                <label class="form-check-label" for="face_cycle_face_2">Glucose graph
-                                                    and value</label>
-                                            </div>
-                                        </div>
-                                        <div class="col">
-                                            <div class="form-check">
-                                                <input class="form-check-input face-cycle-face" type="checkbox"
-                                                    name="face_cycle_faces" value="3" id="face_cycle_face_3" disabled />
-                                                <label class="form-check-label" for="face_cycle_face_3">Big text</label>
-                                            </div>
-                                        </div>
-                                        <div class="col">
-                                            <div class="form-check">
-                                                <input class="form-check-input face-cycle-face" type="checkbox"
-                                                    name="face_cycle_faces" value="4" id="face_cycle_face_4" disabled />
-                                                <label class="form-check-label" for="face_cycle_face_4">Value and
-                                                    delta</label>
-                                            </div>
-                                        </div>
-                                        <div class="col">
-                                            <div class="form-check">
-                                                <input class="form-check-input face-cycle-face" type="checkbox"
-                                                    name="face_cycle_faces" value="5" id="face_cycle_face_5" disabled />
-                                                <label class="form-check-label" for="face_cycle_face_5">Current time
-                                                    and BG value</label>
-                                            </div>
-                                        </div>
-                                    </div>
+                                    <div class="row row-cols-1 row-cols-sm-2 g-2" id="face_cycle_face_options"></div>
                                     <div class="text-danger fw-semibold" id="face_cycle_faces_feedback"
                                         role="status" aria-live="polite" aria-atomic="true"></div>
                                 </fieldset>
@@ -1086,6 +1113,41 @@
             </div>
         </div>
     </div>
+
+    <template id="alert_window_template">
+        <div class="row g-2 align-items-center alert-window mb-2 p-1">
+            <div class="col-12">
+                <div class="btn-group btn-group-sm w-100" role="group" aria-label="Days">
+                    <input type="checkbox" class="btn-check alert-window-day" value="1" autocomplete="off">
+                    <label class="btn btn-outline-primary">Mon</label>
+                    <input type="checkbox" class="btn-check alert-window-day" value="2" autocomplete="off">
+                    <label class="btn btn-outline-primary">Tue</label>
+                    <input type="checkbox" class="btn-check alert-window-day" value="3" autocomplete="off">
+                    <label class="btn btn-outline-primary">Wed</label>
+                    <input type="checkbox" class="btn-check alert-window-day" value="4" autocomplete="off">
+                    <label class="btn btn-outline-primary">Thu</label>
+                    <input type="checkbox" class="btn-check alert-window-day" value="5" autocomplete="off">
+                    <label class="btn btn-outline-primary">Fri</label>
+                    <input type="checkbox" class="btn-check alert-window-day" value="6" autocomplete="off">
+                    <label class="btn btn-outline-primary">Sat</label>
+                    <input type="checkbox" class="btn-check alert-window-day" value="0" autocomplete="off">
+                    <label class="btn btn-outline-primary">Sun</label>
+                </div>
+            </div>
+            <div class="col-6 col-sm-5">
+                <label class="form-text mb-1">From</label>
+                <input type="time" class="form-control form-control-sm alert-window-from" step="60" required>
+            </div>
+            <div class="col-6 col-sm-5">
+                <label class="form-text mb-1">To</label>
+                <input type="time" class="form-control form-control-sm alert-window-to" step="60" required>
+            </div>
+            <div class="col-12 col-sm-2 align-self-end">
+                <button type="button" class="btn btn-outline-danger btn-sm w-100 alert-window-remove"
+                    aria-label="Remove alert window">Remove</button>
+            </div>
+        </div>
+    </template>
 
     <script src="bootstrap.bundle.min.js"></script>
     <script src="../data_dev/bootstrap.bundle.js"></script>

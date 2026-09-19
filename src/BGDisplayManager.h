@@ -8,15 +8,12 @@
 #include <vector>
 
 #include "BGDisplayFace.h"
-#include "BGDisplayFaceBatteryUptime.h"
 #include "BGDisplayFaceBigText.h"
-#include "BGDisplayFaceBigTextRainbow.h"
 #include "BGDisplayFaceClock.h"
-#include "BGDisplayFaceDiagnostics.h"
 #include "BGDisplayFaceGraph.h"
 #include "BGDisplayFaceGraphAndBG.h"
 #include "BGDisplayFaceSimple.h"
-#include "BGDisplayFaceSmiley.h"
+#include "BGDisplayFaceUnicorn.h"
 #include "BGDisplayFaceValueAndDiff.h"
 #include "BGSource.h"
 
@@ -84,7 +81,6 @@ private:
     bool faceCycleTimerStarted = false;
     unsigned long lastFaceCycleMillis = 0;
     std::vector<int> faceCycleFaces;
-    unsigned long long lastRefreshEpoch = 0;
 
     void configureFaceCycle();
     void updateFaceCycle();
@@ -108,7 +104,8 @@ public:
     void showNextFace();
     void showPreviousFace();
 
-    static void drawTimerBlocks(GlucoseReading lastReading, int width, int xPosition, int yPosition);
+private:
+    unsigned long long lastRefreshEpoch = 0;
 };
 
 extern BGDisplayManager_& bgDisplayManager;
