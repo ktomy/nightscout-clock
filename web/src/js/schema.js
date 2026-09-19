@@ -171,6 +171,13 @@ function validateConfig(c, ctx) {
         const n = new Set(c.face_cycle_faces || []).size
         need("face_cycle_faces", n >= 2, n === 1 ? "1 face selected. Select one more face before saving." : "0 faces selected. Select at least two faces before saving.")
     }
+    if (c.face_schedule_enabled) {
+        const rows = c.face_schedule
+        need("face_schedule", !c.face_cycle_enabled, "Turn off face cycling before enabling the schedule.")
+        need("face_schedule", rows.length >= 1 && rows.length <= 8, "Add between 1 and 8 scheduled times, or turn the schedule off.")
+        need("face_schedule", rows.every(row => isTime(row.time)), "Every row needs a valid time.")
+        need("face_schedule", new Set(rows.map(row => row.time)).size === rows.length, "Two rows have the same time.")
+    }
     need("tz", RX.timezone.test(text(c.tz_libc)) && (!ctx.tzNames || ctx.tzNames.has(c.tz)), "Please select your time zone.")
     need("time_format", inOptions(c.time_format, TIME_FORMATS), "Please select the time format (AM/PM or 24h).")
 
@@ -209,6 +216,7 @@ function buildSaveJson(c) {
 // replaced by the page's defaults.
 function normalizeLoaded(c) {
     const out = clone(c)
+    out.face_schedule ??= []
     const num = k => {
         if (typeof out[k] === "string" && /^-?\d+$/.test(out[k].trim())) out[k] = parseInt(out[k], 10)
     }

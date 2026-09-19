@@ -134,7 +134,7 @@ function toast(message, kind = "ok", ms = 4500) {
 
 // ---------- Display ----------
 function displayTab() {
-    return el("div.stack", facesCard(), brightnessCard(), oldDataCard(), timeCard())
+    return el("div.stack", facesCard(), faceScheduleCard(), brightnessCard(), oldDataCard(), timeCard())
 }
 
 function facesCard() {
@@ -162,10 +162,73 @@ function facesCard() {
     const interval = reactive(["face_cycle_enabled"], () => form.get("face_cycle_enabled")
         ? field("face_cycle_interval_seconds", "Change face every", segmented("face_cycle_interval_seconds", CYCLE_INTERVALS, { numeric: true, label: "Change face every" }))
         : el("span", { hidden: true }))
-    return card("Clock face", null, el("div.stack", faces, el("hr.divider"),
-        toggleRow("face_cycle_enabled", "Cycle selected clock faces automatically",
-            "The left and right buttons move only between the selected faces while cycling is on. The default face applies only when cycling is off."),
+    const cyclingToggle = reactive(["face_schedule_enabled"], () => {
+        const row = toggleRow("face_cycle_enabled", "Cycle selected clock faces automatically",
+            "The left and right buttons move only between the selected faces while cycling is on. Turn off the daily schedule to enable cycling.")
+        $("input", row).disabled = !!form.get("face_schedule_enabled")
+        return row
+    })
+    return card("Clock face", null, el("div.stack", faces, el("hr.divider"), cyclingToggle,
         interval), { id: "card_faces" })
+}
+
+function faceScheduleCard() {
+    const key = "face_schedule"
+    const toggle = reactive(["face_cycle_enabled"], () => {
+        const row = toggleRow("face_schedule_enabled", "Change face and brightness on a daily schedule",
+            "Turn off face cycling to enable the schedule. Times use the clock's time zone and repeat every day.")
+        $("input", row).disabled = !!form.get("face_cycle_enabled")
+        return row
+    })
+    const body = reactive(["face_schedule_enabled"], () => {
+        if (!form.get("face_schedule_enabled")) return el("span", { hidden: true })
+        const rows = el("div.stack")
+        const list = () => clone(form.get(key))
+        const brightnessOptions = [[100, "Auto: balanced"], [101, "Auto: for darker rooms"],
+            ...Array.from({ length: 10 }, (_, i) => [i + 1, `Manual: ${i + 1}`])]
+        const draw = () => {
+            rows.replaceChildren(...list().map((entry, i) => {
+                const update = patch => {
+                    const next = list()
+                    next[i] = { ...next[i], ...patch }
+                    form.set(key, next)
+                    form.touch(key)
+                }
+                const time = el("input", { id: `schedule_${i}_time`, type: "time", step: 60 })
+                time.value = entry.time
+                time.addEventListener("input", () => update({ time: time.value }))
+                const select = (name, options) => {
+                    const control = el("select", { id: `schedule_${i}_${name}` })
+                    for (const [value, label] of options) control.add(new Option(label, value))
+                    control.value = String(entry[name])
+                    control.addEventListener("change", () => update({ [name]: Number(control.value) }))
+                    return control
+                }
+                return el("div.stack",
+                    el("div.grid",
+                        field(key + "_time", "Time", time),
+                        field(key + "_face", "Clock face", select("face", FACES.map(f => [f.id, f.name]))),
+                        field(key + "_brightness", "Brightness", select("brightness", brightnessOptions))),
+                    el("button.btn.sm", { type: "button", "aria-label": `Remove scheduled time ${i + 1}`, onclick: () => {
+                        const next = list()
+                        next.splice(i, 1)
+                        form.set(key, next)
+                        form.touch(key)
+                        draw()
+                    } }, icon("trash"), "Remove time"))
+            }))
+            add.disabled = list().length >= 8
+        }
+        const add = el("button.btn.sm", { type: "button", onclick: () => {
+            form.set(key, [...list(), { time: "22:00", face: 0, brightness: 100 }])
+            form.touch(key)
+            draw()
+        } }, icon("plus"), "Add time")
+        draw()
+        return field(key, null, el("div.stack", rows, add),
+            "Add up to 8 different times. Each row applies its face and brightness until the next scheduled time, including overnight.")
+    })
+    return card("Daily schedule", null, el("div.stack", toggle, body), { id: "card_schedule" })
 }
 
 function brightnessCard() {

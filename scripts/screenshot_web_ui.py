@@ -30,8 +30,8 @@ def main():
         "--output", type=Path, default=ROOT / "docs/images/web-ui.png",
         help="PNG destination (default: docs/images/web-ui.png in the repository)",
     )
-    parser.add_argument("--width", type=positive_int, default=390, help="viewport width (default: 390)")
-    parser.add_argument("--height", type=positive_int, default=844, help="viewport height (default: 844)")
+    parser.add_argument("--width", type=positive_int, default=1440, help="viewport width (default: 1440)")
+    parser.add_argument("--height", type=positive_int, default=900, help="viewport height (default: 900)")
     parser.add_argument("--browser", type=Path, help="use an installed Chrome/Chromium executable")
     args = parser.parse_args()
     if args.output.suffix.lower() != ".png":

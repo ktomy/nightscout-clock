@@ -37,7 +37,7 @@ and saves a full-page PNG to `docs/images/web-ui.png`, the image used in the REA
 It uses factory defaults plus sample WiFi, Nightscout, and status data. No clock or
 running web server is needed, and rendering makes no external network requests.
 The current checkout's version is also used as the simulated latest version.
-The default viewport is 390 by 844 pixels, a phone screen.
+The default viewport is 1440 by 900 pixels, a desktop screen.
 
 Install the screenshot dependencies once (Python 3.9 or newer):
 
@@ -53,8 +53,8 @@ Then regenerate the screenshot after changing the UI:
 /tmp/nsclock-screenshot-venv/bin/python scripts/screenshot_web_ui.py
 ```
 
-Use `--output /tmp/web-ui.png` for a preview, or `--width 1440 --height 900` for a
-desktop viewport. The image always includes the full page. To use an existing
+Use `--output /tmp/web-ui.png` for a preview, or `--width 390 --height 844` for a
+phone viewport. The image always includes the full page. To use an existing
 Chrome/Chromium installation instead of downloading Chromium, pass
 `--browser /path/to/chrome`. Commit the regenerated README image with relevant UI changes.
 
