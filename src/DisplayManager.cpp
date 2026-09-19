@@ -230,7 +230,8 @@ void DisplayManager_::HSVtext(int16_t x, int16_t y, const char* text, bool clear
 
 void DisplayManager_::showFatalError(String errorMessage) {
     DEBUG_PRINTF("Fatal error: %s\n", errorMessage.c_str());
-    setTextColor(COLOR_GRAY);
+    setFont(FONT_TYPE::MEDIUM);
+    setTextColor(COLOR_WHITE);
 
     auto startMills = millis();
 
