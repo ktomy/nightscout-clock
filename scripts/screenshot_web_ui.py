@@ -30,8 +30,8 @@ def main():
         "--output", type=Path, default=ROOT / "docs/images/web-ui.png",
         help="PNG destination (default: docs/images/web-ui.png in the repository)",
     )
-    parser.add_argument("--width", type=positive_int, default=1440, help="viewport width (default: 1440)")
-    parser.add_argument("--height", type=positive_int, default=900, help="viewport height (default: 900)")
+    parser.add_argument("--width", type=positive_int, default=390, help="viewport width (default: 390)")
+    parser.add_argument("--height", type=positive_int, default=844, help="viewport height (default: 844)")
     parser.add_argument("--browser", type=Path, help="use an installed Chrome/Chromium executable")
     args = parser.parse_args()
     if args.output.suffix.lower() != ".png":
@@ -51,6 +51,7 @@ def main():
         "nightscout_url": "https://example.com",
         "units": "mgdl",
         "tz": "Europe/Amsterdam",
+        "tz_libc": "CET-1CEST,M3.5.0,M10.5.0/3",
     })
     version = (ROOT / "data/version.txt").read_text().strip()
     errors = []
@@ -75,10 +76,6 @@ def main():
                 "isInAPMode": False, "isConnected": True, "hasInternet": True,
                 "bgSourceStatus": "connected", "sgv": 110,
             })
-        elif path.startswith("/data_dev/"):
-            # The HTML includes local-development fallbacks as well as device assets.
-            # Use the device's compressed assets and avoid loading Bootstrap/jQuery twice.
-            route.fulfill(content_type="text/css" if path.endswith(".css") else "text/javascript", body="")
         else:
             asset = (ROOT / "data" / (path.lstrip("/") or "index.html")).resolve()
             if not asset.is_relative_to(ROOT / "data"):
@@ -112,11 +109,10 @@ def main():
             page = context.new_page()
             page.on("pageerror", lambda error: errors.append(str(error)))
             page.goto(ORIGIN, wait_until="load")
-            page.locator("#loading_block").wait_for(state="hidden")
-            page.locator("#main_block").wait_for(state="visible")
-            page.wait_for_function("document.querySelector('#status_wifi_badge').textContent === 'Connected'")
+            page.locator("body[data-state=ready]").wait_for(state="attached")
+            page.wait_for_function("document.querySelector('#pill_wifi b').textContent === 'Connected'")
             page.wait_for_function(
-                "document.querySelector('#update_status').textContent === 'You are using the latest version.'"
+                "document.querySelector('#fw_status').textContent === 'You are using the latest version.'"
             )
             page.evaluate("document.fonts.ready")
             if errors:
