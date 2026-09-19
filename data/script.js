@@ -19,7 +19,11 @@
         3: 'Big text',
         4: 'Value and delta',
         5: 'Current time and BG value',
-        6: 'Unicorn'
+        6: 'Diagnostics',
+        7: 'Battery and uptime',
+        8: 'Rainbow big text',
+        9: 'Smiley',
+        10: 'Unicorn'
     };
 
     if (window.location.href.indexOf("127.0.0.1") > 0) {

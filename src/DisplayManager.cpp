@@ -51,22 +51,22 @@ void setMatrixLayout(int layout) {
     delete matrix;  // Free memory from the current matrix object
     DEBUG_PRINTF("Set matrix layout to %i", layout);
     switch (layout) {
-        case 0: // Ulanzi
+        case 0:  // Ulanzi
             matrix = new FastLED_NeoMatrix(
                 leds, MATRIX_WIDTH, 8,
                 NEO_MATRIX_TOP + NEO_MATRIX_LEFT + NEO_MATRIX_ROWS + NEO_MATRIX_ZIGZAG);
             break;
-        case 1: // Custom board
+        case 1:  // Custom board
             matrix = new FastLED_NeoMatrix(
                 leds, 8, 8, 4, 1,
                 NEO_MATRIX_TOP + NEO_MATRIX_LEFT + NEO_MATRIX_ROWS + NEO_MATRIX_PROGRESSIVE);
             break;
-        case 2: // Custom board
+        case 2:  // Custom board
             matrix = new FastLED_NeoMatrix(
                 leds, MATRIX_WIDTH, 8,
                 NEO_MATRIX_TOP + NEO_MATRIX_LEFT + NEO_MATRIX_COLUMNS + NEO_MATRIX_ZIGZAG);
             break;
-        case 3: // Wokwi simulator layout
+        case 3:  // Wokwi simulator layout
             matrix = new FastLED_NeoMatrix(
                 leds, MATRIX_WIDTH, 8,
                 NEO_MATRIX_TOP + NEO_MATRIX_LEFT + NEO_MATRIX_ROWS + NEO_MATRIX_PROGRESSIVE);
@@ -184,7 +184,8 @@ void DisplayManager_::printText(
 }
 
 void DisplayManager_::drawBitmap(
-    int16_t x, int16_t y, const uint8_t bitmap[], int16_t w, int16_t h, uint16_t color, bool updateMatrix) {
+    int16_t x, int16_t y, const uint8_t bitmap[], int16_t w, int16_t h, uint16_t color,
+    bool updateMatrix) {
     matrix->setCursor(x, y);
     matrix->drawBitmap(x, y, bitmap, w, h, color);
     if (updateMatrix) {

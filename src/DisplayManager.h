@@ -20,10 +20,14 @@ public:
     void tick();
 
     void HSVtext(int16_t x, int16_t y, const char* text, bool clear, byte textCase);
-    void printText(int16_t x, int16_t y, const char* text, TEXT_ALIGNMENT alignment, byte textCase);
+    void printText(
+        int16_t x, int16_t y, const char* text, TEXT_ALIGNMENT alignment, byte textCase,
+        bool updateMatrix = true);
     void setTextColor(uint16_t color);
-    void clearMatrix();
-    void drawBitmap(int16_t x, int16_t y, const uint8_t bitmap[], int16_t w, int16_t h, uint16_t color);
+    void clearMatrix(bool updateMatrix = true);
+    void drawBitmap(
+        int16_t x, int16_t y, const uint8_t bitmap[], int16_t w, int16_t h, uint16_t color,
+        bool updateMatrix = true);
     // Like drawBitmap, but each pixel carries its own palette index instead of a single mask color.
     // sprite[] holds one index per pixel (0 = transparent, skip); palette[] holds the color for
     // index N at palette[N-1]. Arrays may be in RAM or memory-mapped PROGMEM on ESP32.

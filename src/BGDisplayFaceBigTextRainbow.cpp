@@ -38,7 +38,8 @@ uint8_t blueFromRgb565(uint16_t color) { return (color & 0x1F) * 255 / 31; }
 
 uint16_t blendRgb565(uint16_t baseColor, uint16_t overlayColor, uint8_t overlayAmount) {
     uint16_t baseAmount = 255 - overlayAmount;
-    uint8_t red = (redFromRgb565(baseColor) * baseAmount + redFromRgb565(overlayColor) * overlayAmount) / 255;
+    uint8_t red =
+        (redFromRgb565(baseColor) * baseAmount + redFromRgb565(overlayColor) * overlayAmount) / 255;
     uint8_t green =
         (greenFromRgb565(baseColor) * baseAmount + greenFromRgb565(overlayColor) * overlayAmount) / 255;
     uint8_t blue =
@@ -66,7 +67,7 @@ unsigned long BGDisplayFaceBigTextRainbow::getFrequentRefreshIntervalMs() const 
 void BGDisplayFaceBigTextRainbow::showAnimatedReading(
     const GlucoseReading& reading, bool dataIsOld) const {
     String readingToDisplay = getPrintableReading(reading.sgv);
-    uint16_t baseColor = dataIsOld ? BG_COLOR_OLD : getDisplayColorByBGValue(reading);
+    uint16_t baseColor = dataIsOld ? getDataOldColor() : getDisplayColorByBGValue(reading);
     uint8_t hueOffset = (millis() / 20) % 255;
     uint8_t textLength = readingToDisplay.length();
     int16_t x = 0;
@@ -76,7 +77,8 @@ void BGDisplayFaceBigTextRainbow::showAnimatedReading(
     for (uint8_t i = 0; i < textLength; i++) {
         char text[2] = {readingToDisplay[i], '\0'};
         uint8_t hue = map(i, 0, max((int)textLength, 1), 0, 255) + hueOffset;
-        uint16_t color = dataIsOld ? baseColor : blendRgb565(baseColor, hsvToRgb565(hue), RAINBOW_BLEND_AMOUNT);
+        uint16_t color =
+            dataIsOld ? baseColor : blendRgb565(baseColor, hsvToRgb565(hue), RAINBOW_BLEND_AMOUNT);
 
         DisplayManager.setTextColor(color);
         DisplayManager.printText(x, 7, text, TEXT_ALIGNMENT::LEFT, 2, false);

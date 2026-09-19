@@ -8,11 +8,15 @@
 #include <vector>
 
 #include "BGDisplayFace.h"
+#include "BGDisplayFaceBatteryUptime.h"
 #include "BGDisplayFaceBigText.h"
+#include "BGDisplayFaceBigTextRainbow.h"
 #include "BGDisplayFaceClock.h"
+#include "BGDisplayFaceDiagnostics.h"
 #include "BGDisplayFaceGraph.h"
 #include "BGDisplayFaceGraphAndBG.h"
 #include "BGDisplayFaceSimple.h"
+#include "BGDisplayFaceSmiley.h"
 #include "BGDisplayFaceUnicorn.h"
 #include "BGDisplayFaceValueAndDiff.h"
 #include "BGSource.h"

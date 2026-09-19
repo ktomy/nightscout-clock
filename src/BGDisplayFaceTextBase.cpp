@@ -100,13 +100,16 @@ const std::map<BG_TREND, const uint8_t*> glucoseTrendSymbols = {
 };
 
 void BGDisplayFaceTextBase::showTrendArrow(
-    const GlucoseReading reading, int16_t x, int16_t y, bool dataIsOld) const {
+    const GlucoseReading reading, int16_t x, int16_t y, bool dataIsOld, bool colorByReading,
+    bool updateMatrix) const {
     uint16_t color = COLOR_WHITE;
     if (dataIsOld) {
         color = getDataOldColor();
+    } else if (colorByReading) {
+        color = getDisplayColorByBGValue(reading);
     }
 
-    DisplayManager.drawBitmap(x, y, glucoseTrendSymbols.at(reading.trend), 5, 5, color);
+    DisplayManager.drawBitmap(x, y, glucoseTrendSymbols.at(reading.trend), 5, 5, color, updateMatrix);
 }
 
 #pragma endregion Show arrow

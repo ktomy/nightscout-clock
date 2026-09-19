@@ -39,9 +39,10 @@ void BGDisplayFaceDiagnostics::showNoData() const {
     DisplayManager.clearMatrix(false);
 
     DisplayManager.setTextColor(COLOR_CYAN);
-    DisplayManager.printText(scrollX, CONTENT_BASELINE_Y, dateTimeText.c_str(), TEXT_ALIGNMENT::LEFT, 2, false);
+    DisplayManager.printText(
+        scrollX, CONTENT_BASELINE_Y, dateTimeText.c_str(), TEXT_ALIGNMENT::LEFT, 2, false);
 
-    DisplayManager.setTextColor(BG_COLOR_OLD);
+    DisplayManager.setTextColor(getDataOldColor());
     DisplayManager.printText(
         scrollX + dateTimeWidth + STATUS_ITEM_SPACING, CONTENT_BASELINE_Y, noDataText.c_str(),
         TEXT_ALIGNMENT::LEFT, 2, false);
@@ -82,7 +83,8 @@ void BGDisplayFaceDiagnostics::showDateTimePage(
     DisplayManager.clearMatrix(false);
 
     DisplayManager.setTextColor(COLOR_CYAN);
-    DisplayManager.printText(scrollX, CONTENT_BASELINE_Y, dateTimeText.c_str(), TEXT_ALIGNMENT::LEFT, 2, false);
+    DisplayManager.printText(
+        scrollX, CONTENT_BASELINE_Y, dateTimeText.c_str(), TEXT_ALIGNMENT::LEFT, 2, false);
 
     showReading(
         lastReading, scrollX + readingX, CONTENT_BASELINE_Y, TEXT_ALIGNMENT::LEFT, FONT_TYPE::MEDIUM,
@@ -102,10 +104,9 @@ int BGDisplayFaceDiagnostics::getScrollX(int contentWidth) const {
     }
 
     float travel = contentWidth + MATRIX_WIDTH + DATETIME_SCROLL_LEFT_PADDING;
-    float position = MATRIX_WIDTH - fmodf(
-                                        (millis() / (float)DATETIME_SCROLL_FRAME_MS) *
-                                            DATETIME_SCROLL_STEP_PIXELS,
-                                        travel);
+    float position =
+        MATRIX_WIDTH -
+        fmodf((millis() / (float)DATETIME_SCROLL_FRAME_MS) * DATETIME_SCROLL_STEP_PIXELS, travel);
 
     return (int)position;
 }
@@ -129,8 +130,8 @@ const String& BGDisplayFaceDiagnostics::formatDateTime() const {
             char dateTimeBuffer[20];
             snprintf(
                 dateTimeBuffer, sizeof(dateTimeBuffer), "%s %02d/%02d %02d:%02d",
-                WEEKDAY_NAMES[timeinfo.tm_wday], timeinfo.tm_mday, timeinfo.tm_mon + 1,
-                timeinfo.tm_hour, timeinfo.tm_min);
+                WEEKDAY_NAMES[timeinfo.tm_wday], timeinfo.tm_mday, timeinfo.tm_mon + 1, timeinfo.tm_hour,
+                timeinfo.tm_min);
             cachedDateTime = String(dateTimeBuffer);
         }
     }
