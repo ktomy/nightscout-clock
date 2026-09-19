@@ -50,22 +50,22 @@ void setMatrixLayout(int layout) {
     delete matrix;  // Free memory from the current matrix object
     DEBUG_PRINTF("Set matrix layout to %i", layout);
     switch (layout) {
-        case 0: // Ulanzi
+        case 0:  // Ulanzi
             matrix = new FastLED_NeoMatrix(
                 leds, MATRIX_WIDTH, 8,
                 NEO_MATRIX_TOP + NEO_MATRIX_LEFT + NEO_MATRIX_ROWS + NEO_MATRIX_ZIGZAG);
             break;
-        case 1: // Custom board
+        case 1:  // Custom board
             matrix = new FastLED_NeoMatrix(
                 leds, 8, 8, 4, 1,
                 NEO_MATRIX_TOP + NEO_MATRIX_LEFT + NEO_MATRIX_ROWS + NEO_MATRIX_PROGRESSIVE);
             break;
-        case 2: // Custom board
+        case 2:  // Custom board
             matrix = new FastLED_NeoMatrix(
                 leds, MATRIX_WIDTH, 8,
                 NEO_MATRIX_TOP + NEO_MATRIX_LEFT + NEO_MATRIX_COLUMNS + NEO_MATRIX_ZIGZAG);
             break;
-        case 3: // Wokwi simulator layout
+        case 3:  // Wokwi simulator layout
             matrix = new FastLED_NeoMatrix(
                 leds, MATRIX_WIDTH, 8,
                 NEO_MATRIX_TOP + NEO_MATRIX_LEFT + NEO_MATRIX_ROWS + NEO_MATRIX_PROGRESSIVE);
@@ -109,7 +109,64 @@ void DisplayManager_::applySettings() {
     DisplayManager.setBrightness(displayBrightness);
 }
 
-void DisplayManager_::tick() {}
+int DisplayManager_::getBrightnessPercent() const {
+    if (SettingsManager.settings.brightness_mode == BRIGHTNES_MODE::MANUAL) {
+        if (SettingsManager.settings.brightness_level <= 1) {
+            return 5;
+        }
+        return constrain(SettingsManager.settings.brightness_level * 10, 5, 100);
+    }
+
+    if (MAX_BRIGHTNESS <= MIN_BRIGHTNESS) {
+        return 5;
+    }
+
+    const int percent =
+        lroundf((currentBrightness - MIN_BRIGHTNESS) * 100.0f / (MAX_BRIGHTNESS - MIN_BRIGHTNESS));
+    return constrain(percent, 5, 100);
+}
+
+void DisplayManager_::showBrightnessOverlay() {
+    const unsigned long elapsed = millis() - brightnessOverlayStarted;
+    if (elapsed >= 2500) {
+        brightnessOverlayActive = false;
+        clearMatrix();
+        return;
+    }
+
+    uint8_t intensity = 255;
+    if (elapsed > 2000) {
+        intensity = static_cast<uint8_t>(255 - ((elapsed - 2000) * 255 / 500));
+    }
+
+    const uint16_t color = ((intensity >> 3) << 11) | ((intensity >> 2) << 5) | (intensity >> 3);
+    const uint8_t brightnessIcon[7][7] = {
+        {0, 0, 0, 1, 0, 0, 0}, {0, 1, 0, 1, 0, 1, 0}, {0, 0, 1, 1, 1, 0, 0}, {1, 1, 1, 1, 1, 1, 1},
+        {0, 0, 1, 1, 1, 0, 0}, {0, 1, 0, 1, 0, 1, 0}, {0, 0, 0, 1, 0, 0, 0},
+    };
+
+    clearMatrix();
+    for (uint8_t row = 0; row < 7; row++) {
+        for (uint8_t column = 0; column < 7; column++) {
+            if (brightnessIcon[row][column] != 0) {
+                drawPixel(1 + column, row, color);
+            }
+        }
+    }
+
+    setTextColor(color);
+    const String value = brightnessOverlayShowsAuto ? "AUTO" : String(brightnessOverlayPercent) + "%";
+    printText(10, 6, value.c_str(), TEXT_ALIGNMENT::LEFT, 0);
+    update();
+}
+
+void DisplayManager_::tick() {
+    if (brightnessOverlayActive) {
+        showBrightnessOverlay();
+    }
+}
+
+bool DisplayManager_::isBrightnessOverlayActive() const { return brightnessOverlayActive; }
 
 uint32_t hsvToRgb(uint8_t h, uint8_t s, uint8_t v) {
     CHSV hsv(h, s, v);
@@ -135,9 +192,7 @@ float DisplayManager_::getTextWidth(const char* text, byte textCase) {
 }
 void DisplayManager_::setTextColor(uint16_t color) { matrix->setTextColor(color); }
 
-void DisplayManager_::clearMatrix() {
-    matrix->clear();
-}
+void DisplayManager_::clearMatrix() { matrix->clear(); }
 
 // DisplayManager_::printText(int16_t x, int16_t y, const char *text, TEXT_ALIGNMENT alignment, byte
 // textCase) {
@@ -317,8 +372,58 @@ void DisplayManager_::rightButtonLong() {
     }
 }
 
-void DisplayManager_::selectButton() {}
-void DisplayManager_::selectButtonLong() {}
+void DisplayManager_::selectButton() {
+    const int currentPercent = getBrightnessPercent();
+    int nextPercent;
+
+    if (currentPercent < 20) {
+        nextPercent = 20;
+    } else if (currentPercent < 40) {
+        nextPercent = 40;
+    } else if (currentPercent < 60) {
+        nextPercent = 60;
+    } else if (currentPercent < 80) {
+        nextPercent = 80;
+    } else if (currentPercent < 100) {
+        nextPercent = 100;
+    } else {
+        nextPercent = 5;
+    }
+
+    if (SettingsManager.settings.brightness_mode != BRIGHTNES_MODE::MANUAL) {
+        previousAutomaticBrightnessMode = SettingsManager.settings.brightness_mode;
+        previousAutomaticBrightnessModeSaved = true;
+    }
+
+    SettingsManager.settings.brightness_mode = BRIGHTNES_MODE::MANUAL;
+    SettingsManager.settings.brightness_level = constrain(lroundf(nextPercent / 10.0f), 1, 10);
+    SettingsManager.saveSettingsToFile();
+    applySettings();
+
+    brightnessOverlayShowsAuto = false;
+    brightnessOverlayPercent = nextPercent;
+    brightnessOverlayStarted = millis();
+    brightnessOverlayActive = true;
+    showBrightnessOverlay();
+}
+
+void DisplayManager_::selectButtonLong() {
+    if (SettingsManager.settings.brightness_mode != BRIGHTNES_MODE::MANUAL) {
+        return;
+    }
+
+    SettingsManager.settings.brightness_mode = previousAutomaticBrightnessModeSaved
+                                                   ? previousAutomaticBrightnessMode
+                                                   : BRIGHTNES_MODE::AUTO_LINEAR;
+    SettingsManager.saveSettingsToFile();
+    applySettings();
+    previousAutomaticBrightnessModeSaved = false;
+
+    brightnessOverlayShowsAuto = true;
+    brightnessOverlayStarted = millis();
+    brightnessOverlayActive = true;
+    showBrightnessOverlay();
+}
 
 void DisplayManager_::update() { matrix->show(); }
 

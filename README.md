@@ -3,6 +3,7 @@
 ![Nightscout clock logo](https://github.com/ktomy/nightscout-clock/assets/1446257/1198c06d-b017-409d-aca3-2bca63581ecb)
 
 > [!IMPORTANT]
+>
 > ## This project is looking for a new maintainer or co-maintainer
 >
 > Over the past few months, I have not been able to spend as much time as this project deserves on support, maintenance, and development.
@@ -120,6 +121,12 @@ High, low, and urgent-low alarms each have their own threshold, snooze duration,
 - Brightness adjustment
   - Brightness can be adjusted within the Web UI
   - Automatic brightness adjustment based on the ambient light
+  - A single press of the middle button cycles the brightness through 5%, 20%, 40%, 60%, 80%, and 100%, then wraps back to 5%
+  - The selected value is saved as the new manual brightness setting and remains active after a restart
+  - If automatic brightness was active, the first press selects the next brightness step based on the current level and switches to manual mode
+  - A long press restores the automatic brightness mode that was active before manual adjustment and shows the brightness icon with `AUTO`; if no previous mode is available after a restart, it restores the default balanced automatic mode
+  - A compact brightness icon and the new percentage are shown for 2 seconds, followed by a 0.5-second fade back to the selected clock face
+  - While the brightness indicator is shown, automatic clock-face rotation and normal face redraws are paused; the rotation timer restarts when the indicator disappears
   - Double-click on the middle button on the clock turns the display on and off
 - Multiple clock faces support
   - Default clock face can be selected in the Web UI
@@ -156,6 +163,7 @@ High, low, and urgent-low alarms each have their own threshold, snooze duration,
 
 ### 0.31
 
+- Added middle-button brightness control with persistent 5%, 20%, 40%, 60%, 80%, and 100% manual brightness steps, long-press restoration of the previous automatic mode with `AUTO` feedback, a compact on-screen indicator, and automatic face-rotation pausing while the value is displayed
 - Added the Unicorn clock face, showing glucose beside a unicorn whose mane changes color with glucose limits, thanks [@JuanMiste](https://github.com/JuanMiste) ([#181](https://github.com/ktomy/nightscout-clock/pull/181))
 - Added configurable colors for old readings and no-data screens, with gray, cyan, magenta, and blue options, thanks [@nishanm](https://github.com/nishanm) ([#177](https://github.com/ktomy/nightscout-clock/pull/177))
 - Replaced fixed alarm silence intervals with per-alarm alert windows supporting weekday selection, multiple windows, and overnight schedules, thanks [@nishanm](https://github.com/nishanm) ([#183](https://github.com/ktomy/nightscout-clock/pull/183))

@@ -86,6 +86,7 @@ private:
     bool faceScheduleActive = false;
     int appliedScheduleEntry = -1;
     int lastScheduleMinuteOfDay = -1;
+    bool brightnessOverlayWasActive = false;
 
     void configureActiveFaces();
     void updateFaceCycle();
