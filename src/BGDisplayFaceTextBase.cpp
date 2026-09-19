@@ -57,34 +57,70 @@ String BGDisplayFaceTextBase::getPrintableReading(const int sgv) const {
 
 // Glucose trends
 const uint8_t symbol_doubleUp[] PROGMEM = {
-    0x50, 0xF8, 0x50, 0x50, 0x50,
+    0b01010000,
+    0b11111000,
+    0b01010000,
+    0b01010000,
+    0b01010000,
 };
 const uint8_t symbol_singleUp[] PROGMEM = {
-    0x20, 0x70, 0xA8, 0x20, 0x20,
+    0b00100000,
+    0b01110000,
+    0b10101000,
+    0b00100000,
+    0b00100000,
 };
 const uint8_t symbol_fortyFiveUp[] PROGMEM = {
-    0x38, 0x18, 0x28, 0x40, 0x80,
+    0b00111000,
+    0b00011000,
+    0b00101000,
+    0b01000000,
+    0b10000000,
 };
 const uint8_t symbol_flat[] PROGMEM = {
-    0x20, 0x10, 0xF8, 0x10, 0x20,
+    0b00100000,
+    0b00010000,
+    0b11111000,
+    0b00010000,
+    0b00100000,
 };
 const uint8_t symbol_fortyFiveDown[] PROGMEM = {
-    0x80, 0x40, 0x28, 0x18, 0x38,
+    0b10000000,
+    0b01000000,
+    0b00101000,
+    0b00011000,
+    0b00111000,
 };
 const uint8_t symbol_singleDown[] PROGMEM = {
-    0x20, 0x20, 0xA8, 0x70, 0x20,
+    0b00100000,
+    0b00100000,
+    0b10101000,
+    0b01110000,
+    0b00100000,
 };
 const uint8_t symbol_doubleDown[] PROGMEM = {
-    0x50, 0x50, 0x50, 0xF8, 0x50,
+    0b01010000,
+    0b01010000,
+    0b01010000,
+    0b11111000,
+    0b01010000,
 };
 
 const uint8_t symbol_empty[] PROGMEM = {
-    0x00, 0x00, 0x00, 0x00, 0x00,
+    0b00000000,
+    0b00000000,
+    0b00000000,
+    0b00000000,
+    0b00000000,
 };
 
 // Drawn in the arrow's place once the reading is too old: the clock has no current trend to show.
 const uint8_t symbol_dataOld[] PROGMEM = {
-    0x88, 0x50, 0x20, 0x50, 0x88,
+    0b10001000,
+    0b01010000,
+    0b00100000,
+    0b01010000,
+    0b10001000,
 };
 
 const std::map<BG_TREND, const uint8_t*> glucoseTrendSymbols = {
