@@ -60,7 +60,7 @@ const uint8_t features_neutral[] PROGMEM = {
 // Fade an RGB565 color toward black by scaling each channel by FACE_DIM_NUM /
 // FACE_DIM_DEN. Used to draw the round face background slightly dimmed so it
 // reads as a soft badge behind the crisp cutout features and the reading.
-constexpr uint16_t FACE_DIM_NUM = 3;
+constexpr uint16_t FACE_DIM_NUM = 4;
 constexpr uint16_t FACE_DIM_DEN = 5;
 uint16_t fadeColor(uint16_t color) {
     uint16_t r = (color >> 11) & 0x1F;
