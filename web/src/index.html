@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<title>Nightscout clock</title>
+<style>/*__CSS__*/</style>
+</head>
+<body data-state="loading">
+
+<header class="top">
+  <div class="top-inner">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true">NS</div>
+      <div>
+        <h1>Nightscout clock</h1>
+        <div class="brand-sub" id="clock_sub">connecting…</div>
+      </div>
+    </div>
+    <div class="pills" aria-live="polite">
+      <span class="pill" id="pill_wifi"><i class="dot"></i>WiFi <b>…</b></span>
+      <span class="pill" id="pill_internet"><i class="dot"></i>Internet <b>…</b></span>
+      <span class="pill" id="pill_source"><i class="dot"></i>Source <b>…</b></span>
+      <span class="pill" id="pill_reading"><i class="dot"></i>Reading <b>…</b></span>
+    </div>
+    <button class="btn sm" id="lock_btn" type="button" data-icon="lock" hidden>Lock</button>
+  </div>
+  <nav class="tabs" role="tablist" aria-label="Settings">
+    <button class="tab" role="tab" type="button" data-tab="display" aria-selected="true">Display</button>
+    <button class="tab" role="tab" type="button" data-tab="glucose" aria-selected="false">Glucose</button>
+    <button class="tab" role="tab" type="button" data-tab="alarms" aria-selected="false">Alarms</button>
+    <button class="tab" role="tab" type="button" data-tab="system" aria-selected="false">WiFi &amp; system</button>
+  </nav>
+</header>
+
+<div class="wrap" id="loading_screen">
+  <div class="card center">
+    <div class="spinner"></div>
+    <p class="muted" id="loading_text">Loading settings from the clock…</p>
+    <button class="btn" id="loading_retry" type="button" hidden>Try again</button>
+  </div>
+</div>
+
+<div class="wrap" id="lock_screen" hidden>
+  <form class="card lock" id="lock_form">
+    <h2>Settings are locked</h2>
+    <p class="muted" id="lock_message"></p>
+    <div class="field">
+      <label for="lock_password">Web password</label>
+      <input id="lock_password" type="password" autocomplete="current-password">
+    </div>
+    <button class="btn primary" id="lock_submit" type="submit">Unlock settings</button>
+  </form>
+</div>
+
+<main class="wrap" id="app" hidden>
+  <section id="tab_display" role="tabpanel" aria-label="Display"></section>
+  <section id="tab_glucose" role="tabpanel" aria-label="Glucose" hidden></section>
+  <section id="tab_alarms" role="tabpanel" aria-label="Alarms" hidden></section>
+  <section id="tab_system" role="tabpanel" aria-label="WiFi and system" hidden></section>
+</main>
+
+<div class="savebar" id="savebar" hidden>
+  <span class="small" id="dirty_text">No unsaved changes</span>
+  <button class="btn ghost" id="discard" type="button" hidden>Discard</button>
+  <button class="btn primary" id="save" type="button" data-icon="save">Save and restart</button>
+</div>
+
+<div class="bottom">
+  <nav role="tablist" aria-label="Settings">
+    <button type="button" data-tab="display" data-icon="grid" aria-selected="true">Display</button>
+    <button type="button" data-tab="glucose" data-icon="drop" aria-selected="false">Glucose</button>
+    <button type="button" data-tab="alarms" data-icon="bell" aria-selected="false">Alarms</button>
+    <button type="button" data-tab="system" data-icon="chip" aria-selected="false">System</button>
+  </nav>
+</div>
+
+<div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+<div id="overlay" class="overlay" hidden>
+  <div class="card center" role="alertdialog" aria-live="assertive">
+    <div class="spinner"></div>
+    <h2 id="overlay_title">Saving</h2>
+    <p class="muted" id="overlay_text"></p>
+  </div>
+</div>
+
+<script>/*__JS__*/</script>
+</body>
+</html>

@@ -18,7 +18,7 @@ When adding firmware behavior, prefer extending the existing module family inste
 
 `lib/` contains third-party libraries vendored into the repository, including `LightResistor/`, `Hashing/`, `MelodyPlayer/`, `Fonts/`, and `Improv/`. Prefer keeping application-specific code in `src/`; only add to `lib/` when importing or maintaining an external library.
 
-`data/` contains the on-device configuration UI and the runtime web assets packed into the LittleFS image served by the clock. `data_dev/` supports local web UI development when using the IDE's local web server; pages in `data/` may reference assets from both `data/` and `data_dev/` during that workflow.
+`data/` contains the runtime web assets packed into the LittleFS image served by the clock. The configuration UI source is in `web/src/`, with the original icon and timezone JSON in `web/src/assets/`. PlatformIO runs `node web/build.mjs` before filesystem builds to generate `data/index.html.gz`, `data/favicon.ico.gz`, and `data/tzdata.json.gz`. These outputs are ignored by Git; commit their sources instead. Node.js must match the version in `.node-version`; no npm packages are required.
 
 `www/` is the GitHub Pages site, including the browser installer and debug pages; it is not part of the firmware filesystem image. `scripts/` contains contributor tooling for local build, upload, monitoring, release, and emulator/test-data tasks. Core firmware build configuration lives in `platformio.ini` and `partitions.csv`; `wokwi.toml` is only for experimental emulator setup and is not part of the regular test workflow.
 
@@ -63,7 +63,7 @@ Use the repository's current naming patterns instead of introducing a new scheme
 - Settings fields use `snake_case`; keep new persisted configuration names aligned with the existing JSON and settings model.
 - Global/shared items are kept explicit in files like `globals.*` and `enums.h`; avoid adding new cross-cutting globals unless there is no cleaner boundary.
 
-For the web UI, keep JavaScript style consistent with the existing files in `data/` and `data_dev/`: semicolon-light, mostly `const`/`let`, early returns for small guards, and descriptive handler names such as `toggleWebAuthSettings`. Reuse the existing HTML/JS structure instead of introducing new frontend tooling or frameworks.
+For the web UI, keep JavaScript style consistent with the existing files in `web/src/js/`: semicolon-light, mostly `const`/`let`, early returns for small guards, and descriptive function names such as `loadSettings`. Reuse the existing HTML/JS structure instead of introducing new frontend tooling, frameworks or libraries; the page must work on a phone connected to the clock's setup network, with no internet.
 
 ## Compatibility and Validation Scope
 
@@ -93,4 +93,4 @@ Before opening a pull request, start a discussion or issue for non-trivial chang
 
 The upload, reset, and monitor scripts resolve the same `upload_port` through `scripts/get_port.sh`. If flashing or monitoring fails on a different machine or after reconnecting the clock, update `upload_port` in `platformio.local.ini` before troubleshooting deeper firmware issues.
 
-Treat `data/` as the runtime web UI payload and `data_dev/` as the local development source. If you change the device-served UI, verify both the browser behavior and the rebuilt filesystem image on hardware.
+Treat `web/src/` as the web UI source and `data/` as the runtime payload built from it. If you change the device-served UI, verify both the browser behavior and the rebuilt filesystem image on hardware.

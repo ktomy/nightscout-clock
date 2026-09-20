@@ -6,6 +6,7 @@ import gzip
 import json
 import mimetypes
 from pathlib import Path
+import subprocess
 import sys
 from urllib.parse import unquote, urlsplit
 
@@ -43,6 +44,13 @@ def main():
         parser.exit(1, "Install dependencies: python -m pip install playwright\n"
                     "Then install Chromium: python -m playwright install chromium\n")
 
+    try:
+        subprocess.run(["node", str(ROOT / "web/build.mjs")], cwd=ROOT, check=True)
+    except FileNotFoundError:
+        parser.exit(1, "Install Node.js using the version in .node-version.\n")
+    except subprocess.CalledProcessError:
+        parser.exit(1, "Web asset generation failed; screenshot cancelled.\n")
+
     # Always start from factory defaults, never a developer's private config.json.
     config = json.loads((ROOT / "data/config_initial.json").read_text())
     config.update({
@@ -51,6 +59,7 @@ def main():
         "nightscout_url": "https://example.com",
         "units": "mgdl",
         "tz": "Europe/Amsterdam",
+        "tz_libc": "CET-1CEST,M3.5.0,M10.5.0/3",
     })
     version = (ROOT / "data/version.txt").read_text().strip()
     errors = []
@@ -75,10 +84,6 @@ def main():
                 "isInAPMode": False, "isConnected": True, "hasInternet": True,
                 "bgSourceStatus": "connected", "sgv": 110,
             })
-        elif path.startswith("/data_dev/"):
-            # The HTML includes local-development fallbacks as well as device assets.
-            # Use the device's compressed assets and avoid loading Bootstrap/jQuery twice.
-            route.fulfill(content_type="text/css" if path.endswith(".css") else "text/javascript", body="")
         else:
             asset = (ROOT / "data" / (path.lstrip("/") or "index.html")).resolve()
             if not asset.is_relative_to(ROOT / "data"):
@@ -112,11 +117,10 @@ def main():
             page = context.new_page()
             page.on("pageerror", lambda error: errors.append(str(error)))
             page.goto(ORIGIN, wait_until="load")
-            page.locator("#loading_block").wait_for(state="hidden")
-            page.locator("#main_block").wait_for(state="visible")
-            page.wait_for_function("document.querySelector('#status_wifi_badge').textContent === 'Connected'")
+            page.locator("body[data-state=ready]").wait_for(state="attached")
+            page.wait_for_function("document.querySelector('#pill_wifi b').textContent === 'Connected'")
             page.wait_for_function(
-                "document.querySelector('#update_status').textContent === 'You are using the latest version.'"
+                "document.querySelector('#fw_status').textContent === 'You are using the latest version.'"
             )
             page.evaluate("document.fonts.ready")
             if errors:

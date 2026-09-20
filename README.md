@@ -75,7 +75,7 @@ Nightscout Clock is a custom firmware for Ulanzi TC001. It can also run (with mi
 
 #### Automatic clock-face cycling
 
-Automatic cycling can be enabled under Device settings in the Web UI. Select at least two clock faces and choose how often the face should change: 10 or 30 seconds, or 1, 2, 3, or 5 minutes. Faces cycle in the order shown in the Web UI.
+Automatic cycling can be enabled on the Display tab of the Web UI. Select at least two clock faces and choose how often the face should change: 10 or 30 seconds, or 1, 2, 3, or 5 minutes. Faces cycle in the order shown in the Web UI.
 
 While cycling is enabled, the left and right buttons move only between the selected faces and restart the interval without stopping automatic cycling. The default-face setting is disabled until automatic cycling is turned off again.
 
@@ -129,7 +129,7 @@ High, low, and urgent-low alarms each have their own threshold, snooze duration,
   - Value, trend and delta
   - Clock and BG value (timezone is set in the clock's web interface)
   - Unicorn and glucose value, with mane colors based on glucose limits
-- Configurable color for old readings and no-data screens: gray (default), cyan, magenta, or blue. Choose it under Device settings in the Web UI; the alternatives help keep stale readings visible at low brightness
+- Configurable color for old readings and no-data screens: gray (default), cyan, magenta, or blue. Choose it on the Display tab of the Web UI; the alternatives help keep stale readings visible at low brightness
 - Smart data and screen update timings: read data once it appears, refresh screen when needed
 - API data source. The clock has a simple Nightscout-like API which can receive glucose values from an external source. The main purpose of this feature is the ability to test the clock during the clockfaces development. In order to activate this feature, select the API data source within the clock's Web UI. Here are the endpoints:
   - /api/v1/entries POST endpoint receives an array of Nightscout-like entries. The only significant fields are `sgv`, `date` and `trend` or `direction`. Due to the limited memory the API is stable when sent less than 10 recotds
