@@ -91,6 +91,8 @@ Under Device settings the clock can change its face and brightness on a schedule
 
 <img alt="Nightscout Clock configuration web interface" src="docs/images/web-ui.png" />
 
+The Backup and restore card on the System tab downloads the clock's settings as a file and loads such a file back into the page, where you review it and save; WiFi settings are loaded only when you ask, and the web login never is. The file contains your WiFi and data source passwords, so keep it private.
+
 ### Alarm settings
 
 High, low, and urgent-low alarms each have their own threshold, snooze duration, sound, and optional alert windows in the Web UI.

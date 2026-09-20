@@ -824,7 +824,7 @@ function alertWindows(a) {
  * @returns {HTMLElement}
  */
 function systemTab() {
-    return el("div.stack", wifiCard(), extraWifiCard(), hostnameCard(), loginCard(), versionCard())
+    return el("div.stack", wifiCard(), extraWifiCard(), hostnameCard(), loginCard(), backupCard(), versionCard())
 }
 
 /**
@@ -902,6 +902,55 @@ function loginCard() {
             : el("span", { hidden: true }))), { id: "card_login" })
 }
 
+function backupCard() {
+    const input = el("input", { type: "file", accept: ".json,application/json", hidden: true })
+    input.addEventListener("change", () => loadSettingsFile(input))
+    const network = el("input", { type: "checkbox", id: "f_file_network" })
+    // A clock without WiFi settings is most likely being restored.
+    network.checked = ui.fileNetwork != null ? ui.fileNetwork : !String(form.saved.ssid || "").trim()
+    network.addEventListener("change", () => { ui.fileNetwork = network.checked })
+    return card("Backup and restore", "Download the clock's settings, or load a file into this page to review and save. The file contains your WiFi and data source passwords, so keep it private.", el("div.stack",
+        el("div.row",
+            el("button.btn", { type: "button", onclick: downloadSettings }, icon("download"), "Download settings"),
+            el("button.btn", { type: "button", onclick: () => input.click() }, icon("upload"), "Load a settings file"), input),
+        el("label.check", network, "Also load the WiFi settings"),
+        ui.fileReport), { id: "card_backup" })
+}
+
+async function downloadSettings() {
+    const r = await api.loadConfig().catch(e => ({ ok: false, error: e }))
+    if (r.status === 401) return
+    if (!r.ok) return toast(r.error ? r.error.message : `The clock answered ${r.status}.`, "bad")
+    const url = URL.createObjectURL(new Blob([JSON.stringify(r.data, null, 2)], { type: "application/json" }))
+    const link = el("a", { href: url, download: "nightscout-clock-settings.json", hidden: true })
+    document.body.append(link)
+    link.click()
+    link.remove()
+    setTimeout(() => URL.revokeObjectURL(url), 10000)
+}
+
+// Fills the form from a file; nothing reaches the clock until Save.
+async function loadSettingsFile(input) {
+    const file = input.files[0]
+    input.value = ""
+    if (!file) return
+    let data = null
+    try { if (file.size < 64000) data = JSON.parse(await file.text()) } catch (e) { /* reported below */ }
+    if (!data || typeof data !== "object" || Array.isArray(data)) {
+        ui.fileReport = el("div.notice.bad", `${file.name} is not a clock settings file. Nothing was changed.`)
+        return rerenderTab("system")
+    }
+    const network = $("#f_file_network").checked
+    const { config, kept } = mergeSettingsFile(data, form.saved, { network, tzNames: ui.timezoneNames })
+    const zone = (ui.timezones || []).find(z => z.name === config.tz)
+    if (zone) config.tz_libc = zone.value
+    form.edit(config)
+    ui.fileReport = el(`div.notice.${kept.length ? "warn" : "ok"}`, `Loaded ${file.name}. `,
+        kept.length ? `These settings kept the clock's value: ${kept.join(", ")}. ` : "",
+        "Review the settings, then save.")
+    renderAll()
+}
+
 /**
  * Build current/latest firmware labels and update information from the shared version state.
  * @returns {HTMLElement}
@@ -928,7 +977,7 @@ function versionStatusNodes() {
 
 // ---------- tabs ----------
 const TABS = { display: displayTab, glucose: glucoseTab, alarms: alarmsTab, system: systemTab }
-const ui = { tab: "display", timezones: null, timezoneNames: null, status: null, patients: null, patientsLoading: false, versions: {} }
+const ui = { tab: "display", timezones: null, timezoneNames: null, status: null, patients: null, patientsLoading: false, versions: {}, fileNetwork: null, fileReport: null }
 
 /**
  * Replace one tab's contents using its builder and reapply visible validation errors.
