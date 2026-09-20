@@ -18,7 +18,7 @@ When adding firmware behavior, prefer extending the existing module family inste
 
 `lib/` contains third-party libraries vendored into the repository, including `LightResistor/`, `Hashing/`, `MelodyPlayer/`, `Fonts/`, and `Improv/`. Prefer keeping application-specific code in `src/`; only add to `lib/` when importing or maintaining an external library.
 
-`data/` contains the runtime web assets packed into the LittleFS image served by the clock. The configuration UI source is in `web/src/`; `node web/build.mjs` inlines its HTML, CSS and JavaScript into `data/index.html.gz`, which is committed with every change to `web/src/`.
+`data/` contains the runtime web assets packed into the LittleFS image served by the clock. The configuration UI source is in `web/src/`, with the original icon and timezone JSON in `web/src/assets/`. PlatformIO runs `node web/build.mjs` before filesystem builds to generate `data/index.html.gz`, `data/favicon.ico.gz`, and `data/tzdata.json.gz`. These outputs are ignored by Git; commit their sources instead. Node.js must match the version in `.node-version`; no npm packages are required.
 
 `www/` is the GitHub Pages site, including the browser installer and debug pages; it is not part of the firmware filesystem image. `scripts/` contains contributor tooling for local build, upload, monitoring, release, and emulator/test-data tasks. Core firmware build configuration lives in `platformio.ini` and `partitions.csv`; `wokwi.toml` is only for experimental emulator setup and is not part of the regular test workflow.
 

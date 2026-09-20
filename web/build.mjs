@@ -1,4 +1,4 @@
-// Builds the settings page into data/index.html.gz for the clock's LittleFS.
+// Builds the settings page and compresses source assets for the clock's LittleFS.
 //
 // The clock serves "<file>.gz" with Content-Encoding: gzip, so the page ships as ONE gzipped file with its
 // CSS and JS inlined: one request, no libraries, nothing loaded from the internet.
@@ -37,14 +37,18 @@ html = html
     .replace("/*__JS__*/", () => `(function () {\n"use strict";\n${js}\n})();\n`.replace(/<\/script/gi, "<\\/script"));
 
 const page = gzip(Buffer.from(html));
+if (page.length > BUDGET_BYTES) {
+    throw new Error(`index.html.gz is over budget: ${page.length} B (limit ${BUDGET_BYTES} B)`);
+}
+const timezoneData = read(path.join(SRC, "assets", "tzdata.json"));
+JSON.parse(timezoneData);
+const favicon = fs.readFileSync(path.join(SRC, "assets", "favicon.ico"));
 fs.writeFileSync(path.join(DATA, "index.html.gz"), page);
+fs.writeFileSync(path.join(DATA, "tzdata.json.gz"), gzip(Buffer.from(timezoneData)));
+fs.writeFileSync(path.join(DATA, "favicon.ico.gz"), gzip(favicon));
 
 const total = fs.readdirSync(DATA, { recursive: true })
     .map(f => path.join(DATA, f)).filter(f => fs.statSync(f).isFile())
     .reduce((n, f) => n + fs.statSync(f).size, 0);
 console.log(`index.html.gz ${page.length} B (budget ${BUDGET_BYTES} B)`);
 console.log(`data/ total   ${total} B`);
-if (page.length > BUDGET_BYTES) {
-    console.error("index.html.gz is over budget");
-    process.exitCode = 1;
-}

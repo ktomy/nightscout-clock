@@ -10,6 +10,8 @@ My computer is running linux, but you can use Windows or MacOS as well, there ar
 - Install PlatformIO
   - install python as a PlatformIO dependency
 - clone the project using Visual Studio Code
+- Install Node.js using the version in `.node-version` for filesystem builds and screenshots. No npm packages are required.
+- Filesystem builds also find that version under NVM (`NVM_DIR` or `~/.nvm`) when VS Code does not inherit your shell's Node.js path. For other installations, start VS Code from a terminal where `node --version` works.
 - PlatformIO should detect the project
 - Configure the serial port for your machine:
   - Copy `platformio.local.ini.example` to `platformio.local.ini`
@@ -29,11 +31,17 @@ My computer is running linux, but you can use Windows or MacOS as well, there ar
 
 ### Updating the web UI screenshot
 
-The web UI source is in `web/src/`. After changing it, run `node web/build.mjs` to rebuild
-`data/index.html.gz` and commit the rebuilt file.
+The web UI source is in `web/src/`, including the original icon and timezone JSON in
+`web/src/assets/`. PlatformIO generates the compressed files in `data/` before building
+LittleFS, including IDE filesystem actions, `scripts/build.sh --fs` / `--all`, and both
+GitHub Actions build workflows. Firmware-only builds do not require Node.js.
+
+The generated `.gz` files are ignored by Git. Commit changes to their sources, not the
+compressed outputs. Run `node web/build.mjs` to generate assets without building LittleFS.
 
 `scripts/screenshot_web_ui.py` renders the current `data/` web UI in headless Chromium
 and saves a full-page PNG to `docs/images/web-ui.png`, the image used in the README.
+It regenerates the web assets first, so it also works from a clean checkout.
 It uses factory defaults plus sample WiFi, Nightscout, and status data. No clock or
 running web server is needed, and rendering makes no external network requests.
 The current checkout's version is also used as the simulated latest version.

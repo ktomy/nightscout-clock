@@ -6,6 +6,7 @@ import gzip
 import json
 import mimetypes
 from pathlib import Path
+import subprocess
 import sys
 from urllib.parse import unquote, urlsplit
 
@@ -42,6 +43,13 @@ def main():
     except ImportError:
         parser.exit(1, "Install dependencies: python -m pip install playwright\n"
                     "Then install Chromium: python -m playwright install chromium\n")
+
+    try:
+        subprocess.run(["node", str(ROOT / "web/build.mjs")], cwd=ROOT, check=True)
+    except FileNotFoundError:
+        parser.exit(1, "Install Node.js using the version in .node-version.\n")
+    except subprocess.CalledProcessError:
+        parser.exit(1, "Web asset generation failed; screenshot cancelled.\n")
 
     # Always start from factory defaults, never a developer's private config.json.
     config = json.loads((ROOT / "data/config_initial.json").read_text())
