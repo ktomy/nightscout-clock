@@ -125,28 +125,23 @@ bool SettingsManager_::loadSettingsFromFile() {
         settings.face_cycle_interval_seconds = 60;
     }
 
-    settings.face_cycle_faces.clear();
+    settings.inactive_faces.clear();
     bool faceAlreadyAdded[CLOCK_FACE_COUNT] = {};
-    if ((*doc)["face_cycle_faces"].is<JsonArray>()) {
-        for (JsonVariant face : (*doc)["face_cycle_faces"].as<JsonArray>()) {
+    if ((*doc)["inactive_faces"].is<JsonArray>()) {
+        for (JsonVariant face : (*doc)["inactive_faces"].as<JsonArray>()) {
             if (!face.is<int>()) {
                 continue;
             }
 
             int faceId = face.as<int>();
             if (faceId >= 0 && faceId < CLOCK_FACE_COUNT && !faceAlreadyAdded[faceId]) {
-                settings.face_cycle_faces.push_back(faceId);
+                settings.inactive_faces.push_back(faceId);
                 faceAlreadyAdded[faceId] = true;
             }
         }
     }
-    if (settings.face_cycle_faces.empty()) {
-        int fallbackFace = settings.default_clockface >= 0 && settings.default_clockface < CLOCK_FACE_COUNT
-                               ? settings.default_clockface
-                               : 0;
-        settings.face_cycle_faces.push_back(fallbackFace);
-    }
-    if (settings.face_cycle_enabled && settings.face_cycle_faces.size() < 2) {
+    if (settings.face_cycle_enabled &&
+        CLOCK_FACE_COUNT - static_cast<int>(settings.inactive_faces.size()) < 2) {
         DEBUG_PRINTLN("Too few valid faces in config, disabling face cycling");
         settings.face_cycle_enabled = false;
     }
@@ -285,10 +280,10 @@ bool SettingsManager_::saveSettingsToFile() {
     (*doc)["default_face"] = settings.default_clockface;
     (*doc)["face_cycle_enabled"] = settings.face_cycle_enabled;
     (*doc)["face_cycle_interval_seconds"] = settings.face_cycle_interval_seconds;
-    (*doc).remove("face_cycle_faces");
-    JsonArray faceCycleFaces = (*doc)["face_cycle_faces"].to<JsonArray>();
-    for (int faceId : settings.face_cycle_faces) {
-        faceCycleFaces.add(faceId);
+    (*doc).remove("inactive_faces");
+    JsonArray inactiveFaces = (*doc)["inactive_faces"].to<JsonArray>();
+    for (int faceId : settings.inactive_faces) {
+        inactiveFaces.add(faceId);
     }
     (*doc)["face_schedule_enabled"] = settings.face_schedule_enabled;
     writeFaceSchedule(*doc, "face_schedule", settings.face_schedule);

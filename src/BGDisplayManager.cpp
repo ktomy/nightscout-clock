@@ -57,11 +57,11 @@ void BGDisplayManager_::setup() {
             static_cast<unsigned int>(faces.size()), CLOCK_FACE_COUNT);
     }
 
-    configureFaceCycle();
+    configureActiveFaces();
     configureFaceSchedule();
 
     if (faceCycleActive) {
-        currentFaceIndex = faceCycleFaces.front();
+        currentFaceIndex = activeFaces.front();
     } else {
         currentFaceIndex = SettingsManager.settings.default_clockface;
     }
@@ -73,18 +73,16 @@ void BGDisplayManager_::setup() {
     currentFace = (faces[currentFaceIndex]);
 }
 
-void BGDisplayManager_::configureFaceCycle() {
-    faceCycleFaces.clear();
+// The active faces are the ones the buttons move between, and the ones cycling runs through.
+void BGDisplayManager_::configureActiveFaces() {
+    activeFaces.clear();
     faceCycleActive = false;
     faceCycleTimerStarted = false;
 
-    for (int faceId : SettingsManager.settings.face_cycle_faces) {
-        if (faceId < 0 || static_cast<size_t>(faceId) >= faces.size()) {
-            continue;
-        }
-
-        if (std::find(faceCycleFaces.begin(), faceCycleFaces.end(), faceId) == faceCycleFaces.end()) {
-            faceCycleFaces.push_back(faceId);
+    const std::vector<int>& inactiveFaces = SettingsManager.settings.inactive_faces;
+    for (int faceId = 0; static_cast<size_t>(faceId) < faces.size(); faceId++) {
+        if (std::find(inactiveFaces.begin(), inactiveFaces.end(), faceId) == inactiveFaces.end()) {
+            activeFaces.push_back(faceId);
         }
     }
 
@@ -92,10 +90,10 @@ void BGDisplayManager_::configureFaceCycle() {
         return;
     }
 
-    if (faceCycleFaces.size() < 2) {
+    if (activeFaces.size() < 2) {
         DEBUG_PRINTF(
-            "Clock face cycling disabled: at least two valid unique faces are required, found %u\n",
-            static_cast<unsigned int>(faceCycleFaces.size()));
+            "Clock face cycling disabled: at least two active faces are required, found %u\n",
+            static_cast<unsigned int>(activeFaces.size()));
         return;
     }
 
@@ -121,38 +119,28 @@ void BGDisplayManager_::setFace(int id) {
 }
 
 void BGDisplayManager_::showNextFace() {
-    if (!faceCycleActive) {
-        int nextFaceIndex = currentFaceIndex + 1;
-        if (static_cast<size_t>(nextFaceIndex) >= faces.size()) {
-            nextFaceIndex = 0;
-        }
-        setFace(nextFaceIndex);
+    if (activeFaces.empty()) {
         return;
     }
 
-    auto current = std::find(faceCycleFaces.begin(), faceCycleFaces.end(), currentFaceIndex);
-    if (current == faceCycleFaces.end()) {
-        setFace(faceCycleFaces.front());
+    auto current = std::find(activeFaces.begin(), activeFaces.end(), currentFaceIndex);
+    if (current == activeFaces.end()) {
+        setFace(activeFaces.front());
         return;
     }
 
     current++;
-    setFace(current == faceCycleFaces.end() ? faceCycleFaces.front() : *current);
+    setFace(current == activeFaces.end() ? activeFaces.front() : *current);
 }
 
 void BGDisplayManager_::showPreviousFace() {
-    if (!faceCycleActive) {
-        int previousFaceIndex = currentFaceIndex - 1;
-        if (previousFaceIndex < 0) {
-            previousFaceIndex = static_cast<int>(faces.size()) - 1;
-        }
-        setFace(previousFaceIndex);
+    if (activeFaces.empty()) {
         return;
     }
 
-    auto current = std::find(faceCycleFaces.begin(), faceCycleFaces.end(), currentFaceIndex);
-    if (current == faceCycleFaces.end() || current == faceCycleFaces.begin()) {
-        setFace(faceCycleFaces.back());
+    auto current = std::find(activeFaces.begin(), activeFaces.end(), currentFaceIndex);
+    if (current == activeFaces.end() || current == activeFaces.begin()) {
+        setFace(activeFaces.back());
     } else {
         setFace(*--current);
     }

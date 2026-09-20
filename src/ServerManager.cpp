@@ -363,16 +363,16 @@ void ServerManager_::setupWebServer(IPAddress ip) {
             }
 
             bool faceCycleEnabled = data["face_cycle_enabled"] | false;
-            bool hasFaceCycleFaces = !data["face_cycle_faces"].isNull();
-            int uniqueFaceCount = 0;
-            if (faceCycleEnabled || hasFaceCycleFaces) {
-                if (!data["face_cycle_faces"].is<JsonArray>()) {
-                    sendSaveValidationError("face_cycle_faces must be an array");
+            bool hasInactiveFaces = !data["inactive_faces"].isNull();
+            int inactiveFaceCount = 0;
+            if (hasInactiveFaces) {
+                if (!data["inactive_faces"].is<JsonArray>()) {
+                    sendSaveValidationError("inactive_faces must be an array");
                     return;
                 }
 
-                bool selectedFaces[CLOCK_FACE_COUNT] = {};
-                for (JsonVariant face : data["face_cycle_faces"].as<JsonArray>()) {
+                bool inactiveFaces[CLOCK_FACE_COUNT] = {};
+                for (JsonVariant face : data["inactive_faces"].as<JsonArray>()) {
                     if (!face.is<int>()) {
                         sendSaveValidationError("Face selections must use valid clock face IDs");
                         return;
@@ -384,15 +384,15 @@ void ServerManager_::setupWebServer(IPAddress ip) {
                         return;
                     }
 
-                    if (!selectedFaces[faceId]) {
-                        selectedFaces[faceId] = true;
-                        uniqueFaceCount++;
+                    if (!inactiveFaces[faceId]) {
+                        inactiveFaces[faceId] = true;
+                        inactiveFaceCount++;
                     }
                 }
             }
 
-            if (faceCycleEnabled && uniqueFaceCount < 2) {
-                sendSaveValidationError("Select at least two different clock faces");
+            if (faceCycleEnabled && CLOCK_FACE_COUNT - inactiveFaceCount < 2) {
+                sendSaveValidationError("Cycling needs at least two active clock faces");
                 return;
             }
 

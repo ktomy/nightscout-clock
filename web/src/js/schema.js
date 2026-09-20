@@ -28,7 +28,7 @@
  *   face_schedule_enabled?: boolean,
  *   face_schedule?: FaceScheduleEntry[],
  *   face_cycle_enabled: boolean,
- *   face_cycle_faces: number[],
+ *   inactive_faces: number[],
  *   brightness_level: number,
  *   default_face: number,
  *   tz: string,
@@ -70,6 +70,9 @@ const FACES = [
     { id: 5, name: "Current time and BG value" },
     { id: 6, name: "Unicorn" },
 ]
+
+// The config stores the faces switched off, so a face added later starts active.
+const activeFaceIds = inactive => FACES.map(f => f.id).filter(id => !(inactive || []).includes(id))
 
 // "carelink" is not a clock source: choosing it explains the xDrip+ and Nightscout bridge instead.
 const SOURCES = [
@@ -302,15 +305,18 @@ function validateConfig(c, ctx) {
     if (c.custom_nodatatimer_enable) need("custom_nodatatimer", RX.noDataMinutes.test(text(c.custom_nodatatimer)), "A valid time between 6 and 60 minutes is required.")
 
     // Display
-    need("default_face", FACES.some(f => f.id === c.default_face), "Please select default clock face.")
+    const active = activeFaceIds(c.inactive_faces)
+    need("inactive_faces", active.length >= 1, "No faces active. Tap at least one face before saving.")
     if (c.face_cycle_enabled) {
-        const n = new Set(c.face_cycle_faces || []).size
-        need("face_cycle_faces", n >= 2, n === 1 ? "1 face selected. Select one more face before saving." : "0 faces selected. Select at least two faces before saving.")
+        need("inactive_faces", active.length >= 2, "1 face active. Cycling needs at least two.")
+    } else if (active.length) {
+        need("default_face", active.includes(c.default_face), "Please select default clock face.")
     }
     if (c.face_schedule_enabled) {
         const rows = c.face_schedule
         need("face_schedule", !c.face_cycle_enabled, "Turn off face cycling before enabling the schedule.")
         need("face_schedule", rows.length >= 1 && rows.length <= 8, "Add between 1 and 8 scheduled times, or turn the schedule off.")
+        need("face_schedule", rows.every(row => active.includes(row.face)), "Choose an active clock face for every scheduled time.")
         need("face_schedule", rows.every(row => isTime(row.time)), "Every row needs a valid time.")
         need("face_schedule", new Set(rows.map(row => row.time)).size === rows.length, "Two rows have the same time.")
     }
@@ -374,9 +380,10 @@ function normalizeLoaded(c) {
         ...ALARMS.flatMap(a => [`alarm_${a.t}_value`, `alarm_${a.t}_snooze_interval`])].forEach(num)
     if (!inOptions(out.face_cycle_interval_seconds, CYCLE_INTERVALS)) out.face_cycle_interval_seconds = 60
     if (!inOptions(out.alarm_repeat_interval_seconds, REPEATS)) out.alarm_repeat_interval_seconds = 300
-    const fallbackFace = FACES.some(f => f.id === out.default_face) ? out.default_face : 0
-    const faces = Array.isArray(out.face_cycle_faces) ? out.face_cycle_faces : [fallbackFace]
-    out.face_cycle_faces = [...new Set(faces.map(Number).filter(id => FACES.some(f => f.id === id)))]
+    const inactive = Array.isArray(out.inactive_faces) ? out.inactive_faces : []
+    out.inactive_faces = [...new Set(inactive.map(Number).filter(id => FACES.some(f => f.id === id)))]
+    const active = activeFaceIds(out.inactive_faces)
+    if (active.length && !active.includes(out.default_face)) out.default_face = active[0]
     return out
 }
 
