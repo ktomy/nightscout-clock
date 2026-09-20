@@ -66,7 +66,7 @@ Nightscout Clock is a custom firmware for Ulanzi TC001. It can also run (with mi
 
 | Name             | Look                                                                                                                                          | Comment                                                                                                                                                                                                                                                                                                                                                                                                     |
 | ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Simple           | <img width="500" alt="Simple" src="https://github.com/user-attachments/assets/ad281e9f-8c7f-41ff-ba82-23c634171158" />                        | Horizontal bars in the bottom of the display <br /> indicate the time since the last reading <br />No bars: less than one minute <br /> 1..5 green bars: 1..5 minutes <br /> 5 yellow bars: 6..19 minutes <br /> value and bars use the configured old-data color from 20 minutes (default threshold)                                                                                                       |
+| Simple           | <img width="500" alt="Simple" src="https://github.com/user-attachments/assets/ad281e9f-8c7f-41ff-ba82-23c634171158" />                        | Horizontal bars in the bottom of the display <br /> indicate the time since the last reading <br />No bars: less than one minute <br /> 1..5 green bars: 1..5 minutes <br /> 5 yellow bars: 6..19 minutes <br /> value and bars use the configured old-data color from 20 minutes (default threshold) <br /> and the trend arrow is replaced by an X in the same color                                      |
 | BIG DIGITS       | <img width="500" alt="Big Digits" src="https://github.com/user-attachments/assets/1feae65b-21e9-4c20-8960-b75583baa142" />                    |                                                                                                                                                                                                                                                                                                                                                                                                             |
 | 3-hours graph    | <img width="500" alt="graph" src="https://github.com/user-attachments/assets/45d92097-f459-44d4-b1ae-a35c3cb38700" />                         |                                                                                                                                                                                                                                                                                                                                                                                                             |
 | Graph and value  | <img width="500" alt="Graph and value" src="https://github.com/user-attachments/assets/db9046aa-5121-43fa-b367-807cdf3c5ef3" />               | The dots on the right side replace the trend arrow.<br>2 white dots = horizontal arrow.<br>2 colored dots (white + green) = 45° arrow.<br>3 dots = vertical arrow.<br>4 dots = double arrow.<br>Colored dots above = upward trend.<br>Colored dots below = downward trend. <br /><br /> Dots under the value are the same as <br /> horizontal bars on the other faces.<br /> See "Simple" face for details |
@@ -78,15 +78,25 @@ Nightscout Clock is a custom firmware for Ulanzi TC001. It can also run (with mi
 | Smiley           | _(live smiley view)_                                                                                                                          | A face that reflects glucose level: happy in range, sad when low, angry when high, and neutral for stale or missing data.                                                                                                                                                                                                                                                                                   |
 | Unicorn          | <img width="500" alt="Unicorn and value" src="https://github.com/user-attachments/assets/78dd56a8-1501-493d-98be-5fb59ac9778d" />             | Rainbow mane for normal readings, warning or urgent colors outside the configured limits, and the configured old-data color for stale readings. Age bars appear below the value.                                                                                                                                                                                                                            |
 
+#### Active clock faces
+
+The Web UI's Clock faces card selects which faces are active. All of them are active out of the box, and so is any face added by a later update; turning off the ones you never use shortens what the left and right buttons move between, and the default face is chosen among the active ones.
+
 #### Automatic clock-face cycling
 
-Automatic cycling can be enabled under Device settings in the Web UI. Select at least two clock faces and choose how often the face should change: 10 or 30 seconds, or 1, 2, 3, or 5 minutes. Faces cycle in the order shown in the Web UI.
+Automatic cycling can be enabled in the same card, and runs through the active faces in the order shown, so at least two of them must be active. Choose how often the face should change: 10 or 30 seconds, or 1, 2, 3, or 5 minutes.
 
-While cycling is enabled, the left and right buttons move only between the selected faces and restart the interval without stopping automatic cycling. The default-face setting is disabled until automatic cycling is turned off again.
+While cycling is enabled, the left and right buttons restart the interval without stopping automatic cycling. The default-face setting is hidden until automatic cycling is turned off again.
+
+#### Face and brightness schedule
+
+Under Device settings the clock can change its face and brightness on a schedule. Each row gives a time of day, a face and a brightness, either a manual level or one of the automatic modes. From that time the clock shows that face at that brightness until the next row, and the last row of the day runs overnight, so a Big text row in the morning and a Simple row at brightness 1 in the evening make a bedside clock that is readable by day and easy to sleep next to. The buttons still change the face between rows. The schedule and automatic cycling cannot both be on, and a clock that does not know the time yet stays on its default face.
 
 ### Configuration web interface
 
 <img alt="Nightscout Clock configuration web interface" src="docs/images/web-ui.png" />
+
+The Backup and restore card on the System tab downloads the clock's settings as a file and loads such a file back into the page, where you review it and save; WiFi settings are loaded only when you ask, and the web login never is. The file contains your WiFi and data source passwords, so keep it private.
 
 ### Alarm settings
 
@@ -121,7 +131,9 @@ High, low, and urgent-low alarms each have their own threshold, snooze duration,
 - Multiple clock faces support
   - Default clock face can be selected in the Web UI
   - Clock faces can be changed using arrow buttons on the clock
-  - Selected clock faces can cycle automatically at a configurable interval
+  - Faces you do not use can be turned off in the Web UI
+  - Active clock faces can cycle automatically at a configurable interval
+  - Face and brightness can follow a daily schedule
   - Simple clock face (value and trend arrow)
   - Full-width glucose graph
   - Graph, value and trend indicator
@@ -133,7 +145,7 @@ High, low, and urgent-low alarms each have their own threshold, snooze duration,
   - Rainbow big text
   - Smiley face, reflecting the glucose level with happy, sad, angry, or neutral expressions
   - Unicorn and glucose value, with mane colors based on glucose limits
-- Configurable color for old readings and no-data screens: gray (default), cyan, magenta, or blue. Choose it under Device settings in the Web UI; the alternatives help keep stale readings visible at low brightness
+- Configurable color for old readings and no-data screens: gray (default), cyan, magenta, or blue. Choose it on the Display tab of the Web UI; the alternatives help keep stale readings visible at low brightness
 - Smart data and screen update timings: read data once it appears, refresh screen when needed
 - API data source. The clock has a simple Nightscout-like API which can receive glucose values from an external source. The main purpose of this feature is the ability to test the clock during the clockfaces development. In order to activate this feature, select the API data source within the clock's Web UI. Here are the endpoints:
   - /api/v1/entries POST endpoint receives an array of Nightscout-like entries. The only significant fields are `sgv`, `date` and `trend` or `direction`. Due to the limited memory the API is stable when sent less than 10 recotds

@@ -88,16 +88,17 @@ void DisplayManager_::setup() {
 }
 
 void DisplayManager_::applySettings() {
-    int displayBrightness = 70;
-
-    if (SettingsManager.settings.brightness_mode == BRIGHTNES_MODE::MANUAL) {
-        // make brightness grow logarithmically
-        float t = constrain(SettingsManager.settings.brightness_level / 10.0f, 0.0f, 1.0f);
-        const float gamma = 2.2f;       // raise to 2.4–2.6 for darker lows
-        float curved = powf(t, gamma);  // 0..1, biased toward 0
-
-        displayBrightness = (int)lroundf(MIN_BRIGHTNESS + curved * (MAX_BRIGHTNESS - MIN_BRIGHTNESS));
+    if (SettingsManager.settings.brightness_mode != BRIGHTNES_MODE::MANUAL) {
+        // Keep the current brightness until the light-sensor loop updates automatic mode.
+        return;
     }
+
+    // make brightness grow logarithmically
+    float t = constrain(SettingsManager.settings.brightness_level / 10.0f, 0.0f, 1.0f);
+    const float gamma = 2.2f;       // raise to 2.4–2.6 for darker lows
+    float curved = powf(t, gamma);  // 0..1, biased toward 0
+
+    int displayBrightness = (int)lroundf(MIN_BRIGHTNESS + curved * (MAX_BRIGHTNESS - MIN_BRIGHTNESS));
 
 #ifdef DEBUG_BRIGHTNESS
     DEBUG_PRINTLN(

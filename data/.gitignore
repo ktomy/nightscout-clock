@@ -1,2 +1,5 @@
 config.json
 tzdata.json
+/index.html.gz
+/favicon.ico.gz
+/tzdata.json.gz
