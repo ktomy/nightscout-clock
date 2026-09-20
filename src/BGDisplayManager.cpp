@@ -50,6 +50,10 @@ void BGDisplayManager_::setup() {
     facesNames[5] = "Clock and value";
     faces.push_back(new BGDisplayFaceUnicorn());
     facesNames[6] = "Unicorn";
+    faces.push_back(new BGDisplayFaceSimpleDark());
+    facesNames[7] = "Simple (dark)";
+    faces.push_back(new BGDisplayFaceBigTextDark());
+    facesNames[8] = "Big text (dark)";
 
     if (faces.size() != CLOCK_FACE_COUNT) {
         DEBUG_PRINTF(

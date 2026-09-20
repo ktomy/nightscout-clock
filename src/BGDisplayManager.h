@@ -9,10 +9,12 @@
 
 #include "BGDisplayFace.h"
 #include "BGDisplayFaceBigText.h"
+#include "BGDisplayFaceBigTextDark.h"
 #include "BGDisplayFaceClock.h"
 #include "BGDisplayFaceGraph.h"
 #include "BGDisplayFaceGraphAndBG.h"
 #include "BGDisplayFaceSimple.h"
+#include "BGDisplayFaceSimpleDark.h"
 #include "BGDisplayFaceUnicorn.h"
 #include "BGDisplayFaceValueAndDiff.h"
 #include "BGSource.h"
