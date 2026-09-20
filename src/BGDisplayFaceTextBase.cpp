@@ -10,7 +10,8 @@ void BGDisplayFaceTextBase::showReading(
     bool isOld) const {
     String readingToDisplay = getPrintableReading(reading.sgv);
     if (!isOld) {
-        SetDisplayColorByBGValue(reading);
+        auto bgLevel = bgDisplayManager.getGlucoseIntervals().getBGLevel(reading.sgv);
+        DisplayManager.setTextColor(getBandColor(bgLevel));
     } else {
         DisplayManager.setTextColor(getDataOldColor());
     }
@@ -18,27 +19,6 @@ void BGDisplayFaceTextBase::showReading(
     DisplayManager.setFont(font);
 
     DisplayManager.printText(x, y, readingToDisplay.c_str(), alignment, 2);
-}
-
-void BGDisplayFaceTextBase::SetDisplayColorByBGValue(const GlucoseReading& reading) const {
-    auto bgLevel = bgDisplayManager.getGlucoseIntervals().getBGLevel(reading.sgv);
-    auto textColor = COLOR_GRAY;
-
-    switch (bgLevel) {
-        case BG_LEVEL::URGENT_LOW:
-        case BG_LEVEL::URGENT_HIGH:
-            textColor = BG_COLOR_URGENT;
-            break;
-        case BG_LEVEL::WARNING_LOW:
-        case BG_LEVEL::WARNING_HIGH:
-            textColor = BG_COLOR_WARNING;
-            break;
-        case BG_LEVEL::NORMAL:
-            textColor = BG_COLOR_NORMAL;
-            break;
-    }
-
-    DisplayManager.setTextColor(textColor);
 }
 
 String BGDisplayFaceTextBase::getPrintableReading(const int sgv) const {

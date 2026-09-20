@@ -110,7 +110,7 @@ High, low, and urgent-low alarms each have their own threshold, snooze duration,
   - Support for WPA-Enterprise
   - Ability to set a custom hostname in case you have multiple NSClocks on the same network
 - Simple glucose value display with trend arrow
-- Changing color based on limits
+- Changing color based on limits. Each glucose range's color (red, yellow, green, yellow, red by default) can be changed next to its limit in the Web UI, and every face follows it
 - Nightscout data source, the clock gets units type and value boundaries from Nightscout (see [how to](https://youtu.be/GGiep2gdx_o) set up using [Nightscout.pro](https://www.nightscout.pro/) as data source)
 - [Juggluco](https://www.juggluco.nl/) data source (support for HTTP Nightscout endpoints)
 - [Improve WiFi](https://github.com/improv-wifi) compatibility (setting up WiFi during the installation)

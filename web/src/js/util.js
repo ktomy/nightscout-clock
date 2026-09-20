@@ -119,6 +119,7 @@ const ICON_PATHS = {
     bell: "M6 16V11a6 6 0 1 1 12 0v5l2 2H4l2-2zM10 20a2 2 0 0 0 4 0",
     drop: "M12 3s6 7 6 11a6 6 0 0 1-12 0c0-4 6-11 6-11z",
     chip: "M7 7h10v10H7zM10 3v4M14 3v4M10 17v4M14 17v4M3 10h4M3 14h4M17 10h4M17 14h4",
+    pencil: "M4 20h4L19 9l-4-4L4 16v4zM13 7l4 4",
 }
 /**
  * Build an inline SVG from the named path, avoiding external icon files or fonts.
@@ -137,4 +138,4 @@ function icon(name) {
 }
 
 // Color names the firmware understands, as swatches on the page.
-const COLOR_HEX = { green: "#22c55e", yellow: "#facc15", red: "#ef4444", cyan: "#22d3ee", blue: "#3b82f6", magenta: "#e879f9", gray: "#9ca3af" }
+const COLOR_HEX = { green: "#22c55e", yellow: "#facc15", red: "#ef4444", cyan: "#22d3ee", blue: "#3b82f6", magenta: "#e879f9", white: "#f8fafc", gray: "#9ca3af" }
