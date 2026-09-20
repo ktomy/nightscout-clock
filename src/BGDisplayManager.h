@@ -13,6 +13,7 @@
 #include "BGDisplayFaceGraph.h"
 #include "BGDisplayFaceGraphAndBG.h"
 #include "BGDisplayFaceSimple.h"
+#include "BGDisplayFaceTimeOnly.h"
 #include "BGDisplayFaceUnicorn.h"
 #include "BGDisplayFaceValueAndDiff.h"
 #include "BGSource.h"
@@ -107,6 +108,7 @@ public:
 
     std::map<int, String> getFaces();
     int getCurrentFaceId();
+    bool suppressesNewAlarms() const;
 
     void setFace(int id);
     void showNextFace();
