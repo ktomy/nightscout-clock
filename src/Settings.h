@@ -9,6 +9,20 @@
 #include "SettingsSchedule.h"
 #include "enums.h"
 
+// Big text face: the value takes early_stale_color once a reading is early_stale_minutes old.
+struct BigTextFaceSettings {
+    bool early_stale_enabled = false;
+    DISPLAY_COLOR early_stale_color = DISPLAY_COLOR::CYAN;
+    int early_stale_minutes = 6;
+};
+
+// Unicorn face: a moving mane moves its colors at `speed` in the `flow` style while the reading is fresh.
+struct UnicornFaceSettings {
+    bool mane_moving = false;
+    ANIMATION_SPEED speed = ANIMATION_SPEED::NORMAL;
+    MANE_FLOW flow = MANE_FLOW::DOWN;
+};
+
 class Settings {
 public:
     String ssid;
@@ -69,6 +83,8 @@ public:
     int custom_nodatatimer;
     int bg_data_too_old_threshold_minutes = 20;
     DISPLAY_COLOR data_old_color = DISPLAY_COLOR::GRAY;
+    BigTextFaceSettings face_big_text;
+    UnicornFaceSettings face_unicorn;
     bool alarm_intensive_mode;
     int alarm_repeat_interval_seconds = 300;
     bool web_auth_enable;
