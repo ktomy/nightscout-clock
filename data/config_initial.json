@@ -61,6 +61,18 @@
     "custom_nodatatimer_enable": false,
     "custom_nodatatimer": 20,
     "data_old_color": "gray",
+    "face_big_text": {
+        "early_stale_color": "off",
+        "early_stale_minutes": 6
+    },
+    "face_unicorn": {
+        "mane": "still",
+        "speed": "normal",
+        "flow": "down"
+    },
+    "face_race_car": {
+        "speed": "normal"
+    },
     "web_auth_enable": false,
     "web_auth_password": ""
 }
