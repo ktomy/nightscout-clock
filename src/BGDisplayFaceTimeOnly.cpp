@@ -1,21 +1,13 @@
 #include "BGDisplayFaceTimeOnly.h"
 
-#include "BGAlarmManager.h"
-#include "BGDisplayManager.h"
 #include "ServerManager.h"
 #include "globals.h"
 
 void BGDisplayFaceTimeOnly::showReadings(
     const std::list<GlucoseReading>& readings, bool dataIsOld) const {
-    if (bgAlarmManager.isAlarmActive() || (!dataIsOld && isUrgent(readings.back()))) {
-        BGDisplayFaceClock::showReadings(readings, dataIsOld);
-        return;
-    }
-
     showTime();
 }
 
-// Without readings nothing is urgent and no alarm can be active, so only the time is shown.
 void BGDisplayFaceTimeOnly::showNoData() const {
     DisplayManager.clearMatrix();
     showTime();
@@ -28,10 +20,7 @@ RenderDecision BGDisplayFaceTimeOnly::getRenderDecision(const RenderContext& ctx
 
 bool BGDisplayFaceTimeOnly::ticksEverySecond() const { return true; }
 
-bool BGDisplayFaceTimeOnly::isUrgent(const GlucoseReading& reading) const {
-    auto bgLevel = bgDisplayManager.getGlucoseIntervals().getBGLevel(reading.sgv);
-    return bgLevel == BG_LEVEL::URGENT_LOW || bgLevel == BG_LEVEL::URGENT_HIGH;
-}
+bool BGDisplayFaceTimeOnly::suppressesNewAlarms() const { return true; }
 
 // 24-hour format shows HH:MM:SS; 12-hour format has no room for seconds beside AM/PM.
 void BGDisplayFaceTimeOnly::showTime() const {

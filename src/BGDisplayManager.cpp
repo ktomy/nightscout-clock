@@ -106,6 +106,10 @@ std::map<int, String> BGDisplayManager_::getFaces() { return facesNames; }
 
 int BGDisplayManager_::getCurrentFaceId() { return currentFaceIndex; }
 
+bool BGDisplayManager_::suppressesNewAlarms() const {
+    return currentFace->suppressesNewAlarms();
+}
+
 GlucoseIntervals BGDisplayManager_::getGlucoseIntervals() { return glucoseIntervals; }
 
 void BGDisplayManager_::setFace(int id) {

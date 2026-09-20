@@ -162,6 +162,9 @@ void BGAlarmManager_::tick() {
                 return;
             }
             if (activeAlarm == NULL) {
+                if (bgDisplayManager.suppressesNewAlarms()) {
+                    return;
+                }
                 activeAlarm = &alarmData;
                 alarmData.lastAlarmTime = ServerManager.getUtcEpoch();
                 alarmData.isSnoozed = false;
@@ -235,5 +238,3 @@ void BGAlarmManager_::snoozeAlarm() {
         activeAlarm->isSnoozed = true;
     }
 }
-
-bool BGAlarmManager_::isAlarmActive() const { return activeAlarm != NULL; }

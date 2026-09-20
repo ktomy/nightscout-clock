@@ -27,3 +27,5 @@ RenderDecision BGDisplayFace::getRenderDecision(const RenderContext& ctx) const 
 void BGDisplayFace::renderPartial(const RenderContext& ctx) const {}
 
 bool BGDisplayFace::ticksEverySecond() const { return false; }
+
+bool BGDisplayFace::suppressesNewAlarms() const { return false; }

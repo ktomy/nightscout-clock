@@ -108,6 +108,7 @@ public:
 
     std::map<int, String> getFaces();
     int getCurrentFaceId();
+    bool suppressesNewAlarms() const;
 
     void setFace(int id);
     void showNextFace();
