@@ -128,6 +128,7 @@ input[type=range] { width: 100%; height: 44px; accent-color: var(--cyan); margin
 .face[aria-pressed="true"] { border-color: var(--cyan); box-shadow: 0 0 0 1px var(--cyan) inset; }
 .face-status { font-size: 14px; color: var(--cyan); white-space: nowrap; }
 .face[aria-pressed="false"] .face-status { color: var(--muted); }
+.drawer { display: grid; gap: 12px; border: 1px solid var(--line); background: var(--surface-low); border-radius: var(--radius); padding: 12px; }
 
 /* ---------- glucose ranges ---------- */
 .bandbar { display: flex; height: 10px; border-radius: 999px; overflow: hidden; background: var(--surface-top); }
