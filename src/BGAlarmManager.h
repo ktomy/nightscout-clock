@@ -26,6 +26,7 @@ private:
 public:
     static BGAlarmManager_& getInstance();
     void setup();
+    void reloadSettings();
     void tick();
     void snoozeAlarm();
 };

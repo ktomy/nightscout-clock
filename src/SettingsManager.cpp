@@ -89,6 +89,7 @@ bool SettingsManager_::isValidAlarmRepeatInterval(int intervalSeconds) {
 }
 
 bool SettingsManager_::loadSettingsFromFile() {
+    std::lock_guard<std::recursive_mutex> lock(mutex);
     auto doc = readConfigJsonFile();
     if (doc == NULL)
         return false;
@@ -259,6 +260,11 @@ bool SettingsManager_::loadSettingsFromFile() {
 }
 
 bool SettingsManager_::saveSettingsToFile() {
+    std::lock_guard<std::recursive_mutex> lock(mutex);
+    // A web save not applied yet is newer than these settings.
+    if (reloadRequested) {
+        return false;
+    }
     auto doc = readConfigJsonFile();
     if (doc == NULL)
         return false;
@@ -397,6 +403,7 @@ bool SettingsManager_::saveSettingsToFile() {
 }
 
 bool SettingsManager_::trySaveJsonAsSettings(JsonDocument doc) {
+    std::lock_guard<std::recursive_mutex> lock(mutex);
     DEBUG_PRINTLN(doc.as<String>());
     auto file = LittleFS.open(CONFIG_JSON, FILE_WRITE);
     if (!file) {

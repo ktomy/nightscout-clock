@@ -5,6 +5,9 @@
 #include <IPAddress.h>
 #include <Settings.h>
 
+#include <atomic>
+#include <mutex>
+
 #include "enums.h"
 
 class SettingsManager_ {
@@ -21,6 +24,10 @@ public:
     void factoryReset();
     // The repeat intervals the WebUI offers; shared with the save endpoint.
     static bool isValidAlarmRepeatInterval(int intervalSeconds);
+    // Set by the web server after a save; the main loop loads and applies it.
+    std::atomic<bool> reloadRequested{false};
+    // Held to load or save settings, and by the web server (its own task) to read them.
+    std::recursive_mutex mutex;
 
     Settings settings;
 };

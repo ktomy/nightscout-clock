@@ -91,6 +91,8 @@ Under Device settings the clock can change its face and brightness on a schedule
 
 <img alt="Nightscout Clock configuration web interface" src="docs/images/web-ui.png" />
 
+Saved settings apply immediately. Changing the WiFi, host name or data source restarts the clock, and the Save button says so.
+
 ### Alarm settings
 
 High, low, and urgent-low alarms each have their own threshold, snooze duration, sound, and optional alert windows in the Web UI.

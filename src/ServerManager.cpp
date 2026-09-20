@@ -78,11 +78,13 @@ String ServerManager_::getHostname() {
 }
 
 bool ServerManager_::isWebAuthEnabled() const {
+    std::lock_guard<std::recursive_mutex> lock(SettingsManager.mutex);
     return SettingsManager.settings.web_auth_enable &&
            SettingsManager.settings.web_auth_password.length() > 0;
 }
 
 bool ServerManager_::isRequestAuthenticated(AsyncWebServerRequest* request) const {
+    std::lock_guard<std::recursive_mutex> lock(SettingsManager.mutex);
     if (!isWebAuthEnabled()) {
         return false;
     }
@@ -103,6 +105,12 @@ bool ServerManager_::isRequestAuthenticated(AsyncWebServerRequest* request) cons
     }
 
     return requestToken.length() > 0 && requestToken == webAuthToken;
+}
+
+void ServerManager_::forgetLogin() {
+    std::lock_guard<std::recursive_mutex> lock(SettingsManager.mutex);
+    webAuthToken = "";
+    webAuthTokenIssuedMs = 0;
 }
 
 String ServerManager_::generateAuthToken() {
@@ -287,6 +295,7 @@ void ServerManager_::setupWebServer(IPAddress ip) {
     DefaultHeaders::Instance().addHeader("Access-Control-Allow-Headers", "Content-Type");
 
     ws->on("/api/auth/status", HTTP_GET, [this](AsyncWebServerRequest* request) {
+        std::lock_guard<std::recursive_mutex> lock(SettingsManager.mutex);
         String jsonResponse = "{\"enabled\": ";
         jsonResponse += isWebAuthEnabled() ? "true" : "false";
         jsonResponse += ", \"authenticated\": ";
@@ -308,6 +317,7 @@ void ServerManager_::setupWebServer(IPAddress ip) {
                 return;
             }
 
+            std::lock_guard<std::recursive_mutex> lock(SettingsManager.mutex);
             auto&& data = json.as<JsonObject>();
             String password = data["password"].as<String>();
             if (password != SettingsManager.settings.web_auth_password) {
@@ -333,8 +343,7 @@ void ServerManager_::setupWebServer(IPAddress ip) {
             request->send(401, "application/json", "{\"status\": \"unauthorized\"}");
             return;
         }
-        webAuthToken = "";
-        webAuthTokenIssuedMs = 0;
+        forgetLogin();
         auto response = request->beginResponse(200, "application/json", "{\"status\": \"ok\"}");
         response->addHeader("Set-Cookie", buildAuthCookie("", 0));
         request->send(response);
@@ -424,7 +433,10 @@ void ServerManager_::setupWebServer(IPAddress ip) {
                 }
             }
 
+            // The main loop applies the save; the Web UI restarts the clock when a setting needs it.
+            std::lock_guard<std::recursive_mutex> lock(SettingsManager.mutex);
             if (SettingsManager.trySaveJsonAsSettings(data)) {
+                SettingsManager.reloadRequested = true;
                 request->send(200, "application/json", "{\"status\": \"ok\"}");
             } else {
                 request->send(200, "application/json", "{\"status\": \"Settings save error\"}");
