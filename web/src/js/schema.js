@@ -1,4 +1,64 @@
-// What the clock's settings are: option lists, validation, and the JSON that is saved.
+// Define setting options, value conversions, and validation independently of DOM rendering.
+// Normalize incoming configuration for the form and prepare its outgoing save payload.
+
+/** @typedef {'mgdl' | 'mmol' | ''} GlucoseUnits Empty before units have been selected. */
+/** @typedef {'display' | 'glucose' | 'alarms' | 'system'} SettingsTab */
+/** @typedef {[string | number, string]} SelectOption A stored value and its visible label. */
+/** @typedef {Record<string, string>} ValidationErrors Error messages indexed by setting key. */
+
+/**
+ * One daily change of clock face and brightness, using the clock's configured timezone.
+ * @typedef {Object} FaceScheduleEntry
+ * @property {string} time Start time as HH:MM; may be empty while editing.
+ * @property {number} face Registered clock-face ID.
+ * @property {number} brightness Manual level 1–10, or automatic mode 100/101.
+ */
+/**
+ * A recurring alarm window; an end earlier than its start crosses midnight.
+ * @typedef {Object} AlertWindow
+ * @property {string} days Start weekdays as digits, Sunday=0 through Saturday=6.
+ * @property {string} from Start time as HH:MM; may be empty while editing.
+ * @property {string} to End time as HH:MM; may be empty while editing.
+ */
+/**
+ * Settings loaded from or saved to the clock; numeric fields may hold unfinished input text in the draft.
+ * Additional firmware settings pass through the page using their existing JSON keys.
+ * @typedef {Record<string, JsonValue> & {
+ *   units: GlucoseUnits,
+ *   face_schedule_enabled?: boolean,
+ *   face_schedule?: FaceScheduleEntry[],
+ *   face_cycle_enabled: boolean,
+ *   face_cycle_faces: number[],
+ *   brightness_level: number,
+ *   default_face: number,
+ *   tz: string,
+ *   tz_libc: string,
+ *   alarm_high_alert_windows: AlertWindow[],
+ *   alarm_low_alert_windows: AlertWindow[],
+ *   alarm_urgent_low_alert_windows: AlertWindow[]
+ * }} ClockConfig
+ */
+/**
+ * Components edited separately in the Nightscout address controls.
+ * @typedef {Object} NightscoutAddress
+ * @property {string} protocol URL scheme, normally http or https.
+ * @property {string} host Hostname or IP address without scheme or port.
+ * @property {string} port Port text, or empty to use the scheme's default.
+ */
+/**
+ * One choice in the timezone picker, as supplied by tzdata.json.
+ * @typedef {Object} TimezoneEntry
+ * @property {string} name Display name, e.g. Europe/Amsterdam.
+ * @property {string} value POSIX/libc timezone rule used by the firmware.
+ */
+/**
+ * Shared metadata used to build a high, low, or urgent-low alarm card.
+ * @typedef {Object} AlarmDescriptor
+ * @property {'high' | 'low' | 'urgent_low'} t Alarm key suffix.
+ * @property {string} name Display name.
+ * @property {string} compare Label describing the threshold comparison.
+ * @property {string} defaultMelody Default RTTTL sound.
+ */
 
 // IDs must match the registration order in BGDisplayManager::setup().
 const FACES = [
@@ -60,7 +120,11 @@ const MELODY_PRESETS = [
     ["Long tone", "longtone:d=1,o=5,b=90:a"],
 ]
 
-// Brightness: 1-10 manual, 100 "Auto: balanced", 101 "Auto: for darker rooms".
+/**
+ * Translate firmware brightness levels into UI modes: 100/101 are automatic; other levels are manual.
+ * @param {number} level - Firmware brightness level: manual 1–10, automatic 100 or 101.
+ * @returns {'auto_dimmed' | 'auto_linear' | 'manual'}
+ */
 const brightnessMode = level => (level === 101 ? "auto_dimmed" : level === 100 ? "auto_linear" : "manual")
 
 const SOURCE_STATUS_TEXT = {
@@ -72,24 +136,51 @@ const SOURCE_STATUS_TEXT = {
     deserialization_error: "Unreadable data",
 }
 
-// ---------- units ----------
-// Every glucose number is stored in mg/dl; mmol/l is shown with one decimal.
+/**
+ * ---------- units ----------
+ * Format stored mg/dl values in the selected units, rounding mmol/l to one decimal place.
+ * Keep unfinished input visible instead of replacing it with a number.
+ * @param {number | string | null | undefined} mgdl - Stored value or unfinished input.
+ * @param {GlucoseUnits} units - Units selected for display.
+ * @returns {string}
+ */
 const mgdlToText = (mgdl, units) => {
     if (mgdl === "" || mgdl == null || !isFinite(Number(mgdl))) return mgdl == null ? "" : String(mgdl)
     return units === "mmol" ? (Math.round(Number(mgdl) / 1.8) / 10).toFixed(1) : String(Math.round(Number(mgdl)))
 }
+/**
+ * Parse input in the selected glucose units into integer mg/dl; return NaN for unsupported formats.
+ * @param {string} text - User-entered glucose value.
+ * @param {GlucoseUnits} units - Units used by the input.
+ * @returns {number} Integer mg/dl, or NaN for invalid input.
+ */
 function textToMgdl(text, units) {
     const s = String(text).trim()
     if (units === "mmol") return /^\d{1,2}(\.\d)?$/.test(s) ? Math.round(parseFloat(s) * 18) : NaN
     return /^\d{1,3}$/.test(s) ? parseInt(s, 10) : NaN
 }
+/**
+ * Convert the stored units code into the human-readable label displayed beside glucose values.
+ * @param {GlucoseUnits} units - Stored units code.
+ * @returns {string}
+ */
 const unitLabel = units => (units === "mmol" ? "mmol/l" : "mg/dl")
 
-// ---------- Nightscout address ----------
+/**
+ * ---------- Nightscout address ----------
+ * Extract protocol, hostname, and port for separate input controls; use empty HTTPS defaults if unmatched.
+ * @param {string} url - Saved or pasted Nightscout address.
+ * @returns {NightscoutAddress}
+ */
 function parseNightscoutUrl(url) {
     const m = /^(https?):\/\/([^:/?#]*)(?::([^/?#]*))?/i.exec(String(url || "").trim())
     return m ? { protocol: m[1].toLowerCase(), host: m[2], port: m[3] || "" } : { protocol: "https", host: "", port: "" }
 }
+/**
+ * Combine the URL controls into a trimmed Nightscout address with an optional port and trailing slash.
+ * @param {NightscoutAddress} address - Protocol, hostname, and optional port.
+ * @returns {string}
+ */
 const buildNightscoutUrl = ({ protocol, host, port }) => `${protocol}://${host.trim()}${String(port).trim() ? ":" + String(port).trim() : ""}/`
 
 // ---------- checks ----------
@@ -108,12 +199,39 @@ const RX = {
     noDataMinutes: /^(?:[6-9]|[1-5][0-9]|60)$/,
     webPassword: /^.{8,64}$/,
 }
+/**
+ * Check that a time uses 24-hour HH:MM format with valid hour and minute ranges.
+ * @param {string} s - Time to validate as HH:MM.
+ * @returns {boolean}
+ */
 const isTime = s => /^([01][0-9]|2[0-3]):[0-5][0-9]$/.test(s)
+/**
+ * Check that a value is an integer number rather than numeric text or a fractional value.
+ * @param {unknown} v - Value to check without coercion.
+ * @returns {boolean}
+ */
 const isInt = v => Number.isInteger(v)
+/**
+ * Check option membership by comparing string values, allowing numeric and string IDs to match.
+ * @param {string | number} v - Value to find.
+ * @param {SelectOption[]} options - Available value/label pairs.
+ * @returns {boolean}
+ */
 const inOptions = (v, options) => options.some(o => String(o[0]) === String(v))
-// A glucose value as typed in the selected units.
+/**
+ * Require integer mg/dl storage and check that its displayed value fits the selected units' input range.
+ * @param {number | string} mgdl - Stored value or unfinished input.
+ * @param {GlucoseUnits} units - Units whose displayed range must be valid.
+ * @returns {boolean}
+ */
 const isGlucose = (mgdl, units) => isInt(mgdl) && (units === "mmol" ? RX.bgMmol : RX.bgMgdl).test(mgdlToText(mgdl, units))
 
+/**
+ * Check the melody's name, default duration/octave/tempo fields, and allowed note characters.
+ * This is a basic RTTTL format check, not a full music parser.
+ * @param {string} text - RTTTL melody to validate.
+ * @returns {boolean}
+ */
 function isValidRtttl(text) {
     const parts = String(text || "").trim().split(":")
     if (parts.length !== 3) return false
@@ -123,11 +241,29 @@ function isValidRtttl(text) {
         /^[a-grpA-GRP0-9#.,]+$/.test(notes.trim())
 }
 
-// Returns {key: message}. ctx: {openNetwork, tzNames}
+/**
+ * Return errors keyed by setting, validating the selected source and enabled features.
+ * Use page context for open WiFi and available timezone choices.
+ * @param {ClockConfig} c - Editable settings to validate.
+ * @param {FormContext} ctx - Page-only WiFi and timezone context.
+ * @returns {ValidationErrors}
+ */
 function validateConfig(c, ctx) {
     const e = {}
     const units = c.units
+    /**
+     * Record the first failed check for a field, preserving the most useful error if later checks also fail.
+     * @param {string} key - Setting whose error is recorded.
+     * @param {boolean} ok - Whether this validation check passed.
+     * @param {string} message - Error to record if the check failed.
+     * @returns {void}
+     */
     const need = (key, ok, message) => { if (!ok && !e[key]) e[key] = message }
+    /**
+     * Convert a value to text for validation, treating null or missing values as empty input.
+     * @param {unknown} v - Value to convert; missing values become empty strings.
+     * @returns {string}
+     */
     const text = v => (v == null ? "" : String(v))
 
     // WiFi
@@ -200,7 +336,12 @@ function validateConfig(c, ctx) {
     return e
 }
 
-// The config exactly as it will be posted. Keys this page doesn't know pass through untouched.
+/**
+ * Copy the draft, derive its brightness mode, and omit incomplete alert windows before saving.
+ * Preserve other settings, including keys not edited by this page.
+ * @param {ClockConfig} c - Configuration to copy and normalize.
+ * @returns {ClockConfig}
+ */
 function buildSaveJson(c) {
     const out = clone(c)
     out.brightness_mode = brightnessMode(out.brightness_level)
@@ -212,11 +353,20 @@ function buildSaveJson(c) {
     return out
 }
 
-// Loaded config -> the form's working copy: numbers as numbers, stored values the firmware would refuse
-// replaced by the page's defaults.
+/**
+ * Copy incoming settings, convert numeric strings, initialize absent schedules, and normalize cycle options.
+ * Supply supported interval defaults and remove duplicate or unknown cycling face IDs.
+ * @param {ClockConfig} c - Configuration to copy and normalize.
+ * @returns {ClockConfig}
+ */
 function normalizeLoaded(c) {
     const out = clone(c)
     out.face_schedule ??= []
+    /**
+     * Convert one integer-string setting to a number in the copied configuration, leaving other values alone.
+     * @param {string} k - Key to convert within the copied configuration.
+     * @returns {void}
+     */
     const num = k => {
         if (typeof out[k] === "string" && /^-?\d+$/.test(out[k].trim())) out[k] = parseInt(out[k], 10)
     }
@@ -230,7 +380,11 @@ function normalizeLoaded(c) {
     return out
 }
 
-// Which tab a validation key lives on.
+/**
+ * Map a setting key to its tab so dirty badges and validation navigation point to the right section.
+ * @param {string} key - Setting or validation key to locate.
+ * @returns {SettingsTab}
+ */
 function tabOfKey(key) {
     if (/^(ssid|password|additional_|custom_hostname|web_auth)/.test(key)) return "system"
     if (/^alarm_/.test(key)) return "alarms"
@@ -238,7 +392,12 @@ function tabOfKey(key) {
     return "display"
 }
 
-// SHA-1 for Nightscout's api-secret header; crypto.subtle needs HTTPS and the clock serves plain HTTP.
+/**
+ * Hash a UTF-8 string into SHA-1 hex for Nightscout's api-secret header.
+ * Implement SHA-1 locally because crypto.subtle is unavailable on the clock's plain HTTP page.
+ * @param {string} text - API secret to hash as UTF-8.
+ * @returns {string}
+ */
 function sha1Hex(text) {
     const bytes = new TextEncoder().encode(text)
     const words = []
@@ -247,6 +406,12 @@ function sha1Hex(text) {
     words[bitLen >> 5] |= 0x80 << (24 - (bitLen % 32))
     words[(((bitLen + 64) >> 9) << 4) + 15] = bitLen
     let [a, b, c, d, e] = [0x67452301, 0xefcdab89, 0x98badcfe, 0x10325476, 0xc3d2e1f0]
+    /**
+     * Rotate a 32-bit word left, wrapping shifted bits around for the SHA-1 rounds.
+     * @param {number} n - 32-bit word to rotate.
+     * @param {number} s - Number of bit positions.
+     * @returns {number}
+     */
     const rol = (n, s) => (n << s) | (n >>> (32 - s))
     for (let i = 0; i < words.length; i += 16) {
         const w = []

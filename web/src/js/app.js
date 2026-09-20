@@ -1,14 +1,33 @@
-// Page start-up, the header, login, and Save.
+// Start the settings page and connect API responses, form changes, and DOM updates.
+// Own the header, authentication screens, save/restart flow, and firmware update check.
 
+/**
+ * Set the page lifecycle state on the body so styling and event handlers can distinguish loading or locked UI.
+ * @param {string} state - Page state such as loading, ready, locked, or error.
+ * @returns {void}
+ */
 function setState(state) { document.body.dataset.state = state }
 
-// ---------- header ----------
+/**
+ * ---------- header ----------
+ * Update a header status badge by changing its dot class and displayed value.
+ * @param {string} id - Status badge element ID.
+ * @param {string} dot - Dot color class, or empty for neutral.
+ * @param {string} value - Text shown in the badge.
+ * @returns {void}
+ */
 function pill(id, dot, value) {
     const p = $(`#${id}`)
     $(".dot", p).className = `dot ${dot}`
     $("b", p).textContent = value
 }
 
+/**
+ * Store the latest clock status and refresh connection, source, and glucose badges.
+ * Notify dependent controls when the clock first reports LibreLinkUp as its active source.
+ * @param {ClockStatus} s - Latest status response from the clock.
+ * @returns {void}
+ */
 function renderStatus(s) {
     const wasLlu = ui.status && ui.status.bgSource === "LIBRELINKUP"
     ui.status = s
@@ -23,12 +42,20 @@ function renderStatus(s) {
     if (s.bgSource === "LIBRELINKUP" && !wasLlu) form.setCtx("status", s.bgSource)
 }
 
+/**
+ * Replace stale header statuses with Unknown and mark the clock as not answering.
+ * @returns {void}
+ */
 function renderStatusError() {
     ["pill_wifi", "pill_internet", "pill_source", "pill_reading"].forEach(id => pill(id, "", "Unknown"))
     $("#clock_sub").textContent = `${location.host} · not answering`
 }
 
-// ---------- save ----------
+/**
+ * ---------- save ----------
+ * Count differences from the saved configuration, update the save bar, and mark tabs containing edits.
+ * @returns {void}
+ */
 function renderDirty() {
     const changes = form.changes()
     const n = changes.length
@@ -42,6 +69,12 @@ function renderDirty() {
     })
 }
 
+/**
+ * Show a blocking progress overlay with a title and message, or hide it when no title is supplied.
+ * @param {string | null} title - Heading, or null to dismiss the overlay.
+ * @param {string} [text] - Optional progress message.
+ * @returns {void}
+ */
 function overlay(title, text) {
     $("#overlay").hidden = !title
     if (!title) return
@@ -49,6 +82,11 @@ function overlay(title, text) {
     $("#overlay_text").textContent = text || ""
 }
 
+/**
+ * Validate the form and focus the first error; otherwise save through the API with progress feedback.
+ * Handle setup-network changes, expired login, and reloading settings after a restart.
+ * @returns {Promise<void>}
+ */
 async function save() {
     form.showAllErrors()
     applyErrors()
@@ -88,6 +126,11 @@ async function save() {
     overlay(null)
 }
 
+/**
+ * Check authentication after restart, then reload the saved settings and rebuild the controls.
+ * Show the login screen or a warning if the new configuration cannot be read.
+ * @returns {Promise<void>}
+ */
 async function reloadAfterSave() {
     const auth = await api.authStatus().catch(() => null)
     if (auth && auth.ok && auth.data.enabled && !auth.data.authenticated) {
@@ -102,7 +145,12 @@ async function reloadAfterSave() {
     toast("Saved. The clock restarted with the new settings.")
 }
 
-// ---------- login ----------
+/**
+ * ---------- login ----------
+ * Hide settings and show the password screen with a fresh password field, preserving the draft in memory.
+ * @param {string} [message] - Explanation to show above the login form.
+ * @returns {void}
+ */
 function showLock(message) {
     setState("locked")
     for (const id of ["#app", "#savebar", "#loading_screen"]) $(id).hidden = true
@@ -111,6 +159,12 @@ function showLock(message) {
     $("#lock_password").value = ""
 }
 
+/**
+ * Submit the login form without navigation and disable repeat submissions while waiting.
+ * On success, reveal the existing draft or load settings for the first time.
+ * @param {SubmitEvent} e - Login form submission to intercept.
+ * @returns {Promise<void>}
+ */
 async function unlock(e) {
     e.preventDefault()
     const pw = $("#lock_password").value
@@ -133,12 +187,20 @@ async function unlock(e) {
     }
 }
 
+/**
+ * End the browser session and reload the page so its normal startup authentication check runs again.
+ * @returns {Promise<void>}
+ */
 async function lock() {
     try { await api.logout() } catch (e) { /* the clock may be restarting */ }
     location.reload()
 }
 
-// ---------- start ----------
+/**
+ * ---------- start ----------
+ * Mark the page ready and reveal the settings and save bar while hiding loading and login screens.
+ * @returns {void}
+ */
 function showApp() {
     setState("ready")
     $("#loading_screen").hidden = true
@@ -147,6 +209,11 @@ function showApp() {
     $("#savebar").hidden = false
 }
 
+/**
+ * Fetch configuration, initialize the form, build the tabs, and restore the selected tab.
+ * Once settings are visible, load timezone choices and check firmware versions.
+ * @returns {Promise<void>}
+ */
 async function loadSettings() {
     setState("loading")
     const r = await api.loadConfig().catch(e => ({ ok: false, error: e }))
@@ -169,6 +236,11 @@ async function loadSettings() {
     loadVersions()
 }
 
+/**
+ * Load timezone choices and synchronize the selected zone's firmware rule or suggest the browser's zone.
+ * If loading fails, retain the current zone for validation and notify the timezone picker.
+ * @returns {Promise<void>}
+ */
 async function loadTimezones() {
     try {
         const list = await api.timezones()
@@ -191,14 +263,23 @@ async function loadTimezones() {
     form.setCtx("tzNames", ui.timezoneNames)
 }
 
+/**
+ * Compare dotted numeric versions component by component, treating missing parts as zero.
+ * @param {string} a - First dotted numeric version.
+ * @param {string} b - Version to compare against.
+ * @returns {number} Negative if a is older, zero if equal, positive if newer.
+ */
 function compareVersions(a, b) {
     const pa = String(a).split(".").map(Number), pb = String(b).split(".").map(Number)
     for (let i = 0; i < Math.max(pa.length, pb.length); i++) if ((pa[i] || 0) !== (pb[i] || 0)) return (pa[i] || 0) - (pb[i] || 0)
     return 0
 }
 
-// The latest version comes from GitHub when this browser has internet; without it (setup mode) the check
-// gives up after a few seconds and says so.
+/**
+ * Read the clock's version and fetch the latest version from GitHub with a five-second timeout.
+ * Compare them and update the version labels and update link or status message.
+ * @returns {Promise<void>}
+ */
 async function loadVersions() {
     const v = ui.versions
     v.current = (await api.version().catch(() => "")).trim()
@@ -214,6 +295,12 @@ async function loadVersions() {
     }
     v.update = !!(v.latest && v.current && compareVersions(v.current, v.latest) < 0)
     v.status = !v.current ? "Could not read the current version." : !v.latest ? "Could not check for updates." : v.update ? "" : "You are using the latest version."
+    /**
+     * Update a version label if its element currently exists in the page.
+     * @param {string} id - Selector of the version label.
+     * @param {string} text - Replacement label text.
+     * @returns {void}
+     */
     const set = (id, text) => { const n = $(id); if (n) n.textContent = text }
     set("#fw_current", v.current || "unknown")
     set("#fw_latest", v.latest || "unknown")
@@ -221,8 +308,14 @@ async function loadVersions() {
     if (status) status.replaceChildren(...versionStatusNodes())
 }
 
+/**
+ * Connect navigation, form, authentication, and API events, then check login and load settings.
+ * Start status polling after initialization, including on the locked screen.
+ * @returns {Promise<void>}
+ */
 async function start() {
     $$("[data-tab]").forEach(b => b.addEventListener("click", () => {
+        // Select the clicked tab and bring its first controls into view.
         showTab(b.dataset.tab)
         window.scrollTo({ top: 0 })
     }))
@@ -241,6 +334,7 @@ async function start() {
     api.on("status", renderStatus)
     api.on("status-error", renderStatusError)
     api.on("locked", () => { if (document.body.dataset.state === "ready") showLock("Your login expired. Unlock to continue; your changes are still here.") })
+    // Ask the browser to warn before navigation if leaving would discard unsaved edits.
     window.addEventListener("beforeunload", e => { if (form.loaded && form.changes().length && document.body.dataset.state === "ready") { e.preventDefault(); e.returnValue = "" } })
 
     // Status can take seconds while the clock checks the internet, so it starts after the settings. It needs

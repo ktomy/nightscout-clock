@@ -20,13 +20,22 @@ const JS = ["util.js", "api.js", "schema.js", "form.js", "cards.js", "app.js"];
 // Gzipped page budget. The whole LittleFS partition is 1 MB.
 const BUDGET_BYTES = 40000;
 
+/**
+ * Compress an asset at maximum gzip compression and normalize the OS header byte for consistent output.
+ * @param {Uint8Array} buf - Uncompressed asset bytes.
+ * @returns {Buffer}
+ */
 function gzip(buf) {
     const out = zlib.gzipSync(buf, { level: 9 });
     out[9] = 255; // "unknown OS" header byte, so every platform builds the same bytes
     return out;
 }
 
-// LF only, so a CRLF checkout builds the same bytes.
+/**
+ * Read UTF-8 source with normalized line endings so CRLF and LF checkouts produce the same assets.
+ * @param {string} file - Source file path.
+ * @returns {string}
+ */
 const read = file => fs.readFileSync(file, "utf8").replace(/\r\n/g, "\n");
 
 const css = read(path.join(SRC, "app.css"));
