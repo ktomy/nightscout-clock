@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="dark">
+<link rel="icon" href="data:,">
 <title>Nightscout clock</title>
 <style>/*__CSS__*/</style>
 </head>
@@ -24,10 +25,12 @@
       <span class="pill" id="pill_source"><i class="dot"></i>Source <b>…</b></span>
       <span class="pill" id="pill_reading"><i class="dot"></i>Reading <b>…</b></span>
     </div>
-    <button class="btn sm" id="lock_btn" type="button" data-icon="lock" hidden>Lock</button>
+    <div class="actions">
+      <button class="btn sm" id="lock_btn" type="button" data-icon="lock" hidden><span class="btn-text">Lock</span></button>
+    </div>
   </div>
   <nav class="tabs" role="tablist" aria-label="Settings">
-    <button class="tab" role="tab" type="button" data-tab="display" aria-selected="true">Display</button>
+    <button class="tab" role="tab" type="button" data-tab="display" aria-selected="true">Display &amp; faces</button>
     <button class="tab" role="tab" type="button" data-tab="glucose" aria-selected="false">Glucose</button>
     <button class="tab" role="tab" type="button" data-tab="alarms" aria-selected="false">Alarms</button>
     <button class="tab" role="tab" type="button" data-tab="system" aria-selected="false">WiFi &amp; system</button>
@@ -35,15 +38,15 @@
 </header>
 
 <div class="wrap" id="loading_screen">
-  <div class="card center">
+  <div class="card error-screen" style="grid-column: 1 / -1">
     <div class="spinner"></div>
-    <p class="muted" id="loading_text">Loading settings from the clock…</p>
-    <button class="btn" id="loading_retry" type="button" hidden>Try again</button>
+    <p class="muted" id="loading_text" style="text-align:center;margin-top:12px">Loading settings from the clock…</p>
+    <p style="text-align:center;margin-top:12px"><button class="btn" id="loading_retry" type="button" hidden>Try again</button></p>
   </div>
 </div>
 
-<div class="wrap" id="lock_screen" hidden>
-  <form class="card lock" id="lock_form">
+<div id="lock_screen" class="lock" hidden>
+  <form class="card" id="lock_form">
     <h2>Settings are locked</h2>
     <p class="muted" id="lock_message"></p>
     <div class="field">
@@ -54,22 +57,93 @@
   </form>
 </div>
 
-<main class="wrap" id="app" hidden>
-  <section id="tab_display" role="tabpanel" aria-label="Display"></section>
-  <section id="tab_glucose" role="tabpanel" aria-label="Glucose" hidden></section>
-  <section id="tab_alarms" role="tabpanel" aria-label="Alarms" hidden></section>
-  <section id="tab_system" role="tabpanel" aria-label="WiFi and system" hidden></section>
-</main>
+<div class="wrap" id="app" hidden>
+  <aside class="sim-col">
+    <section class="card sim" aria-label="Clock preview">
+      <div class="sim-head">
+        <span class="sim-title">Clock preview</span>
+        <span class="tag" id="sim_face">–</span>
+      </div>
+      <div class="bezel"><canvas id="sim_canvas" width="384" height="96" role="img" aria-label="The clock's 32 by 8 LED panel"></canvas></div>
+      <div class="sim-meta"><span>32×8 LEDs · <b id="sim_brightness">–</b></span><span id="sim_note">loading the firmware…</span></div>
+      <div class="notice warn sim-warn" id="sim_warn" hidden></div>
+      <div class="sim-buttons">
+        <button class="btn sm" id="sim_left" type="button" title="Left button">◀ Left</button>
+        <button class="btn sm" id="sim_select" type="button" title="Middle button: snoozes an alarm">Select</button>
+        <button class="btn sm" id="sim_right" type="button" title="Right button">Right ▶</button>
+        <button class="btn sm ghost" id="sim_left_hold" type="button" title="Long press left: dimmer (manual brightness)">Hold ◀</button>
+        <button class="btn sm ghost" id="sim_select_double" type="button" title="Double click the middle button: display off / on">Select ×2</button>
+        <button class="btn sm ghost" id="sim_right_hold" type="button" title="Long press right: brighter (manual brightness)">Hold ▶</button>
+      </div>
+      <details class="sim-controls" open>
+        <summary>Try a reading</summary>
+        <!-- Label on its own line (value on the right), control full width below: nothing competes for one row. -->
+        <div class="sim-field">
+          <div class="sim-label"><label for="sim_bg">Glucose</label><output id="sim_bg_out">118</output></div>
+          <div class="sim-slider">
+            <input type="range" id="sim_bg" min="40" max="400" value="118">
+            <div class="sim-bands" id="sim_bg_bands" aria-hidden="true"></div>
+          </div>
+          <div class="trend-picker" id="sim_trends" role="group" aria-label="Trend"></div>
+        </div>
+        <div class="sim-field">
+          <div class="sim-label"><label for="sim_age">Reading</label></div>
+          <select id="sim_age">
+            <option value="1">Fresh (1 min)</option>
+            <option value="6">One reading missed (6 min)</option>
+            <option value="stale">Past the no-data time</option>
+            <option value="none">No readings</option>
+          </select>
+          <p class="help" id="sim_age_help"></p>
+        </div>
+        <div class="sim-field">
+          <div class="sim-label"><label for="sim_time_mode">Clock time</label><output id="sim_time_out"></output></div>
+          <div class="sim-time">
+            <select id="sim_time_mode">
+              <option value="now">Now</option>
+              <option value="set">Set</option>
+            </select>
+            <input type="time" id="sim_time" value="21:55" step="60" hidden aria-label="Set the clock time">
+          </div>
+          <div id="sim_speed_row" hidden>
+            <div class="seg sim-speed" id="sim_speed" role="group" aria-label="Clock speed">
+              <button type="button" data-speed="0" aria-pressed="true">Paused</button>
+              <button type="button" data-speed="1" aria-pressed="false">1×</button>
+              <button type="button" data-speed="60" aria-pressed="false">60×</button>
+              <button type="button" data-speed="600" aria-pressed="false">600×</button>
+            </div>
+          </div>
+        </div>
+        <div class="sim-field" id="sim_lux_row" hidden>
+          <div class="sim-label"><label for="sim_lux">Room light</label><output id="sim_lux_out"></output></div>
+          <input type="range" id="sim_lux" min="0" max="100" value="65">
+        </div>
+        <div class="row">
+          <label class="check"><input type="checkbox" id="sim_live"> Animate</label>
+          <label class="check"><input type="checkbox" id="sim_sound"> Sound</label>
+        </div>
+      </details>
+      <p class="help" style="margin-top:10px">Drawn by the clock's own firmware code running in this browser, with the settings on this page, unsaved changes included.</p>
+    </section>
+  </aside>
+
+  <main>
+    <section id="tab_display" role="tabpanel" aria-label="Display and faces"></section>
+    <section id="tab_glucose" role="tabpanel" aria-label="Glucose" hidden></section>
+    <section id="tab_alarms" role="tabpanel" aria-label="Alarms" hidden></section>
+    <section id="tab_system" role="tabpanel" aria-label="WiFi and system" hidden></section>
+  </main>
+</div>
 
 <div class="savebar" id="savebar" hidden>
   <span class="small" id="dirty_text">No unsaved changes</span>
-  <button class="btn ghost" id="discard" type="button" hidden>Discard</button>
+  <button class="btn ghost sm" id="discard" type="button" hidden>Discard</button>
   <button class="btn primary" id="save" type="button" data-icon="save">Save and restart</button>
 </div>
 
 <div class="bottom">
   <nav role="tablist" aria-label="Settings">
-    <button type="button" data-tab="display" data-icon="grid" aria-selected="true">Display</button>
+    <button type="button" data-tab="display" data-icon="grid" aria-selected="true">Faces</button>
     <button type="button" data-tab="glucose" data-icon="drop" aria-selected="false">Glucose</button>
     <button type="button" data-tab="alarms" data-icon="bell" aria-selected="false">Alarms</button>
     <button type="button" data-tab="system" data-icon="chip" aria-selected="false">System</button>
@@ -78,7 +152,7 @@
 
 <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
 <div id="overlay" class="overlay" hidden>
-  <div class="card center" role="alertdialog" aria-live="assertive">
+  <div class="card" role="alertdialog" aria-live="assertive">
     <div class="spinner"></div>
     <h2 id="overlay_title">Saving</h2>
     <p class="muted" id="overlay_text"></p>

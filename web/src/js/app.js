@@ -1,3 +1,6 @@
+// Page start-up, the header, the preview column, login, and Save.
+
+let factoryText = ""
 // Start the settings page and connect API responses, form changes, and DOM updates.
 // Own the header, authentication screens, save/restart flow, and firmware update check.
 
@@ -8,6 +11,14 @@
  */
 function setState(state) { document.body.dataset.state = state }
 
+// A setting missing from the clock's file takes the factory value, as the firmware does when it loads the file.
+function withFactoryDefaults(config) {
+    let factory = {}
+    try { factory = JSON.parse(factoryText) } catch (e) { /* no factory file */ }
+    return { ...factory, ...config }
+}
+
+// ---------- header ----------
 /**
  * ---------- header ----------
  * Update a header status badge by changing its dot class and displayed value.
@@ -31,14 +42,15 @@ function pill(id, dot, value) {
 function renderStatus(s) {
     const wasLlu = ui.status && ui.status.bgSource === "LIBRELINKUP"
     ui.status = s
-    pill("pill_wifi", s.isInAPMode ? "warn" : s.isConnected ? "ok" : "bad", s.isInAPMode ? "Initial mode" : s.isConnected ? "Connected" : "Not connected")
+    pill("pill_wifi", s.isInAPMode ? "warn" : s.isConnected ? "ok" : "bad", s.isInAPMode ? "Setup mode" : s.isConnected ? "Connected" : "Not connected")
     pill("pill_internet", s.hasInternet ? "ok" : "bad", s.hasInternet ? "Yes" : "No")
     const st = s.bgSourceStatus
-    const text = st === "connected" ? "Connected" : st === "initialized" ? (s.isInAPMode ? "Initial mode" : "Connecting") : `Error: ${SOURCE_STATUS_TEXT[st] || st || "unknown"}`
+    const text = st === "connected" ? "Connected" : st === "initialized" ? (s.isInAPMode ? "Setup mode" : "Connecting") : `Error: ${SOURCE_STATUS_TEXT[st] || st || "unknown"}`
     pill("pill_source", st === "connected" ? "ok" : st === "initialized" ? "warn" : "bad", text)
+    $("#pill_source").title = st ? `Clock status: ${st}` : ""
     const units = form.get("units")
     pill("pill_reading", s.sgv ? "info" : "", s.sgv ? `${mgdlToText(s.sgv, units)} ${unitLabel(units)}` : "–")
-    $("#clock_sub").textContent = `${ui.versions.current ? "v" + ui.versions.current + " · " : ""}${location.host}`
+    $("#clock_sub").textContent = `${ui.versions.current ? "v" + ui.versions.current + " · " : ""}${location.host} · online`
     if (s.bgSource === "LIBRELINKUP" && !wasLlu) form.setCtx("status", s.bgSource)
 }
 
@@ -59,7 +71,7 @@ function renderStatusError() {
 function renderDirty() {
     const changes = form.changes()
     const n = changes.length
-    $("#dirty_text").textContent = n ? `${n} unsaved change${n > 1 ? "s" : ""}` : "No unsaved changes"
+    $("#dirty_text").textContent = n ? `${n} unsaved change${n > 1 ? "s" : ""} · the clock will restart` : "No unsaved changes"
     $("#discard").hidden = !n
     $$("[data-tab]").forEach(b => {
         const dirty = changes.some(k => tabOfKey(k) === b.dataset.tab)
@@ -94,9 +106,10 @@ async function save() {
     if (keys.length) {
         const first = keys[0]
         showTab(tabOfKey(first))
+        await nextFrame()
         const box = $(`#tab_${tabOfKey(first)} [data-field="${first}"]`)
         if (box) {
-            box.scrollIntoView({ block: "center" })
+            box.scrollIntoView({ block: "center", behavior: "smooth" })
             const control = $("input,select,button", box)
             if (control) control.focus({ preventScroll: true })
         }
@@ -105,7 +118,7 @@ async function save() {
     }
     const phases = {
         saving: ["Saving", "Sending the settings to the clock…"],
-        restarting: ["Restarting", "The clock is restarting to apply the changes."],
+        restarting: ["Restarting", "The clock is restarting to use the new settings."],
     }
     const result = await api.saveSettings(form.saveJson(), {
         setupMode: !!(ui.status && ui.status.isInAPMode),
@@ -139,9 +152,10 @@ async function reloadAfterSave() {
     }
     const r = await api.loadConfig().catch(() => null)
     if (!(r && r.ok)) return toast("Saved and restarted, but the settings couldn't be read back. Reload the page.", "warn", 8000)
-    form.load(r.data)
+    form.load(withFactoryDefaults(r.data))
     ui.patients = null
     renderAll()
+    preview.setConfig(form.saveJson())
     toast("Saved. The clock restarted with the new settings.")
 }
 
@@ -155,8 +169,9 @@ function showLock(message) {
     setState("locked")
     for (const id of ["#app", "#savebar", "#loading_screen"]) $(id).hidden = true
     $("#lock_screen").hidden = false
-    $("#lock_message").textContent = message || "Authentication is enabled. Log in to change settings."
+    $("#lock_message").textContent = message || "Settings are locked. Enter the web password to change them."
     $("#lock_password").value = ""
+    $("#lock_password").focus()
 }
 
 /**
@@ -168,7 +183,7 @@ function showLock(message) {
 async function unlock(e) {
     e.preventDefault()
     const pw = $("#lock_password").value
-    if (!pw) { $("#lock_message").textContent = "Password is required to unlock."; return }
+    if (!pw) { $("#lock_message").textContent = "Enter the web password."; return }
     $("#lock_submit").disabled = true
     try {
         const r = await api.login(pw)
@@ -178,7 +193,7 @@ async function unlock(e) {
             if (form.loaded) showApp()
             else await loadSettings()
         } else {
-            $("#lock_message").textContent = "Invalid credentials."
+            $("#lock_message").textContent = r.status === 401 ? "That password isn't right." : "The clock didn't accept the login."
         }
     } catch (err) {
         $("#lock_message").textContent = err.message
@@ -196,6 +211,125 @@ async function lock() {
     location.reload()
 }
 
+// ---------- preview column ----------
+function wirePreview() {
+    const bg = $("#sim_bg"), bgOut = $("#sim_bg_out"), age = $("#sim_age"), lux = $("#sim_lux"), luxOut = $("#sim_lux_out")
+    const trends = $("#sim_trends")
+    const ARROWS = [[1, "⇈", "Rising fast"], [2, "↑", "Rising"], [3, "↗", "Rising slowly"], [4, "→", "Steady"], [5, "↘", "Falling slowly"], [6, "↓", "Falling"], [7, "⇊", "Falling fast"]]
+    let trend = 4
+    trends.replaceChildren(...ARROWS.map(([v, a, label]) => el("button", {
+        type: "button", "aria-pressed": String(v === trend), "aria-label": label, title: label,
+        onclick: () => { trend = v; $$("button", trends).forEach((b, i) => b.setAttribute("aria-pressed", String(ARROWS[i][0] === v))); push() },
+    }, a)))
+    const luxValue = () => Math.round(Math.pow(10, Number(lux.value) / 25 - 1) * 10) / 10
+    const labelAges = () => {
+        const n = noDataMinutes(form.saveJson())
+        age.querySelector('option[value="stale"]').textContent = `Past the no-data time (${n + 1} min)`
+        $("#sim_age_help").textContent = `Readings are 5 minutes apart. The age bars fill up to 5 minutes; the old-data color appears after ${n} minutes (the no-data time).`
+    }
+    const push = () => {
+        const minutes = age.value === "stale" ? noDataMinutes(form.saveJson()) + 1 : age.value === "none" ? 1 : Number(age.value)
+        bgOut.textContent = mgdlToText(Number(bg.value), form.get("units"))
+        const history = age.value === "none" ? "none" : trend < 4 ? "rising" : trend > 4 ? "falling" : "steady"
+        preview.setScenario({ bg: Number(bg.value), trend, age: minutes, history })
+    }
+    bg.addEventListener("input", push)
+    age.addEventListener("change", push)
+    lux.addEventListener("input", () => { luxOut.textContent = `${luxValue()} lx`; preview.setLux(luxValue()) })
+    luxOut.textContent = `${luxValue()} lx`
+    const buttons = { sim_left: "LEFT", sim_select: "SELECT", sim_right: "RIGHT", sim_left_hold: "LEFT_HOLD", sim_right_hold: "RIGHT_HOLD", sim_select_double: "SELECT_DOUBLE" }
+    for (const [id, button] of Object.entries(buttons)) $(`#${id}`).addEventListener("click", () => preview.press(button))
+
+    // A strip in the range colors under the glucose slider, so you can see where the limits fall.
+    const drawBands = () => {
+        const min = 40, max = 400
+        const lim = LIMIT_KEYS.map(k => form.get(k))
+        if (!lim.every(isInt) || !lim.every((v, i) => i === 0 || lim[i - 1] < v)) return $("#sim_bg_bands").replaceChildren()
+        const edges = [min, ...lim.map(v => Math.min(max, Math.max(min, v))), max]
+        $("#sim_bg_bands").replaceChildren(...BANDS.map((b, i) => el("i", {
+            title: b.name,
+            style: `width:${((edges[i + 1] - edges[i]) / (max - min)) * 100}%;background:${COLOR_HEX[b.color]}`,
+        })))
+    }
+    form.on("load", drawBands)
+    form.on("change", k => { if (LIMIT_KEYS.includes(k)) drawBands() })
+    $("#sim_live").addEventListener("change", e => preview.setLive(e.target.checked))
+
+    // Clock time: set a time and run it faster to watch the clock react.
+    const timeMode = $("#sim_time_mode"), timeInput = $("#sim_time"), timeOut = $("#sim_time_out"), speed = $("#sim_speed")
+    // Times are the clock's local time, in the time zone chosen in the settings.
+    const epochFromInput = (hhmm = timeInput.value) => {
+        const [h, m] = (hhmm || "00:00").split(":").map(Number)
+        const now = Math.floor(Date.now() / 1000)
+        const local = new Date((now + preview.tzOffsetAt(now)) * 1000)
+        const guess = Date.UTC(local.getUTCFullYear(), local.getUTCMonth(), local.getUTCDate(), h, m) / 1000
+        return guess - preview.tzOffsetAt(guess)
+    }
+    const fmt = epoch => {
+        const d = new Date((epoch + preview.tzOffsetAt(epoch)) * 1000)
+        const h = d.getUTCHours(), mm = String(d.getUTCMinutes()).padStart(2, "0")
+        return form.get("time_format") === "12" ? `${h % 12 || 12}:${mm} ${h < 12 ? "AM" : "PM"}` : `${String(h).padStart(2, "0")}:${mm}`
+    }
+    const showSetTime = set => {
+        timeInput.disabled = !set
+        timeInput.hidden = !set
+        $("#sim_speed_row").hidden = !set
+    }
+    timeMode.addEventListener("change", () => {
+        const set = timeMode.value === "set"
+        showSetTime(set)
+        preview.setTime(set ? { mode: "set", epoch: epochFromInput() } : { mode: "now" })
+    })
+    timeInput.addEventListener("change", () => preview.setTime({ epoch: epochFromInput() }))
+    const setSpeed = s => {
+        $$("button", speed).forEach(x => x.setAttribute("aria-pressed", String(Number(x.dataset.speed) === s)))
+        preview.setTime({ speed: s })
+        // A running clock needs the firmware's loop running.
+        if (s > 0 && !$("#sim_live").checked) { $("#sim_live").checked = true; preview.setLive(true) }
+    }
+    $$("button", speed).forEach(b => b.addEventListener("click", () => setSpeed(Number(b.dataset.speed))))
+    preview.on("time", epoch => { timeOut.textContent = fmt(epoch) })
+    // Show the clock's time straight away, not only once the clock runs.
+    preview.on("render", () => { if (!$("#sim_live").checked) timeOut.textContent = fmt(preview.clockEpoch()) })
+    $("#sim_sound").addEventListener("change", e => preview.setSound(e.target.checked))
+
+    const warnSeen = []
+    let warnKey = ""
+    preview.on("render", s => {
+        document.body.dataset.preview = "ready"
+        const face = FACES.find(f => f.id === s.face)
+        $("#sim_face").textContent = face ? face.name : `Face ${s.face}`
+        const level = form.get("brightness_level")
+        $("#sim_brightness").textContent = level === 100 ? "auto" : level === 101 ? "auto, darker" : `level ${level}`
+        $("#sim_note").textContent = s.displayOn ? `${s.drawn} LEDs lit` : "display off"
+        // An animated face can lose a channel on a few frames only, so the warning shows the worst of the last
+        // 3 s; otherwise it blinks on and off and moves the page. A new face, brightness or setting starts afresh.
+        const now = Date.now(), key = `${s.face}|${s.brightness}`
+        if (key !== warnKey) { warnKey = key; warnSeen.length = 0 }
+        warnSeen.push({ t: now, lost: s.lost, partial: s.partial, drawn: s.drawn })
+        while (now - warnSeen[0].t > 3000) warnSeen.shift()
+        const worst = warnSeen.reduce((a, w) => ({
+            lost: Math.max(a.lost, w.lost), partial: Math.max(a.partial, w.partial), drawn: Math.max(a.drawn, w.drawn),
+        }), { lost: 0, partial: 0, drawn: 0 })
+        const warn = $("#sim_warn")
+        warn.hidden = !worst.lost && !worst.partial
+        warn.textContent = worst.lost
+            ? `${worst.lost} of ${worst.drawn} LEDs this face draws get 0 at this brightness: they are invisible on the clock.`
+            : worst.partial ? `${worst.partial} LEDs lose a color channel at this brightness, so the color shifts on the clock.` : ""
+        $("#sim_lux_row").hidden = !(level === 100 || level === 101)
+    })
+    preview.on("error", e => { $("#sim_note").textContent = e.message })
+    form.on("change", key => {
+        warnSeen.length = 0
+        if (key === "units") push()
+        if (key === "tz") preview.setTimeZone(form.get("tz"))
+        // The "past the no-data time" choice follows the timer setting.
+        if (key === "custom_nodatatimer" || key === "custom_nodatatimer_enable") { labelAges(); if (age.value === "stale") push() }
+    })
+    form.on("load", () => { preview.setTimeZone(form.get("tz")); labelAges(); push() })
+}
+
+// ---------- start ----------
 /**
  * ---------- start ----------
  * Mark the page ready and reveal the settings and save bar while hiding loading and login screens.
@@ -223,7 +357,8 @@ async function loadSettings() {
         $("#loading_retry").hidden = false
         return setState("error")
     }
-    form.load(r.data)
+    factoryText = await api.factoryConfig().catch(() => "")
+    form.load(withFactoryDefaults(r.data))
     renderAll()
     renderDirty()
     // First setup (no WiFi yet) starts where the WiFi settings are.
@@ -231,8 +366,11 @@ async function loadSettings() {
     try { const t = sessionStorage.getItem("tab"); if (TABS[t]) ui.tab = t } catch (e) { /* private mode */ }
     showTab(ui.tab)
     showApp()
-    // Background loads, after the form is usable.
-    await loadTimezones()
+
+    // Background loads, one at a time behind the status poll.
+    preview.setConfig(form.saveJson())
+    preview.start($("#sim_canvas")).catch(e => { $("#sim_note").textContent = e.message })
+    loadTimezones()
     loadVersions()
 }
 
@@ -247,7 +385,12 @@ async function loadTimezones() {
         ui.timezones = list
         ui.timezoneNames = new Set(list.map(z => z.name))
         const zone = Intl.DateTimeFormat().resolvedOptions().timeZone
-        if (!form.get("tz") && ui.timezoneNames.has(zone)) {
+        const libc = form.get("tz_libc")
+        if (!form.get("tz") && libc && list.some(z => z.value === libc)) {
+            // The clock has a rule but no zone name: name it, preferring this browser's zone when the rule matches.
+            const match = list.find(z => z.name === zone && z.value === libc) || list.find(z => z.value === libc)
+            form.set("tz", match.name)
+        } else if (!form.get("tz") && ui.timezoneNames.has(zone)) {
             // No zone saved yet: use this browser's (it shows as an unsaved change).
             form.set("tz_libc", list.find(z => z.name === zone).value)
             form.set("tz", zone)
@@ -314,21 +457,42 @@ async function loadVersions() {
  * @returns {Promise<void>}
  */
 async function start() {
+    // On a phone the preview sits above the settings, so a tab tap scrolls to the tab's settings; on a wide
+    // screen the preview is beside them and the page goes back to the top.
+    const narrow = window.matchMedia("(max-width: 980px)")
     $$("[data-tab]").forEach(b => b.addEventListener("click", () => {
         // Select the clicked tab and bring its first controls into view.
         showTab(b.dataset.tab)
-        window.scrollTo({ top: 0 })
+        if (narrow.matches) $("main").scrollIntoView({ block: "start" })
+        else window.scrollTo({ top: 0 })
     }))
+    // A phone opens with the preview's reading controls folded, so the settings start near the top.
+    if (narrow.matches) $(".sim-controls").open = false
+    // Arrow keys move between the top tabs.
+    $(".tabs").addEventListener("keydown", e => {
+        const tabs = $$(".tabs [role=tab]")
+        const i = tabs.indexOf(document.activeElement)
+        if (i < 0) return
+        const next = { ArrowRight: (i + 1) % tabs.length, ArrowLeft: (i - 1 + tabs.length) % tabs.length, Home: 0, End: tabs.length - 1 }[e.key]
+        if (next == null) return
+        e.preventDefault()
+        tabs[next].focus()
+        showTab(tabs[next].dataset.tab)
+    })
     const lockInput = $("#lock_password")
     lockInput.parentNode.insertBefore(passwordGroup(lockInput), null)
     $$("[data-icon]").forEach(n => n.prepend(icon(n.dataset.icon)))
+    wirePreview()
     $("#save").addEventListener("click", save)
-    $("#discard").addEventListener("click", () => { form.discard(); renderAll() })
+    $("#discard").addEventListener("click", () => { form.discard(); renderAll(); preview.setConfig(form.saveJson()) })
     $("#lock_form").addEventListener("submit", unlock)
     $("#lock_btn").addEventListener("click", lock)
     $("#loading_retry").addEventListener("click", () => location.reload())
 
-    form.on("change", renderDirty)
+    form.on("change", key => {
+        renderDirty()
+        if (!key.startsWith("ctx.")) preview.setConfig(form.saveJson())
+    })
     form.on("load", renderDirty)
     form.on("errors", () => applyErrors())
     api.on("status", renderStatus)
@@ -350,5 +514,8 @@ async function start() {
     await loadSettings()
     api.startStatus()
 }
+
+// For the site tests and for poking at the page from the console.
+window.nsclock = { form, api, preview, ui }
 
 start()

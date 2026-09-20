@@ -204,7 +204,7 @@ function reactive(deps, build) {
  */
 function card(title, subtitle, body, { aside, id } = {}) {
     return el("section.card", { id },
-        el("div.card-head", el("h2", title), aside || null, subtitle ? el("p", subtitle) : null),
+        el("div.card-head", el("div", el("h2", title), subtitle ? el("p", subtitle) : null), aside || null),
         body)
 }
 
@@ -246,7 +246,7 @@ function toast(message, kind = "ok", ms = 4500) {
  * @returns {HTMLElement}
  */
 function displayTab() {
-    return el("div.stack", facesCard(), faceScheduleCard(), brightnessCard(), oldDataCard(), timeCard())
+    return el("div.panel-stack", facesCard(), faceScheduleCard(), brightnessCard(), oldDataCard(), timeCard())
 }
 
 /**
@@ -259,14 +259,19 @@ function facesCard() {
     const faces = reactive(["default_face", "face_cycle_enabled", "inactive_faces"], () => {
         const cycling = !!form.get("face_cycle_enabled")
         const inactive = form.get("inactive_faces") || []
+        const thumbs = []
         const list = el("div.faces", { role: "group", "aria-label": "Active clock faces" })
         for (const f of FACES) {
             const on = !inactive.includes(f.id)
             const status = !on ? "Not active" : !cycling && form.get("default_face") === f.id ? "✓ Active, default" : "✓ Active"
+            // A face the clock's firmware doesn't draw keeps its tile, without a picture.
+            const canvas = el("canvas", { width: 192, height: 48, "aria-hidden": "true", hidden: preview.faceCount > 0 && f.id >= preview.faceCount })
+            thumbs.push({ canvas, face: f.id })
             list.append(el("button.face", {
                 type: "button", "aria-pressed": String(on), dataset: { face: f.id },
                 // Toggle this face in the sorted inactive selection.
                 onclick: () => {
+                    preview.showFace(f.id)
                     const next = on ? [...inactive, f.id].sort((a, b) => a - b) : inactive.filter(x => x !== f.id)
                     const active = activeFaceIds(next)
                     // The default face is one of the active ones, so it moves before the list it is picked from.
@@ -274,8 +279,9 @@ function facesCard() {
                     form.set("inactive_faces", next)
                     form.touch("inactive_faces")
                 },
-            }, el("span", f.name), el("span.face-status", status)))
+            }, canvas, el("div.face-name", el("span", f.name), status ? el("span.face-status", status) : null), el("p.help", f.about)))
         }
+        preview.setThumbs(thumbs)
         return el("div.field", { dataset: { field: "inactive_faces" } },
             el("p.help", "Tap the faces you use. The left and right buttons move only between these, and cycling runs through them in the order shown."),
             list, el("p.err", { hidden: true }))
@@ -296,8 +302,8 @@ function facesCard() {
         $("input", row).disabled = !!form.get("face_schedule_enabled")
         return row
     })
-    return card("Clock faces", null, el("div.stack", faces, defaultFace, el("hr.divider"), cyclingToggle,
-        interval), { id: "card_faces" })
+    return card("Clock faces", "Pictures are drawn by the clock's own firmware code, with the settings on this page.", el("div.stack", faces, defaultFace, el("hr.divider"), cyclingToggle,
+        interval), { aside: el("span.tag", `${FACES.length} faces`), id: "card_faces" })
 }
 
 /**
@@ -399,11 +405,11 @@ function brightnessCard() {
         const mode = level === 100 ? "auto_linear" : level === 101 ? "auto_dimmed" : "manual"
         const seg = el("div.seg", { role: "group", "aria-label": "Brightness", id: idFor("brightness_level") },
             ...BRIGHTNESS_MODES.map(([m, text, value]) => el("button", {
-                type: "button", "aria-pressed": String(mode === m),
+                type: "button", "aria-pressed": String(mode === m), dataset: { value: m },
                 onclick: () => form.set("brightness_level", value == null ? lastManual : value),
             }, text)))
-        if (mode !== "manual") return el("div.stack", field("brightness_level", null, seg, "Follows the clock's light sensor."))
-        const range = el("input", { type: "range", min: 1, max: 10, step: 1, id: "f_brightness_manual" })
+        if (mode !== "manual") return el("div.stack", field("brightness_level", null, seg, "Follows the clock's light sensor. Try the room light slider in the preview."))
+        const range = el("input", { type: "range", min: 1, max: 10, step: 1, id: "f_brightness_manual", "aria-label": "Manual brightness" })
         range.value = String(level)
         const out = el("output", String(level))
         // Remember and save the slider level as a number so switching back to manual restores it.
@@ -413,7 +419,8 @@ function brightnessCard() {
             form.set("brightness_level", lastManual)
         })
         return el("div.stack", field("brightness_level", null, seg),
-            el("div.range-row", el("label.label", { for: range.id }, "Level"), range, out))
+            el("div.range-row", el("label.label", { for: range.id }, "Level"), range, out),
+            el("p.help", "1 is the dimmest. Long-pressing the clock's left or right button also changes it."))
     })
     return card("Brightness level", null, body, { id: "card_brightness" })
 }
@@ -450,8 +457,7 @@ function oldDataCard() {
  * @returns {HTMLElement}
  */
 function timeCard() {
-    // Rebuild the timezone picker after the available zone list loads or changes.
-    const tz = reactive(["ctx.tzNames"], () => {
+    const tz = reactive(["ctx.tzNames", "tz"], () => {
         const list = ui.timezones
         if (!list) return field("tz", "Clock time zone", el("select", { id: idFor("tz"), disabled: true }, el("option", form.get("tz") || "Loading time zones…")))
         const s = el("select", { id: idFor("tz"), name: "tz" })
@@ -465,7 +471,12 @@ function timeCard() {
             form.set("tz", z ? z.name : "")
             form.touch("tz")
         })
-        return field("tz", "Clock time zone", s, list.length ? null : "The time zone list could not be loaded.")
+        // One tap to put the clock in the zone this phone or computer is in.
+        const browserZone = Intl.DateTimeFormat().resolvedOptions().timeZone
+        const suggest = ui.timezoneNames.has(browserZone) && form.get("tz") !== browserZone
+            ? el("button.btn.sm", { type: "button", id: "use_browser_tz", onclick: () => { s.value = browserZone; s.dispatchEvent(new Event("change")) } }, `Use ${browserZone}`)
+            : null
+        return field("tz", "Clock time zone", suggest ? el("div.row", s, suggest) : s, list.length ? null : "The time zone list could not be loaded.")
     })
     return card("Time", null, el("div.grid", tz,
         field("time_format", "Time format", segmented("time_format", TIME_FORMATS, { label: "Time format" }))), { id: "card_time" })
@@ -477,7 +488,7 @@ function timeCard() {
  * @returns {HTMLElement}
  */
 function glucoseTab() {
-    return el("div.stack", sourceCard(), rangesCard())
+    return el("div.panel-stack", sourceCard(), rangesCard())
 }
 
 /**
@@ -672,9 +683,10 @@ async function loadFromNightscout() {
  * @returns {HTMLElement}
  */
 function alarmsTab() {
-    return el("div.stack",
-        el("div.notice.info", el("b", "How alarms work. "),
-            "The volume is moderate, so test each sound with Try on clock. An alarm beeps 2 times (high), 3 times (low) or 4 times (urgent low), then pauses for the repeat interval; intensive mode keeps beeping without a pause. This continues until glucose is back in range or you press the clock's middle button to snooze, which shows SNOOZED for the snooze time. An alert with alert windows stays silent outside them."),
+    return el("div.panel-stack",
+        el("div.notice.info", icon("info"), el("div",
+            el("b", "How alarms work. "),
+            "The volume is moderate, so test each sound with Try on clock. An alarm beeps 2 times (high), 3 times (low) or 4 times (urgent low), then pauses for the repeat interval; intensive mode keeps beeping without a pause. This continues until glucose is back in range or you press the clock's middle button to snooze, which shows SNOOZED for the snooze time. An alert with alert windows stays silent outside them.")),
         ...ALARMS.map(alarmCard),
         card("Repeat", null, el("div.stack",
             reactive(["alarm_intensive_mode"], () => {
@@ -744,12 +756,16 @@ function alarmCard(a) {
                 toast(ok ? "You should hear the alert playing." : "Could not play the alert.", ok ? "ok" : "bad")
             } catch (e) { toast(e.message, "bad") }
         } }, icon("speaker"), "Try on clock")
+        const tryHere = el("button.btn.sm.ghost", { type: "button", dataset: { alwaysOn: "1" }, onclick: () => {
+            if (!isValidRtttl(melody.value)) return toast("Please enter a valid RTTTL melody before testing.", "warn")
+            if (!preview.playMelody(melody.value.trim())) toast("The preview is still loading.", "warn")
+        } }, icon("play"), "Play here")
 
-        return el("div.stack",
+        return el("div.stack.alarm-body",
             el("div.grid",
                 field(key("value"), a.compare, numberInput(key("value"), { units })),
                 field(key("snooze_interval"), "Snooze for", selectInput(key("snooze_interval"), SNOOZES, { numeric: true }))),
-            field(key("melody"), "Alert sound", el("div.stack", el("div.row.melody-row", preset, tryIt), melody), "Choose a sound or enter a custom RTTTL melody."),
+            field(key("melody"), "Alert sound", el("div.stack", el("div.row", preset, tryIt, tryHere), melody), "Choose a sound or enter a custom RTTTL melody."),
             alertWindows(a))
     })
     fs.append(body)
@@ -824,7 +840,7 @@ function alertWindows(a) {
  * @returns {HTMLElement}
  */
 function systemTab() {
-    return el("div.stack", wifiCard(), extraWifiCard(), hostnameCard(), loginCard(), versionCard())
+    return el("div.panel-stack", wifiCard(), extraWifiCard(), hostnameCard(), loginCard(), versionCard())
 }
 
 /**
