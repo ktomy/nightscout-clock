@@ -135,20 +135,19 @@ function toggleRow(key, title, desc) {
  * Use aria-pressed to show the current choice and mark changes for validation.
  * @param {string} key - Draft setting to bind.
  * @param {SelectOption[]} options - Button values and labels.
- * @param {{numeric?: boolean, label?: string}} [settings={}] - Value conversion and accessible group label.
+ * @param {{numeric?: boolean, label?: string, prop?: string}} [settings={}] - Value conversion and accessible group label.
  * @returns {HTMLElement}
  */
-function segmented(key, options, { numeric = false, label } = {}) {
-    const box = el("div.seg", { role: "group", "aria-label": label, id: idFor(key) })
-    /**
-     * Update button selection states from the draft after a choice is saved.
-     * @returns {void}
-     */
-    const paint = () => $$("button", box).forEach(b => b.setAttribute("aria-pressed", String(String(form.get(key)) === b.dataset.value)))
+function segmented(key, options, { numeric = false, label, prop } = {}) {
+    const name = prop ? `${key}_${prop}` : key
+    const get = () => (prop ? (form.get(key) || {})[prop] : form.get(key))
+    const put = v => form.set(key, prop ? { ...form.get(key), [prop]: v } : v)
+    const box = el("div.seg", { role: "group", "aria-label": label, id: idFor(name) })
+    const paint = () => $$("button", box).forEach(b => b.setAttribute("aria-pressed", String(String(get()) === b.dataset.value)))
     for (const [value, text] of options) {
         box.append(el("button", {
             type: "button", dataset: { value: String(value) },
-            onclick: () => { form.set(key, numeric ? Number(value) : String(value)); form.touch(key); paint() },
+            onclick: () => { put(numeric ? Number(value) : String(value)); form.touch(name); paint() },
         }, text))
     }
     paint()
@@ -297,7 +296,50 @@ function facesCard() {
         return row
     })
     return card("Clock faces", null, el("div.stack", faces, defaultFace, el("hr.divider"), cyclingToggle,
-        interval), { id: "card_faces" })
+        interval, faceDrawers()), { id: "card_faces" })
+}
+
+// Settings that belong to one face, by face id, shown in a drawer while that face is active.
+const FACE_DRAWERS = { 3: bigTextSettings, 7: simpleDarkSettings }
+
+function faceDrawers() {
+    return reactive(["inactive_faces"], () => {
+        const active = activeFaceIds(form.get("inactive_faces"))
+        const faces = FACES.filter(f => FACE_DRAWERS[f.id] && active.includes(f.id))
+        if (!faces.length) return el("span", { hidden: true })
+        return el("div.stack", el("hr.divider"), ...faces.map(f => drawer(f.name, FACE_DRAWERS[f.id]())))
+    })
+}
+
+// Open the drawer when a setting needs attention.
+function drawer(title, body) {
+    const panel = el("div.stack", { hidden: !ui.openDrawers.has(title) }, body)
+    const toggle = el("button.btn.sm", { type: "button" })
+    const setOpen = open => {
+        panel.hidden = !open
+        toggle.textContent = open ? "Hide" : "Show"
+        toggle.setAttribute("aria-expanded", String(open))
+        open ? ui.openDrawers.add(title) : ui.openDrawers.delete(title)
+    }
+    toggle.addEventListener("click", () => setOpen(panel.hidden))
+    setOpen(!panel.hidden)
+    const off = form.on("errors", () => {
+        if (!panel.isConnected) return off()
+        if (panel.hidden && $(".invalid", panel)) setOpen(true)
+    })
+    return el("div.drawer", el("div.row.spread", el("h3", title), toggle), panel)
+}
+
+function bigTextSettings() {
+    return el("div.stack",
+        field("face_big_text_early_stale_color", "Color when a reading is late", segmented("face_big_text", EARLY_STALE_COLORS, { prop: "early_stale_color", label: "Color when a reading is late" }),
+            "Color late readings until the old-data threshold. Off keeps the usual glucose colors."),
+        field("face_big_text_early_stale_minutes", "Late after", segmented("face_big_text", EARLY_STALE_MINUTES, { numeric: true, prop: "early_stale_minutes", label: "Late after" })))
+}
+
+function simpleDarkSettings() {
+    return field("face_simple_dark_value_color", "Number color", segmented("face_simple_dark", DARK_VALUE_COLORS, { prop: "value_color", label: "Number color" }),
+        "The trend arrow keeps the glucose colors, and old data still uses the old data color.")
 }
 
 /**
@@ -928,7 +970,7 @@ function versionStatusNodes() {
 
 // ---------- tabs ----------
 const TABS = { display: displayTab, glucose: glucoseTab, alarms: alarmsTab, system: systemTab }
-const ui = { tab: "display", timezones: null, timezoneNames: null, status: null, patients: null, patientsLoading: false, versions: {} }
+const ui = { tab: "display", timezones: null, timezoneNames: null, status: null, patients: null, patientsLoading: false, versions: {}, openDrawers: new Set() }
 
 /**
  * Replace one tab's contents using its builder and reapply visible validation errors.

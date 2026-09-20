@@ -8,19 +8,20 @@
 void BGDisplayFaceTextBase::showReading(
     const GlucoseReading reading, int16_t x, int16_t y, TEXT_ALIGNMENT alignment, FONT_TYPE font,
     bool isOld) const {
-    String readingToDisplay = getPrintableReading(reading.sgv);
-    if (!isOld) {
-        SetDisplayColorByBGValue(reading);
-    } else {
-        DisplayManager.setTextColor(getDataOldColor());
-    }
+    DisplayManager.setTextColor(isOld ? getDataOldColor() : getColorByBGValue(reading));
+    printReading(reading, x, y, alignment, font);
+}
 
+void BGDisplayFaceTextBase::printReading(
+    const GlucoseReading& reading, int16_t x, int16_t y, TEXT_ALIGNMENT alignment,
+    FONT_TYPE font) const {
+    String readingToDisplay = getPrintableReading(reading.sgv);
     DisplayManager.setFont(font);
 
     DisplayManager.printText(x, y, readingToDisplay.c_str(), alignment, 2);
 }
 
-void BGDisplayFaceTextBase::SetDisplayColorByBGValue(const GlucoseReading& reading) const {
+uint16_t BGDisplayFaceTextBase::getColorByBGValue(const GlucoseReading& reading) const {
     auto bgLevel = bgDisplayManager.getGlucoseIntervals().getBGLevel(reading.sgv);
     auto textColor = COLOR_GRAY;
 
@@ -38,7 +39,7 @@ void BGDisplayFaceTextBase::SetDisplayColorByBGValue(const GlucoseReading& readi
             break;
     }
 
-    DisplayManager.setTextColor(textColor);
+    return textColor;
 }
 
 String BGDisplayFaceTextBase::getPrintableReading(const int sgv) const {
@@ -137,13 +138,13 @@ const std::map<BG_TREND, const uint8_t*> glucoseTrendSymbols = {
 };
 
 void BGDisplayFaceTextBase::showTrendArrow(
-    const GlucoseReading reading, int16_t x, int16_t y, bool dataIsOld) const {
+    const GlucoseReading reading, int16_t x, int16_t y, bool dataIsOld, uint16_t freshColor) const {
     if (dataIsOld) {
         DisplayManager.drawBitmap(x, y, symbol_dataOld, 5, 5, getDataOldColor());
         return;
     }
 
-    DisplayManager.drawBitmap(x, y, glucoseTrendSymbols.at(reading.trend), 5, 5, COLOR_WHITE);
+    DisplayManager.drawBitmap(x, y, glucoseTrendSymbols.at(reading.trend), 5, 5, freshColor);
 }
 
 #pragma endregion Show arrow
