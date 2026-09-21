@@ -391,8 +391,9 @@ void ServerManager_::setupWebServer(IPAddress ip) {
                 }
             }
 
-            // Refuse a face the loader would silently clamp to face 0 at boot.
-            if (!data["default_face"].isNull()) {
+            // Refuse a face the loader would silently clamp to face 0 at boot. An explicit null is a value
+            // here, not "not sent": the old page posted null for a face it never rendered (#210).
+            if (!data["default_face"].isUnbound()) {
                 if (!data["default_face"].is<int>()) {
                     sendSaveValidationError("Default face must be a valid clock face ID");
                     return;
