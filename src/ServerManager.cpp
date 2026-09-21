@@ -455,7 +455,13 @@ void ServerManager_::setupWebServer(IPAddress ip) {
                 return;
             }
 
-            PeripheryManager.playRTTTLString(melody);
+            int volume = data["volume"] | DEFAULT_ALARM_VOLUME;
+            if (volume < 0 || volume > 255) {
+                request->send(400, "application/json", "{\"status\": \"volume must be 0-255\"}");
+                return;
+            }
+
+            PeripheryManager.playRTTTLString(melody, (byte)volume);
             request->send(200, "application/json", "{\"status\": \"ok\"}");
         }));
 

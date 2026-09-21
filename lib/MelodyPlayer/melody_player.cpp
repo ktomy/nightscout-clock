@@ -52,6 +52,7 @@ void MelodyPlayer::play() {
         } else {
 #ifdef ESP32
             ledcWriteTone(pwmChannel, computedNote.frequency);
+            ledcWrite(pwmChannel, volume);
 #else
             tone(pin, computedNote.frequency);
 #endif
@@ -110,8 +111,8 @@ void changeTone(MelodyPlayer* player) {
             if (!player->muted) {
 #ifdef ESP32
                 ledcWriteTone(player->pwmChannel, computedNote.frequency);
-                if (false)
-                    ledcWrite(player->pwmChannel, player->volume);
+                // ledcWriteTone resets the duty to 50%, so the volume must be applied after it.
+                ledcWrite(player->pwmChannel, player->volume);
 #else
                 tone(player->pin, computedNote.frequency);
 #endif

@@ -1,3 +1,5 @@
+const ALARM_VOLUMES = [[250, "High"], [125, "Medium"], [60, "Low"]]
+
 // Define setting options, value conversions, and validation independently of DOM rendering.
 // Normalize incoming configuration for the form and prepare its outgoing save payload.
 
@@ -330,6 +332,7 @@ function validateConfig(c, ctx) {
     // Alarms
     for (const a of ALARMS) {
         if (!c[`alarm_${a.t}_enabled`]) continue
+        need(`alarm_${a.t}_volume`, inOptions(c[`alarm_${a.t}_volume`], ALARM_VOLUMES), "Please select an alert volume.")
         need(`alarm_${a.t}_value`, isGlucose(c[`alarm_${a.t}_value`], units), `${a.name} alert threshold value is required.`)
         need(`alarm_${a.t}_snooze_interval`, inOptions(c[`alarm_${a.t}_snooze_interval`], SNOOZES), `Please select ${a.name} alert snooze interval.`)
         need(`alarm_${a.t}_melody`, isValidRtttl(c[`alarm_${a.t}_melody`]), `Enter a valid RTTTL string (e.g. ${a.defaultMelody}).`)
@@ -381,7 +384,7 @@ function normalizeLoaded(c) {
         if (typeof out[k] === "string" && /^-?\d+$/.test(out[k].trim())) out[k] = parseInt(out[k], 10)
     }
     ;[...LIMIT_KEYS, "brightness_level", "default_face", "face_cycle_interval_seconds", "alarm_repeat_interval_seconds", "custom_nodatatimer",
-        ...ALARMS.flatMap(a => [`alarm_${a.t}_value`, `alarm_${a.t}_snooze_interval`])].forEach(num)
+        ...ALARMS.flatMap(a => [`alarm_${a.t}_value`, `alarm_${a.t}_snooze_interval`, `alarm_${a.t}_volume`])].forEach(num)
     if (!inOptions(out.face_cycle_interval_seconds, CYCLE_INTERVALS)) out.face_cycle_interval_seconds = 60
     if (!inOptions(out.alarm_repeat_interval_seconds, REPEATS)) out.alarm_repeat_interval_seconds = 300
     const inactive = Array.isArray(out.inactive_faces) ? out.inactive_faces : []
