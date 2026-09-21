@@ -391,6 +391,20 @@ void ServerManager_::setupWebServer(IPAddress ip) {
                 }
             }
 
+            // Refuse a face the loader would silently clamp to face 0 at boot.
+            if (!data["default_face"].isNull()) {
+                if (!data["default_face"].is<int>()) {
+                    sendSaveValidationError("Default face must be a valid clock face ID");
+                    return;
+                }
+
+                int defaultFace = data["default_face"].as<int>();
+                if (defaultFace < 0 || defaultFace >= CLOCK_FACE_COUNT) {
+                    sendSaveValidationError("Default face must be a valid clock face ID");
+                    return;
+                }
+            }
+
             if (faceCycleEnabled && CLOCK_FACE_COUNT - inactiveFaceCount < 2) {
                 sendSaveValidationError("Cycling needs at least two active clock faces");
                 return;
