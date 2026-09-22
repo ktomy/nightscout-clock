@@ -391,6 +391,21 @@ void ServerManager_::setupWebServer(IPAddress ip) {
                 }
             }
 
+            // Refuse a face the loader would silently clamp to face 0 at boot. An explicit null is a value
+            // here, not "not sent": the old page posted null for a face it never rendered (#210).
+            if (!data["default_face"].isUnbound()) {
+                if (!data["default_face"].is<int>()) {
+                    sendSaveValidationError("Default face must be a valid clock face ID");
+                    return;
+                }
+
+                int defaultFace = data["default_face"].as<int>();
+                if (defaultFace < 0 || defaultFace >= CLOCK_FACE_COUNT) {
+                    sendSaveValidationError("Default face must be a valid clock face ID");
+                    return;
+                }
+            }
+
             if (faceCycleEnabled && CLOCK_FACE_COUNT - inactiveFaceCount < 2) {
                 sendSaveValidationError("Cycling needs at least two active clock faces");
                 return;
@@ -421,6 +436,28 @@ void ServerManager_::setupWebServer(IPAddress ip) {
                     sendSaveValidationError(
                         "Alarm repeat interval must be 60, 120, or 300 seconds");
                     return;
+                }
+            }
+
+            // A schedule row names a face too, and readFaceSchedule drops one it cannot apply with only
+            // a debug line, so a row nobody rendered would be stored and then quietly never run.
+            if (!data["face_schedule"].isUnbound()) {
+                if (!data["face_schedule"].is<JsonArray>()) {
+                    sendSaveValidationError("face_schedule must be an array");
+                    return;
+                }
+
+                for (JsonVariant row : data["face_schedule"].as<JsonArray>()) {
+                    if (!row.is<JsonObject>() || !row["face"].is<int>()) {
+                        sendSaveValidationError("Every scheduled time must name a valid clock face ID");
+                        return;
+                    }
+
+                    int scheduledFace = row["face"].as<int>();
+                    if (scheduledFace < 0 || scheduledFace >= CLOCK_FACE_COUNT) {
+                        sendSaveValidationError("Every scheduled time must name a valid clock face ID");
+                        return;
+                    }
                 }
             }
 
