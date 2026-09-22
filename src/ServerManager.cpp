@@ -439,6 +439,28 @@ void ServerManager_::setupWebServer(IPAddress ip) {
                 }
             }
 
+            // A schedule row names a face too, and readFaceSchedule drops one it cannot apply with only
+            // a debug line, so a row nobody rendered would be stored and then quietly never run.
+            if (!data["face_schedule"].isUnbound()) {
+                if (!data["face_schedule"].is<JsonArray>()) {
+                    sendSaveValidationError("face_schedule must be an array");
+                    return;
+                }
+
+                for (JsonVariant row : data["face_schedule"].as<JsonArray>()) {
+                    if (!row.is<JsonObject>() || !row["face"].is<int>()) {
+                        sendSaveValidationError("Every scheduled time must name a valid clock face ID");
+                        return;
+                    }
+
+                    int scheduledFace = row["face"].as<int>();
+                    if (scheduledFace < 0 || scheduledFace >= CLOCK_FACE_COUNT) {
+                        sendSaveValidationError("Every scheduled time must name a valid clock face ID");
+                        return;
+                    }
+                }
+            }
+
             if (SettingsManager.trySaveJsonAsSettings(data)) {
                 request->send(200, "application/json", "{\"status\": \"ok\"}");
             } else {

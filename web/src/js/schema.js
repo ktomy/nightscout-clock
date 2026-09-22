@@ -388,6 +388,10 @@ function normalizeLoaded(c) {
     out.inactive_faces = [...new Set(inactive.map(Number).filter(id => FACES.some(f => f.id === id)))]
     const active = activeFaceIds(out.inactive_faces)
     if (active.length && !active.includes(out.default_face)) out.default_face = active[0]
+    // The schedule card is not drawn while the schedule is off, so a row the clock cannot apply would otherwise
+    // never be seen and would be posted back on every save. The firmware drops such a row in silence, so leaving
+    // it in the file only keeps a setting that never takes effect: repair it here, the way default_face is.
+    out.face_schedule = out.face_schedule.filter(row => KEY_ITEMS.face_schedule(row))
     return out
 }
 
