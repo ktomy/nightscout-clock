@@ -50,22 +50,22 @@ void setMatrixLayout(int layout) {
     delete matrix;  // Free memory from the current matrix object
     DEBUG_PRINTF("Set matrix layout to %i", layout);
     switch (layout) {
-        case 0:  // Ulanzi
+        case 0: // Ulanzi
             matrix = new FastLED_NeoMatrix(
                 leds, MATRIX_WIDTH, 8,
                 NEO_MATRIX_TOP + NEO_MATRIX_LEFT + NEO_MATRIX_ROWS + NEO_MATRIX_ZIGZAG);
             break;
-        case 1:  // Custom board
+        case 1: // Custom board
             matrix = new FastLED_NeoMatrix(
                 leds, 8, 8, 4, 1,
                 NEO_MATRIX_TOP + NEO_MATRIX_LEFT + NEO_MATRIX_ROWS + NEO_MATRIX_PROGRESSIVE);
             break;
-        case 2:  // Custom board
+        case 2: // Custom board
             matrix = new FastLED_NeoMatrix(
                 leds, MATRIX_WIDTH, 8,
                 NEO_MATRIX_TOP + NEO_MATRIX_LEFT + NEO_MATRIX_COLUMNS + NEO_MATRIX_ZIGZAG);
             break;
-        case 3:  // Wokwi simulator layout
+        case 3: // Wokwi simulator layout
             matrix = new FastLED_NeoMatrix(
                 leds, MATRIX_WIDTH, 8,
                 NEO_MATRIX_TOP + NEO_MATRIX_LEFT + NEO_MATRIX_ROWS + NEO_MATRIX_PROGRESSIVE);
@@ -107,23 +107,6 @@ void DisplayManager_::applySettings() {
 #endif
 
     DisplayManager.setBrightness(displayBrightness);
-}
-
-int DisplayManager_::getBrightnessPercent() const {
-    if (SettingsManager.settings.brightness_mode == BRIGHTNES_MODE::MANUAL) {
-        if (SettingsManager.settings.brightness_level <= 1) {
-            return 5;
-        }
-        return constrain(SettingsManager.settings.brightness_level * 10, 5, 100);
-    }
-
-    if (MAX_BRIGHTNESS <= MIN_BRIGHTNESS) {
-        return 5;
-    }
-
-    const int percent =
-        lroundf((currentBrightness - MIN_BRIGHTNESS) * 100.0f / (MAX_BRIGHTNESS - MIN_BRIGHTNESS));
-    return constrain(percent, 5, 100);
 }
 
 void DisplayManager_::showBrightnessOverlay() {
@@ -373,35 +356,39 @@ void DisplayManager_::rightButtonLong() {
 }
 
 void DisplayManager_::selectButton() {
-    const int currentPercent = getBrightnessPercent();
-    int nextPercent;
+    BRIGHTNES_MODE nextMode = SettingsManager.settings.brightness_mode;
+    int nextLevel = SettingsManager.settings.brightness_level;
 
-    if (currentPercent < 20) {
-        nextPercent = 20;
-    } else if (currentPercent < 40) {
-        nextPercent = 40;
-    } else if (currentPercent < 60) {
-        nextPercent = 60;
-    } else if (currentPercent < 80) {
-        nextPercent = 80;
-    } else if (currentPercent < 100) {
-        nextPercent = 100;
-    } else {
-        nextPercent = 5;
+    const BRIGHTNES_MODE currentMode = SettingsManager.settings.brightness_mode;
+    switch (currentMode) {
+        case BRIGHTNES_MODE::MANUAL:
+            if (nextLevel < 10) {
+                nextLevel++;
+            } else {
+                nextMode = BRIGHTNES_MODE::AUTO_LINEAR;
+            }
+            break;
+        case BRIGHTNES_MODE::AUTO_LINEAR:
+            nextMode = BRIGHTNES_MODE::AUTO_DIMMED;
+            break;
+        case BRIGHTNES_MODE::AUTO_DIMMED:
+            nextMode = BRIGHTNES_MODE::MANUAL;
+            nextLevel = 1;
+            break;
     }
 
-    if (SettingsManager.settings.brightness_mode != BRIGHTNES_MODE::MANUAL) {
-        previousAutomaticBrightnessMode = SettingsManager.settings.brightness_mode;
+    if (currentMode != BRIGHTNES_MODE::MANUAL && nextMode == BRIGHTNES_MODE::MANUAL) {
+        previousAutomaticBrightnessMode = currentMode;
         previousAutomaticBrightnessModeSaved = true;
     }
 
-    SettingsManager.settings.brightness_mode = BRIGHTNES_MODE::MANUAL;
-    SettingsManager.settings.brightness_level = constrain(lroundf(nextPercent / 10.0f), 1, 10);
+    SettingsManager.settings.brightness_mode = nextMode;
+    SettingsManager.settings.brightness_level = constrain(nextLevel, 1, 10);
     SettingsManager.saveSettingsToFile();
     applySettings();
 
-    brightnessOverlayShowsAuto = false;
-    brightnessOverlayPercent = nextPercent;
+    brightnessOverlayShowsAuto = nextMode != BRIGHTNES_MODE::MANUAL;
+    brightnessOverlayPercent = SettingsManager.settings.brightness_level * 10;
     brightnessOverlayStarted = millis();
     brightnessOverlayActive = true;
     showBrightnessOverlay();
