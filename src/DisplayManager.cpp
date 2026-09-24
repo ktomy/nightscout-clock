@@ -109,7 +109,47 @@ void DisplayManager_::applySettings() {
     DisplayManager.setBrightness(displayBrightness);
 }
 
-void DisplayManager_::tick() {}
+void DisplayManager_::showBrightnessOverlay() {
+    const unsigned long elapsed = millis() - brightnessOverlayStarted;
+    if (elapsed >= 2500) {
+        brightnessOverlayActive = false;
+        clearMatrix();
+        return;
+    }
+
+    uint8_t intensity = 255;
+    if (elapsed > 2000) {
+        intensity = static_cast<uint8_t>(255 - ((elapsed - 2000) * 255 / 500));
+    }
+
+    const uint16_t color = ((intensity >> 3) << 11) | ((intensity >> 2) << 5) | (intensity >> 3);
+    const uint8_t brightnessIcon[7][7] = {
+        {0, 0, 0, 1, 0, 0, 0}, {0, 1, 0, 1, 0, 1, 0}, {0, 0, 1, 1, 1, 0, 0}, {1, 1, 1, 1, 1, 1, 1},
+        {0, 0, 1, 1, 1, 0, 0}, {0, 1, 0, 1, 0, 1, 0}, {0, 0, 0, 1, 0, 0, 0},
+    };
+
+    clearMatrix();
+    for (uint8_t row = 0; row < 7; row++) {
+        for (uint8_t column = 0; column < 7; column++) {
+            if (brightnessIcon[row][column] != 0) {
+                drawPixel(1 + column, row, color);
+            }
+        }
+    }
+
+    setTextColor(color);
+    const String value = brightnessOverlayShowsAuto ? "AUTO" : String(brightnessOverlayPercent) + "%";
+    printText(10, 6, value.c_str(), TEXT_ALIGNMENT::LEFT, 0);
+    update();
+}
+
+void DisplayManager_::tick() {
+    if (brightnessOverlayActive) {
+        showBrightnessOverlay();
+    }
+}
+
+bool DisplayManager_::isBrightnessOverlayActive() const { return brightnessOverlayActive; }
 
 uint32_t hsvToRgb(uint8_t h, uint8_t s, uint8_t v) {
     CHSV hsv(h, s, v);
@@ -135,9 +175,7 @@ float DisplayManager_::getTextWidth(const char* text, byte textCase) {
 }
 void DisplayManager_::setTextColor(uint16_t color) { matrix->setTextColor(color); }
 
-void DisplayManager_::clearMatrix() {
-    matrix->clear();
-}
+void DisplayManager_::clearMatrix() { matrix->clear(); }
 
 // DisplayManager_::printText(int16_t x, int16_t y, const char *text, TEXT_ALIGNMENT alignment, byte
 // textCase) {
@@ -317,8 +355,62 @@ void DisplayManager_::rightButtonLong() {
     }
 }
 
-void DisplayManager_::selectButton() {}
-void DisplayManager_::selectButtonLong() {}
+void DisplayManager_::selectButton() {
+    BRIGHTNES_MODE nextMode = SettingsManager.settings.brightness_mode;
+    int nextLevel = SettingsManager.settings.brightness_level;
+
+    const BRIGHTNES_MODE currentMode = SettingsManager.settings.brightness_mode;
+    switch (currentMode) {
+        case BRIGHTNES_MODE::MANUAL:
+            if (nextLevel < 10) {
+                nextLevel++;
+            } else {
+                nextMode = BRIGHTNES_MODE::AUTO_LINEAR;
+            }
+            break;
+        case BRIGHTNES_MODE::AUTO_LINEAR:
+            nextMode = BRIGHTNES_MODE::AUTO_DIMMED;
+            break;
+        case BRIGHTNES_MODE::AUTO_DIMMED:
+            nextMode = BRIGHTNES_MODE::MANUAL;
+            nextLevel = 1;
+            break;
+    }
+
+    if (currentMode != BRIGHTNES_MODE::MANUAL && nextMode == BRIGHTNES_MODE::MANUAL) {
+        previousAutomaticBrightnessMode = currentMode;
+        previousAutomaticBrightnessModeSaved = true;
+    }
+
+    SettingsManager.settings.brightness_mode = nextMode;
+    SettingsManager.settings.brightness_level = constrain(nextLevel, 1, 10);
+    SettingsManager.saveSettingsToFile();
+    applySettings();
+
+    brightnessOverlayShowsAuto = nextMode != BRIGHTNES_MODE::MANUAL;
+    brightnessOverlayPercent = SettingsManager.settings.brightness_level * 10;
+    brightnessOverlayStarted = millis();
+    brightnessOverlayActive = true;
+    showBrightnessOverlay();
+}
+
+void DisplayManager_::selectButtonLong() {
+    if (SettingsManager.settings.brightness_mode != BRIGHTNES_MODE::MANUAL) {
+        return;
+    }
+
+    SettingsManager.settings.brightness_mode = previousAutomaticBrightnessModeSaved
+                                                   ? previousAutomaticBrightnessMode
+                                                   : BRIGHTNES_MODE::AUTO_LINEAR;
+    SettingsManager.saveSettingsToFile();
+    applySettings();
+    previousAutomaticBrightnessModeSaved = false;
+
+    brightnessOverlayShowsAuto = true;
+    brightnessOverlayStarted = millis();
+    brightnessOverlayActive = true;
+    showBrightnessOverlay();
+}
 
 void DisplayManager_::update() { matrix->show(); }
 
