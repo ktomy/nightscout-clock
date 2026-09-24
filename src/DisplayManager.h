@@ -48,7 +48,6 @@ public:
 
 private:
     void showBrightnessOverlay();
-    int getBrightnessPercent() const;
 
     bool brightnessOverlayActive = false;
     bool brightnessOverlayShowsAuto = false;
