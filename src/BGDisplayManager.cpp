@@ -50,6 +50,8 @@ void BGDisplayManager_::setup() {
     facesNames[5] = "Clock and value";
     faces.push_back(new BGDisplayFaceUnicorn());
     facesNames[6] = "Unicorn";
+    faces.push_back(new BGDisplayFaceTimeOnly());
+    facesNames[7] = "Time only";
 
     if (faces.size() != CLOCK_FACE_COUNT) {
         DEBUG_PRINTF(
@@ -103,6 +105,10 @@ void BGDisplayManager_::configureActiveFaces() {
 std::map<int, String> BGDisplayManager_::getFaces() { return facesNames; }
 
 int BGDisplayManager_::getCurrentFaceId() { return currentFaceIndex; }
+
+bool BGDisplayManager_::suppressesNewAlarms() const {
+    return currentFace->suppressesNewAlarms();
+}
 
 GlucoseIntervals BGDisplayManager_::getGlucoseIntervals() { return glucoseIntervals; }
 
@@ -301,11 +307,13 @@ void BGDisplayManager_::maybeRrefreshScreen(bool force) {
         DEBUG_PRINTLN("We have new data");
         bgDisplayManager.showData(bgSourceManager.getInstance().getGlucoseData());
     } else {
-        // We refresh the display every minue trying to match the exact :00 second
+        // We refresh the display every minute trying to match the exact :00 second,
+        // or every second for faces that ask for it
         if (force) {
             runRenderCycle(RenderReason::FORCED, timeInfo);
         } else if (
-            timeInfo.tm_sec == 0 && currentEpoch > lastRefreshEpoch ||
+            (timeInfo.tm_sec == 0 || currentFace->ticksEverySecond()) &&
+                currentEpoch > lastRefreshEpoch ||
             currentEpoch - lastRefreshEpoch > 60) {
             runRenderCycle(RenderReason::TIME_TICK, timeInfo);
         }
