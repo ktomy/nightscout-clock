@@ -52,6 +52,14 @@ void BGDisplayManager_::setup() {
     facesNames[6] = "Unicorn";
     faces.push_back(new BGDisplayFaceTimeOnly());
     facesNames[7] = "Time only";
+    faces.push_back(new BGDisplayFaceDiagnostics());
+    facesNames[8] = "Diagnostics";
+    faces.push_back(new BGDisplayFaceBatteryUptime());
+    facesNames[9] = "Battery and uptime";
+    faces.push_back(new BGDisplayFaceBigTextRainbow());
+    facesNames[10] = "Rainbow big text";
+    faces.push_back(new BGDisplayFaceSmiley());
+    facesNames[11] = "Smiley";
 
     if (faces.size() != CLOCK_FACE_COUNT) {
         DEBUG_PRINTF(
