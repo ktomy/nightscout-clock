@@ -124,8 +124,9 @@ void BGDisplayFaceSmiley::showReadings(const std::list<GlucoseReading>& readings
             break;
     }
 
-    // Old data is greyed out regardless of the level (matches the other faces).
+    // Old data is neutral and greyed out regardless of the previous glucose level.
     if (dataIsOld) {
+        features = features_neutral;
         faceColor = COLOR_GRAY;
     }
 
