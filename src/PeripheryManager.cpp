@@ -27,6 +27,7 @@ MelodyPlayer player(BUZZER_PIN, 1, LOW);
 Button2 button_left(BUTTON_UP_PIN);
 Button2 button_right(BUTTON_DOWN_PIN);
 Button2 button_select(BUTTON_SELECT_PIN);
+const byte BUZZER_VOLUME = 64;
 
 #define USED_PHOTOCELL LightDependentResistor::GL5516
 #define PHOTOCELL_SERIES_RESISTOR 10000
@@ -48,6 +49,9 @@ float sampleSum = 0.0;
 float sampleAverage = 0.0;
 float brightnessPercent = 0.0;
 int lastBrightness = 0;
+unsigned long lastLowBatteryAlertMillis = 0;
+const unsigned long LOW_BATTERY_ALERT_INTERVAL_MS = 2UL * 60UL * 1000UL;
+const char* LOW_BATTERY_BEEP = "bat:d=32,o=6,b=220:c";
 
 // The getter for the instantiated singleton instance
 PeripheryManager_& PeripheryManager_::getInstance() {
@@ -117,6 +121,7 @@ void PeripheryManager_::setup() {
     DEBUG_PRINTLN(F("Setup periphery"));
     startTime = millis();
     pinMode(LDR_PIN, INPUT);
+    player.setVolume(BUZZER_VOLUME);
 
     button_left.setClickHandler(left_button_pressed);
     button_right.setClickHandler(right_button_pressed);
@@ -154,6 +159,19 @@ void PeripheryManager_::tick() {
             sht31.readBoth(&CURRENT_TEMP, &CURRENT_HUM);
             CURRENT_TEMP += TEMP_OFFSET;
             CURRENT_HUM += HUM_OFFSET;
+        }
+        if (BATTERY_PERCENT <= 5) {
+            bool alertDue = lastLowBatteryAlertMillis == 0 ||
+                            currentMillis_BatTempHum - lastLowBatteryAlertMillis >= LOW_BATTERY_ALERT_INTERVAL_MS;
+            // Don't interrupt a melody that is already sounding (e.g. a glucose
+            // alarm) - the single shared player would cut it off. Leave
+            // lastLowBatteryAlertMillis untouched so we retry on the next poll.
+            if (alertDue && !player.isPlaying()) {
+                PeripheryManager.playRTTTLString(LOW_BATTERY_BEEP);
+                lastLowBatteryAlertMillis = currentMillis_BatTempHum;
+            }
+        } else {
+            lastLowBatteryAlertMillis = 0;
         }
     }
 
