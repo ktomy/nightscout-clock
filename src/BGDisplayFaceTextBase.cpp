@@ -61,34 +61,70 @@ String BGDisplayFaceTextBase::getPrintableReading(const int sgv) const {
 
 // Glucose trends
 const uint8_t symbol_doubleUp[] PROGMEM = {
-    0b01010000, 0b11111000, 0b01010000, 0b01010000, 0b01010000,
+    0b01010000,
+    0b11111000,
+    0b01010000,
+    0b01010000,
+    0b01010000,
 };
 const uint8_t symbol_singleUp[] PROGMEM = {
-    0b00100000, 0b01110000, 0b10101000, 0b00100000, 0b00100000,
+    0b00100000,
+    0b01110000,
+    0b10101000,
+    0b00100000,
+    0b00100000,
 };
 const uint8_t symbol_fortyFiveUp[] PROGMEM = {
-    0b00111000, 0b00011000, 0b00101000, 0b01000000, 0b10000000,
+    0b00111000,
+    0b00011000,
+    0b00101000,
+    0b01000000,
+    0b10000000,
 };
 const uint8_t symbol_flat[] PROGMEM = {
-    0b00100000, 0b00010000, 0b11111000, 0b00010000, 0b00100000,
+    0b00100000,
+    0b00010000,
+    0b11111000,
+    0b00010000,
+    0b00100000,
 };
 const uint8_t symbol_fortyFiveDown[] PROGMEM = {
-    0b10000000, 0b01000000, 0b00101000, 0b00011000, 0b00111000,
+    0b10000000,
+    0b01000000,
+    0b00101000,
+    0b00011000,
+    0b00111000,
 };
 const uint8_t symbol_singleDown[] PROGMEM = {
-    0b00100000, 0b00100000, 0b10101000, 0b01110000, 0b00100000,
+    0b00100000,
+    0b00100000,
+    0b10101000,
+    0b01110000,
+    0b00100000,
 };
 const uint8_t symbol_doubleDown[] PROGMEM = {
-    0b01010000, 0b01010000, 0b01010000, 0b11111000, 0b01010000,
+    0b01010000,
+    0b01010000,
+    0b01010000,
+    0b11111000,
+    0b01010000,
 };
 
 const uint8_t symbol_empty[] PROGMEM = {
-    0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000,
+    0b00000000,
+    0b00000000,
+    0b00000000,
+    0b00000000,
+    0b00000000,
 };
 
 // Drawn in the arrow's place once the reading is too old: the clock has no current trend to show.
 const uint8_t symbol_dataOld[] PROGMEM = {
-    0b10001000, 0b01010000, 0b00100000, 0b01010000, 0b10001000,
+    0b10001000,
+    0b01010000,
+    0b00100000,
+    0b01010000,
+    0b10001000,
 };
 
 const std::map<BG_TREND, const uint8_t*> glucoseTrendSymbols = {
