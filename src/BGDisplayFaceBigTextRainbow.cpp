@@ -54,6 +54,7 @@ void BGDisplayFaceBigTextRainbow::showReadings(
     const std::list<GlucoseReading>& readings, bool dataIsOld) const {
     auto lastReading = readings.back();
     const bool blinkVisible = !dataIsOld || (millis() / STALE_BLINK_INTERVAL_MS) % 2 == 0;
+    DisplayManager.clearMatrix(false);
     if (blinkVisible) {
         showAnimatedReading(lastReading, dataIsOld);
         showTrendArrow(lastReading, MATRIX_WIDTH - 5, 1, dataIsOld, true, false);
