@@ -9,6 +9,8 @@ public:
     void showReadings(const std::list<GlucoseReading>& readings, bool dataIsOld = false) const override;
     bool needsFrequentRefresh() const override;
     unsigned long getFrequentRefreshIntervalMs() const override;
+    RenderDecision getRenderDecision(const RenderContext& ctx) const override;
+    bool ticksEverySecond() const override;
 
 private:
     void showAnimatedReading(const GlucoseReading& reading, bool dataIsOld) const;

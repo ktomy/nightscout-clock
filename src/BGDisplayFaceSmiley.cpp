@@ -37,11 +37,11 @@ const uint8_t features_sad[] PROGMEM = {
     0b00000000, 0b00000000,
 };
 
-// Slanted brows over eyes + frown = angry.
-const uint8_t features_angry[] PROGMEM = {
+// Raised brows over eyes + frown = concerned.
+const uint8_t features_concerned[] PROGMEM = {
     0b00000000, 0b00000000,
-    0b01000010,  // brow outer corners high
-    0b00100100,  // brow inner corners low (slant toward the nose) / eyes
+    0b00011000,  // brows raised toward the middle
+    0b00100100,  // eyes
     0b00000000,
     0b00111100,  // frown top
     0b01000010,  // frown corners down
@@ -111,7 +111,7 @@ void BGDisplayFaceSmiley::showReadings(const std::list<GlucoseReading>& readings
             break;
         case BG_LEVEL::WARNING_HIGH:
         case BG_LEVEL::URGENT_HIGH:
-            features = features_angry;
+            features = features_concerned;
             faceColor = COLOR_RED;
             break;
         case BG_LEVEL::NORMAL:

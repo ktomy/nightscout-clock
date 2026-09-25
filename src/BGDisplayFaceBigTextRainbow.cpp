@@ -4,7 +4,8 @@
 
 namespace {
 constexpr unsigned long RAINBOW_REFRESH_INTERVAL_MS = 80;
-constexpr uint8_t RAINBOW_BLEND_AMOUNT = 88;
+constexpr uint8_t RAINBOW_BLEND_AMOUNT = 192;
+constexpr unsigned long STALE_BLINK_INTERVAL_MS = 500;
 
 uint16_t rgb565(uint8_t red, uint8_t green, uint8_t blue) {
     return ((uint16_t)(red & 0xF8) << 8) | ((uint16_t)(green & 0xFC) << 3) | (blue >> 3);
@@ -52,9 +53,11 @@ uint16_t blendRgb565(uint16_t baseColor, uint16_t overlayColor, uint8_t overlayA
 void BGDisplayFaceBigTextRainbow::showReadings(
     const std::list<GlucoseReading>& readings, bool dataIsOld) const {
     auto lastReading = readings.back();
-    showAnimatedReading(lastReading, dataIsOld);
-
-    showTrendArrow(lastReading, MATRIX_WIDTH - 5, 1, dataIsOld, true, false);
+    const bool blinkVisible = !dataIsOld || (millis() / STALE_BLINK_INTERVAL_MS) % 2 == 0;
+    if (blinkVisible) {
+        showAnimatedReading(lastReading, dataIsOld);
+        showTrendArrow(lastReading, MATRIX_WIDTH - 5, 1, dataIsOld, true, false);
+    }
     DisplayManager.update();
 }
 
@@ -63,6 +66,15 @@ bool BGDisplayFaceBigTextRainbow::needsFrequentRefresh() const { return true; }
 unsigned long BGDisplayFaceBigTextRainbow::getFrequentRefreshIntervalMs() const {
     return RAINBOW_REFRESH_INTERVAL_MS;
 }
+
+RenderDecision BGDisplayFaceBigTextRainbow::getRenderDecision(const RenderContext& ctx) const {
+    if (ctx.reason == RenderReason::TIME_TICK) {
+        return RenderDecision::FULL;
+    }
+    return BGDisplayFace::getRenderDecision(ctx);
+}
+
+bool BGDisplayFaceBigTextRainbow::ticksEverySecond() const { return true; }
 
 void BGDisplayFaceBigTextRainbow::showAnimatedReading(
     const GlucoseReading& reading, bool dataIsOld) const {
