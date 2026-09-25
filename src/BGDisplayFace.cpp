@@ -9,6 +9,12 @@ void BGDisplayFace::showNoData() const {
     DisplayManager.printText(0, 6, "No data", TEXT_ALIGNMENT::CENTER, 0);
 }
 
+bool BGDisplayFace::needsFrequentRefresh() const { return false; }
+
+unsigned long BGDisplayFace::getFrequentRefreshIntervalMs() const { return 5000; }
+
+void BGDisplayFace::onActivate() const {}
+
 uint16_t BGDisplayFace::getDataOldColor() const {
     return static_cast<uint16_t>(SettingsManager.settings.data_old_color);
 }

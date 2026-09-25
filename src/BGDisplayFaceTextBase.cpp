@@ -7,7 +7,7 @@
 
 void BGDisplayFaceTextBase::showReading(
     const GlucoseReading reading, int16_t x, int16_t y, TEXT_ALIGNMENT alignment, FONT_TYPE font,
-    bool isOld) const {
+    bool isOld, bool updateMatrix) const {
     String readingToDisplay = getPrintableReading(reading.sgv);
     if (!isOld) {
         SetDisplayColorByBGValue(reading);
@@ -17,10 +17,14 @@ void BGDisplayFaceTextBase::showReading(
 
     DisplayManager.setFont(font);
 
-    DisplayManager.printText(x, y, readingToDisplay.c_str(), alignment, 2);
+    DisplayManager.printText(x, y, readingToDisplay.c_str(), alignment, 2, updateMatrix);
 }
 
 void BGDisplayFaceTextBase::SetDisplayColorByBGValue(const GlucoseReading& reading) const {
+    DisplayManager.setTextColor(getDisplayColorByBGValue(reading));
+}
+
+uint16_t BGDisplayFaceTextBase::getDisplayColorByBGValue(const GlucoseReading& reading) const {
     auto bgLevel = bgDisplayManager.getGlucoseIntervals().getBGLevel(reading.sgv);
     auto textColor = COLOR_GRAY;
 
@@ -38,7 +42,7 @@ void BGDisplayFaceTextBase::SetDisplayColorByBGValue(const GlucoseReading& readi
             break;
     }
 
-    DisplayManager.setTextColor(textColor);
+    return textColor;
 }
 
 String BGDisplayFaceTextBase::getPrintableReading(const int sgv) const {
@@ -137,13 +141,15 @@ const std::map<BG_TREND, const uint8_t*> glucoseTrendSymbols = {
 };
 
 void BGDisplayFaceTextBase::showTrendArrow(
-    const GlucoseReading reading, int16_t x, int16_t y, bool dataIsOld) const {
+    const GlucoseReading reading, int16_t x, int16_t y, bool dataIsOld, bool colorByReading,
+    bool updateMatrix) const {
     if (dataIsOld) {
-        DisplayManager.drawBitmap(x, y, symbol_dataOld, 5, 5, getDataOldColor());
+        DisplayManager.drawBitmap(x, y, symbol_dataOld, 5, 5, getDataOldColor(), updateMatrix);
         return;
     }
 
-    DisplayManager.drawBitmap(x, y, glucoseTrendSymbols.at(reading.trend), 5, 5, COLOR_WHITE);
+    const uint16_t color = colorByReading ? getDisplayColorByBGValue(reading) : COLOR_WHITE;
+    DisplayManager.drawBitmap(x, y, glucoseTrendSymbols.at(reading.trend), 5, 5, color, updateMatrix);
 }
 
 #pragma endregion Show arrow
