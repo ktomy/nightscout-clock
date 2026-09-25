@@ -3,6 +3,7 @@
 ![Nightscout clock logo](https://github.com/ktomy/nightscout-clock/assets/1446257/1198c06d-b017-409d-aca3-2bca63581ecb)
 
 > [!IMPORTANT]
+>
 > ## This project is looking for a new maintainer or co-maintainer
 >
 > Over the past few months, I have not been able to spend as much time as this project deserves on support, maintenance, and development.
@@ -23,7 +24,7 @@ _Nightscout Clock (or NSClock) is an open-source product aimed at helping caregi
 
 ## Here is what it can do
 
-- 12 clock faces, including animated characters, dark-room layouts, and a time-only face
+- 16 clock faces, including animated characters, dark-room layouts, and a time-only face
 - Can get glucose data from Dexcom Share, Nightscout, LibreLink Up or Medtrum EasyFollow
 - Supports mg/dl and mmol/l
 - 10 minutes setup through web browser
@@ -81,6 +82,10 @@ Nightscout Clock is a custom firmware for Ulanzi TC001. It can also run (with mi
 | Simple (dark)   |  | Simple for a dark room: the number in one chosen color (any of the clock's colors except black, set in the Simple (dark) drawer of the Clock faces card), the trend arrow in the glucose range color, and no age bars. Urgent readings draw the number in the urgent color. Old data uses the old-data color. |
 | Dragon          |                                                                                                      | A little dragon breathes fire at the value, with age bars below it. The flame is magenta, orchid, purple and violet in range, the Unicorn's colors, and takes the low or high color outside the limits, with a darker stripe, the urgent color mixed in near the urgent limit, and dark stripes past an urgent limit, as on the moving Unicorn mane. When data is old the fire goes out and the dragon is drawn faded in the old-data color. Set the flame's speed (calm, normal or lively) in the Dragon drawer of the Clock faces card. |
 | Big text (dark) |  | Big text's large digits in the Simple (dark) number color, readable across a dark room; the trend arrow in the glucose range color, and no age bars. Both dark faces share one number color setting. |
+| Diagnostics | | Scrolling date/time and glucose information. |
+| Battery/uptime | | Battery status and device uptime. |
+| Rainbow big text | | Large glucose text with an animated rainbow; stale readings blink. |
+| Smiley | | Happy in range, sad when low, concerned when high, and neutral for stale or missing data. |
 
 #### Active clock faces
 
@@ -171,6 +176,10 @@ High, low, and urgent-low alarms each have their own threshold, snooze duration,
   - BIG DIGITS, with an optional color for a late reading
   - Value, trend and delta
   - Clock and BG value (timezone is set in the clock's web interface)
+  - Diagnostics
+  - Battery and uptime
+  - Rainbow big text with an animated glucose-state-colored rainbow and stale-reading blink
+  - Smiley face, reflecting the glucose level with happy, sad, concerned, or neutral expressions
   - Unicorn and glucose value, with mane colors based on glucose limits
   - Race car and glucose value, with speed lines in the glucose color
   - Time only, always hiding glucose and suppressing new alarms while selected; already-triggered alarms continue normally
@@ -182,6 +191,7 @@ High, low, and urgent-low alarms each have their own threshold, snooze duration,
 - API data source. The clock has a simple Nightscout-like API which can receive glucose values from an external source. The main purpose of this feature is the ability to test the clock during the clockfaces development. In order to activate this feature, select the API data source within the clock's Web UI. Here are the endpoints:
   - /api/v1/entries POST endpoint receives an array of Nightscout-like entries. The only significant fields are `sgv`, `date` and `trend` or `direction`. Due to the limited memory the API is stable when sent fewer than 10 records
   - /api/v1/entries DELETE endpoint deletes all entries regardless of the payload
+  - `scripts/ns_emulator.py` is a helper that pushes sample readings to this API for testing (e.g. to exercise clock-face moods). Point its `nightscout_url` at your clock, then run `python scripts/ns_emulator.py --one-value 110` for a single reading or `--sin` for a sinusoid history.
 - Firmware versioning
 - Alarms with configurable thresholds, snooze times, repeat interval, sounds, and weekday/time alert windows
 - To turn the device on or off press both arrow buttons for 3 seconds

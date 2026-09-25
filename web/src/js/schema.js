@@ -74,6 +74,10 @@ const FACES = [
     { id: "race_car", name: "Race car" },
     { id: "dragon", name: "Dragon" },
     { id: "big_text_dark", name: "Big text (dark)" },
+    { id: "diagnostics", name: "Diagnostics" },
+    { id: "battery_uptime", name: "Battery and uptime" },
+    { id: "big_text_rainbow", name: "Rainbow big text" },
+    { id: "smiley", name: "Smiley" },
 ]
 
 // The config stores the faces switched off, so a face added later starts active.
