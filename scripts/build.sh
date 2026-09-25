@@ -72,7 +72,12 @@ if [[ $UPLOAD == true ]]; then
     if [[ $MONITOR == true ]]; then
         upload_arguments+=(--monitor)
     fi
-    if ! bash "$SCRIPT_DIR/upload.sh" "${upload_arguments[@]}"; then
+    if ((${#upload_arguments[@]})); then
+        bash "$SCRIPT_DIR/upload.sh" "${upload_arguments[@]}" || upload_failed=true
+    else
+        bash "$SCRIPT_DIR/upload.sh" || upload_failed=true
+    fi
+    if [[ ${upload_failed:-false} == true ]]; then
         echo "ERROR: Upload workflow failed." >&2
         exit 1
     fi
