@@ -1,5 +1,10 @@
-nvs,      data, nvs,     36K,     20K,
-otadata,  data, ota,     56K,     8K,
-app0,     app,  ota_0,   64K,     2M,
-# app1,     app,  ota_1,   ,        1M, # disabling OTA while we are not using it for now
-spiffs,   data, spiffs,  ,        1M,
+# Dual-OTA layout for network updates. Both app slots must fit the largest
+# firmware build (ulanzi_debug ~1.57 MB); each slot is 1.75 MB.
+# NOTE: scripts/upload.sh flashes LittleFS at the spiffs offset below --
+# keep them in sync. Changing this table wipes flash: reflash once over USB
+# with `bash scripts/build.sh --all --upload`, then OTA takes over.
+nvs,      data, nvs,     0x9000,   0x5000,
+otadata,  data, ota,     0xe000,   0x2000,
+ota_0,    app,  ota_0,   0x10000,  0x1C0000,
+ota_1,    app,  ota_1,   0x1D0000, 0x1C0000,
+spiffs,   data, spiffs,  0x390000, 0x70000,

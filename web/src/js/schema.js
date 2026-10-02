@@ -276,6 +276,11 @@ function validateConfig(c, ctx) {
     // WiFi
     need("ssid", RX.ssid.test(text(c.ssid)), "Valid network name (SSID) is required.")
     if (!ctx.openNetwork) need("password", RX.wifiPassword.test(text(c.password)), "Password is required and must be at least 8 characters long.")
+    // Automatic updates and heartbeat
+    if (c.ota_auto_update) need("ota_auto_update_hour", Number.isInteger(c.ota_auto_update_hour) && c.ota_auto_update_hour >= 0 && c.ota_auto_update_hour <= 23, "Check hour must be a whole number from 0 to 23.")
+    const hcUrl = text(c.healthcheck_url).trim()
+    need("healthcheck_url", !hcUrl || /^https?:\/\/\S{4,}/.test(hcUrl), "Heartbeat URL must start with http:// or https://, or be left empty.")
+    if (hcUrl) need("healthcheck_interval_hours", Number.isInteger(c.healthcheck_interval_hours) && c.healthcheck_interval_hours >= 1 && c.healthcheck_interval_hours <= 168, "Heartbeat interval must be 1 to 168 hours.")
 
     // Data source
     const src = c.data_source
@@ -380,7 +385,7 @@ function normalizeLoaded(c) {
     const num = k => {
         if (typeof out[k] === "string" && /^-?\d+$/.test(out[k].trim())) out[k] = parseInt(out[k], 10)
     }
-    ;[...LIMIT_KEYS, "brightness_level", "default_face", "face_cycle_interval_seconds", "alarm_repeat_interval_seconds", "custom_nodatatimer",
+    ;[...LIMIT_KEYS, "brightness_level", "default_face", "face_cycle_interval_seconds", "alarm_repeat_interval_seconds", "custom_nodatatimer", "ota_auto_update_hour", "healthcheck_interval_hours",
         ...ALARMS.flatMap(a => [`alarm_${a.t}_value`, `alarm_${a.t}_snooze_interval`])].forEach(num)
     if (!inOptions(out.face_cycle_interval_seconds, CYCLE_INTERVALS)) out.face_cycle_interval_seconds = 60
     if (!inOptions(out.alarm_repeat_interval_seconds, REPEATS)) out.alarm_repeat_interval_seconds = 300
@@ -397,7 +402,7 @@ function normalizeLoaded(c) {
  * @returns {SettingsTab}
  */
 function tabOfKey(key) {
-    if (/^(ssid|password|additional_|custom_hostname|web_auth)/.test(key)) return "system"
+    if (/^(ssid|password|additional_|custom_hostname|web_auth|ota_auto_update|healthcheck)/.test(key)) return "system"
     if (/^alarm_/.test(key)) return "alarms"
     if (/^(data_source|ns_|api_secret|nightscout|dexcom|librelinkup|medtrum|units|low_|high_)/.test(key)) return "glucose"
     return "display"

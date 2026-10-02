@@ -286,5 +286,20 @@ const api = (() => {
         })
     }
 
-    return { on: events.on, startStatus, saveSettings, authStatus, login, logout, loadConfig, version, timezones, tryAlarm, patients }
+    return { on: events.on, startStatus, saveSettings, authStatus, login, logout, loadConfig, version, timezones, tryAlarm, patients,
+        /**
+         * Generic JSON request helpers for small endpoints. They throw on
+         * transport failure and on non-2xx status; callers handle 401 via the
+         * shared "locked" event.
+         */
+        async get(path) {
+            const r = await request("GET", path)
+            if (!r.ok) throw new Error(`HTTP ${r.status}`)
+            return r.data
+        },
+        async post(path, body) {
+            const r = await request("POST", path, { body })
+            if (!r.ok) throw new Error(`HTTP ${r.status}`)
+            return r.data
+        } }
 })()

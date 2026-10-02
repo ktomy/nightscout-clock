@@ -824,7 +824,7 @@ function alertWindows(a) {
  * @returns {HTMLElement}
  */
 function systemTab() {
-    return el("div.stack", wifiCard(), extraWifiCard(), hostnameCard(), loginCard(), backupCard(), versionCard())
+    return el("div.stack", wifiCard(), extraWifiCard(), hostnameCard(), loginCard(), backupCard(), updateCard(), filesystemCard(), autoUpdateCard(), versionCard())
 }
 
 /**
@@ -949,6 +949,214 @@ async function loadSettingsFile(input) {
         kept.length ? `These settings kept the clock's value: ${kept.join(", ")}. ` : "",
         "Review the settings, then save.")
     renderAll()
+}
+
+/**
+ * Build the network firmware update card: pick a firmware.bin built from this
+ * repo, upload it to the matching endpoint, watch progress, and let the clock reboot.
+ * @returns {HTMLElement}
+ */
+function updateCard() {
+    const fwInput = el("input", { type: "file", accept: ".bin", hidden: true })
+    const bar = el("progress", { id: "ota_bar", max: "100", value: "0", hidden: true })
+    const status = el("p.help", { id: "ota_status" }, "The clock reboots into the new image after a successful update.")
+    const checkStatus = el("p.help", { id: "ota_check" })
+    const installFwBtn = el("button.btn", { type: "button", hidden: true }, icon("download"), "Install firmware")
+    installFwBtn.addEventListener("click", () => applyOta("firmware"))
+    const checkBtn = el("button.btn", { type: "button" }, icon("refresh"), "Check for updates")
+    checkBtn.addEventListener("click", async () => {
+        checkStatus.textContent = "Checking…"
+        installFwBtn.hidden = true
+        try {
+            const r = await api.post("/api/update/check")
+            if (r.updateAvailable) {
+                checkStatus.textContent = `Firmware update available: ${r.latest} (running ${r.current}).`
+                installFwBtn.hidden = false
+            } else {
+                checkStatus.textContent = `Firmware up to date (${r.current}).`
+            }
+        } catch (e) {
+            checkStatus.textContent = "Check failed: the clock could not reach the release site."
+        }
+    })
+    fwInput.addEventListener("change", () => uploadOta(fwInput, "/api/update/firmware", "firmware"))
+    return card("Firmware update", "Update over the network: the clock can download a release itself (works from anywhere it has internet), or you can upload firmware.bin from this browser. The clock reboots into the new image after a successful update.", el("div.stack",
+        el("div.row", checkBtn),
+        checkStatus, installFwBtn,
+        el("div.row",
+            el("button.btn", { type: "button", onclick: () => fwInput.click() }, icon("upload"), "Upload firmware", fwInput)),
+        bar, status), { id: "card_update" })
+}
+
+/**
+ * Build the network filesystem update card: pick a littlefs.bin built from this
+ * repo, upload it to the matching endpoint, watch progress, and let the clock reboot.
+ * The filesystem carries the web UI; its version is tracked separately from firmware.
+ * @returns {HTMLElement}
+ */
+function filesystemCard() {
+    const fsInput = el("input", { type: "file", accept: ".bin", hidden: true })
+    const bar = el("progress", { id: "ota_fs_bar", max: "100", value: "0", hidden: true })
+    const status = el("p.help", { id: "ota_fs_status" }, "Your settings are kept. The clock reboots into the new image after a successful update.")
+    const checkStatus = el("p.help", { id: "ota_fs_check" })
+    const installFsBtn = el("button.btn", { type: "button", hidden: true }, icon("download"), "Install filesystem")
+    installFsBtn.addEventListener("click", () => applyOta("filesystem"))
+    const checkBtn = el("button.btn", { type: "button" }, icon("refresh"), "Check for updates")
+    checkBtn.addEventListener("click", async () => {
+        checkStatus.textContent = "Checking…"
+        installFsBtn.hidden = true
+        try {
+            const r = await api.post("/api/update/check")
+            if (r.fsUpdateAvailable) {
+                checkStatus.textContent = `Filesystem update available: ${r.latest} (running ${r.fsCurrent || "unknown"}).`
+                installFsBtn.hidden = false
+            } else {
+                checkStatus.textContent = `Filesystem up to date (${r.fsCurrent || r.current}).`
+            }
+        } catch (e) {
+            checkStatus.textContent = "Check failed: the clock could not reach the release site."
+        }
+    })
+    fsInput.addEventListener("change", () => uploadOta(fsInput, "/api/update/filesystem", "filesystem"))
+    return card("Filesystem update", "The filesystem carries the web UI and its version is tracked separately from firmware. The clock can download a release itself (works from anywhere it has internet), or you can upload littlefs.bin from this browser.", el("div.stack",
+        el("div.row", checkBtn),
+        checkStatus, installFsBtn,
+        el("div.row",
+            el("button.btn", { type: "button", onclick: () => fsInput.click() }, icon("upload"), "Upload filesystem", fsInput)),
+        bar, status), { id: "card_filesystem" })
+}
+
+/**
+ * Start a self-update download on the clock, then poll its progress until done.
+ * @param {string} type - "firmware" or "filesystem".
+ * @returns {Promise<void>}
+ */
+async function applyOta(type) {
+    const bar = type === "filesystem" ? $("#ota_fs_bar") : $("#ota_bar"),
+        status = type === "filesystem" ? $("#ota_fs_status") : $("#ota_status")
+    const fail = msg => { bar.hidden = true; status.textContent = msg }
+    try {
+        await api.post(`/api/update/apply?type=${type}`)
+    } catch (e) {
+        return void fail("Could not start the update.")
+    }
+    bar.hidden = false
+    bar.value = 0
+    status.textContent = `Downloading ${type}…`
+    let lost = 0
+    const poll = setInterval(async () => {
+        let s
+        try {
+            s = await api.get("/api/update/status")
+            lost = 0
+        } catch (e) {
+            // The clock stops answering when it reboots into the new image.
+            // Require consecutive failures so one transient blip can't fake success.
+            if (++lost < 3) return
+            clearInterval(poll)
+            return void fail(`${type} installed, the clock is rebooting…`)
+        }
+        if (s.state === "downloading" || s.state === "verifying") {
+            bar.value = s.state === "verifying" ? 100 : s.progress
+            status.textContent = s.state === "verifying" ? `Verifying ${type}…` : `Downloading ${type}… ${s.progress}%`
+        } else if (s.state === "done") {
+            clearInterval(poll)
+            fail(`${type} installed, the clock is rebooting…`)
+        } else if (s.state === "error") {
+            clearInterval(poll)
+            fail(`Update failed: ${s.error || "unknown error"}`)
+            toast("Update failed.", "bad")
+        }
+    }, 2000)
+}
+
+/**
+ * Upload a firmware or filesystem image with a progress bar, then report the result.
+ * Uses XMLHttpRequest because fetch has no upload progress events.
+ * @param {HTMLInputElement} input - File picker holding the image.
+ * @param {string} url - Update endpoint matching the image type.
+ * @param {string} label - Human-readable image type for status messages.
+ * @returns {void}
+ */
+function uploadOta(input, url, label) {
+    const file = input.files[0]
+    input.value = ""
+    if (!file) return
+    const isFs = label === "filesystem"
+    const bar = isFs ? $("#ota_fs_bar") : $("#ota_bar"),
+        status = isFs ? $("#ota_fs_status") : $("#ota_status")
+    bar.hidden = false
+    bar.value = 0
+    status.textContent = `Uploading ${label} (${file.name})…`
+    const done = msg => { bar.hidden = true; status.textContent = msg }
+    const xhr = new XMLHttpRequest()
+    xhr.open("POST", url)
+    xhr.upload.onprogress = e => { if (e.lengthComputable) bar.value = Math.round(e.loaded * 100 / e.total) }
+    xhr.onload = () => {
+        if (xhr.status === 401) return (done("Login required: unlock the settings page first."), toast("Login required.", "bad"))
+        let msg = `The clock answered ${xhr.status}.`
+        try {
+            const r = JSON.parse(xhr.responseText)
+            if (r.status === "ok") {
+                msg = `${label} uploaded, the clock is rebooting…`
+                // A filesystem update can succeed while the settings restore
+                // fails; the clock then reboots onto its config fallbacks.
+                if (r.warning) msg += ` Warning: ${r.warning}.`
+            } else msg = `Update failed: ${r.error || r.status}`
+        } catch (e) { /* keep the default message */ }
+        done(msg)
+    }
+    xhr.onerror = () => done("Upload failed: the connection was lost.")
+    const fd = new FormData()
+    fd.append("file", file, file.name)
+    xhr.send(fd)
+}
+
+/**
+ * Build the automatic updates and remote heartbeat card: a daily self-update
+ * check/install plus an optional status webhook for watching the clock remotely.
+ * @returns {HTMLElement}
+ */
+function autoUpdateCard() {
+    const hourRow = reactive(["ota_auto_update"], () => form.get("ota_auto_update")
+        ? el("div.grid", field("ota_auto_update_hour", "Daily check hour (0–23, clock's local time)", numberInput("ota_auto_update_hour")))
+        : el("span", { hidden: true }))
+    const hcRow = reactive(["healthcheck_url"], () => String(form.get("healthcheck_url") || "").trim()
+        ? el("div.grid", field("healthcheck_interval_hours", "Heartbeat interval (hours)", numberInput("healthcheck_interval_hours")))
+        : el("span", { hidden: true }))
+    // Manual test ping: posts one heartbeat right now using the URL as typed,
+    // so it can be verified before saving. Delivery is confirmed at the receiver.
+    const pingStatus = el("p.help", { id: "hc_ping_status" })
+    const pingBtn = el("button.btn", { type: "button" }, icon("bell"), "Send test ping")
+    pingBtn.addEventListener("click", async () => {
+        const url = String(form.get("healthcheck_url") || "").trim()
+        if (!url) {
+            pingStatus.textContent = "Enter a heartbeat URL first."
+            return
+        }
+        pingBtn.disabled = true
+        pingStatus.textContent = "Sending…"
+        try {
+            await api.post("/api/heartbeat/test", { url })
+            pingStatus.textContent = "Test ping sent — check your healthchecks.io dashboard or ntfy topic."
+        } catch (e) {
+            pingStatus.textContent = "Test ping failed: the clock could not send it."
+        } finally {
+            pingBtn.disabled = false
+        }
+    })
+    return card("Automatic updates", "For a clock you can't reach on its own network: it checks for new releases and installs them by itself, and can report its status to a URL you watch.", el("div.stack",
+        toggleRow("ota_auto_update", "Check for and install updates automatically", "Once a day (and shortly after every boot) the clock checks the release page and installs new firmware/filesystem images itself. Your settings — network, face, alarms — are kept."),
+        hourRow,
+        field("healthcheck_url", "Status heartbeat URL (optional)", textInput("healthcheck_url", { placeholder: "https://hc-ping.com/…", maxlength: 200, trim: true })),
+        el("p.help", "The clock posts a small JSON status (version, uptime, signal) here on a schedule. ",
+            "Use ", el("a", { href: "https://healthchecks.io", target: "_blank", rel: "noopener noreferrer" }, "healthchecks.io"),
+            " to get alerted if the clock ever goes quiet, or ",
+            el("a", { href: "https://ntfy.sh", target: "_blank", rel: "noopener noreferrer" }, "ntfy.sh"),
+            " to receive the heartbeat as phone notifications."),
+        el("div.row", pingBtn),
+        pingStatus,
+        hcRow), { id: "card_autoupdate" })
 }
 
 /**

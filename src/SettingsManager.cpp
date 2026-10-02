@@ -250,6 +250,14 @@ bool SettingsManager_::loadSettingsFromFile() {
 
     // Web interface authentication
     settings.web_auth_enable = (*doc)["web_auth_enable"].as<bool>();
+
+    // Automatic self-updates
+    settings.ota_auto_update = (*doc)["ota_auto_update"] | false;
+    settings.ota_auto_update_hour = (*doc)["ota_auto_update_hour"] | 3;
+
+    // Healthcheck heartbeat
+    settings.healthcheck_url = (*doc)["healthcheck_url"].as<String>();
+    settings.healthcheck_interval_hours = (*doc)["healthcheck_interval_hours"] | 1;
     settings.web_auth_password = (*doc)["web_auth_password"].as<String>();
 
     delete doc;
@@ -386,6 +394,14 @@ bool SettingsManager_::saveSettingsToFile() {
 
     // Web interface authentication
     (*doc)["web_auth_enable"] = settings.web_auth_enable;
+
+    // Automatic self-updates
+    (*doc)["ota_auto_update"] = settings.ota_auto_update;
+    (*doc)["ota_auto_update_hour"] = settings.ota_auto_update_hour;
+
+    // Healthcheck heartbeat
+    (*doc)["healthcheck_url"] = settings.healthcheck_url;
+    (*doc)["healthcheck_interval_hours"] = settings.healthcheck_interval_hours;
     (*doc)["web_auth_password"] = settings.web_auth_password;
 
     if (trySaveJsonAsSettings(*doc) == false)

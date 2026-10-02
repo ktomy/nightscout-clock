@@ -73,6 +73,13 @@ public:
     int alarm_repeat_interval_seconds = 300;
     bool web_auth_enable;
     String web_auth_password;
+    // Automatic self-updates: daily check of the release manifest, applied without interaction.
+    bool ota_auto_update = false;
+    int ota_auto_update_hour = 3;
+    // Optional heartbeat: the clock POSTs a small JSON status on a schedule.
+    // Works with healthchecks.io, ntfy.sh, or any webhook receiver.
+    String healthcheck_url;
+    int healthcheck_interval_hours = 1;
 };
 
 #endif
