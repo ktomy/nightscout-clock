@@ -191,6 +191,7 @@ const buildNightscoutUrl = ({ protocol, host, port }) => `${protocol}://${host.t
 const RX = {
     ssid: /^[\x20-\x7E]{1,32}$/,
     wifiPassword: /^.{8,}$/,
+    macAddress: /^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$/,
     dexcomUsername: /^.{6,}$/,
     password: /^.{8,20}$/,
     nsHostname: /(^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$)|(^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9][a-z0-9-]{0,61}[a-z0-9]$)/,
@@ -276,6 +277,8 @@ function validateConfig(c, ctx) {
     // WiFi
     need("ssid", RX.ssid.test(text(c.ssid)), "Valid network name (SSID) is required.")
     if (!ctx.openNetwork) need("password", RX.wifiPassword.test(text(c.password)), "Password is required and must be at least 8 characters long.")
+    const mac = text(c.custom_mac).trim()
+    need("custom_mac", !mac || RX.macAddress.test(mac), "MAC address must look like A4:83:E7:2B:10:9C, or be left empty.")
 
     // Data source
     const src = c.data_source
