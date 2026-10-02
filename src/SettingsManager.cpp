@@ -120,6 +120,14 @@ bool SettingsManager_::loadSettingsFromFile() {
 
     settings.face_cycle_enabled = (*doc)["face_cycle_enabled"] | false;
     settings.face_cycle_interval_seconds = (*doc)["face_cycle_interval_seconds"] | 60;
+    settings.school_mode_active = (*doc)["school_mode_active"] | false;
+    settings.school_mode_faces.clear();
+    for (JsonVariant f : (*doc)["school_mode_faces"].as<JsonArray>()) {
+        settings.school_mode_faces.push_back(f.as<int>());
+    }
+    if (settings.school_mode_faces.empty()) {
+        settings.school_mode_faces = {0, 1, 2, 4, 5, 9};
+    }
     if (!isValidFaceCycleInterval(settings.face_cycle_interval_seconds)) {
         DEBUG_PRINTLN("Invalid face cycle interval in config, defaulting to 60 seconds");
         settings.face_cycle_interval_seconds = 60;
@@ -280,6 +288,12 @@ bool SettingsManager_::saveSettingsToFile() {
     (*doc)["default_face"] = settings.default_clockface;
     (*doc)["face_cycle_enabled"] = settings.face_cycle_enabled;
     (*doc)["face_cycle_interval_seconds"] = settings.face_cycle_interval_seconds;
+    (*doc)["school_mode_active"] = settings.school_mode_active;
+    (*doc).remove("school_mode_faces");
+    JsonArray schoolModeFaces = (*doc)["school_mode_faces"].to<JsonArray>();
+    for (int f : settings.school_mode_faces) {
+        schoolModeFaces.add(f);
+    }
     (*doc).remove("inactive_faces");
     JsonArray inactiveFaces = (*doc)["inactive_faces"].to<JsonArray>();
     for (int faceId : settings.inactive_faces) {

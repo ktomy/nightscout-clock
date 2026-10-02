@@ -25,6 +25,8 @@
     "face_cycle_enabled": false,
     "inactive_faces": [],
     "face_cycle_interval_seconds": 60,
+    "school_mode_active": false,
+    "school_mode_faces": [0, 1, 2, 4, 5, 9],
     "face_schedule_enabled": false,
     "face_schedule": [],
     "tz_libc": "",

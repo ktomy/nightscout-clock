@@ -246,7 +246,7 @@ function toast(message, kind = "ok", ms = 4500) {
  * @returns {HTMLElement}
  */
 function displayTab() {
-    return el("div.stack", facesCard(), faceScheduleCard(), brightnessCard(), oldDataCard(), timeCard())
+    return el("div.stack", facesCard(), schoolModeCard(), faceScheduleCard(), brightnessCard(), oldDataCard(), timeCard())
 }
 
 /**
@@ -298,6 +298,28 @@ function facesCard() {
     })
     return card("Clock faces", null, el("div.stack", faces, defaultFace, el("hr.divider"), cyclingToggle,
         interval), { id: "card_faces" })
+}
+
+/** School-mode toggle plus the faces the clock may show while it is active. */
+function schoolModeCard() {
+    const toggle = toggleRow("school_mode_active", "School mode",
+        "Triple-tap the clock's middle button to toggle it.")
+    const faces = reactive(["school_mode_faces"], () => {
+        const allowed = form.get("school_mode_faces") || []
+        const list = el("div.faces")
+        for (const f of FACES) {
+            const b = el("button.face", { type: "button", "aria-pressed": String(allowed.includes(f.id)) })
+            b.textContent = f.name
+            b.onclick = () => {
+                form.set("school_mode_faces", allowed.includes(f.id)
+                    ? allowed.filter(x => x !== f.id) : [...allowed, f.id])
+                form.touch("school_mode_faces")
+            }
+            list.append(b)
+        }
+        return el("div.field", { dataset: { field: "school_mode_faces" } }, list, el("p.err", { hidden: true }))
+    })
+    return card("School mode", null, el("div.stack", toggle, faces), { id: "card_school" })
 }
 
 /**

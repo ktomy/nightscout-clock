@@ -88,6 +88,22 @@ void BGDisplayManager_::configureActiveFaces() {
         }
     }
 
+    // School mode further restricts navigation/cycling to the school-mode allow-list.
+    // An empty allow-list disables the restriction instead of stranding the clock
+    // with no navigable faces.
+    if (SettingsManager.settings.school_mode_active && !SettingsManager.settings.school_mode_faces.empty()) {
+        const std::vector<int>& allowed = SettingsManager.settings.school_mode_faces;
+        std::vector<int> schoolFaces;
+        for (int faceId : activeFaces) {
+            if (std::find(allowed.begin(), allowed.end(), faceId) != allowed.end()) {
+                schoolFaces.push_back(faceId);
+            }
+        }
+        if (!schoolFaces.empty()) {
+            activeFaces = schoolFaces;
+        }
+    }
+
     if (!SettingsManager.settings.face_cycle_enabled) {
         return;
     }
@@ -324,4 +340,25 @@ GlucoseReading* BGDisplayManager_::getLastDisplayedGlucoseReading() {
     } else {
         return NULL;
     }
+}
+bool BGDisplayManager_::isSchoolMode() const { return SettingsManager.settings.school_mode_active; }
+void BGDisplayManager_::toggleSchoolMode() { setSchoolMode(!SettingsManager.settings.school_mode_active); }
+void BGDisplayManager_::setSchoolMode(bool active) {
+    SettingsManager.settings.school_mode_active = active;
+    SettingsManager.saveSettingsToFile();
+    configureActiveFaces();
+    DisplayManager.clearMatrix();
+    DisplayManager.setFont(FONT_TYPE::SMALL);
+    DisplayManager.setTextColor(active ? COLOR_YELLOW : COLOR_GREEN);
+    DisplayManager.printText(0, 6, active ? "SCHOOL" : "HOME", TEXT_ALIGNMENT::CENTER, 0);
+    DisplayManager.update();
+    delay(1200);
+    if (active) {
+        auto& allowed = SettingsManager.settings.school_mode_faces;
+        if (std::find(allowed.begin(), allowed.end(), currentFaceIndex) == allowed.end()) {
+            setFace(allowed.empty() ? 0 : allowed.front());
+            return;
+        }
+    }
+    runRenderCycle(RenderReason::FORCED, ServerManager.getTimezonedTime());
 }

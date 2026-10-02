@@ -388,6 +388,7 @@ function normalizeLoaded(c) {
     out.inactive_faces = [...new Set(inactive.map(Number).filter(id => FACES.some(f => f.id === id)))]
     const active = activeFaceIds(out.inactive_faces)
     if (active.length && !active.includes(out.default_face)) out.default_face = active[0]
+    out.school_mode_active = !!out.school_mode_active
     return out
 }
 
