@@ -52,6 +52,20 @@ void BGDisplayManager_::setup() {
     facesNames[6] = "Unicorn";
     faces.push_back(new BGDisplayFaceTimeOnly());
     facesNames[7] = "Time only";
+    faces.push_back(new BGDisplayFaceDiagnostics());
+    facesNames[8] = "Diagnostics";
+    faces.push_back(new BGDisplayFaceBatteryUptime());
+    facesNames[9] = "Battery and uptime";
+    faces.push_back(new BGDisplayFaceBigTextRainbow());
+    facesNames[10] = "Rainbow big text";
+    faces.push_back(new BGDisplayFaceBigTextWithAge());
+    facesNames[11] = "Big text + age";
+    faces.push_back(new BGDisplayFaceRainbowSparkle());
+    facesNames[12] = "Rainbow sparkle";
+    faces.push_back(new BGDisplayFaceRainbowClock());
+    facesNames[13] = "Rainbow clock";
+    faces.push_back(new BGDisplayFaceTitleScroll());
+    facesNames[14] = "Custom title scroll";
 
     if (faces.size() != CLOCK_FACE_COUNT) {
         DEBUG_PRINTF(
@@ -119,6 +133,8 @@ void BGDisplayManager_::setFace(int id) {
 
     currentFaceIndex = id;
     currentFace = (faces[currentFaceIndex]);
+    currentFace->onActivate();
+    lastFrequentRefreshMillis = 0;
     lastRefreshEpoch = 0;
     resetFaceCycleTimer();
     runRenderCycle(RenderReason::FACE_CHANGE, ServerManager.getTimezonedTime());
@@ -184,6 +200,13 @@ void BGDisplayManager_::updateFaceCycle() {
 void BGDisplayManager_::tick() {
     updateFaceSchedule();
     updateFaceCycle();
+    if (!MATRIX_OFF && currentFace != nullptr && currentFace->needsFrequentRefresh()) {
+        unsigned long currentMillis = millis();
+        if (currentMillis - lastFrequentRefreshMillis >= currentFace->getFrequentRefreshIntervalMs()) {
+            lastFrequentRefreshMillis = currentMillis;
+            runRenderCycle(RenderReason::FORCED, ServerManager.getTimezonedTime());
+        }
+    }
     maybeRrefreshScreen();
 }
 
@@ -254,7 +277,6 @@ void BGDisplayManager_::applyScheduleEntry(const FaceScheduleEntry& entry) {
 
 void BGDisplayManager_::commitRenderedState(bool dataIsOld) {
     lastRenderedDataWasOld = dataIsOld;
-    lastRefreshEpoch = ServerManager.getUtcEpoch();
 }
 
 void BGDisplayManager_::runRenderCycle(RenderReason reason, const tm& timeInfo) {
@@ -302,6 +324,7 @@ void BGDisplayManager_::maybeRrefreshScreen(bool force) {
             (timeInfo.tm_sec == 0 || currentFace->ticksEverySecond()) &&
                 currentEpoch > lastRefreshEpoch ||
             currentEpoch - lastRefreshEpoch > 60) {
+            lastRefreshEpoch = currentEpoch;
             runRenderCycle(RenderReason::TIME_TICK, timeInfo);
         }
     }

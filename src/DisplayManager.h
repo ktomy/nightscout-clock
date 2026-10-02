@@ -20,10 +20,18 @@ public:
     void tick();
 
     void HSVtext(int16_t x, int16_t y, const char* text, bool clear, byte textCase);
-    void printText(int16_t x, int16_t y, const char* text, TEXT_ALIGNMENT alignment, byte textCase);
+    // Full-saturation hue (0-255) packed as RGB565; shared by the rainbow faces.
+    static uint16_t hsvToRgb565(uint8_t hue);
+    // Pack 8-bit r/g/b as RGB565.
+    static uint16_t rgb565(uint8_t r, uint8_t g, uint8_t b);
+    void printText(
+        int16_t x, int16_t y, const char* text, TEXT_ALIGNMENT alignment, byte textCase,
+        bool updateMatrix = false);
     void setTextColor(uint16_t color);
-    void clearMatrix();
-    void drawBitmap(int16_t x, int16_t y, const uint8_t bitmap[], int16_t w, int16_t h, uint16_t color);
+    void clearMatrix(bool updateMatrix = false);
+    void drawBitmap(
+        int16_t x, int16_t y, const uint8_t bitmap[], int16_t w, int16_t h, uint16_t color,
+        bool updateMatrix = false);
     // Like drawBitmap, but each pixel carries its own palette index instead of a single mask color.
     // sprite[] holds one index per pixel (0 = transparent, skip); palette[] holds the color for
     // index N at palette[N-1]. Arrays may be in RAM or memory-mapped PROGMEM on ESP32.
@@ -41,7 +49,7 @@ public:
     void setPower(bool power);
     void setBrightness(int bri);
     void update();
-    void clearMatrixPart(uint8_t x, uint8_t y, uint8_t width, uint8_t height);
+    void clearMatrixPart(uint8_t x, uint8_t y, uint8_t width, uint8_t height, bool updateMatrix = false);
     float getTextWidth(const char* text, byte textCase);
     void setFont(FONT_TYPE fontType);
 };

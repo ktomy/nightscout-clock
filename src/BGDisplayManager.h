@@ -8,12 +8,19 @@
 #include <vector>
 
 #include "BGDisplayFace.h"
+#include "BGDisplayFaceBatteryUptime.h"
 #include "BGDisplayFaceBigText.h"
+#include "BGDisplayFaceBigTextRainbow.h"
+#include "BGDisplayFaceBigTextWithAge.h"
 #include "BGDisplayFaceClock.h"
+#include "BGDisplayFaceDiagnostics.h"
 #include "BGDisplayFaceGraph.h"
 #include "BGDisplayFaceGraphAndBG.h"
+#include "BGDisplayFaceRainbowClock.h"
+#include "BGDisplayFaceRainbowSparkle.h"
 #include "BGDisplayFaceSimple.h"
 #include "BGDisplayFaceTimeOnly.h"
+#include "BGDisplayFaceTitleScroll.h"
 #include "BGDisplayFaceUnicorn.h"
 #include "BGDisplayFaceValueAndDiff.h"
 #include "BGSource.h"
@@ -116,6 +123,7 @@ public:
 
 private:
     unsigned long long lastRefreshEpoch = 0;
+    unsigned long lastFrequentRefreshMillis = 0;
 };
 
 extern BGDisplayManager_& bgDisplayManager;

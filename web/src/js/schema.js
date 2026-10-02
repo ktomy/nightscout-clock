@@ -70,6 +70,13 @@ const FACES = [
     { id: 5, name: "Current time and BG value" },
     { id: 6, name: "Unicorn" },
     { id: 7, name: "Time only" },
+    { id: 8, name: "Diagnostics" },
+    { id: 9, name: "Battery and uptime" },
+    { id: 10, name: "Rainbow big text" },
+    { id: 11, name: "Big text + age" },
+    { id: 12, name: "Rainbow sparkle" },
+    { id: 13, name: "Rainbow clock" },
+    { id: 14, name: "Custom title scroll" },
 ]
 
 // The config stores the faces switched off, so a face added later starts active.

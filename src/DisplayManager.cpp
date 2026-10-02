@@ -118,6 +118,22 @@ uint32_t hsvToRgb(uint8_t h, uint8_t s, uint8_t v) {
     return ((uint16_t)(rgb.r & 0xF8) << 8) | ((uint16_t)(rgb.g & 0xFC) << 3) | (rgb.b >> 3);
 }
 
+uint16_t DisplayManager_::rgb565(uint8_t r, uint8_t g, uint8_t b) {
+    return ((uint16_t)(r & 0xF8) << 8) | ((uint16_t)(g & 0xFC) << 3) | (b >> 3);
+}
+
+uint16_t DisplayManager_::hsvToRgb565(uint8_t hue) {
+    uint8_t region = hue / 43, rem = (hue - (region * 43)) * 6, q = 255 - rem, t = rem;
+    switch (region) {
+        case 0: return rgb565(255, t, 0);
+        case 1: return rgb565(q, 255, 0);
+        case 2: return rgb565(0, 255, t);
+        case 3: return rgb565(0, q, 255);
+        case 4: return rgb565(t, 0, 255);
+        default: return rgb565(255, 0, q);
+    }
+}
+
 float DisplayManager_::getTextWidth(const char* text, byte textCase) {
     float width = 0;
     for (const char* c = text; *c != '\0'; ++c) {
@@ -135,8 +151,11 @@ float DisplayManager_::getTextWidth(const char* text, byte textCase) {
 }
 void DisplayManager_::setTextColor(uint16_t color) { matrix->setTextColor(color); }
 
-void DisplayManager_::clearMatrix() {
+void DisplayManager_::clearMatrix(bool updateMatrix) {
     matrix->clear();
+    if (updateMatrix) {
+        matrix->show();
+    }
 }
 
 // DisplayManager_::printText(int16_t x, int16_t y, const char *text, TEXT_ALIGNMENT alignment, byte
@@ -144,7 +163,8 @@ void DisplayManager_::clearMatrix() {
 // }
 
 void DisplayManager_::printText(
-    int16_t x, int16_t y, const char* text, TEXT_ALIGNMENT alignment, byte textCase) {
+    int16_t x, int16_t y, const char* text, TEXT_ALIGNMENT alignment, byte textCase,
+    bool updateMatrix) {
     if (alignment == TEXT_ALIGNMENT::LEFT) {
         matrix->setCursor(x, y);
     } else if (alignment == TEXT_ALIGNMENT::RIGHT) {
@@ -170,12 +190,19 @@ void DisplayManager_::printText(
     } else {
         matrix->print(text);
     }
+    if (updateMatrix) {
+        matrix->show();
+    }
 }
 
 void DisplayManager_::drawBitmap(
-    int16_t x, int16_t y, const uint8_t bitmap[], int16_t w, int16_t h, uint16_t color) {
+    int16_t x, int16_t y, const uint8_t bitmap[], int16_t w, int16_t h, uint16_t color,
+    bool updateMatrix) {
     matrix->setCursor(x, y);
     matrix->drawBitmap(x, y, bitmap, w, h, color);
+    if (updateMatrix) {
+        matrix->show();
+    }
 }
 
 void DisplayManager_::drawIndexedSprite(
@@ -322,6 +349,9 @@ void DisplayManager_::selectButtonLong() {}
 
 void DisplayManager_::update() { matrix->show(); }
 
-void DisplayManager_::clearMatrixPart(uint8_t x, uint8_t y, uint8_t width, uint8_t height) {
+void DisplayManager_::clearMatrixPart(uint8_t x, uint8_t y, uint8_t width, uint8_t height, bool updateMatrix) {
     matrix->fillRect(x, y, width, height, 0);
+    if (updateMatrix) {
+        matrix->show();
+    }
 }

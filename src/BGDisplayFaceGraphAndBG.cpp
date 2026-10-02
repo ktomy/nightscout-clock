@@ -23,7 +23,7 @@ void BGDisplayFaceGraphAndBG::showReadings(
 #endif
 
     showGraph(0, graphWidth, minutesToShow, readings);
-    showReading(lastReading, 31, 6, TEXT_ALIGNMENT::RIGHT, FONT_TYPE::MEDIUM, dataIsOld);
+    showReading(lastReading, 30, 6, TEXT_ALIGNMENT::RIGHT, FONT_TYPE::MEDIUM, dataIsOld);
     showTrendVerticalLine(31, lastReading.trend, dataIsOld);
     drawTimerBlocks(lastReading, textWidth + 2, graphWidth, 7);
 }

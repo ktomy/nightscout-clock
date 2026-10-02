@@ -6,7 +6,7 @@
 void BGDisplayFaceClock::showReadings(const std::list<GlucoseReading>& readings, bool dataIsOld) const {
     showClock();
 
-    showReading(readings.back(), 31, 6, TEXT_ALIGNMENT::RIGHT, FONT_TYPE::MEDIUM, dataIsOld);
+    showReading(readings.back(), 30, 6, TEXT_ALIGNMENT::RIGHT, FONT_TYPE::MEDIUM, dataIsOld);
 
     switch (SettingsManager.settings.time_format) {
         case TIME_FORMAT::HOURS_12:
