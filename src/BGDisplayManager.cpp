@@ -49,9 +49,13 @@ void BGDisplayManager_::setup() {
     faces.push_back(new BGDisplayFaceClock());
     facesNames[5] = "Clock and value";
     faces.push_back(new BGDisplayFaceUnicorn());
+    unicornFaceIndex = faces.size() - 1;
     facesNames[6] = "Unicorn";
     faces.push_back(new BGDisplayFaceTimeOnly());
     facesNames[7] = "Time only";
+    faces.push_back(new BGDisplayFaceNyanUnicorn());
+    nyanUnicornFaceIndex = faces.size() - 1;
+    facesNames[8] = "Nyan unicorn";
 
     if (faces.size() != CLOCK_FACE_COUNT) {
         DEBUG_PRINTF(
@@ -119,6 +123,7 @@ void BGDisplayManager_::setFace(int id) {
 
     currentFaceIndex = id;
     currentFace = (faces[currentFaceIndex]);
+    currentFace->onActivate();
     lastRefreshEpoch = 0;
     resetFaceCycleTimer();
     runRenderCycle(RenderReason::FACE_CHANGE, ServerManager.getTimezonedTime());
@@ -162,6 +167,12 @@ void BGDisplayManager_::updateFaceCycle() {
         return;
     }
 
+    // Unicorn mode owns the face until the celebration (including the
+    // Nyan run-away) finishes and the previous face is restored.
+    if (unicornModeActive || unicornExiting) {
+        return;
+    }
+
     if (MATRIX_OFF) {
         faceCycleTimerStarted = false;
         return;
@@ -181,9 +192,38 @@ void BGDisplayManager_::updateFaceCycle() {
     }
 }
 
+void BGDisplayManager_::updateUnicornMode() {
+    if (!unicornModeActive && !unicornExiting) return;
+    // Let the Nyan run across once (~3s) plus its pause, then either hold the
+    // static unicorn face (entry) or restore the pre-celebration face (exit).
+    if (millis() - unicornNyanStartMs < 8000) return;
+    if (unicornExiting) {
+        if (unicornReturnFaceIndex >= 0) {
+            setFace(unicornReturnFaceIndex);
+        }
+        unicornExiting = false;
+        unicornModeActive = false;
+        unicornNyanDone = false;
+        unicornReturnFaceIndex = -1;
+    } else if (!unicornNyanDone) {
+        if (unicornFaceIndex >= 0) {
+            setFace(unicornFaceIndex);
+        }
+        unicornNyanDone = true;
+    }
+}
+
 void BGDisplayManager_::tick() {
     updateFaceSchedule();
     updateFaceCycle();
+    updateUnicornMode();
+    if (!MATRIX_OFF && currentFace != nullptr && currentFace->needsFrequentRefresh()) {
+        unsigned long currentMillis = millis();
+        if (currentMillis - lastFrequentRefreshMillis >= currentFace->getFrequentRefreshIntervalMs()) {
+            lastFrequentRefreshMillis = currentMillis;
+            runRenderCycle(RenderReason::FORCED, ServerManager.getTimezonedTime());
+        }
+    }
     maybeRrefreshScreen();
 }
 
@@ -205,6 +245,12 @@ void BGDisplayManager_::configureFaceSchedule() {
 // at its time, even a single row. No known time means no row applies.
 void BGDisplayManager_::updateFaceSchedule() {
     if (!faceScheduleActive) {
+        return;
+    }
+
+    // Unicorn mode owns the face until the celebration (including the
+    // Nyan run-away) finishes and the previous face is restored.
+    if (unicornModeActive || unicornExiting) {
         return;
     }
 
@@ -310,11 +356,52 @@ void BGDisplayManager_::maybeRrefreshScreen(bool force) {
 void BGDisplayManager_::showData(std::list<GlucoseReading> glucoseReadings) {
     if (glucoseReadings.size() == 0) {
         displayedReadings.clear();
+        unicornModeActive = false;
+        unicornExiting = false;
+        unicornNyanDone = false;
+        if (unicornReturnFaceIndex >= 0) {
+            setFace(unicornReturnFaceIndex);
+            unicornReturnFaceIndex = -1;
+        }
         runRenderCycle(RenderReason::NEW_DATA, ServerManager.getTimezonedTime());
         return;
     }
 
     displayedReadings = glucoseReadings;
+
+    // Unicorn mode: a new reading of exactly 100 starts the celebration --
+    // the Nyan runs across once, then the static unicorn holds. The next
+    // reading ends it: the Nyan runs away, then the face from before the
+    // celebration is restored.
+    if (SettingsManager.settings.unicorn_mode && glucoseReadings.back().sgv == 100) {
+        if (nyanUnicornFaceIndex >= 0) {
+            if (!unicornModeActive && !unicornExiting) {
+                unicornReturnFaceIndex = currentFaceIndex;
+            }
+            unicornModeActive = true;
+            unicornExiting = false;
+            unicornNyanDone = false;
+            unicornNyanStartMs = millis();
+            setFace(nyanUnicornFaceIndex);
+        }
+    } else if (unicornModeActive || unicornExiting) {
+        if (nyanUnicornFaceIndex >= 0) {
+            unicornExiting = true;
+            unicornModeActive = false;
+            unicornNyanDone = false;
+            unicornNyanStartMs = millis();
+            setFace(nyanUnicornFaceIndex);
+        } else {
+            unicornModeActive = false;
+            unicornExiting = false;
+            unicornNyanDone = false;
+            if (unicornReturnFaceIndex >= 0) {
+                setFace(unicornReturnFaceIndex);
+                unicornReturnFaceIndex = -1;
+            }
+        }
+    }
+
     runRenderCycle(RenderReason::NEW_DATA, ServerManager.getTimezonedTime());
 }
 
