@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nightscout Clock &mdash; Face Simulator</title>
+<style>
+  :root{color-scheme:dark}
+  body{background:#0b0d10;color:#e8eaed;font-family:system-ui,-apple-system,sans-serif;margin:0;padding:16px}
+  h1{font-size:20px;margin:0 0 4px}
+  .sub{color:#9aa0a6;font-size:13px;margin-bottom:14px}
+  .controls{display:flex;flex-wrap:wrap;gap:14px 22px;background:#15181d;border:1px solid #2a2f36;
+    border-radius:10px;padding:12px 16px;margin-bottom:16px;align-items:center}
+  .ctl{display:flex;align-items:center;gap:8px;font-size:13px}
+  .ctl label{color:#9aa0a6}
+  .ctl output{min-width:64px;font-variant-numeric:tabular-nums}
+  input[type=range]{width:130px}
+  select,button{background:#22262c;color:#e8eaed;border:1px solid #3a4048;border-radius:6px;padding:4px 8px;font-size:13px}
+  .seg{display:flex;border:1px solid #3a4048;border-radius:6px;overflow:hidden}
+  .seg button{border:0;border-radius:0;background:transparent;padding:4px 10px;cursor:pointer;color:#9aa0a6}
+  .seg button.on{background:#2f6fed;color:#fff}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+  .card{background:#15181d;border:1px solid #2a2f36;border-radius:10px;padding:10px 12px 12px}
+  .card h2{font-size:13px;margin:0 0 8px;color:#c9ced4;font-weight:600}
+  .card h2 .id{color:#5f6b76;font-weight:400;margin-right:6px}
+  canvas{width:100%;image-rendering:pixelated;background:#000;border-radius:6px;display:block}
+  .note{margin-top:14px;color:#5f6b76;font-size:12px}
+</style>
+</head>
+<body>
+<h1>Nightscout Clock &mdash; Face Simulator</h1>
+<div class="sub">Pixel-exact preview of all 8 clock faces, rendered with the firmware&rsquo;s own font bitmaps and drawing logic. Animations run live.</div>
+<div class="controls">
+  <div class="ctl"><label>Glucose</label><input id="glucose" type="range" min="40" max="400" value="142"><output id="glucoseOut">142</output></div>
+  <div class="ctl"><label>Trend</label><select id="trend">
+    <option value="DOUBLE_UP">Double up</option><option value="SINGLE_UP">Single up</option>
+    <option value="FORTYFIVE_UP">45&deg; up</option><option value="FLAT" selected>Flat</option>
+    <option value="FORTYFIVE_DOWN">45&deg; down</option><option value="SINGLE_DOWN">Single down</option>
+    <option value="DOUBLE_DOWN">Double down</option><option value="NONE">None</option>
+  </select></div>
+  <div class="ctl"><label>Data age</label><input id="age" type="range" min="0" max="40" value="3"><output id="ageOut">3 min</output></div>
+  <div class="ctl"><label><input id="nodata" type="checkbox"> No data</label></div>
+  <div class="ctl"><label>Units</label><div class="seg" id="units"><button data-v="0" class="on">mg/dL</button><button data-v="1">mmol/L</button></div></div>
+  <div class="ctl"><label>Clock</label><div class="seg" id="clock"><button data-v="0" class="on">24h</button><button data-v="1">12h</button></div></div>
+  <div class="ctl"><label>Stale color</label><input id="stale" type="color" value="#a451a4"></div>
+</div>
+<div class="grid" id="grid"></div>
+<div class="note">Stale threshold: 20 min (matches firmware default). Timer blocks: one per minute of data age, up to 5. Sample history is synthesized: 3 h of 5-minute readings ending at the chosen value and trend.</div>
+<script>
+const AW={"bitmaps":[0,128,128,128,0,128,160,160,160,224,160,224,160,96,192,96,192,64,160,32,64,128,160,192,192,224,160,96,128,128,64,128,128,128,64,128,64,64,64,128,160,64,160,64,224,64,64,128,224,128,32,32,64,128,128,224,160,160,160,224,64,192,64,64,224,224,32,224,128,224,224,32,224,32,224,160,160,224,32,32,224,128,224,32,224,224,128,224,160,224,224,32,32,32,32,224,160,224,160,224,224,160,224,32,224,128,0,128,64,0,64,128,32,64,128,64,32,224,0,224,128,64,32,64,128,224,32,64,0,64,64,160,224,128,96,192,160,224,160,160,192,160,192,160,192,64,160,128,160,64,192,160,160,160,192,224,128,224,128,224,224,128,224,128,128,96,128,160,160,96,160,160,224,160,160,128,128,128,128,128,32,32,32,160,64,160,160,192,160,160,128,128,128,128,224,136,216,168,136,136,144,208,176,144,144,64,160,160,160,64,224,160,192,128,128,64,160,160,160,112,224,160,192,160,160,224,128,224,32,224,224,64,64,64,64,160,160,160,160,224,160,160,160,160,64,136,136,136,168,80,160,160,64,160,160,160,160,224,32,192,224,32,64,128,224,224,128,128,128,224,128,64,32,224,32,32,32,224,64,160,224,128,64,192,96,160,224,128,192,160,160,192,96,128,128,96,32,96,160,160,96,96,160,192,96,32,64,224,64,64,96,160,224,32,64,128,192,160,160,160,128,0,128,128,128,32,0,32,32,160,64,128,160,192,192,160,192,64,64,64,224,224,224,224,160,192,160,160,160,64,160,160,64,192,160,160,192,128,96,160,160,96,32,96,128,128,128,96,192,96,192,64,224,64,64,96,160,160,160,96,160,160,224,64,160,224,224,224,160,64,64,160,160,160,96,32,64,224,96,192,224,96,64,128,64,96,128,128,0,128,128,192,64,32,64,192,96,192,128,0,128,128,128,64,224,128,224,64,96,64,224,64,224,160,64,224,64,160,160,160,64,224,64,128,128,0,128,128,96,64,160,64,192,160,96,128,96,96,160,224,0,224,64,128,64,224,32,192,192,192,160,224,192,192,0,64,224,64,0,224,192,64,96,224,96,224,64,128,160,160,160,192,128,96,160,96,96,96,224,224,224,64,32,192,128,128,128,64,160,64,0,224,128,64,128,128,128,0,96,32,128,128,0,192,96,192,192,0,96,32,64,0,64,128,224,64,32,64,224,160,64,128,64,224,160,224,0,64,224,160,96,192,64,224,160,160,64,160,224,160,192,192,160,224,160,96,192,224,192,224,96,128,128,96,32,64,64,32,224,192,224,64,128,224,192,224,224,0,224,192,224,160,0,224,192,224,64,32,224,64,224,64,128,224,64,224,224,0,224,64,224,160,0,224,64,224,192,160,224,160,192,192,96,160,224,160,64,32,224,160,224,64,128,224,160,224,224,0,224,160,224,192,96,224,160,224,160,0,224,160,224,160,64,160,96,160,224,160,192,128,64,160,160,224,32,64,160,160,224,224,0,160,160,224,160,0,160,160,224,32,64,160,224,64,128,224,160,224,128,96,160,192,160,192,128,64,32,96,160,224,64,128,96,160,224,224,0,96,160,224,96,192,96,160,224,160,0,96,160,224,96,96,96,160,224,96,224,224,192,96,128,96,32,64,64,32,96,224,96,64,128,96,224,96,224,0,96,224,96,160,0,96,224,96,128,64,128,128,128,64,128,64,64,64,224,0,64,64,64,160,0,64,64,64,96,192,96,160,96,192,96,192,160,160,64,32,64,160,64,64,128,64,160,64,224,0,64,160,64,192,96,64,160,64,160,0,64,160,64,64,0,224,0,64,96,224,160,192,128,64,160,160,96,32,64,160,160,96,224,0,160,160,96,160,0,160,160,96,32,64,160,96,32,64,128,192,160,192,128,160,0,160,96,32,64,0,96,192,224,192,96,96,224,192,224,160,96,192,96,192,160,96,192,96,192,160,0,160,64,64,160,224,96,192,224,160,224,96,192,224,0,0,128,160,96,192,224,192,96,224,160,160,160,224],"glyphs":[[0,8,1,2,0,-5],[1,8,5,2,0,-5],[6,8,2,4,0,-5],[8,8,5,4,0,-5],[13,8,5,4,0,-5],[18,8,5,4,0,-5],[23,8,5,4,0,-5],[28,8,2,2,0,-5],[30,8,5,3,0,-5],[35,8,5,3,0,-5],[40,8,3,4,0,-5],[43,8,3,4,0,-4],[46,8,2,3,0,-1],[48,8,1,4,0,-3],[49,8,1,2,0,-1],[50,8,5,4,0,-5],[55,8,5,4,0,-5],[60,8,5,4,0,-5],[65,8,5,4,0,-5],[70,8,5,4,0,-5],[75,8,5,4,0,-5],[80,8,5,4,0,-5],[85,8,5,4,0,-5],[90,8,5,4,0,-5],[95,8,5,4,0,-5],[100,8,5,4,0,-5],[105,8,3,2,0,-4],[108,8,4,3,0,-4],[112,8,5,4,0,-5],[117,8,3,4,0,-4],[120,8,5,4,0,-5],[125,8,5,4,0,-5],[130,8,5,4,0,-5],[135,8,5,4,0,-5],[140,8,5,4,0,-5],[145,8,5,4,0,-5],[150,8,5,4,0,-5],[155,8,5,4,0,-5],[160,8,5,4,0,-5],[165,8,5,4,0,-5],[170,8,5,4,0,-5],[175,8,5,2,0,-5],[180,8,5,4,0,-5],[185,8,5,4,0,-5],[190,8,5,4,0,-5],[195,8,5,6,0,-5],[200,8,5,5,0,-5],[205,8,5,4,0,-5],[210,8,5,4,0,-5],[215,8,5,5,0,-5],[220,8,5,4,0,-5],[225,8,5,4,0,-5],[230,8,5,4,0,-5],[235,8,5,4,0,-5],[240,8,5,4,0,-5],[245,8,5,6,0,-5],[250,8,5,4,0,-5],[255,8,5,4,0,-5],[260,8,5,4,0,-5],[265,8,5,4,0,-5],[270,8,3,4,0,-4],[273,8,5,4,0,-5],[278,8,2,4,0,-5],[280,8,1,4,0,-1],[281,8,2,3,0,-5],[283,8,4,4,0,-4],[287,8,5,4,0,-5],[292,8,4,4,0,-4],[296,8,5,4,0,-5],[301,8,4,4,0,-4],[305,8,5,4,0,-5],[310,8,5,4,0,-4],[315,8,5,4,0,-5],[320,8,5,2,0,-5],[325,8,6,4,0,-5],[331,8,5,4,0,-5],[336,8,5,4,0,-5],[341,8,4,4,0,-4],[345,8,4,4,0,-4],[349,8,4,4,0,-4],[353,8,5,4,0,-4],[358,8,5,4,0,-4],[363,8,4,4,0,-4],[367,8,4,4,0,-4],[371,8,5,4,0,-5],[376,8,4,4,0,-4],[380,8,4,4,0,-4],[384,8,4,4,0,-4],[388,8,4,4,0,-4],[392,8,5,4,0,-4],[397,8,4,4,0,-4],[401,8,5,4,0,-5],[406,8,5,2,0,-5],[411,8,5,4,0,-5],[416,8,2,4,0,-5],[418,8,5,2,0,-5],[423,8,5,4,0,-5],[428,8,5,4,0,-5],[433,8,5,4,0,-5],[438,8,5,4,0,-5],[443,8,5,2,0,-5],[448,8,5,4,0,-5],[453,8,1,4,0,-5],[454,8,3,4,0,-5],[457,8,5,4,0,-5],[462,8,3,3,0,-5],[465,8,2,4,0,-4],[467,8,1,3,0,-3],[468,8,3,4,0,-5],[471,8,1,4,0,-5],[472,8,3,3,0,-5],[475,8,5,4,0,-5],[480,8,3,4,0,-5],[483,8,3,4,0,-5],[486,8,2,3,0,-5],[488,8,5,4,0,-5],[493,8,5,4,0,-5],[498,8,3,4,0,-4],[501,8,3,4,0,-3],[504,8,3,2,0,-5],[507,8,5,4,0,-5],[512,8,3,3,0,-5],[515,8,5,4,0,-5],[520,8,5,4,0,-5],[525,8,5,4,0,-5],[530,8,5,4,0,-5],[535,8,5,4,0,-5],[540,8,5,4,0,-5],[545,8,5,4,0,-5],[550,8,5,4,0,-5],[555,8,5,4,0,-5],[560,8,5,4,0,-5],[565,8,5,4,0,-5],[570,8,6,4,0,-5],[576,8,5,4,0,-5],[581,8,5,4,0,-5],[586,8,5,4,0,-5],[591,8,5,4,0,-5],[596,8,5,4,0,-5],[601,8,5,4,0,-5],[606,8,5,4,0,-5],[611,8,5,4,0,-5],[616,8,5,4,0,-5],[621,8,5,4,0,-5],[626,8,5,4,0,-5],[631,8,5,4,0,-5],[636,8,5,4,0,-5],[641,8,5,4,0,-5],[646,8,5,4,0,-5],[651,8,3,4,0,-4],[654,8,5,4,0,-5],[659,8,5,4,0,-5],[664,8,5,4,0,-5],[669,8,5,4,0,-5],[674,8,5,4,0,-5],[679,8,5,4,0,-5],[684,8,5,4,0,-5],[689,8,6,4,0,-5],[695,8,5,4,0,-5],[700,8,5,4,0,-5],[705,8,5,4,0,-5],[710,8,5,4,0,-5],[715,8,5,4,0,-5],[720,8,5,4,0,-5],[725,8,4,4,0,-4],[729,8,5,4,0,-4],[734,8,5,4,0,-5],[739,8,5,4,0,-5],[744,8,5,4,0,-5],[749,8,5,4,0,-5],[754,8,5,3,0,-5],[759,8,5,3,0,-5],[764,8,5,4,0,-5],[769,8,5,4,0,-5],[774,8,5,4,0,-5],[779,8,5,4,0,-5],[784,8,5,4,0,-5],[789,8,5,4,0,-5],[794,8,5,4,0,-5],[799,8,5,4,0,-5],[804,8,5,4,0,-5],[809,8,5,4,0,-5],[814,8,4,4,0,-4],[818,8,5,4,0,-5],[823,8,5,4,0,-5],[828,8,5,4,0,-5],[833,8,5,4,0,-5],[838,8,6,4,0,-5],[844,8,5,4,0,-4],[849,8,6,4,0,-5],[855,8,1,2,0,-1],[856,8,5,4,0,-5],[861,8,4,4,0,-4],[865,8,5,4,0,-5],[870,8,5,4,0,-5],[875,8,5,4,0,-5],[880,8,5,4,0,-5],[885,8,5,4,0,-5],[890,8,1,2,0,-1],[891,8,1,2,0,-1],[892,8,1,2,0,-3],[893,8,1,4,0,-1],[894,8,5,4,0,-5],[899,8,5,4,0,-5]],"first":32,"yAdvance":6,"charMap":{"32":2,"33":2,"34":4,"35":4,"36":4,"37":4,"38":4,"39":2,"40":3,"41":3,"42":4,"43":4,"44":3,"45":4,"46":2,"47":4,"48":4,"49":4,"50":4,"51":4,"52":4,"53":4,"54":4,"55":4,"56":4,"57":4,"58":2,"59":3,"60":4,"61":4,"62":4,"63":4,"64":4,"65":4,"66":4,"67":4,"68":4,"69":4,"70":4,"71":4,"72":4,"73":2,"74":4,"75":4,"76":4,"77":6,"78":5,"79":4,"80":4,"81":5,"82":4,"83":4,"84":4,"85":4,"86":4,"87":6,"88":4,"89":4,"90":4,"91":4,"92":4,"93":4,"94":4,"95":4,"96":3,"97":4,"98":4,"99":4,"100":4,"101":4,"102":4,"103":4,"104":4,"105":2,"106":4,"107":4,"108":4,"109":4,"110":4,"111":4,"112":4,"113":4,"114":4,"115":4,"116":4,"117":4,"118":4,"119":4,"120":4,"121":4,"122":4,"123":4,"124":2,"125":4,"126":4,"161":2,"162":4,"163":4,"164":4,"165":4,"166":2,"167":4,"168":4,"169":4,"170":4,"171":3,"172":4,"173":3,"174":4,"175":4,"176":3,"177":4,"178":4,"179":4,"180":3,"181":4,"182":4,"183":4,"184":4,"185":2,"186":4,"187":3,"188":4,"189":4,"190":4,"191":4,"192":4,"193":4,"194":4,"195":4,"196":4,"197":4,"198":4,"199":4,"200":4,"201":4,"202":4,"203":4,"204":4,"205":4,"206":4,"207":4,"208":4,"209":4,"210":4,"211":4,"212":4,"213":4,"214":4,"215":4,"216":4,"217":4,"218":4,"219":4,"220":4,"221":4,"222":4,"223":4,"224":4,"225":4,"226":4,"227":4,"228":4,"229":4,"230":4,"231":4,"232":4,"233":4,"234":4,"235":4,"236":3,"237":3,"238":4,"239":4,"240":4,"241":4,"242":4,"243":4,"244":4,"245":4,"246":4,"247":4,"248":4,"249":4,"250":4,"251":4,"252":4,"253":4,"254":4,"255":4,"285":2,"338":4,"339":4,"352":4,"353":4,"376":4,"381":4,"382":4,"3748":2,"5024":2,"8226":2,"8230":4,"8364":4,"65533":4}};
+const MU={"bitmaps":[255,236,48,222,246,109,253,179,102,223,219,0,16,251,67,225,127,132,0,99,75,32,130,105,99,0,113,179,99,141,185,159,128,252,54,204,198,48,198,51,54,192,108,115,249,198,192,48,207,204,48,111,0,252,240,2,8,32,130,8,32,0,56,155,30,60,108,142,0,49,195,12,48,207,192,125,140,57,231,156,63,128,126,24,97,224,120,223,0,28,121,182,111,225,131,0,253,131,240,48,120,223,0,60,195,7,236,120,223,0,255,140,48,195,6,12,0,121,139,147,201,240,223,0,125,143,27,240,97,158,0,243,192,108,55,128,25,153,134,24,96,252,15,192,195,12,51,51,0,126,255,195,6,60,0,60,125,6,237,91,240,31,0,56,219,30,63,248,241,128,254,195,195,254,195,195,254,60,207,6,12,12,207,0,249,155,30,60,121,190,0,255,131,7,236,24,63,128,255,131,7,236,24,0,62,195,6,124,108,207,128,199,143,31,252,120,241,128,252,195,12,48,207,192,6,12,24,48,120,223,0,199,155,103,143,155,179,128,193,131,6,12,24,63,128,199,223,255,253,120,241,128,199,207,223,253,249,241,128,125,143,30,60,120,223,0,253,143,30,63,216,48,0,125,143,30,61,249,158,128,253,143,30,127,155,179,128,121,155,3,224,120,223,0,252,195,12,48,195,0,199,143,30,60,120,223,0,199,143,31,119,199,4,0,199,143,95,255,253,241,128,199,221,241,199,221,241,128,207,60,222,48,195,0,254,28,113,199,28,63,128,252,204,204,240,128,128,128,128,128,128,128,243,51,51,240,118,192,254,144,124,13,254,55,224,193,131,246,60,120,223,0,127,131,6,7,224,6,13,254,60,120,223,128,125,143,254,7,224,28,207,204,48,192,127,143,27,240,111,128,193,131,246,60,120,241,128,48,7,12,48,207,192,12,1,195,12,48,254,193,131,63,239,155,179,128,112,195,12,48,207,192,253,110,221,187,96,253,14,28,56,96,125,143,30,55,192,253,143,31,236,24,0,127,143,27,240,96,192,223,195,6,12,0,125,129,240,63,192,48,207,204,48,195,0,199,143,30,55,224,207,60,222,48,183,110,221,183,224,199,252,199,252,96,199,143,27,240,111,128,254,56,227,143,224,54,108,102,48,255,252,198,99,102,192,113,116,112],"glyphs":[[0,0,0,2,0,1],[0,3,7,4,0,-7],[3,5,3,6,0,-7],[5,7,7,8,0,-7],[12,7,7,8,0,-7],[19,7,7,8,0,-7],[26,7,7,8,0,-7],[33,2,3,3,0,-7],[34,4,7,5,0,-7],[38,4,7,5,0,-7],[42,7,5,8,0,-6],[47,6,5,7,0,-6],[51,3,3,4,0,-2],[53,6,1,7,0,-4],[54,2,2,3,0,-2],[55,7,7,8,0,-7],[62,7,7,8,0,-7],[69,6,7,7,0,-7],[75,7,7,8,0,-7],[82,7,7,8,0,-7],[89,7,7,8,0,-7],[96,7,7,8,0,-7],[103,7,7,8,0,-7],[110,7,7,8,0,-7],[117,7,7,8,0,-7],[124,7,7,8,0,-7],[131,2,5,3,0,-6],[133,3,6,4,0,-6],[136,5,7,6,0,-7],[141,6,3,7,0,-7],[144,5,7,6,0,-7],[149,8,7,8,0,-7],[156,7,7,8,0,-7],[163,7,7,8,0,-7],[170,8,7,8,0,-7],[177,7,7,8,0,-7],[184,7,7,8,0,-7],[191,7,7,8,0,-7],[198,7,6,8,0,-7],[204,7,7,8,0,-7],[211,7,7,8,0,-7],[218,6,7,8,0,-7],[224,7,7,8,0,-7],[231,7,7,8,0,-7],[238,7,7,8,0,-7],[245,7,7,8,0,-7],[252,7,7,8,0,-7],[259,7,7,8,0,-7],[266,7,7,8,0,-7],[273,7,7,8,0,-7],[280,7,7,8,0,-7],[287,7,7,8,0,-7],[294,6,7,7,0,-7],[300,7,7,8,0,-7],[307,7,7,8,0,-7],[314,7,7,8,0,-7],[321,7,7,8,0,-7],[328,6,7,7,0,-7],[334,7,7,8,0,-7],[341,4,7,5,0,-7],[345,7,7,8,0,-7],[352,4,7,5,0,-7],[356,5,2,6,0,-7],[358,7,1,8,0,0],[359,2,2,3,0,-7],[360,7,5,8,0,-5],[365,7,7,8,0,-7],[372,7,5,8,0,-5],[377,7,7,8,0,-7],[384,7,5,8,0,-5],[389,6,6,7,0,-6],[394,7,6,8,0,-5],[400,7,7,8,0,-7],[407,6,7,7,0,-7],[413,6,8,7,0,-7],[419,7,7,8,0,-7],[426,6,7,7,0,-7],[432,7,5,8,0,-5],[437,7,5,8,0,-5],[442,7,5,8,0,-5],[447,7,6,8,0,-5],[453,7,6,8,0,-5],[459,7,5,8,0,-5],[464,7,5,8,0,-5],[469,6,7,7,0,-7],[475,7,5,8,0,-5],[480,6,5,7,0,-5],[484,7,5,8,0,-5],[489,7,5,8,0,-5],[494,7,6,8,0,-5],[500,7,5,8,0,-5],[505,4,7,5,0,-7],[509,2,7,3,0,-7],[511,4,7,5,0,-7],[515,7,3,8,0,-6]],"first":32,"yAdvance":8,"charMap":{"32":2,"33":4,"34":6,"35":8,"36":8,"37":8,"38":8,"39":3,"40":5,"41":5,"42":8,"43":7,"44":4,"45":7,"46":3,"47":8,"48":8,"49":7,"50":8,"51":8,"52":8,"53":8,"54":8,"55":8,"56":8,"57":8,"58":3,"59":4,"60":6,"61":7,"62":6,"63":8,"64":8,"65":8,"66":8,"67":8,"68":8,"69":8,"70":8,"71":8,"72":8,"73":8,"74":8,"75":8,"76":8,"77":8,"78":8,"79":8,"80":8,"81":8,"82":8,"83":8,"84":7,"85":8,"86":8,"87":8,"88":8,"89":7,"90":8,"91":5,"92":8,"93":5,"94":6,"95":8,"96":3,"97":8,"98":8,"99":8,"100":8,"101":8,"102":7,"103":8,"104":8,"105":7,"106":7,"107":8,"108":7,"109":8,"110":8,"111":8,"112":8,"113":8,"114":8,"115":8,"116":7,"117":8,"118":7,"119":8,"120":8,"121":8,"122":8,"123":5,"124":3,"125":5,"126":8}};
+const ARROWS={"DOUBLE_UP":[80,248,80,80,80],"SINGLE_UP":[32,112,168,32,32],"FORTYFIVE_UP":[56,24,40,64,128],"FLAT":[32,16,248,16,32],"FORTYFIVE_DOWN":[128,64,40,24,56],"SINGLE_DOWN":[32,32,168,112,32],"DOUBLE_DOWN":[80,80,80,248,80],"NONE":[0,0,0,0,0],"OLD":[136,80,32,80,136]};
+const SPARK={"A":[60,66,165,129,165,153,66,60],"B":[60,66,165,129,129,189,66,60],"S":[60,66,165,165,129,153,153,60],"D":[60,66,153,36,129,90,66,60]};
+const USPRITE=[1,1,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,4,5,6,7,0,0,0,0,0,1,1,4,4,4,5,6,7,0,0,0,0,0,2,2,2,2,4,5,6,7,0,2,2,2,2,3,2,2,4,5,6,7,0,2,2,2,2,2,2,2,4,5,6,7,0,0,2,2,2,2,2,2,4,5,6,7,0,0,0,0,2,2,2,2,2,4,5,6,7];
+const UPALN=[65159,63389,6339,19807,24237,64711,64120,39678];
+
+// ================= engine =================
+const C={BLACK:0,BLUE:0x001F,GREEN:0x07E0,CYAN:0x07FF,GRAY:0xA514,RED:0xF800,MAGENTA:0xF81F,YELLOW:0xFFE0,WHITE:0xFFFF};
+const S={value:142,trend:'FLAT',ageMin:3,noData:false,mmol:false,h12:false,stale:0xA514,battery:87};
+const cssCache={};
+function css(c){c|=0;let s=cssCache[c];if(s)return s;
+  const r=(c>>11)&31,g=(c>>5)&63,b=c&31;
+  s=`rgb(${(r*255/31)|0},${(g*255/63)|0},${(b*255/31)|0})`;cssCache[c]=s;return s;}
+function rgb565(r,g,b){return (((r&0xF8)<<8)|((g&0xFC)<<3)|(b>>3))|0;}
+function hsv(h){h&=255;const region=(h/43)|0,rem=(h-region*43)*6,q=255-rem,t=rem;
+  switch(region){case 0:return rgb565(255,t,0);case 1:return rgb565(q,255,0);case 2:return rgb565(0,255,t);
+  case 3:return rgb565(0,q,255);case 4:return rgb565(t,0,255);default:return rgb565(255,0,q);}}
+function fade(c){let r=(c>>11)&31,g=(c>>5)&63,b=c&31;
+  r=(r*4/5)|0;g=(g*4/5)|0;b=(b*4/5)|0;return (r<<11)|(g<<5)|b;}
+function px(b,x,y,c){if(x>=0&&x<32&&y>=0&&y<8)b[y*32+x]=c|0;}
+function bitmap(b,x,y,bytes,w,h,color){
+  // Adafruit GFX drawBitmap semantics: one byte per row, MSB = leftmost pixel.
+  for(let r=0;r<h;r++)for(let c=0;c<w;c++){
+    if((bytes[r]>>(7-c))&1)px(b,x+c,y+r,color);}}
+// ---- text: Adafruit GFX custom-font semantics, pixel exact ----
+function charW(F,ch){const w=F.charMap[ch.charCodeAt(0)];return w===undefined?4:w;}
+function textW(F,s){let w=0;for(const ch of s)w+=charW(F,ch);return w;}
+function drawText(b,F,s,x,y,align,color){ // align: 0 LEFT, 1 RIGHT, 2 CENTER
+  const w=textW(F,s);
+  let cx=align===0?x:align===1?x-w:Math.trunc((32-w)/2);
+  for(const ch of s){
+    const gi=ch.charCodeAt(0)-F.first;
+    if(gi>=0&&gi<F.glyphs.length){
+      const g=F.glyphs[gi],off=g[0],gw=g[1],gh=g[2],adv=g[3],xo=g[4],yo=g[5];
+      for(let r=0;r<gh;r++)for(let c=0;c<gw;c++){const i=r*gw+c;
+        if((F.bitmaps[off+(i>>3)]>>(7-(i&7)))&1)px(b,cx+xo+c,y+yo+r,color);}
+      cx+=adv;
+    } else cx+=4;
+  }
+}
+// ---- glucose model ----
+function level(sgv){if(sgv<55)return 'UL';if(sgv<70)return 'WL';if(sgv<=180)return 'N';if(sgv<250)return 'WH';return 'UH';}
+function levelColor(sgv){const l=level(sgv);return l==='N'?C.GREEN:((l==='WL'||l==='WH')?C.YELLOW:C.RED);}
+function printable(sgv){return S.mmol?(sgv/18).toFixed(1):String(sgv);}
+let READINGS=[];
+function buildReadings(){
+  if(S.noData){READINGS=[];return;}
+  const per5={DOUBLE_UP:12,SINGLE_UP:6,FORTYFIVE_UP:3,FLAT:0,FORTYFIVE_DOWN:-3,SINGLE_DOWN:-6,DOUBLE_DOWN:-12,NONE:0}[S.trend];
+  const arr=[];let v=S.value;
+  for(let i=0;i<36;i++){
+    arr.unshift({sgv:Math.round(v),ageSec:S.ageMin*60+i*300,trend:i===0?S.trend:'FLAT'});
+    v-=per5;v+=Math.sin(i*1.7)*1.5;v=Math.max(40,Math.min(400,v));
+  }
+  READINGS=arr;
+}
+function isOld(){const l=READINGS[READINGS.length-1];return l?l.ageSec>=20*60:false;}
+function trendArrow(b,rd,x,y,old,cbr){
+  if(old){bitmap(b,x,y,ARROWS.OLD,5,5,S.stale);return;}
+  bitmap(b,x,y,ARROWS[rd.trend]||ARROWS.NONE,5,5,cbr?levelColor(rd.sgv):C.WHITE);
+}
+function c565(c){return [((c>>11)&31)*255/31,((c>>5)&63)*255/63,(c&31)*255/31];}
+function blend(a,b2,amt){const A=c565(a),B=c565(b2),k=255-amt;
+  return rgb565((A[0]*k+B[0]*amt)/255,(A[1]*k+B[1]*amt)/255,(A[2]*k+B[2]*amt)/255);}
+function trendVLine(b,x,trend,old){
+  if(old)trend='NONE';
+  const P=(yy,c)=>px(b,x,yy,c);
+  switch(trend){
+    case 'DOUBLE_UP':P(0,C.RED);P(1,C.YELLOW);P(2,C.GREEN);P(3,C.WHITE);break;
+    case 'DOUBLE_DOWN':P(4,C.WHITE);P(5,C.GREEN);P(6,C.YELLOW);P(7,C.RED);break;
+    case 'SINGLE_UP':P(1,C.YELLOW);P(2,C.GREEN);P(3,C.WHITE);break;
+    case 'SINGLE_DOWN':P(4,C.WHITE);P(5,C.GREEN);P(6,C.YELLOW);break;
+    case 'FORTYFIVE_UP':P(2,C.GREEN);P(3,C.WHITE);break;
+    case 'FORTYFIVE_DOWN':P(4,C.WHITE);P(5,C.GREEN);break;
+    case 'FLAT':P(3,C.WHITE);P(4,C.WHITE);break;
+  }
+}
+function timerBlocks(b,last,width,xPos,yPos){
+  const MAX=5;let n=(last.ageSec/60)|0;if(n>MAX)n=MAX;if(n<=0)return;
+  const bs=((width-4)/MAX)|0;if(bs<1)return;
+  xPos+=Math.trunc((width-(bs*MAX+(MAX-1)))/2);
+  let col=C.GREEN;
+  if(last.ageSec>=60*20)col=S.stale;else if(last.ageSec>=(MAX+1)*60)col=C.YELLOW;
+  for(let i=0;i<n;i++)for(let j=0;j<bs;j++)px(b,xPos+i*(bs+1)+j,yPos,col);
+}
+function graph(b,x0,len,forMin){
+  const ps=(forMin*60)/len;
+  for(let i=0;i<len;i++){
+    let sum=0,n=0;
+    for(const r of READINGS){if(r.ageSec>=i*ps&&r.ageSec<(i+1)*ps){sum+=r.sgv;n++;}}
+    if(!n)continue;
+    const avg=sum/n,l=level(avg);let yy,col;
+    if(l==='UH'){yy=0;col=C.RED;}else if(l==='WH'){yy=1;col=C.YELLOW;}
+    else if(l==='N'){yy=5-Math.trunc((avg-70)*4/(180-70));col=C.GREEN;}
+    else if(l==='WL'){yy=6;col=C.YELLOW;}else{yy=7;col=C.RED;}
+    px(b,x0+len-1-i,yy,col);
+  }
+}
+function noDataText(){return S.mmol?"--.-":"---";}
+
+// ================= faces =================
+const FACES=[
+{name:"Simple",draw(b,t){
+  const last=READINGS[READINGS.length-1],old=isOld();
+  if(!last){drawText(b,AW,noDataText(),0,6,2,S.stale);return;}
+  drawText(b,AW,printable(last.sgv),0,6,2,old?S.stale:levelColor(last.sgv));
+  trendArrow(b,last,27,1,old);
+  timerBlocks(b,last,32,0,7);
+}},
+{name:"Full graph",draw(b,t){graph(b,0,32,180);}},
+{name:"Graph and BG",draw(b,t){
+  const last=READINGS[READINGS.length-1],old=isOld();
+  if(!last){drawText(b,AW,noDataText(),30,6,1,S.stale);return;}
+  const p=printable(last.sgv),tw=textW(AW,p),gw=32-tw-2;
+  graph(b,0,gw,gw*5);
+  drawText(b,AW,p,30,6,1,old?S.stale:levelColor(last.sgv));
+  trendVLine(b,31,last.trend,old);
+  timerBlocks(b,last,tw+2,gw,7);
+}},
+{name:"Big text",draw(b,t){
+  const last=READINGS[READINGS.length-1],old=isOld();
+  const s=last?printable(last.sgv):noDataText();
+  drawText(b,MU,s,0,7,0,!last||old?S.stale:levelColor(last.sgv));
+  if(last)trendArrow(b,last,27,1,old);
+}},
+{name:"Value and diff",draw(b,t){
+  const last=READINGS[READINGS.length-1],old=isOld();
+  if(!last){drawText(b,AW,noDataText(),13,6,1,S.stale);return;}
+  const x=(S.mmol&&last.sgv>=180)?14:13;
+  drawText(b,AW,printable(last.sgv),x,6,1,old?S.stale:levelColor(last.sgv));
+  trendArrow(b,last,13,1,old);
+  let diff="?";
+  if(READINGS.length>=2){const d=last.sgv-READINGS[READINGS.length-2].sgv;
+    diff=Math.abs(d)>99?"?":((d>=0?"+":"")+printable(d));}
+  drawText(b,AW,diff,33,6,1,old?S.stale:C.WHITE);
+  timerBlocks(b,last,32,0,7);
+}},
+{name:"Clock and value",draw(b,t){
+  const now=new Date();let h=now.getHours();const m=now.getMinutes();
+  if(S.h12){const pm=h>=12;h=h%12===0?12:h%12;for(let i=0;i<16;i++)px(b,i,7,pm?C.BLUE:C.CYAN);}
+  drawText(b,AW,String(h).padStart(2,'0'),0,6,0,C.WHITE);
+  drawText(b,AW,String(m).padStart(2,'0'),9,6,0,C.WHITE);
+  const last=READINGS[READINGS.length-1],old=isOld();
+  if(last){drawText(b,AW,printable(last.sgv),31,6,1,old?S.stale:levelColor(last.sgv));
+    if(S.h12)timerBlocks(b,last,15,18,7);else timerBlocks(b,last,32,0,7);
+    trendVLine(b,31,last.trend,old);
+  }else drawText(b,AW,noDataText(),33,6,1,S.stale);
+}},
+{name:"Time only",draw(b,t){
+  const now=new Date();let h=now.getHours();const m=now.getMinutes(),s=now.getSeconds();let txt;
+  if(S.h12){const ap=h<12?"AM":"PM";h=h%12===0?12:h%12;txt=`${h}:${String(m).padStart(2,'0')} ${ap}`;}
+  else txt=`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  drawText(b,AW,txt,0,6,2,C.WHITE);
+}},
+{name:"Unicorn",draw(b,t){
+  const last=READINGS[READINGS.length-1],old=isOld();
+  const l=last?level(last.sgv):'N';
+  const pal=(!last||old)?[S.stale,S.stale,0x18C3,S.stale,S.stale,S.stale,S.stale,S.stale]
+    :(l==='N'?UPALN:(l==='WL'||l==='WH')?[0xFE87,0xF79D,0x18C3,C.YELLOW,C.YELLOW,C.YELLOW,C.YELLOW,C.YELLOW]
+    :[0xFE87,0xF79D,0x18C3,C.RED,C.RED,C.RED,C.RED,C.RED]);
+  for(let yy=0;yy<8;yy++)for(let xx=0;xx<12;xx++){const idx=USPRITE[yy*12+xx];if(idx)px(b,xx,yy,pal[idx-1]);}
+  drawText(b,AW,last?printable(last.sgv):noDataText(),31,6,1,!last||old?S.stale:levelColor(last.sgv));
+  if(last)timerBlocks(b,last,16,16,7);
+}},
+];
+
+// ================= ui =================
+const grid=document.getElementById('grid');
+const states=FACES.map(()=>({}));
+const canvases=FACES.map((f,i)=>{
+  const card=document.createElement('div');card.className='card';
+  const h=document.createElement('h2');h.innerHTML=`<span class="id">${i}</span>${f.name}`;
+  const cv=document.createElement('canvas');cv.width=32*15;cv.height=8*15;
+  card.appendChild(h);card.appendChild(cv);grid.appendChild(card);
+  return cv.getContext('2d');
+});
+const PX=15;
+function renderFace(ctx,b){
+  ctx.fillStyle='#000';ctx.fillRect(0,0,32*PX,8*PX);
+  for(let y=0;y<8;y++)for(let x=0;x<32;x++){
+    const c=b[y*32+x];if(!c)continue;
+    ctx.fillStyle=css(c);
+    ctx.fillRect(x*PX+1,y*PX+1,PX-2,PX-2);
+  }
+}
+const t0=performance.now();
+function frame(){
+  const t=performance.now()-t0;
+  for(let i=0;i<FACES.length;i++){
+    const b=new Uint16Array(32*8);
+    try{FACES[i].draw(b,t,states[i]);}catch(e){}
+    renderFace(canvases[i],b);
+  }
+  requestAnimationFrame(frame);
+}
+function hexTo565(h){const r=parseInt(h.slice(1,3),16),g=parseInt(h.slice(3,5),16),bl=parseInt(h.slice(5,7),16);
+  return rgb565(r,g,bl);}
+const $=id=>document.getElementById(id);
+function refresh(){
+  S.value=+$('glucose').value;S.trend=$('trend').value;
+  S.ageMin=+$('age').value;S.noData=$('nodata').checked;
+  S.stale=hexTo565($('stale').value);
+  $('glucoseOut').textContent=S.value+(S.mmol?" ("+(S.value/18).toFixed(1)+")":"");
+  $('ageOut').textContent=S.ageMin+" min"+(S.ageMin>=20?" (stale)":"");
+  buildReadings();
+}
+document.querySelectorAll('#units button').forEach(btn=>btn.onclick=()=>{
+  document.querySelectorAll('#units button').forEach(x=>x.classList.remove('on'));
+  btn.classList.add('on');S.mmol=btn.dataset.v==='1';refresh();});
+document.querySelectorAll('#clock button').forEach(btn=>btn.onclick=()=>{
+  document.querySelectorAll('#clock button').forEach(x=>x.classList.remove('on'));
+  btn.classList.add('on');S.h12=btn.dataset.v==='1';refresh();});
+['glucose','trend','age','nodata','stale'].forEach(id=>$(id).addEventListener('input',refresh));
+refresh();
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
