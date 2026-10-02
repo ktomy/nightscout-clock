@@ -12,6 +12,7 @@
 #include "BGDisplayFaceClock.h"
 #include "BGDisplayFaceGraph.h"
 #include "BGDisplayFaceGraphAndBG.h"
+#include "BGDisplayFaceNyanUnicorn.h"
 #include "BGDisplayFaceSimple.h"
 #include "BGDisplayFaceTimeOnly.h"
 #include "BGDisplayFaceUnicorn.h"
@@ -87,9 +88,22 @@ private:
     bool faceScheduleActive = false;
     int appliedScheduleEntry = -1;
     int lastScheduleMinuteOfDay = -1;
+    unsigned long lastFrequentRefreshMillis = 0;
+    // Unicorn mode: when enabled and a new reading is exactly 100, the Nyan
+    // unicorn runs across once, then the static unicorn face stays until the
+    // next reading arrives. That next reading makes the Nyan run away, then
+    // the face from before the celebration is restored.
+    bool unicornModeActive = false;
+    bool unicornNyanDone = false;
+    bool unicornExiting = false;
+    unsigned long unicornNyanStartMs = 0;
+    int unicornReturnFaceIndex = -1;
+    int nyanUnicornFaceIndex = -1;
+    int unicornFaceIndex = -1;
 
     void configureActiveFaces();
     void updateFaceCycle();
+    void updateUnicornMode();
     void configureFaceSchedule();
     void updateFaceSchedule();
     void applyScheduleEntry(const FaceScheduleEntry& entry);

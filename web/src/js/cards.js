@@ -246,7 +246,7 @@ function toast(message, kind = "ok", ms = 4500) {
  * @returns {HTMLElement}
  */
 function displayTab() {
-    return el("div.stack", facesCard(), faceScheduleCard(), brightnessCard(), oldDataCard(), timeCard())
+    return el("div.stack", facesCard(), faceScheduleCard(), unicornModeCard(), brightnessCard(), oldDataCard(), timeCard())
 }
 
 /**
@@ -385,6 +385,14 @@ function faceScheduleCard() {
             "Add up to 8 different times. Each row applies its face and brightness until the next scheduled time, including overnight.")
     })
     return card("Daily schedule", null, el("div.stack", toggle, body), { id: "card_schedule" })
+}
+
+/** Unicorn-mode toggle: when on and BG hits exactly 100, the Nyan unicorn
+ * runs across the screen, then the unicorn face stays until the next reading. */
+function unicornModeCard() {
+    const toggle = toggleRow("unicorn_mode", "Unicorn mode",
+        "When BG is exactly 100, the Nyan unicorn runs across the screen, then the unicorn face stays until the next reading arrives.")
+    return card("Unicorn mode", null, el("div.stack", toggle), { id: "card_unicorn" })
 }
 
 /**

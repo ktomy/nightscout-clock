@@ -70,6 +70,7 @@ const FACES = [
     { id: 5, name: "Current time and BG value" },
     { id: 6, name: "Unicorn" },
     { id: 7, name: "Time only" },
+    { id: 8, name: "Nyan unicorn" },
 ]
 
 // The config stores the faces switched off, so a face added later starts active.
@@ -388,6 +389,7 @@ function normalizeLoaded(c) {
     out.inactive_faces = [...new Set(inactive.map(Number).filter(id => FACES.some(f => f.id === id)))]
     const active = activeFaceIds(out.inactive_faces)
     if (active.length && !active.includes(out.default_face)) out.default_face = active[0]
+    out.unicorn_mode = !!out.unicorn_mode
     return out
 }
 

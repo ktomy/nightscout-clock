@@ -38,6 +38,11 @@ public:
     virtual void renderPartial(const RenderContext& ctx) const;
     // Faces that change every second get a TIME_TICK every second instead of every minute.
     virtual bool ticksEverySecond() const;
+    // Faces with smooth animation opt into sub-second refreshes driven by tick().
+    virtual bool needsFrequentRefresh() const;
+    virtual unsigned long getFrequentRefreshIntervalMs() const;
+    // Called when the face becomes current so it can reset animation state.
+    virtual void onActivate() const;
     // Suppress new alarms while this face is selected; existing alarms continue normally.
     virtual bool suppressesNewAlarms() const;
 

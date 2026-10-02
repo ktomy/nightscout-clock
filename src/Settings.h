@@ -30,6 +30,7 @@ public:
     int face_cycle_interval_seconds = 60;
     bool face_schedule_enabled = false;
     std::vector<FaceScheduleEntry> face_schedule;
+    bool unicorn_mode = false;
     BG_SOURCE bg_source;
     String dexcom_username;
     String dexcom_password;
