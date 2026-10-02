@@ -10,8 +10,10 @@
 #include "BGDisplayFace.h"
 #include "BGDisplayFaceBigText.h"
 #include "BGDisplayFaceClock.h"
+#include "BGDisplayFaceCritter.h"
 #include "BGDisplayFaceGraph.h"
 #include "BGDisplayFaceGraphAndBG.h"
+#include "BGDisplayFaceNyanCat.h"
 #include "BGDisplayFaceSimple.h"
 #include "BGDisplayFaceTimeOnly.h"
 #include "BGDisplayFaceUnicorn.h"
@@ -115,6 +117,7 @@ public:
     void showPreviousFace();
 
 private:
+    unsigned long lastFrequentRefreshMillis = 0;
     unsigned long long lastRefreshEpoch = 0;
 };
 

@@ -229,6 +229,23 @@ void DisplayManager_::HSVtext(int16_t x, int16_t y, const char* text, bool clear
         matrix->show();
 }
 
+uint16_t DisplayManager_::rgb565(uint8_t r, uint8_t g, uint8_t b) {
+    return ((uint16_t)(r & 0xF8) << 8) | ((uint16_t)(g & 0xFC) << 3) | (b >> 3);
+}
+
+uint16_t DisplayManager_::hsvToRgb565(uint8_t hue) {
+    uint8_t region = hue / 43, rem = (hue - (region * 43)) * 6, q = 255 - rem, t = rem;
+    switch (region) {
+        case 0: return rgb565(255, t, 0);
+        case 1: return rgb565(q, 255, 0);
+        case 2: return rgb565(0, 255, t);
+        case 3: return rgb565(0, q, 255);
+        case 4: return rgb565(t, 0, 255);
+        default: return rgb565(255, 0, q);
+    }
+}
+
+
 void DisplayManager_::showFatalError(String errorMessage) {
     DEBUG_PRINTF("Fatal error: %s\n", errorMessage.c_str());
     setFont(FONT_TYPE::MEDIUM);
