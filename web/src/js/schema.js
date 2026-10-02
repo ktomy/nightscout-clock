@@ -78,6 +78,7 @@ const FACES = [
     { id: "big_text_rainbow", name: "Rainbow big text" },
     { id: "rainbow_mood", name: "Rainbow mood" },
     { id: "battery_uptime", name: "Battery and uptime" },
+    { id: "nyan_unicorn", name: "Nyan unicorn" },
 ]
 
 // Clocks set up on 1.0.0 or earlier stored each face as its number, the face's index in this order.
@@ -494,6 +495,7 @@ function normalizeLoaded(c) {
     // never be seen and would be posted back on every save. The firmware drops such a row in silence, so leaving
     // it in the file only keeps a setting that never takes effect: repair it here, the way default_face is.
     out.face_schedule = out.face_schedule.filter(row => KEY_ITEMS.face_schedule(row))
+    out.unicorn_mode = !!out.unicorn_mode
     return out
 }
 

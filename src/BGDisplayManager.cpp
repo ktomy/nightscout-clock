@@ -54,7 +54,10 @@ void BGDisplayManager_::setup() {
         {"big_text_rainbow", "Rainbow big text", new BGDisplayFaceBigTextRainbow()},
         {"rainbow_mood", "Rainbow mood", new BGDisplayFaceRainbowMood()},
         {"battery_uptime", "Battery and uptime", new BGDisplayFaceBatteryUptime()},
+        {"nyan_unicorn", "Nyan unicorn", new BGDisplayFaceNyanUnicorn()},
     };
+    unicornFaceIndex = findFaceIndex("unicorn");
+    nyanUnicornFaceIndex = findFaceIndex("nyan_unicorn");
 
     configureActiveFaces();
     configureFaceSchedule();
@@ -129,6 +132,7 @@ void BGDisplayManager_::setFaceByIndex(int index) {
 
     currentFaceIndex = index;
     currentFace = faces[currentFaceIndex].instance;
+    currentFace->onActivate();
     lastRefreshEpoch = 0;
     resetFaceCycleTimer();
     runRenderCycle(RenderReason::FACE_CHANGE, ServerManager.getTimezonedTime());
@@ -172,6 +176,12 @@ void BGDisplayManager_::updateFaceCycle() {
         return;
     }
 
+    // Unicorn mode owns the face until the celebration (including the
+    // Nyan run-away) finishes and the previous face is restored.
+    if (unicornModeActive || unicornExiting) {
+        return;
+    }
+
     if (MATRIX_OFF) {
         faceCycleTimerStarted = false;
         return;
@@ -191,6 +201,27 @@ void BGDisplayManager_::updateFaceCycle() {
     }
 }
 
+void BGDisplayManager_::updateUnicornMode() {
+    if (!unicornModeActive && !unicornExiting) return;
+    // Let the Nyan run across once (~3s) plus its pause, then either hold the
+    // static unicorn face (entry) or restore the pre-celebration face (exit).
+    if (millis() - unicornNyanStartMs < 8000) return;
+    if (unicornExiting) {
+        if (unicornReturnFaceIndex >= 0) {
+            setFaceByIndex(unicornReturnFaceIndex);
+        }
+        unicornExiting = false;
+        unicornModeActive = false;
+        unicornNyanDone = false;
+        unicornReturnFaceIndex = -1;
+    } else if (!unicornNyanDone) {
+        if (unicornFaceIndex >= 0) {
+            setFaceByIndex(unicornFaceIndex);
+        }
+        unicornNyanDone = true;
+    }
+}
+
 void BGDisplayManager_::tick() {
     const bool brightnessOverlayActive = DisplayManager.isBrightnessOverlayActive();
     if (brightnessOverlayActive) {
@@ -207,7 +238,8 @@ void BGDisplayManager_::tick() {
 
     updateFaceSchedule();
     updateFaceCycle();
-    if (currentFace->needsFrequentRefresh()) {
+    updateUnicornMode();
+    if (!MATRIX_OFF && currentFace->needsFrequentRefresh()) {
         unsigned long now = millis();
         if (now - lastFrequentRefreshMillis >= currentFace->getFrequentRefreshIntervalMs()) {
             lastFrequentRefreshMillis = now;
@@ -264,6 +296,12 @@ void BGDisplayManager_::configureFaceSchedule() {
 // at its time, even a single row. No known time means no row applies.
 void BGDisplayManager_::updateFaceSchedule() {
     if (!faceScheduleActive) {
+        return;
+    }
+
+    // Unicorn mode owns the face until the celebration (including the
+    // Nyan run-away) finishes and the previous face is restored.
+    if (unicornModeActive || unicornExiting) {
         return;
     }
 
@@ -370,11 +408,52 @@ void BGDisplayManager_::maybeRrefreshScreen(bool force) {
 void BGDisplayManager_::showData(std::list<GlucoseReading> glucoseReadings) {
     if (glucoseReadings.size() == 0) {
         displayedReadings.clear();
+        unicornModeActive = false;
+        unicornExiting = false;
+        unicornNyanDone = false;
+        if (unicornReturnFaceIndex >= 0) {
+            setFaceByIndex(unicornReturnFaceIndex);
+            unicornReturnFaceIndex = -1;
+        }
         runRenderCycle(RenderReason::NEW_DATA, ServerManager.getTimezonedTime());
         return;
     }
 
     displayedReadings = glucoseReadings;
+
+    // Unicorn mode: a new reading of exactly 100 starts the celebration --
+    // the Nyan runs across once, then the static unicorn holds. The next
+    // reading ends it: the Nyan runs away, then the face from before the
+    // celebration is restored.
+    if (SettingsManager.settings.unicorn_mode && glucoseReadings.back().sgv == 100) {
+        if (nyanUnicornFaceIndex >= 0) {
+            if (!unicornModeActive && !unicornExiting) {
+                unicornReturnFaceIndex = currentFaceIndex;
+            }
+            unicornModeActive = true;
+            unicornExiting = false;
+            unicornNyanDone = false;
+            unicornNyanStartMs = millis();
+            setFaceByIndex(nyanUnicornFaceIndex);
+        }
+    } else if (unicornModeActive || unicornExiting) {
+        if (nyanUnicornFaceIndex >= 0) {
+            unicornExiting = true;
+            unicornModeActive = false;
+            unicornNyanDone = false;
+            unicornNyanStartMs = millis();
+            setFaceByIndex(nyanUnicornFaceIndex);
+        } else {
+            unicornModeActive = false;
+            unicornExiting = false;
+            unicornNyanDone = false;
+            if (unicornReturnFaceIndex >= 0) {
+                setFaceByIndex(unicornReturnFaceIndex);
+                unicornReturnFaceIndex = -1;
+            }
+        }
+    }
+
     runRenderCycle(RenderReason::NEW_DATA, ServerManager.getTimezonedTime());
 }
 
