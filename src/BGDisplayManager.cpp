@@ -182,6 +182,19 @@ void BGDisplayManager_::updateFaceCycle() {
 }
 
 void BGDisplayManager_::tick() {
+    const bool brightnessOverlayActive = DisplayManager.isBrightnessOverlayActive();
+    if (brightnessOverlayActive) {
+        brightnessOverlayWasActive = true;
+        return;
+    }
+
+    if (brightnessOverlayWasActive) {
+        brightnessOverlayWasActive = false;
+        resetFaceCycleTimer();
+        maybeRrefreshScreen(true);
+        return;
+    }
+
     updateFaceSchedule();
     updateFaceCycle();
     maybeRrefreshScreen();

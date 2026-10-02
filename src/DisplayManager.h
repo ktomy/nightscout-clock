@@ -41,9 +41,19 @@ public:
     void setPower(bool power);
     void setBrightness(int bri);
     void update();
+    bool isBrightnessOverlayActive() const;
     void clearMatrixPart(uint8_t x, uint8_t y, uint8_t width, uint8_t height);
     float getTextWidth(const char* text, byte textCase);
     void setFont(FONT_TYPE fontType);
+
+private:
+    void showBrightnessOverlay();
+
+    bool brightnessOverlayActive = false;
+    bool brightnessOverlayShowsAuto = false;
+    int brightnessOverlayPercent = 0;
+    unsigned long brightnessOverlayStarted = 0;
+    unsigned long brightnessOverlayLastDraw = 0;
 };
 
 extern DisplayManager_& DisplayManager;
