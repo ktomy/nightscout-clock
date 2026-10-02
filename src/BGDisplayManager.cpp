@@ -52,6 +52,40 @@ void BGDisplayManager_::setup() {
     facesNames[6] = "Unicorn";
     faces.push_back(new BGDisplayFaceTimeOnly());
     facesNames[7] = "Time only";
+    faces.push_back(new BGDisplayFaceNyanCat());
+    facesNames[8] = "Nyan cat";
+    faces.push_back(new BGDisplayFaceCritter(CritterId::CAT));
+    facesNames[9] = "Cat";
+    faces.push_back(new BGDisplayFaceCritter(CritterId::DOG));
+    facesNames[10] = "Dog";
+    faces.push_back(new BGDisplayFaceCritter(CritterId::FROG));
+    facesNames[11] = "Frog";
+    faces.push_back(new BGDisplayFaceCritter(CritterId::FOX));
+    facesNames[12] = "Fox";
+    faces.push_back(new BGDisplayFaceCritter(CritterId::BUNNY));
+    facesNames[13] = "Bunny";
+    faces.push_back(new BGDisplayFaceCritter(CritterId::NARWHAL));
+    facesNames[14] = "Narwhal";
+    faces.push_back(new BGDisplayFaceCritter(CritterId::WHALE));
+    facesNames[15] = "Whale";
+    faces.push_back(new BGDisplayFaceCritter(CritterId::MARIO));
+    facesNames[16] = "Mario";
+    faces.push_back(new BGDisplayFaceCritter(CritterId::LUIGI));
+    facesNames[17] = "Luigi";
+    faces.push_back(new BGDisplayFaceCritter(CritterId::PEACH));
+    facesNames[18] = "Peach";
+    faces.push_back(new BGDisplayFaceCritter(CritterId::TOAD));
+    facesNames[19] = "Toad";
+    faces.push_back(new BGDisplayFaceCritter(CritterId::PUMPKIN));
+    facesNames[20] = "Pumpkin";
+    faces.push_back(new BGDisplayFaceCritter(CritterId::GHOST));
+    facesNames[21] = "Ghost";
+    faces.push_back(new BGDisplayFaceCritter(CritterId::WITCH));
+    facesNames[22] = "Witch";
+    faces.push_back(new BGDisplayFaceCritter(CritterId::TURKEY));
+    facesNames[23] = "Turkey";
+    faces.push_back(new BGDisplayFaceCritter(CritterId::BUTTERFLY));
+    facesNames[24] = "Butterfly";
 
     if (faces.size() != CLOCK_FACE_COUNT) {
         DEBUG_PRINTF(
@@ -119,6 +153,8 @@ void BGDisplayManager_::setFace(int id) {
 
     currentFaceIndex = id;
     currentFace = (faces[currentFaceIndex]);
+    currentFace->onActivate();
+    lastFrequentRefreshMillis = 0;
     lastRefreshEpoch = 0;
     resetFaceCycleTimer();
     runRenderCycle(RenderReason::FACE_CHANGE, ServerManager.getTimezonedTime());
@@ -184,6 +220,13 @@ void BGDisplayManager_::updateFaceCycle() {
 void BGDisplayManager_::tick() {
     updateFaceSchedule();
     updateFaceCycle();
+    if (!MATRIX_OFF && currentFace != nullptr && currentFace->needsFrequentRefresh()) {
+        unsigned long currentMillis = millis();
+        if (currentMillis - lastFrequentRefreshMillis >= currentFace->getFrequentRefreshIntervalMs()) {
+            lastFrequentRefreshMillis = currentMillis;
+            runRenderCycle(RenderReason::FORCED, ServerManager.getTimezonedTime());
+        }
+    }
     maybeRrefreshScreen();
 }
 

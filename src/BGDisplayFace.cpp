@@ -28,4 +28,10 @@ void BGDisplayFace::renderPartial(const RenderContext& ctx) const {}
 
 bool BGDisplayFace::ticksEverySecond() const { return false; }
 
+bool BGDisplayFace::needsFrequentRefresh() const { return false; }
+
+unsigned long BGDisplayFace::getFrequentRefreshIntervalMs() const { return 5000; }
+
+void BGDisplayFace::onActivate() const {}
+
 bool BGDisplayFace::suppressesNewAlarms() const { return false; }

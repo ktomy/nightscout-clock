@@ -20,6 +20,10 @@ public:
     void tick();
 
     void HSVtext(int16_t x, int16_t y, const char* text, bool clear, byte textCase);
+    // Full-saturation hue (0-255) packed as RGB565.
+    static uint16_t hsvToRgb565(uint8_t hue);
+    // Pack 8-bit r/g/b as RGB565.
+    static uint16_t rgb565(uint8_t r, uint8_t g, uint8_t b);
     void printText(int16_t x, int16_t y, const char* text, TEXT_ALIGNMENT alignment, byte textCase);
     void setTextColor(uint16_t color);
     void clearMatrix();
