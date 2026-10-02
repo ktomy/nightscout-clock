@@ -115,6 +115,7 @@ const ICON_PATHS = {
     trash: "M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13",
     download: "M12 4v11M7 10l5 5 5-5M5 20h14",
     upload: "M12 20V9M7 14l5-5 5 5M5 4h14",
+    refresh: "M20 12a8 8 0 1 1-2.3-5.6M20 3v5h-5",
     grid: "M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z",
     bell: "M6 16V11a6 6 0 1 1 12 0v5l2 2H4l2-2zM10 20a2 2 0 0 0 4 0",
     drop: "M12 3s6 7 6 11a6 6 0 0 1-12 0c0-4 6-11 6-11z",

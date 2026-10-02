@@ -57,6 +57,27 @@ Thanks [@CallumMcK](https://github.com/CallumMcK)
 
 Thanks [@CallumMcK](https://github.com/CallumMcK)
 
+### Over-the-air (network) update
+
+Once the clock runs a firmware with OTA support (see below), it can update itself over the network without USB. Two ways:
+
+**Self-update (pull, recommended).** In the clock's web interface (`http://<clock-ip>/`, System tab → **Firmware update**), click **Check for updates**. The clock fetches the release manifest from this repo's GitHub Pages site, compares versions, and — if you confirm — downloads and verifies the image itself (SHA-256 checked before flashing) and reboots. This works from anywhere the clock has outbound internet, e.g. a school network, with no inbound connection needed. Firmware and the settings-page filesystem are separate installs; update both when a release changes the web UI.
+
+**Upload (push).** Build the artifacts locally (`bash scripts/build.sh --all`), then use the same Firmware update card to upload `firmware.bin` or `littlefs.bin` from your browser, or script it: log in once via the web UI, then `curl -b "auth_token=<token>" -F "file=@firmware.bin" http://<clock-ip>/api/update/firmware`. The clock validates the image (firmware must be a real ESP32 app image; the filesystem image must match the LittleFS partition size) and reboots into it.
+
+Firmware and the settings-page filesystem are separate update types with separate endpoints, so update both when a release changes the web UI. Filesystem updates keep your settings: the clock backs up `/config.json` before flashing and restores it into the new image with verification.
+
+**Automatic self-update.** In the System tab → **Automatic updates**, enable "Check for and install updates automatically". The clock then checks the release manifest about 3 minutes after every boot and once a day at the configured hour (its local time), and installs new images itself — firmware and filesystem as needed. Note: the after-boot check runs on *every* restart while this is on, so pressing "Save and restart" in the web UI can itself install a pending update a few minutes later. Made for clocks you can't reach on their own network: it only needs outbound internet.
+
+**Status heartbeat (remote monitoring).** In the same card, set a heartbeat URL and the clock will POST a small JSON status (firmware version, uptime, WiFi signal, IP address, selected face, display on/off, free heap, battery percent and raw ADC reading, BG source, BG source status, last glucose value, and seconds since the last reading — `-1` if no reading yet) every hour by default (adjustable from 1 to 168 hours) plus shortly after every boot. Point it at [healthchecks.io](https://healthchecks.io) (free) to get alerted if the clock ever goes quiet, or at [ntfy.sh](https://ntfy.sh) to receive the heartbeat as phone notifications — no server or inbound connection needed. If you use healthchecks.io, configure the check with **Period: 1 hour** and **Grace: 1 hour**: the clock is then marked down after about two hours without a ping, which tolerates a single missed ping (a brief WiFi blip) without flapping, while still alerting you the same night if the clock dies. After a remote update, the heartbeat's `version` field confirms what the clock is running without visiting it. A **Send test ping** button posts one heartbeat immediately using the URL as typed, so the receiver can be verified before saving.
+
+### One-time: enabling OTA partitions
+
+OTA needs two app slots in flash. Switching the partition layout wipes the device, so this is done once over USB:
+
+1. `bash scripts/build.sh --all --upload` (flashes bootloader, the new dual-OTA partition table, firmware, and LittleFS).
+2. From then on, updates go over the network as described above; USB is only the recovery path.
+
 ## More information for people who needs it
 
 Nightscout Clock is a custom firmware for Ulanzi TC001. It can also run (with minor changes) on AWTRIX-Light custom hardware, so if you need a bigger display, feel free to research.

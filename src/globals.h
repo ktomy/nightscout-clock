@@ -34,6 +34,7 @@
 #define CLOCK_FACE_COUNT 8
 #define CONFIG_JSON "/config.json"
 #define CONFIG_JSON_FACTORY "/config_initial.json"
+#define CONFIG_JSON_BAK "/config.bak"
 #define WIFI_CONNECT_TIMEOUT 15000
 #define AP_MODE_PASSWORD ""
 #define HOSTNAME_PREFIX "nsclock"

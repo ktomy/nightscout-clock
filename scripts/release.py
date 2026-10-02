@@ -68,7 +68,10 @@ def get_next_version(current_version, bump_type):
 
 def get_unexpected_changes():
     status_lines = git_output("status", "--porcelain", "--untracked-files=all").splitlines()
-    return [line for line in status_lines if line[3:] != "README.md"]
+    # NOTE: git_output() strips the whole output, so an unstaged-only change
+    # (" M README.md") loses its leading status column and line[3:] would
+    # misparse it as "EADME.md". Match the trailing path instead.
+    return [line for line in status_lines if not line.endswith(" README.md")]
 
 
 def ensure_release_worktree():
