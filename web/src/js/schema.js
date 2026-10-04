@@ -101,6 +101,9 @@ const BANDS = [
 ]
 const LIMIT_KEYS = ["low_urgent_mgdl", "low_mgdl", "high_mgdl", "high_urgent_mgdl"]
 const OLD_DATA_COLORS = [["gray", "Gray"], ["cyan", "Cyan"], ["magenta", "Magenta"], ["blue", "Blue"]]
+// No red, yellow or green: those are glucose colors.
+const EARLY_STALE_COLORS = [["off", "Off"], ["cyan", "Cyan"], ["blue", "Blue"], ["magenta", "Magenta"]]
+const EARLY_STALE_MINUTES = [[6, "6 min"], [10, "10 min"], [15, "15 min"]]
 const CYCLE_INTERVALS = [[10, "10 s"], [30, "30 s"], [60, "1 min"], [120, "2 min"], [180, "3 min"], [300, "5 min"]]
 const TIME_FORMATS = [["24", "24h"], ["12", "AM/PM"]]
 const SNOOZES = [[5, "5 minutes"], [10, "10 minutes"], [15, "15 minutes"], [30, "30 minutes"], [60, "1 hour"], [120, "2 hours"], [0, "Until next trigger"]]
@@ -324,6 +327,17 @@ function validateConfig(c, ctx) {
         need("face_schedule", rows.every(row => isTime(row.time)), "Every row needs a valid time.")
         need("face_schedule", new Set(rows.map(row => row.time)).size === rows.length, "Two rows have the same time.")
     }
+    // Big text's late color has to start before data counts as old, which the no data timer sets, and look
+    // different from old data.
+    const bigText = c.face_big_text || {}
+    const oldMinutes = c.custom_nodatatimer_enable && c.custom_nodatatimer > 5 && c.custom_nodatatimer <= 60 ? c.custom_nodatatimer : 20
+    const oldColor = c.data_old_color || "gray"
+    if (active.includes(3) && (bigText.early_stale_color || "off") !== "off") {
+        need("face_big_text_early_stale_color", bigText.early_stale_color !== oldColor,
+            `The Big text late color must differ from the old data color (${OLD_DATA_COLORS.find(([v]) => v === oldColor)[1]}), or the two can't be told apart.`)
+        need("face_big_text_early_stale_minutes", bigText.early_stale_minutes < oldMinutes,
+            `The Big text late color must start before data counts as old (${oldMinutes} minutes). Choose fewer minutes, a longer no data timer, or Off.`)
+    }
     need("tz", RX.timezone.test(text(c.tz_libc)) && (!ctx.tzNames || ctx.tzNames.has(c.tz)), "Please select your time zone.")
     need("time_format", inOptions(c.time_format, TIME_FORMATS), "Please select the time format (AM/PM or 24h).")
 
@@ -455,21 +469,23 @@ function mergeSettingsFile(file, clock, { network, tzNames }) {
         // A number in the file for a text setting (an older page wrote time_format as 24) is read as that text.
         const value = typeof clock[key] === "string" && typeof file[key] === "number" ? String(file[key]) : file[key]
         if (sameJson(value, clock[key])) continue
-        if (fitsSetting(key, value, clock[key])) {
+        // Check the stored timer even when disabled, without enabling it for cross-setting checks.
+        const validTimer = key !== "custom_nodatatimer" || RX.noDataMinutes.test(String(value))
+        if (fitsSetting(key, value, clock[key]) && validTimer) {
             config[key] = isBlock(clock[key]) ? { ...clone(clock[key]), ...clone(file[key]) } : clone(value)
             taken.push(key)
         } else {
             kept.push(key)
         }
     }
-    // Alarms and the no-data timer are checked as if switched on, so a file can't carry a bad value in one that is off.
-    const allOn = { custom_nodatatimer_enable: true, ...Object.fromEntries(ALARMS.map(a => [`alarm_${a.t}_enabled`, true])) }
+    // Check alarm values even when their alarms are switched off.
+    const alarmsOn = Object.fromEntries(ALARMS.map(a => [`alarm_${a.t}_enabled`, true]))
     const errorKeys = key => (key === "nightscout_url" ? ["ns_host", "ns_port"] : key === "tz_libc" ? ["tz"] : [key])
     // A block's checks report as "<key>_<setting>".
     const hasError = (errors, key) => errorKeys(key).some(k => errors[k] || (isBlock(clock[key]) && Object.keys(errors).some(e => e.startsWith(`${k}_`))))
     for (;;) {
         const c = normalizeLoaded(config)
-        const errors = validateConfig({ ...c, ...allOn }, { openNetwork: isOpenNetwork(c), tzNames })
+        const errors = validateConfig({ ...c, ...alarmsOn }, { openNetwork: isOpenNetwork(c), tzNames })
         const rejected = taken.filter(key => !kept.includes(key) && hasError(errors, key))
         if (!rejected.length) return { config: c, kept }
         rejected.forEach(key => { config[key] = clone(clock[key]); kept.push(key) })
