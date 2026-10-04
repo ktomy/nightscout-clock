@@ -1,5 +1,6 @@
 {
     "ssid": "",
+    "custom_mac": "",
     "password": "",
     "dhcp": true,
     "ip": "",

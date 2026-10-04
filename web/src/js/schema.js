@@ -199,7 +199,7 @@ const buildNightscoutUrl = ({ protocol, host, port }) => `${protocol}://${host.t
 const RX = {
     ssid: /^[\x20-\x7E]{1,32}$/,
     wifiPassword: /^.{8,}$/,
-    macAddress: /^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$/,
+    macAddress: /^[0-9A-Fa-f]{2}([:-])(?:[0-9A-Fa-f]{2}\1){4}[0-9A-Fa-f]{2}$/,
     dexcomUsername: /^.{6,}$/,
     password: /^.{8,20}$/,
     nsHostname: /(^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$)|(^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9][a-z0-9-]{0,61}[a-z0-9]$)/,
@@ -287,6 +287,10 @@ function validateConfig(c, ctx) {
     if (!ctx.openNetwork) need("password", RX.wifiPassword.test(text(c.password)), "Password is required and must be at least 8 characters long.")
     const mac = text(c.custom_mac).trim()
     need("custom_mac", !mac || RX.macAddress.test(mac), "MAC address must look like A4:83:E7:2B:10:9C, or be left empty.")
+    if (mac && RX.macAddress.test(mac)) {
+        need("custom_mac", (parseInt(mac.slice(0, 2), 16) & 1) === 0,
+            "MAC address must be unicast: the second character must be 0, 2, 4, 6, 8, A, C, or E.")
+    }
 
     // Data source
     const src = c.data_source
@@ -425,7 +429,7 @@ function normalizeLoaded(c) {
  * @returns {SettingsTab}
  */
 function tabOfKey(key) {
-    if (/^(ssid|password|additional_|custom_hostname|web_auth)/.test(key)) return "system"
+    if (/^(ssid|password|additional_|custom_hostname|custom_mac|web_auth)/.test(key)) return "system"
     if (/^alarm_/.test(key)) return "alarms"
     if (/^(data_source|ns_|api_secret|nightscout|dexcom|librelinkup|medtrum|units|low_|high_)/.test(key)) return "glucose"
     return "display"
@@ -435,7 +439,7 @@ function tabOfKey(key) {
 // Never taken from a file, so a file can't lock anyone out of the clock.
 const NEVER_FROM_FILE = ["web_auth_enable", "web_auth_password"]
 // Taken only when asked: another clock's file would move this clock to that network.
-const NETWORK_KEYS = ["ssid", "password", "dhcp", "ip", "netmask", "gateway", "dns1", "dns2",
+const NETWORK_KEYS = ["ssid", "password", "custom_mac", "dhcp", "ip", "netmask", "gateway", "dns1", "dns2",
     "additional_wifi_enable", "additional_wifi_type", "additional_ssid", "additional_wifi_username", "additional_wifi_password"]
 // The list the page offers for each setting that is picked from one.
 const KEY_OPTIONS = {
