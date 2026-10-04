@@ -96,6 +96,31 @@ uint16_t shade(uint16_t color, float fraction) {
     return (r << 11) | (g << 5) | b;
 }
 
+// Twinkles: each mane cell lights up at its own random moments, in TWINKLE_CHANCE eighths of its
+// TWINKLE_PERIOD-step windows, for TWINKLE_STEPS steps.
+const int TWINKLE_PERIOD = 16;
+const int TWINKLE_CHANCE = 5;
+const int TWINKLE_STEPS = 4;
+
+// How many steps into a twinkle a cell is, or -1 when it is not twinkling.
+int twinkleAge(int cell, unsigned long frame) {
+    const unsigned long offset = scramble(cell, 99) % TWINKLE_PERIOD;
+    const unsigned long step = (frame % LOOP_STEPS + offset) % LOOP_STEPS;
+    const uint32_t h = scramble(cell + 7, step / TWINKLE_PERIOD);
+    if (static_cast<int>(h % 8) >= TWINKLE_CHANCE) {
+        return -1;
+    }
+    const int age = static_cast<int>(step % TWINKLE_PERIOD) -
+                    static_cast<int>((h >> 8) % (TWINKLE_PERIOD - TWINKLE_STEPS));
+    return age >= 0 && age < TWINKLE_STEPS ? age : -1;
+}
+
+// At the lowest brightness each LED channel is only on or off, so the in-range colors collapse to
+// magenta and blue. There the mane is magenta, blue and cyan from the top, two bands each: never white
+// (it would merge with the body), and blue and cyan cannot pass for the old-data or early-stale colors,
+// which color the whole unicorn.
+const uint16_t LOWEST_MANE[3] = {0xF81F, 0x001F, 0x07FF};
+
 }  // namespace
 
 void BGDisplayFaceUnicorn::showReadings(
@@ -185,6 +210,10 @@ void BGDisplayFaceUnicorn::drawMane(int sgv, bool dataIsOld, bool moving, unsign
     const bool wisps = moving && !dataIsOld;
     uint16_t neighbour = 0;
     const bool mixes = moving && !dataIsOld && maneNeighbour(sgv, level, neighbour);
+    // The run flow at the lowest brightness uses its own colors, and its tips stay put so they leave no
+    // dark cell.
+    const bool lowest = moving && !dataIsOld && flow == MANE_FLOW::RUN &&
+                        DisplayManager.getBrightness() <= MIN_BRIGHTNESS;
 
     // Moving tips drift a row up or down into empty cells, so those cells are cleared before the mane is drawn.
     if (wisps) {
@@ -215,13 +244,32 @@ void BGDisplayFaceUnicorn::drawMane(int sgv, bool dataIsOld, bool moving, unsign
             if (dataIsOld) {
                 color = getDataOldColor();
             } else if (moving && flow == MANE_FLOW::RUN) {
-                // The bands hold their colors while lights run along each toward the tips at irregular
-                // times; past an urgent limit the lights are steady dark stripes.
-                if (urgent) {
+                const int cellId = row * SPRITE_WIDTH + col;
+                if (lowest) {
+                    // The lowest-brightness colors, twinkling; two in five twinkles flash the glucose
+                    // band's color.
+                    const int age = twinkleAge(cellId, frame);
+                    const bool banded =
+                        scramble(cellId + 11, (frame % LOOP_STEPS) / TWINKLE_PERIOD) % 5 < 2;
+                    color = age < 0 || age >= 2 ? LOWEST_MANE[band / 2]
+                            : banded            ? getLevelColor(level)
+                                                : LOWEST_MANE[(band / 2 + 1) % 3];
+                } else if (inRange && !mixes) {
+                    // The bands hold their colors while single cells twinkle at random: a flash of the
+                    // next band's color, then a darker shade.
+                    const uint16_t held = IN_RANGE_COLORS[std::min(4, band)];
+                    const int age = twinkleAge(cellId, frame);
+                    color = age < 0   ? held
+                            : age < 2 ? IN_RANGE_COLORS[(std::min(4, band) + 1) % MANE_BANDS]
+                                      : shade(held, 0.55f);
+                } else if (urgent) {
+                    // Past an urgent limit the lights are steady dark stripes.
                     const int dash =
                         ((2 * col - static_cast<int>(frame % 16) + 3 * band) % 16 + 16) % 16;
                     color = dash % 8 < 2 ? 0 : getLevelColor(level);
                 } else {
+                    // Near a limit, or low or high, lights run along each band toward the tips at
+                    // irregular times.
                     const int dash = runDash(band, col, frame);
                     // Every third band holds the neighbouring band's color when the reading is near it.
                     const uint16_t held = mixes && index % 3 == 0 ? neighbour
@@ -250,7 +298,7 @@ void BGDisplayFaceUnicorn::drawMane(int sgv, bool dataIsOld, bool moving, unsign
             }
             // A moving tip drifts a row up or down, into an empty cell only, so the mane looks wispy.
             int drawRow = row;
-            if (wisps && cell >= 'a') {
+            if (wisps && !lowest && cell >= 'a') {
                 // Each tip picks up, down or stay at its own irregular moments, four steps at a time.
                 const uint32_t tip = scramble(col * SPRITE_HEIGHT + row, 0);
                 const uint32_t pick = scramble(tip, ((frame + tip % 4) % LOOP_STEPS) / 4);
