@@ -41,6 +41,10 @@ public:
     // Redraws only the moving part of the face for animation step `frame`.
     virtual void showAnimationFrame(
         const std::list<GlucoseReading>& readings, unsigned long frame) const {}
+    // Faces that change every second get a TIME_TICK every second instead of every minute.
+    virtual bool ticksEverySecond() const;
+    // Suppress new alarms while this face is selected; existing alarms continue normally.
+    virtual bool suppressesNewAlarms() const;
 
 protected:
     // Configurable color for old readings and no-data screens;

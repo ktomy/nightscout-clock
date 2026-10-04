@@ -88,12 +88,35 @@ bool SettingsManager_::isValidAlarmRepeatInterval(int intervalSeconds) {
     return intervalSeconds == 60 || intervalSeconds == 120 || intervalSeconds == 300;
 }
 
+bool SettingsManager_::parseCustomMac(const String& macStr, uint8_t* macBytes) {
+    int values[6];
+    int parsed = sscanf(macStr.c_str(), "%x:%x:%x:%x:%x:%x",
+                        &values[0], &values[1], &values[2],
+                        &values[3], &values[4], &values[5]);
+    if (parsed != 6) {
+        parsed = sscanf(macStr.c_str(), "%x-%x-%x-%x-%x-%x",
+                        &values[0], &values[1], &values[2],
+                        &values[3], &values[4], &values[5]);
+    }
+    if (parsed != 6) {
+        return false;
+    }
+    for (int i = 0; i < 6; i++) {
+        if (values[i] < 0 || values[i] > 255) {
+            return false;
+        }
+        macBytes[i] = (uint8_t)values[i];
+    }
+    return true;
+}
+
 bool SettingsManager_::loadSettingsFromFile() {
     auto doc = readConfigJsonFile();
     if (doc == NULL)
         return false;
 
     settings.ssid = (*doc)["ssid"].as<String>();
+    settings.custom_mac = (*doc)["custom_mac"] | "";
     settings.wifi_password = (*doc)["password"].as<String>();
 
     settings.bg_low_warn_limit = (*doc)["low_mgdl"].as<int>();
@@ -266,6 +289,10 @@ bool SettingsManager_::loadSettingsFromFile() {
     JsonObject raceCar = (*doc)["face_race_car"].as<JsonObject>();
     settings.face_race_car.speed = animationSpeedFromString(raceCar["speed"].as<String>());
 
+    // Simple (dark) face
+    settings.face_simple_dark.value_color = displayColorFromString(
+        (*doc)["face_simple_dark"]["value_color"].as<String>(), DISPLAY_COLOR::WHITE);
+
     // Web interface authentication
     settings.web_auth_enable = (*doc)["web_auth_enable"].as<bool>();
     settings.web_auth_password = (*doc)["web_auth_password"].as<String>();
@@ -282,6 +309,7 @@ bool SettingsManager_::saveSettingsToFile() {
         return false;
 
     (*doc)["ssid"] = settings.ssid;
+    (*doc)["custom_mac"] = settings.custom_mac;
     (*doc)["password"] = settings.wifi_password;
 
     (*doc)["low_mgdl"] = settings.bg_low_warn_limit;
@@ -418,6 +446,9 @@ bool SettingsManager_::saveSettingsToFile() {
     // Race car face
     JsonObject raceCar = (*doc)["face_race_car"].to<JsonObject>();
     raceCar["speed"] = toString(settings.face_race_car.speed);
+
+    // Simple (dark) face
+    (*doc)["face_simple_dark"]["value_color"] = toString(settings.face_simple_dark.value_color);
 
     // Web interface authentication
     (*doc)["web_auth_enable"] = settings.web_auth_enable;
