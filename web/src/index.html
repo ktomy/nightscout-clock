@@ -13,8 +13,21 @@
   <div class="top-inner">
     <div class="brand">
       <div class="brand-mark" aria-hidden="true">NS</div>
-      <div>
-        <h1>Nightscout clock</h1>
+      <div class="brand-text">
+        <div class="brand-name" id="title_row">
+          <h1 id="clock_title">Nightscout clock</h1>
+          <button class="btn ghost icon" id="rename" type="button" data-icon="pencil" aria-label="Name this clock" title="Name this clock" hidden></button>
+        </div>
+        <div class="field" id="rename_box" data-field="clock_name" hidden>
+          <div class="brand-name">
+            <input id="clock_name" type="text" list="rooms" placeholder="Nightscout clock" autocomplete="off" aria-label="Clock name">
+            <button class="btn sm" id="rename_done" type="button">Done</button>
+          </div>
+          <datalist id="rooms">
+            <option value="Bedroom"><option value="Kitchen"><option value="Living room"><option value="Nursery"><option value="Office">
+          </datalist>
+          <p class="err" hidden></p>
+        </div>
         <div class="brand-sub" id="clock_sub">connecting…</div>
       </div>
     </div>
