@@ -363,7 +363,13 @@ function bigTextSettings() {
 }
 
 function simpleDarkSettings() {
-    return field("face_simple_dark_value_color", "Number color", swatches("face_simple_dark", DARK_VALUE_COLORS, { prop: "value_color", label: "Number color", fallback: "white" }),
+    const warning = el("p.help", { role: "status" },
+        "Gray is not visible at the lowest brightness. Choose another number color if you run the clock dim.")
+    const updateWarning = () => { warning.hidden = form.get("face_simple_dark")?.value_color !== "gray" }
+    updateWarning()
+    onChangeWhileAttached(warning, key => { if (key === "face_simple_dark") updateWarning() })
+    return field("face_simple_dark_value_color", "Number color", el("div.stack",
+        swatches("face_simple_dark", DARK_VALUE_COLORS, { prop: "value_color", label: "Number color", fallback: "white" }), warning),
         "The trend arrow keeps the glucose colors and old data still uses the old data color, so red, yellow and green here do not track the reading.")
 }
 
