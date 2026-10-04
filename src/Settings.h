@@ -28,7 +28,7 @@ struct RaceCarFaceSettings {
     ANIMATION_SPEED speed = ANIMATION_SPEED::NORMAL;
 };
 
-// Simple (dark) face: the color of the number while the reading is fresh.
+// Simple (dark) and Big text (dark) faces: the color of the number while the reading is fresh.
 struct SimpleDarkFaceSettings {
     DISPLAY_COLOR value_color = DISPLAY_COLOR::WHITE;
 };

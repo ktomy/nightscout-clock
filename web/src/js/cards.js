@@ -324,15 +324,18 @@ function facesCard() {
         cyclingToggle, interval), { id: "card_faces" })
 }
 
-// Settings that belong to one face, by face id, shown in a drawer while that face is active.
-const FACE_DRAWERS = { 3: bigTextSettings, 6: unicornSettings, 8: simpleDarkSettings, 9: raceCarSettings, 10: dragonSettings }
+// Settings that belong to a face, by face id, shown in a drawer while that face is active. Faces sharing
+// settings share one drawer, titled with the active faces it covers.
+const FACE_DRAWERS = { 3: bigTextSettings, 6: unicornSettings, 8: darkFaceSettings, 9: raceCarSettings, 10: dragonSettings, 11: darkFaceSettings }
 
 function faceDrawers() {
     return reactive(["inactive_faces"], () => {
         const active = activeFaceIds(form.get("inactive_faces"))
         const faces = FACES.filter(f => FACE_DRAWERS[f.id] && active.includes(f.id))
         if (!faces.length) return el("span", { hidden: true })
-        return el("div.stack", el("hr.divider"), ...faces.map(f => drawer(f.name, FACE_DRAWERS[f.id]())))
+        const builds = [...new Set(faces.map(f => FACE_DRAWERS[f.id]))]
+        return el("div.stack", el("hr.divider"), ...builds.map(build =>
+            drawer(faces.filter(f => FACE_DRAWERS[f.id] === build).map(f => f.name).join(" and "), build())))
     })
 }
 
@@ -386,7 +389,7 @@ function raceCarSettings() {
             "The speed lines show the glucose color while the reading is fresh, and the race stops in the old data color when data is old."))
 }
 
-function simpleDarkSettings() {
+function darkFaceSettings() {
     const warning = el("p.help", { role: "status" },
         "Gray is not visible at the lowest brightness. Choose another number color if you run the clock dim.")
     const updateWarning = () => { warning.hidden = form.get("face_simple_dark")?.value_color !== "gray" }
@@ -394,7 +397,7 @@ function simpleDarkSettings() {
     onChangeWhileAttached(warning, key => { if (key === "face_simple_dark") updateWarning() })
     return field("face_simple_dark_value_color", "Number color", el("div.stack",
         swatches("face_simple_dark", DARK_VALUE_COLORS, { prop: "value_color", label: "Number color", fallback: "white" }), warning),
-        "The trend arrow keeps the glucose colors and old data still uses the old data color, so red, yellow and green here do not track the reading.")
+        "Both dark faces use it. The trend arrow keeps the glucose colors and old data still uses the old data color, so red, yellow and green here do not track the reading.")
 }
 
 /**

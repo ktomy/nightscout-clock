@@ -9,6 +9,12 @@
 class BGDisplayFaceSimpleDark : public BGDisplayFaceTextBase {
 public:
     void showReadings(const std::list<GlucoseReading>& readings, bool dataIsOld = false) const override;
+
+protected:
+    // Draws the number at the face's placement and font, and the trend arrow, as every dark face does.
+    void showDarkReading(
+        const GlucoseReading& reading, bool dataIsOld, int16_t x, int16_t y, TEXT_ALIGNMENT alignment,
+        FONT_TYPE font) const;
 };
 
 #endif

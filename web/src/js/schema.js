@@ -73,6 +73,7 @@ const FACES = [
     { id: 8, name: "Simple (dark)" },
     { id: 9, name: "Race car" },
     { id: 10, name: "Dragon" },
+    { id: 11, name: "Big text (dark)" },
 ]
 
 // The config stores the faces switched off, so a face added later starts active.
@@ -357,9 +358,9 @@ function validateConfig(c, ctx) {
     }
     // A fresh number in the old data color would read as old data.
     const darkValueColor = (c.face_simple_dark || {}).value_color
-    if (active.includes(8)) {
+    if (active.includes(8) || active.includes(11)) {
         need("face_simple_dark_value_color", darkValueColor !== oldColor,
-            `The Simple (dark) number color must differ from the old data color (${OLD_DATA_COLORS.find(([v]) => v === oldColor)[1]}), or a fresh reading would look old.`)
+            `The dark faces' number color must differ from the old data color (${OLD_DATA_COLORS.find(([v]) => v === oldColor)[1]}), or a fresh reading would look old.`)
     }
     need("tz", RX.timezone.test(text(c.tz_libc)) && (!ctx.tzNames || ctx.tzNames.has(c.tz)), "Please select your time zone.")
     need("time_format", inOptions(c.time_format, TIME_FORMATS), "Please select the time format (AM/PM or 24h).")
