@@ -167,7 +167,6 @@ bool tryConnectToWiFi(String wifi_type, String ssid, String username, String pas
     // Apply a custom MAC address if one is configured (stored in config.json
     // like any other setting).
     String customMac = SettingsManager.settings.custom_mac;
-    customMac.trim();
     if (customMac.length() > 0) {
         uint8_t macBuf[6];
         if (SettingsManager.parseCustomMac(customMac, macBuf)) {
@@ -373,87 +372,6 @@ void ServerManager_::setupWebServer(IPAddress ip) {
                 response += "\"}";
                 request->send(400, "application/json", response);
             };
-
-            if (!data["face_cycle_enabled"].isNull() && !data["face_cycle_enabled"].is<bool>()) {
-                sendSaveValidationError("face_cycle_enabled must be a boolean");
-                return;
-            }
-
-            bool faceCycleEnabled = data["face_cycle_enabled"] | false;
-            bool hasInactiveFaces = !data["inactive_faces"].isNull();
-            int inactiveFaceCount = 0;
-            if (hasInactiveFaces) {
-                if (!data["inactive_faces"].is<JsonArray>()) {
-                    sendSaveValidationError("inactive_faces must be an array");
-                    return;
-                }
-
-                bool inactiveFaces[CLOCK_FACE_COUNT] = {};
-                for (JsonVariant face : data["inactive_faces"].as<JsonArray>()) {
-                    if (!face.is<int>()) {
-                        sendSaveValidationError("Face selections must use valid clock face IDs");
-                        return;
-                    }
-
-                    int faceId = face.as<int>();
-                    if (faceId < 0 || faceId >= CLOCK_FACE_COUNT) {
-                        sendSaveValidationError("Face selections must use valid clock face IDs");
-                        return;
-                    }
-
-                    if (!inactiveFaces[faceId]) {
-                        inactiveFaces[faceId] = true;
-                        inactiveFaceCount++;
-                    }
-                }
-            }
-
-            if (faceCycleEnabled && CLOCK_FACE_COUNT - inactiveFaceCount < 2) {
-                sendSaveValidationError("Cycling needs at least two active clock faces");
-                return;
-            }
-
-            bool hasFaceCycleInterval = !data["face_cycle_interval_seconds"].isNull();
-            if (faceCycleEnabled || hasFaceCycleInterval) {
-                if (!data["face_cycle_interval_seconds"].is<int>()) {
-                    sendSaveValidationError(
-                        "Face cycle period must be 10, 30, 60, 120, 180, or 300 seconds");
-                    return;
-                }
-
-                int intervalSeconds = data["face_cycle_interval_seconds"].as<int>();
-                if (intervalSeconds != 10 && intervalSeconds != 30 && intervalSeconds != 60 &&
-                    intervalSeconds != 120 && intervalSeconds != 180 && intervalSeconds != 300) {
-                    sendSaveValidationError(
-                        "Face cycle period must be 10, 30, 60, 120, 180, or 300 seconds");
-                    return;
-                }
-            }
-
-            // Refuse a value the loader would silently correct; the accepted set lives in SettingsManager.
-            if (!data["alarm_repeat_interval_seconds"].isNull()) {
-                if (!data["alarm_repeat_interval_seconds"].is<int>() ||
-                    !SettingsManager_::isValidAlarmRepeatInterval(
-                        data["alarm_repeat_interval_seconds"].as<int>())) {
-                    sendSaveValidationError(
-                        "Alarm repeat interval must be 60, 120, or 300 seconds");
-                    return;
-                }
-            }
-
-            // Validate the custom MAC address; it is stored in config.json
-            // like any other setting.
-            if (!data["custom_mac"].isNull()) {
-                String macStr = data["custom_mac"].as<String>();
-                macStr.trim();
-                if (macStr.length() > 0) {
-                    uint8_t macBytes[6];
-                    if (!SettingsManager.parseCustomMac(macStr, macBytes)) {
-                        sendSaveValidationError("custom_mac must be a valid MAC address (e.g. A4:83:E7:2B:10:9C)");
-                        return;
-                    }
-                }
-            }
 
             if (SettingsManager.trySaveJsonAsSettings(data)) {
                 request->send(200, "application/json", "{\"status\": \"ok\"}");
