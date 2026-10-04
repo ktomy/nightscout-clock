@@ -1,4 +1,4 @@
-const ALARM_VOLUMES = [[250, "High"], [125, "Medium"], [60, "Low"]]
+const ALARM_VOLUMES = [[255, "High"], [128, "Medium"], [64, "Low"]]
 
 // Define setting options, value conversions, and validation independently of DOM rendering.
 // Normalize incoming configuration for the form and prepare its outgoing save payload.
