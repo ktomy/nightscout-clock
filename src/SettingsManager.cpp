@@ -256,6 +256,10 @@ bool SettingsManager_::loadSettingsFromFile() {
         displayColorFromString(earlyStaleColor, DISPLAY_COLOR::CYAN);
     settings.face_big_text.early_stale_minutes = bigText["early_stale_minutes"] | 6;
 
+    // Simple (dark) face
+    settings.face_simple_dark.value_color = displayColorFromString(
+        (*doc)["face_simple_dark"]["value_color"].as<String>(), DISPLAY_COLOR::WHITE);
+
     // Web interface authentication
     settings.web_auth_enable = (*doc)["web_auth_enable"].as<bool>();
     settings.web_auth_password = (*doc)["web_auth_password"].as<String>();
@@ -398,6 +402,9 @@ bool SettingsManager_::saveSettingsToFile() {
                                        ? toString(settings.face_big_text.early_stale_color)
                                        : "off";
     bigText["early_stale_minutes"] = settings.face_big_text.early_stale_minutes;
+
+    // Simple (dark) face
+    (*doc)["face_simple_dark"]["value_color"] = toString(settings.face_simple_dark.value_color);
 
     // Web interface authentication
     (*doc)["web_auth_enable"] = settings.web_auth_enable;

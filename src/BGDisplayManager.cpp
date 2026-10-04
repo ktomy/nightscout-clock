@@ -52,6 +52,8 @@ void BGDisplayManager_::setup() {
     facesNames[6] = "Unicorn";
     faces.push_back(new BGDisplayFaceTimeOnly());
     facesNames[7] = "Time only";
+    faces.push_back(new BGDisplayFaceSimpleDark());
+    facesNames[8] = "Simple (dark)";
 
     if (faces.size() != CLOCK_FACE_COUNT) {
         DEBUG_PRINTF(
