@@ -71,6 +71,7 @@ const FACES = [
     { id: 6, name: "Unicorn" },
     { id: 7, name: "Time only" },
     { id: 8, name: "Simple (dark)" },
+    { id: 9, name: "Race car" },
 ]
 
 // The config stores the faces switched off, so a face added later starts active.
@@ -105,6 +106,9 @@ const OLD_DATA_COLORS = [["gray", "Gray"], ["cyan", "Cyan"], ["magenta", "Magent
 // No red, yellow or green: those are glucose colors.
 const EARLY_STALE_COLORS = [["off", "Off"], ["cyan", "Cyan"], ["blue", "Blue"], ["magenta", "Magenta"]]
 const EARLY_STALE_MINUTES = [[6, "6 min"], [10, "10 min"], [15, "15 min"]]
+const MANE_MODES = [["still", "Still"], ["moving", "Moving"]]
+const MANE_FLOWS = [["down", "Top to bottom"], ["back", "Colors scroll back"], ["run", "Light runs along the bands"]]
+const ANIMATION_SPEEDS = [["calm", "Calm"], ["normal", "Normal"], ["lively", "Lively"]]
 // Every color the firmware can draw except black, which is invisible on the black panel. The glucose
 // colors stay on the trend arrow, so the number keeps whichever of these is chosen.
 const DARK_VALUE_COLORS = [["white", "White"], ["cyan", "Cyan"], ["blue", "Blue"], ["magenta", "Magenta"],

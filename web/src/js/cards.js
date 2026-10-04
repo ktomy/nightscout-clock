@@ -325,7 +325,7 @@ function facesCard() {
 }
 
 // Settings that belong to one face, by face id, shown in a drawer while that face is active.
-const FACE_DRAWERS = { 3: bigTextSettings, 8: simpleDarkSettings }
+const FACE_DRAWERS = { 3: bigTextSettings, 6: unicornSettings, 8: simpleDarkSettings, 9: raceCarSettings }
 
 function faceDrawers() {
     return reactive(["inactive_faces"], () => {
@@ -360,6 +360,24 @@ function bigTextSettings() {
         field("face_big_text_early_stale_color", "Color when a reading is late", segmented("face_big_text", EARLY_STALE_COLORS, { prop: "early_stale_color", label: "Color when a reading is late" }),
             "Color late readings until the old-data threshold. Off keeps the usual glucose colors."),
         field("face_big_text_early_stale_minutes", "Late after", segmented("face_big_text", EARLY_STALE_MINUTES, { numeric: true, prop: "early_stale_minutes", label: "Late after" })))
+}
+
+function unicornSettings() {
+    return reactive(["face_unicorn"], () => {
+        const moving = (form.get("face_unicorn") || {}).mane === "moving"
+        return el("div.stack",
+            field("face_unicorn_mane", "Mane", segmented("face_unicorn", MANE_MODES, { prop: "mane", label: "Mane" }),
+                "A moving mane moves its colors while the reading is fresh, and stops in the old data color when data is old."),
+            moving ? field("face_unicorn_speed", "Speed", segmented("face_unicorn", ANIMATION_SPEEDS, { prop: "speed", label: "Speed" })) : null,
+            moving ? field("face_unicorn_flow", "Motion", segmented("face_unicorn", MANE_FLOWS, { prop: "flow", label: "Motion" }),
+                "Top to bottom rolls the colors down the bands. Colors scroll back slides them from the head toward the tips. Light runs along the bands keeps each band's color and runs a light toward the tips.") : null)
+    })
+}
+
+function raceCarSettings() {
+    return el("div.stack",
+        field("face_race_car_speed", "Speed", segmented("face_race_car", ANIMATION_SPEEDS, { prop: "speed", label: "Speed" }),
+            "The speed lines show the glucose color while the reading is fresh, and the race stops in the old data color when data is old."))
 }
 
 function simpleDarkSettings() {

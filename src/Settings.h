@@ -16,6 +16,18 @@ struct BigTextFaceSettings {
     int early_stale_minutes = 6;
 };
 
+// Unicorn face: a moving mane moves its colors at `speed` in the `flow` style while the reading is fresh.
+struct UnicornFaceSettings {
+    bool mane_moving = false;
+    ANIMATION_SPEED speed = ANIMATION_SPEED::NORMAL;
+    MANE_FLOW flow = MANE_FLOW::DOWN;
+};
+
+// Race car face: the race moves at `speed` while the reading is fresh.
+struct RaceCarFaceSettings {
+    ANIMATION_SPEED speed = ANIMATION_SPEED::NORMAL;
+};
+
 // Simple (dark) face: the color of the number while the reading is fresh.
 struct SimpleDarkFaceSettings {
     DISPLAY_COLOR value_color = DISPLAY_COLOR::WHITE;
@@ -83,6 +95,8 @@ public:
     int bg_data_too_old_threshold_minutes = 20;
     DISPLAY_COLOR data_old_color = DISPLAY_COLOR::GRAY;
     BigTextFaceSettings face_big_text;
+    UnicornFaceSettings face_unicorn;
+    RaceCarFaceSettings face_race_car;
     SimpleDarkFaceSettings face_simple_dark;
     bool alarm_intensive_mode;
     int alarm_repeat_interval_seconds = 300;

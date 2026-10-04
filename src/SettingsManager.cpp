@@ -279,6 +279,16 @@ bool SettingsManager_::loadSettingsFromFile() {
         displayColorFromString(earlyStaleColor, DISPLAY_COLOR::CYAN);
     settings.face_big_text.early_stale_minutes = bigText["early_stale_minutes"] | 6;
 
+    // Unicorn face
+    JsonObject unicorn = (*doc)["face_unicorn"].as<JsonObject>();
+    settings.face_unicorn.mane_moving = unicorn["mane"].as<String>() == "moving";
+    settings.face_unicorn.speed = animationSpeedFromString(unicorn["speed"].as<String>());
+    settings.face_unicorn.flow = maneFlowFromString(unicorn["flow"].as<String>());
+
+    // Race car face
+    JsonObject raceCar = (*doc)["face_race_car"].as<JsonObject>();
+    settings.face_race_car.speed = animationSpeedFromString(raceCar["speed"].as<String>());
+
     // Simple (dark) face
     settings.face_simple_dark.value_color = displayColorFromString(
         (*doc)["face_simple_dark"]["value_color"].as<String>(), DISPLAY_COLOR::WHITE);
@@ -426,6 +436,16 @@ bool SettingsManager_::saveSettingsToFile() {
                                        ? toString(settings.face_big_text.early_stale_color)
                                        : "off";
     bigText["early_stale_minutes"] = settings.face_big_text.early_stale_minutes;
+
+    // Unicorn face
+    JsonObject unicorn = (*doc)["face_unicorn"].to<JsonObject>();
+    unicorn["mane"] = settings.face_unicorn.mane_moving ? "moving" : "still";
+    unicorn["speed"] = toString(settings.face_unicorn.speed);
+    unicorn["flow"] = toString(settings.face_unicorn.flow);
+
+    // Race car face
+    JsonObject raceCar = (*doc)["face_race_car"].to<JsonObject>();
+    raceCar["speed"] = toString(settings.face_race_car.speed);
 
     // Simple (dark) face
     (*doc)["face_simple_dark"]["value_color"] = toString(settings.face_simple_dark.value_color);
