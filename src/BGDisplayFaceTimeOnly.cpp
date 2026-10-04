@@ -1,0 +1,43 @@
+#include "BGDisplayFaceTimeOnly.h"
+
+#include "ServerManager.h"
+#include "globals.h"
+
+void BGDisplayFaceTimeOnly::showReadings(
+    const std::list<GlucoseReading>& readings, bool dataIsOld) const {
+    showTime();
+}
+
+void BGDisplayFaceTimeOnly::showNoData() const {
+    DisplayManager.clearMatrix();
+    showTime();
+}
+
+// Seconds change on every tick, so every render redraws the whole face.
+RenderDecision BGDisplayFaceTimeOnly::getRenderDecision(const RenderContext& ctx) const {
+    return RenderDecision::FULL;
+}
+
+bool BGDisplayFaceTimeOnly::ticksEverySecond() const { return true; }
+
+bool BGDisplayFaceTimeOnly::suppressesNewAlarms() const { return true; }
+
+// 24-hour format shows HH:MM:SS; 12-hour format has no room for seconds beside AM/PM.
+void BGDisplayFaceTimeOnly::showTime() const {
+    tm timeinfo = ServerManager.getTimezonedTime();
+
+    char text[16];
+    if (SettingsManager.settings.time_format == TIME_FORMAT::HOURS_12) {
+        int hour = timeinfo.tm_hour % 12 == 0 ? 12 : timeinfo.tm_hour % 12;
+        snprintf(
+            text, sizeof(text), "%d:%02d %s", hour, timeinfo.tm_min,
+            timeinfo.tm_hour < 12 ? "AM" : "PM");
+    } else {
+        snprintf(
+            text, sizeof(text), "%02d:%02d:%02d", timeinfo.tm_hour, timeinfo.tm_min, timeinfo.tm_sec);
+    }
+
+    DisplayManager.setTextColor(COLOR_WHITE);
+    DisplayManager.setFont(FONT_TYPE::MEDIUM);
+    DisplayManager.printText(0, 6, text, TEXT_ALIGNMENT::CENTER, 2);
+}
