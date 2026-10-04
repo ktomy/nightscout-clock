@@ -14,6 +14,7 @@ public:
     String ssid;
     String wifi_password;
     String hostname;
+    String custom_mac;
     String nightscout_url;
     String nightscout_api_key;
     bool nightscout_simplified_api;

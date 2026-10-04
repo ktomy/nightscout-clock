@@ -7,7 +7,6 @@
 #include <WiFi.h>
 #include <esp_system.h>
 #include <esp_wifi.h>
-#include <Preferences.h>
 
 #include "BGSourceManager.h"
 #include "DisplayManager.h"
@@ -15,26 +14,6 @@
 #include "SettingsManager.h"
 #include "globals.h"
 #include "time.h"
-
-// Helper to parse colon or dash separated MAC strings (e.g. AA:BB:CC:DD:EE:FF)
-static bool parseCustomMac(const String& macStr, uint8_t* macBytes) {
-    int values[6];
-    int parsed = sscanf(macStr.c_str(), "%x:%x:%x:%x:%x:%x",
-                        &values[0], &values[1], &values[2],
-                        &values[3], &values[4], &values[5]);
-    if (parsed != 6) {
-        parsed = sscanf(macStr.c_str(), "%x-%x-%x-%x-%x-%x",
-                        &values[0], &values[1], &values[2],
-                        &values[3], &values[4], &values[5]);
-    }
-    if (parsed == 6) {
-        for (int i = 0; i < 6; i++) {
-            macBytes[i] = (uint8_t)values[i];
-        }
-        return true;
-    }
-    return false;
-}
 
 // The getter for the instantiated singleton instance
 ServerManager_& ServerManager_::getInstance() {
@@ -185,24 +164,21 @@ bool tryConnectToWiFi(String wifi_type, String ssid, String username, String pas
 
     WiFi.mode(WIFI_STA);
 
-    // --- Read and apply custom MAC from storage ---
-    Preferences macPrefs;
-    macPrefs.begin("custom_net", true); // read-only
-    String storedMac = macPrefs.getString("mac", "");
-    macPrefs.end();
-
-    if (storedMac.length() > 0) {
+    // Apply a custom MAC address if one is configured (stored in config.json
+    // like any other setting).
+    String customMac = SettingsManager.settings.custom_mac;
+    customMac.trim();
+    if (customMac.length() > 0) {
         uint8_t macBuf[6];
-        if (parseCustomMac(storedMac, macBuf)) {
+        if (SettingsManager.parseCustomMac(customMac, macBuf)) {
             esp_err_t err = esp_wifi_set_mac(WIFI_IF_STA, macBuf);
             if (err == ESP_OK) {
-                DEBUG_PRINTF("Successfully spoofed MAC: %s\n", storedMac.c_str());
+                DEBUG_PRINTF("Successfully spoofed MAC: %s\n", customMac.c_str());
             } else {
                 DEBUG_PRINTF("Failed to set MAC: %d\n", err);
             }
         }
     }
-    // ----------------------------------------------
 
     DEBUG_PRINTF("Connecting to %s (%s)\n", ssid.c_str(), wifi_type.c_str());
 
@@ -465,26 +441,18 @@ void ServerManager_::setupWebServer(IPAddress ip) {
                 }
             }
 
-            // Custom MAC lives in NVS (not config.json) so it survives filesystem wipes.
-            // Pull it out of the save payload, validate, and store it separately.
+            // Validate the custom MAC address; it is stored in config.json
+            // like any other setting.
             if (!data["custom_mac"].isNull()) {
                 String macStr = data["custom_mac"].as<String>();
                 macStr.trim();
-                Preferences macPrefs;
-                macPrefs.begin("custom_net", false);
-                if (macStr.length() == 0) {
-                    macPrefs.remove("mac"); // empty clears the override
-                } else {
+                if (macStr.length() > 0) {
                     uint8_t macBytes[6];
-                    if (!parseCustomMac(macStr, macBytes)) {
-                        macPrefs.end();
+                    if (!SettingsManager.parseCustomMac(macStr, macBytes)) {
                         sendSaveValidationError("custom_mac must be a valid MAC address (e.g. A4:83:E7:2B:10:9C)");
                         return;
                     }
-                    macPrefs.putString("mac", macStr);
                 }
-                macPrefs.end();
-                data.remove("custom_mac");
             }
 
             if (SettingsManager.trySaveJsonAsSettings(data)) {
@@ -596,32 +564,7 @@ void ServerManager_::setupWebServer(IPAddress ip) {
         if (!enforceAuthentication(request)) {
             return;
         }
-        // Inject the custom MAC (stored in NVS, not config.json) so the settings
-        // page can show it as a regular field.
-        Preferences macPrefs;
-        macPrefs.begin("custom_net", true);
-        String customMac = macPrefs.getString("mac", "");
-        macPrefs.end();
-        if (customMac.length() == 0) {
-            request->send(LittleFS, CONFIG_JSON, "application/json");
-            return;
-        }
-        File f = LittleFS.open(CONFIG_JSON, "r");
-        if (!f) {
-            request->send(404, "text/plain", "config not found");
-            return;
-        }
-        JsonDocument doc;
-        DeserializationError err = deserializeJson(doc, f);
-        f.close();
-        if (err) {
-            request->send(LittleFS, CONFIG_JSON, "application/json");
-            return;
-        }
-        doc["custom_mac"] = customMac;
-        String out;
-        serializeJson(doc, out);
-        request->send(200, "application/json", out);
+        request->send(LittleFS, CONFIG_JSON, "application/json");
     });
 
     addStaticFileHandler();

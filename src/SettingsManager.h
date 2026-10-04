@@ -21,6 +21,9 @@ public:
     void factoryReset();
     // The repeat intervals the WebUI offers; shared with the save endpoint.
     static bool isValidAlarmRepeatInterval(int intervalSeconds);
+    // Parses a colon- or dash-separated MAC string (e.g. AA:BB:CC:DD:EE:FF)
+    // into 6 bytes. Shared with the save endpoint for validation.
+    static bool parseCustomMac(const String& macStr, uint8_t* macBytes);
 
     Settings settings;
 };
