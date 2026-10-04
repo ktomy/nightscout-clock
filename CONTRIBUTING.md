@@ -2,6 +2,12 @@
 
 Contributions are welcomed. I will look into all the pull requests and will most probably merge yours if it brings additional value to the project. Before creating a pull request, please create a discussion topic or an issue so that we can talk about what you intend to improve and come up with the best way to do it.
 
+### Pull request branch permissions
+
+Every pull request must allow the project maintainer to rebase its branch onto the latest base branch and push commits directly to it, including fixes and rebased history. Base-branch updates use rebase rather than merge commits.
+
+For pull requests from a personal fork, enable **Allow edits from maintainers** when opening the PR, or enable it on the existing PR page. If the fork contains GitHub Actions workflows, GitHub labels this option **Allow edits and access to secrets by maintainers**. See [GitHub's instructions for allowing maintainer edits](https://docs.github.com/en/pull-requests/how-tos/work-with-forks/allowing-changes-to-a-pull-request-branch-created-from-a-fork). If the option is unavailable, arrange equivalent branch access with the maintainer before requesting review.
+
 ### Setting up development environment
 
 My computer is running linux, but you can use Windows or MacOS as well, there are no showstoppers. The only part which is unix-oriented are some additional scripts which help me automate building, testing and monitoring. But in most cases they are not needed.
