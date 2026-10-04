@@ -75,6 +75,7 @@ Nightscout Clock is a custom firmware for Ulanzi TC001. It can also run (with mi
 | Race car        |  | A white race car speeds toward the value while speed lines stream past, the road slides back and the wheels spin. The speed lines show the glucose color: green in range; yellow with a darker stripe running through when low or high, with the urgent color mixed in near the urgent limit; and red with dark stripes past an urgent limit. For stale readings the whole race stops and is drawn faded, every other pixel, in the configured old-data color. Set the speed (calm, normal or lively) in the Race car drawer of the Clock faces card. Age bars appear below the value. |
 | Time only       | | Only the time: hours, minutes and seconds in 24-hour format, or hours, minutes and AM/PM in 12-hour format. Glucose is always hidden, including urgent readings and old or missing data. New glucose alarms are suppressed while this face is selected. Alarms already triggered, including snoozed alarms, continue normally. |
 | Simple (dark)   |  | Simple for a dark room: the number in one chosen color (any of the clock's colors except black, set in the Simple (dark) drawer of the Clock faces card), the trend arrow in the glucose range color, and no age bars. Urgent readings draw the number in the urgent color. Old data uses the old-data color. |
+| Dragon          |                                                                                                      | A little dragon breathes fire at the value, with age bars below it. The flame is magenta, orchid, purple and violet in range, the Unicorn's colors, and takes the low or high color outside the limits, with a darker stripe, the urgent color mixed in near the urgent limit, and dark stripes past an urgent limit, as on the moving Unicorn mane. When data is old the fire goes out and the dragon is drawn faded in the old-data color. Set the flame's speed (calm, normal or lively) in the Dragon drawer of the Clock faces card. |
 
 #### Active clock faces
 
@@ -142,6 +143,7 @@ High, low, and urgent-low alarms each have their own threshold, snooze duration,
   - Race car and glucose value, with speed lines in the glucose color
   - Time only, always hiding glucose and suppressing new alarms while selected; already-triggered alarms continue normally
   - Simple (dark): the number in a color of your choice with the glucose color on the trend arrow, for night
+  - Dragon and glucose value, breathing fire in colors based on glucose limits
 - Configurable color for old readings and no-data screens: gray (default), cyan, magenta, or blue. Choose it on the Display tab of the Web UI; the alternatives help keep stale readings visible at low brightness
 - Smart data and screen update timings: read data once it appears, refresh screen when needed
 - API data source. The clock has a simple Nightscout-like API which can receive glucose values from an external source. The main purpose of this feature is the ability to test the clock during the clockfaces development. In order to activate this feature, select the API data source within the clock's Web UI. Here are the endpoints:

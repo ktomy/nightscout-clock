@@ -33,6 +33,11 @@ struct SimpleDarkFaceSettings {
     DISPLAY_COLOR value_color = DISPLAY_COLOR::WHITE;
 };
 
+// Dragon face: the flame moves at `speed` while the reading is fresh.
+struct DragonFaceSettings {
+    ANIMATION_SPEED speed = ANIMATION_SPEED::NORMAL;
+};
+
 class Settings {
 public:
     String ssid;
@@ -98,6 +103,7 @@ public:
     UnicornFaceSettings face_unicorn;
     RaceCarFaceSettings face_race_car;
     SimpleDarkFaceSettings face_simple_dark;
+    DragonFaceSettings face_dragon;
     bool alarm_intensive_mode;
     int alarm_repeat_interval_seconds = 300;
     bool web_auth_enable;

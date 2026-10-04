@@ -56,6 +56,8 @@ void BGDisplayManager_::setup() {
     facesNames[8] = "Simple (dark)";
     faces.push_back(new BGDisplayFaceRaceCar());
     facesNames[9] = "Race car";
+    faces.push_back(new BGDisplayFaceDragon());
+    facesNames[10] = "Dragon";
 
     if (faces.size() != CLOCK_FACE_COUNT) {
         DEBUG_PRINTF(

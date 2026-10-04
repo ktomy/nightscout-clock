@@ -293,6 +293,10 @@ bool SettingsManager_::loadSettingsFromFile() {
     settings.face_simple_dark.value_color = displayColorFromString(
         (*doc)["face_simple_dark"]["value_color"].as<String>(), DISPLAY_COLOR::WHITE);
 
+    // Dragon face
+    JsonObject dragon = (*doc)["face_dragon"].as<JsonObject>();
+    settings.face_dragon.speed = animationSpeedFromString(dragon["speed"].as<String>());
+
     // Web interface authentication
     settings.web_auth_enable = (*doc)["web_auth_enable"].as<bool>();
     settings.web_auth_password = (*doc)["web_auth_password"].as<String>();
@@ -449,6 +453,10 @@ bool SettingsManager_::saveSettingsToFile() {
 
     // Simple (dark) face
     (*doc)["face_simple_dark"]["value_color"] = toString(settings.face_simple_dark.value_color);
+
+    // Dragon face
+    JsonObject dragon = (*doc)["face_dragon"].to<JsonObject>();
+    dragon["speed"] = toString(settings.face_dragon.speed);
 
     // Web interface authentication
     (*doc)["web_auth_enable"] = settings.web_auth_enable;
