@@ -26,16 +26,21 @@ uint16_t BGDisplayFace::getDataOldColor() const {
     return static_cast<uint16_t>(SettingsManager.settings.data_old_color);
 }
 
-uint16_t BGDisplayFace::getLevelColor(BG_LEVEL level) {
+uint16_t BGDisplayFace::getBandColor(BG_LEVEL level) const {
+    const auto& settings = SettingsManager.settings;
     switch (level) {
         case BG_LEVEL::URGENT_LOW:
-        case BG_LEVEL::URGENT_HIGH:
-            return BG_COLOR_URGENT;
+            return static_cast<uint16_t>(settings.bg_color_urgent_low);
         case BG_LEVEL::WARNING_LOW:
+            return static_cast<uint16_t>(settings.bg_color_low);
+        case BG_LEVEL::NORMAL:
+            return static_cast<uint16_t>(settings.bg_color_normal);
         case BG_LEVEL::WARNING_HIGH:
-            return BG_COLOR_WARNING;
+            return static_cast<uint16_t>(settings.bg_color_high);
+        case BG_LEVEL::URGENT_HIGH:
+            return static_cast<uint16_t>(settings.bg_color_urgent_high);
         default:
-            return BG_COLOR_NORMAL;
+            return static_cast<uint16_t>(DISPLAY_COLOR::GRAY);
     }
 }
 
@@ -70,7 +75,7 @@ uint16_t BGDisplayFace::getMotionColor(
         }
     }
 
-    const uint16_t color = getLevelColor(shown);
+    const uint16_t color = getBandColor(shown);
     if (!light) {
         return color;
     }

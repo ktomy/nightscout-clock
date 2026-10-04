@@ -23,23 +23,7 @@ void BGDisplayFaceTextBase::printReading(
 
 uint16_t BGDisplayFaceTextBase::getColorByBGValue(const GlucoseReading& reading) const {
     auto bgLevel = bgDisplayManager.getGlucoseIntervals().getBGLevel(reading.sgv);
-    auto textColor = COLOR_GRAY;
-
-    switch (bgLevel) {
-        case BG_LEVEL::URGENT_LOW:
-        case BG_LEVEL::URGENT_HIGH:
-            textColor = BG_COLOR_URGENT;
-            break;
-        case BG_LEVEL::WARNING_LOW:
-        case BG_LEVEL::WARNING_HIGH:
-            textColor = BG_COLOR_WARNING;
-            break;
-        case BG_LEVEL::NORMAL:
-            textColor = BG_COLOR_NORMAL;
-            break;
-    }
-
-    return textColor;
+    return getBandColor(bgLevel);
 }
 
 String BGDisplayFaceTextBase::getPrintableReading(const int sgv) const {
