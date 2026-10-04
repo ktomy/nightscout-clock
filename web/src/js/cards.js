@@ -155,6 +155,31 @@ function segmented(key, options, { numeric = false, label, prop } = {}) {
 }
 
 /**
+ * Build a color picker as labelled swatches, for palettes too long to read as a row of text buttons.
+ * @param {string} key - Draft setting to bind.
+ * @param {SelectOption[]} options - Color names and labels.
+ * @param {{prop?: string, label?: string, fallback?: string}} [settings={}] - Nested property, accessible group label, and the color shown while the setting is unset.
+ * @returns {HTMLElement}
+ */
+function swatches(key, options, { prop, label, fallback } = {}) {
+    const name = prop ? `${key}_${prop}` : key
+    const get = () => (prop ? (form.get(key) || {})[prop] : form.get(key)) || fallback
+    const put = v => form.set(key, prop ? { ...form.get(key), [prop]: v } : v)
+    const box = el("div.swatches", { role: "group", "aria-label": label, id: idFor(name) })
+    /**
+     * Mark the swatch matching the draft as selected.
+     * @returns {void}
+     */
+    const paint = () => $$("button", box).forEach(b => b.setAttribute("aria-pressed", String(b.dataset.value === get())))
+    for (const [value, text] of options) {
+        box.append(el("button.swatch", { type: "button", dataset: { value }, onclick: () => { put(value); form.touch(name); paint() } },
+            el("i", { style: `background:${COLOR_HEX[value]}` }), text))
+    }
+    paint()
+    return box
+}
+
+/**
  * Subscribe a DOM block to form changes and unsubscribe on the next change after it leaves the page.
  * @param {Node} node - Element whose attachment controls the subscription lifetime.
  * @param {(key: string) => void} fn - Callback for a changed setting or context key.
@@ -295,12 +320,12 @@ function facesCard() {
         $("input", row).disabled = !!form.get("face_schedule_enabled")
         return row
     })
-    return card("Clock faces", null, el("div.stack", faces, defaultFace, el("hr.divider"), cyclingToggle,
-        interval, faceDrawers()), { id: "card_faces" })
+    return card("Clock faces", null, el("div.stack", faces, defaultFace, faceDrawers(), el("hr.divider"),
+        cyclingToggle, interval), { id: "card_faces" })
 }
 
 // Settings that belong to one face, by face id, shown in a drawer while that face is active.
-const FACE_DRAWERS = { 3: bigTextSettings, 6: unicornSettings, 7: dragonSettings }
+const FACE_DRAWERS = { 3: bigTextSettings, 6: unicornSettings, 8: simpleDarkSettings, 9: raceCarSettings, 10: dragonSettings }
 
 function faceDrawers() {
     return reactive(["inactive_faces"], () => {
@@ -353,6 +378,23 @@ function dragonSettings() {
     return el("div.stack",
         field("face_dragon_speed", "Speed", segmented("face_dragon", ANIMATION_SPEEDS, { prop: "speed", label: "Speed" }),
             "The flame moves while the reading is fresh, and goes out when data is old."))
+}
+
+function raceCarSettings() {
+    return el("div.stack",
+        field("face_race_car_speed", "Speed", segmented("face_race_car", ANIMATION_SPEEDS, { prop: "speed", label: "Speed" }),
+            "The speed lines show the glucose color while the reading is fresh, and the race stops in the old data color when data is old."))
+}
+
+function simpleDarkSettings() {
+    const warning = el("p.help", { role: "status" },
+        "Gray is not visible at the lowest brightness. Choose another number color if you run the clock dim.")
+    const updateWarning = () => { warning.hidden = form.get("face_simple_dark")?.value_color !== "gray" }
+    updateWarning()
+    onChangeWhileAttached(warning, key => { if (key === "face_simple_dark") updateWarning() })
+    return field("face_simple_dark_value_color", "Number color", el("div.stack",
+        swatches("face_simple_dark", DARK_VALUE_COLORS, { prop: "value_color", label: "Number color", fallback: "white" }), warning),
+        "The trend arrow keeps the glucose colors and old data still uses the old data color, so red, yellow and green here do not track the reading.")
 }
 
 /**
@@ -478,19 +520,8 @@ function brightnessCard() {
  * @returns {HTMLElement}
  */
 function oldDataCard() {
-    const box = el("div.swatches", { role: "group", "aria-label": "Color when data is old", id: idFor("data_old_color") })
-    /**
-     * Mark the color swatch matching the draft as selected, defaulting to gray when unset.
-     * @returns {void}
-     */
-    const paint = () => $$("button", box).forEach(b => b.setAttribute("aria-pressed", String(b.dataset.value === (form.get("data_old_color") || "gray"))))
-    for (const [value, text] of OLD_DATA_COLORS) {
-        box.append(el("button.swatch", { type: "button", dataset: { value }, onclick: () => { form.set("data_old_color", value); paint() } },
-            el("i", { style: `background:${COLOR_HEX[value]}` }), text))
-    }
-    paint()
     return card("When data is old", null, el("div.stack",
-        field("data_old_color", "Color", box,
+        field("data_old_color", "Color", swatches("data_old_color", OLD_DATA_COLORS, { label: "Color when data is old", fallback: "gray" }),
             "Also used for the \"no data\" screen. Gray is not visible at the lowest brightness, so if you run the clock dim, choose one of the others to keep stale readings readable."),
         el("hr.divider"),
         toggleRow("custom_nodatatimer_enable", "Custom no data timer", "Minutes without a reading before the clock shows data as old. Otherwise 20 minutes."),
@@ -879,7 +910,7 @@ function alertWindows(a) {
  * @returns {HTMLElement}
  */
 function systemTab() {
-    return el("div.stack", wifiCard(), extraWifiCard(), hostnameCard(), loginCard(), versionCard())
+    return el("div.stack", wifiCard(), extraWifiCard(), hostnameCard(), loginCard(), backupCard(), versionCard())
 }
 
 /**
@@ -908,7 +939,11 @@ function wifiCard() {
             field("ssid", "WiFi network name (SSID)", textInput("ssid", { maxlength: 32 })),
             field("password", "WiFi password", pw)),
         el("label.check", open, "Open WiFi network (no password)"),
-        warn), { id: "card_wifi" })
+        warn,
+        field("custom_mac", "Custom MAC address",
+            textInput("custom_mac", { placeholder: "A4:83:E7:2B:10:9C", maxlength: 17, trim: true }),
+            "If this network uses a captive portal that only lets known devices through, enter another device's MAC address here. Leave blank to use the clock's factory hardware MAC.")),
+        { id: "card_wifi" })
 }
 
 /**
@@ -957,6 +992,55 @@ function loginCard() {
             : el("span", { hidden: true }))), { id: "card_login" })
 }
 
+function backupCard() {
+    const input = el("input", { type: "file", accept: ".json,application/json", hidden: true })
+    input.addEventListener("change", () => loadSettingsFile(input))
+    const network = el("input", { type: "checkbox", id: "f_file_network" })
+    // A clock without WiFi settings is most likely being restored.
+    network.checked = ui.fileNetwork != null ? ui.fileNetwork : !String(form.saved.ssid || "").trim()
+    network.addEventListener("change", () => { ui.fileNetwork = network.checked })
+    return card("Backup and restore", "Download the clock's settings, or load a file into this page to review and save. The file contains your WiFi and data source passwords, so keep it private.", el("div.stack",
+        el("div.row",
+            el("button.btn", { type: "button", onclick: downloadSettings }, icon("download"), "Download settings"),
+            el("button.btn", { type: "button", onclick: () => input.click() }, icon("upload"), "Load a settings file"), input),
+        el("label.check", network, "Also load the WiFi settings"),
+        ui.fileReport), { id: "card_backup" })
+}
+
+async function downloadSettings() {
+    const r = await api.loadConfig().catch(e => ({ ok: false, error: e }))
+    if (r.status === 401) return
+    if (!r.ok) return toast(r.error ? r.error.message : `The clock answered ${r.status}.`, "bad")
+    const url = URL.createObjectURL(new Blob([JSON.stringify(r.data, null, 2)], { type: "application/json" }))
+    const link = el("a", { href: url, download: "nightscout-clock-settings.json", hidden: true })
+    document.body.append(link)
+    link.click()
+    link.remove()
+    setTimeout(() => URL.revokeObjectURL(url), 10000)
+}
+
+// Fills the form from a file; nothing reaches the clock until Save.
+async function loadSettingsFile(input) {
+    const file = input.files[0]
+    input.value = ""
+    if (!file) return
+    let data = null
+    try { if (file.size < 64000) data = JSON.parse(await file.text()) } catch (e) { /* reported below */ }
+    if (!data || typeof data !== "object" || Array.isArray(data)) {
+        ui.fileReport = el("div.notice.bad", `${file.name} is not a clock settings file. Nothing was changed.`)
+        return rerenderTab("system")
+    }
+    const network = $("#f_file_network").checked
+    const { config, kept } = mergeSettingsFile(data, form.saved, { network, tzNames: ui.timezoneNames })
+    const zone = (ui.timezones || []).find(z => z.name === config.tz)
+    if (zone) config.tz_libc = zone.value
+    form.edit(config)
+    ui.fileReport = el(`div.notice.${kept.length ? "warn" : "ok"}`, `Loaded ${file.name}. `,
+        kept.length ? `These settings kept the clock's value: ${kept.join(", ")}. ` : "",
+        "Review the settings, then save.")
+    renderAll()
+}
+
 /**
  * Build current/latest firmware labels and update information from the shared version state.
  * @returns {HTMLElement}
@@ -983,7 +1067,7 @@ function versionStatusNodes() {
 
 // ---------- tabs ----------
 const TABS = { display: displayTab, glucose: glucoseTab, alarms: alarmsTab, system: systemTab }
-const ui = { tab: "display", timezones: null, timezoneNames: null, status: null, patients: null, patientsLoading: false, versions: {}, openDrawers: new Set() }
+const ui = { tab: "display", timezones: null, timezoneNames: null, status: null, patients: null, patientsLoading: false, versions: {}, fileNetwork: null, fileReport: null, openDrawers: new Set() }
 
 /**
  * Replace one tab's contents using its builder and reapply visible validation errors.

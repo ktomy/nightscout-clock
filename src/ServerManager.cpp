@@ -6,6 +6,7 @@
 #include <LittleFS.h>
 #include <WiFi.h>
 #include <esp_system.h>
+#include <esp_wifi.h>
 
 #include "BGSourceManager.h"
 #include "DisplayManager.h"
@@ -162,6 +163,21 @@ bool tryConnectToWiFi(String wifi_type, String ssid, String username, String pas
     int timeout = WIFI_CONNECT_TIMEOUT;
 
     WiFi.mode(WIFI_STA);
+
+    // Apply a custom MAC address if one is configured (stored in config.json
+    // like any other setting).
+    String customMac = SettingsManager.settings.custom_mac;
+    if (customMac.length() > 0) {
+        uint8_t macBuf[6];
+        if (SettingsManager.parseCustomMac(customMac, macBuf)) {
+            esp_err_t err = esp_wifi_set_mac(WIFI_IF_STA, macBuf);
+            if (err == ESP_OK) {
+                DEBUG_PRINTF("Successfully spoofed MAC: %s\n", customMac.c_str());
+            } else {
+                DEBUG_PRINTF("Failed to set MAC: %d\n", err);
+            }
+        }
+    }
 
     DEBUG_PRINTF("Connecting to %s (%s)\n", ssid.c_str(), wifi_type.c_str());
 
@@ -356,73 +372,6 @@ void ServerManager_::setupWebServer(IPAddress ip) {
                 response += "\"}";
                 request->send(400, "application/json", response);
             };
-
-            if (!data["face_cycle_enabled"].isNull() && !data["face_cycle_enabled"].is<bool>()) {
-                sendSaveValidationError("face_cycle_enabled must be a boolean");
-                return;
-            }
-
-            bool faceCycleEnabled = data["face_cycle_enabled"] | false;
-            bool hasInactiveFaces = !data["inactive_faces"].isNull();
-            int inactiveFaceCount = 0;
-            if (hasInactiveFaces) {
-                if (!data["inactive_faces"].is<JsonArray>()) {
-                    sendSaveValidationError("inactive_faces must be an array");
-                    return;
-                }
-
-                bool inactiveFaces[CLOCK_FACE_COUNT] = {};
-                for (JsonVariant face : data["inactive_faces"].as<JsonArray>()) {
-                    if (!face.is<int>()) {
-                        sendSaveValidationError("Face selections must use valid clock face IDs");
-                        return;
-                    }
-
-                    int faceId = face.as<int>();
-                    if (faceId < 0 || faceId >= CLOCK_FACE_COUNT) {
-                        sendSaveValidationError("Face selections must use valid clock face IDs");
-                        return;
-                    }
-
-                    if (!inactiveFaces[faceId]) {
-                        inactiveFaces[faceId] = true;
-                        inactiveFaceCount++;
-                    }
-                }
-            }
-
-            if (faceCycleEnabled && CLOCK_FACE_COUNT - inactiveFaceCount < 2) {
-                sendSaveValidationError("Cycling needs at least two active clock faces");
-                return;
-            }
-
-            bool hasFaceCycleInterval = !data["face_cycle_interval_seconds"].isNull();
-            if (faceCycleEnabled || hasFaceCycleInterval) {
-                if (!data["face_cycle_interval_seconds"].is<int>()) {
-                    sendSaveValidationError(
-                        "Face cycle period must be 10, 30, 60, 120, 180, or 300 seconds");
-                    return;
-                }
-
-                int intervalSeconds = data["face_cycle_interval_seconds"].as<int>();
-                if (intervalSeconds != 10 && intervalSeconds != 30 && intervalSeconds != 60 &&
-                    intervalSeconds != 120 && intervalSeconds != 180 && intervalSeconds != 300) {
-                    sendSaveValidationError(
-                        "Face cycle period must be 10, 30, 60, 120, 180, or 300 seconds");
-                    return;
-                }
-            }
-
-            // Refuse a value the loader would silently correct; the accepted set lives in SettingsManager.
-            if (!data["alarm_repeat_interval_seconds"].isNull()) {
-                if (!data["alarm_repeat_interval_seconds"].is<int>() ||
-                    !SettingsManager_::isValidAlarmRepeatInterval(
-                        data["alarm_repeat_interval_seconds"].as<int>())) {
-                    sendSaveValidationError(
-                        "Alarm repeat interval must be 60, 120, or 300 seconds");
-                    return;
-                }
-            }
 
             if (SettingsManager.trySaveJsonAsSettings(data)) {
                 request->send(200, "application/json", "{\"status\": \"ok\"}");

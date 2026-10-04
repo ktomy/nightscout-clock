@@ -23,6 +23,16 @@ struct UnicornFaceSettings {
     MANE_FLOW flow = MANE_FLOW::DOWN;
 };
 
+// Race car face: the race moves at `speed` while the reading is fresh.
+struct RaceCarFaceSettings {
+    ANIMATION_SPEED speed = ANIMATION_SPEED::NORMAL;
+};
+
+// Simple (dark) face: the color of the number while the reading is fresh.
+struct SimpleDarkFaceSettings {
+    DISPLAY_COLOR value_color = DISPLAY_COLOR::WHITE;
+};
+
 // Dragon face: the flame moves at `speed` while the reading is fresh.
 struct DragonFaceSettings {
     ANIMATION_SPEED speed = ANIMATION_SPEED::NORMAL;
@@ -33,6 +43,7 @@ public:
     String ssid;
     String wifi_password;
     String hostname;
+    String custom_mac;
     String nightscout_url;
     String nightscout_api_key;
     bool nightscout_simplified_api;
@@ -90,6 +101,8 @@ public:
     DISPLAY_COLOR data_old_color = DISPLAY_COLOR::GRAY;
     BigTextFaceSettings face_big_text;
     UnicornFaceSettings face_unicorn;
+    RaceCarFaceSettings face_race_car;
+    SimpleDarkFaceSettings face_simple_dark;
     DragonFaceSettings face_dragon;
     bool alarm_intensive_mode;
     int alarm_repeat_interval_seconds = 300;
