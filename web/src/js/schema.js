@@ -469,21 +469,23 @@ function mergeSettingsFile(file, clock, { network, tzNames }) {
         // A number in the file for a text setting (an older page wrote time_format as 24) is read as that text.
         const value = typeof clock[key] === "string" && typeof file[key] === "number" ? String(file[key]) : file[key]
         if (sameJson(value, clock[key])) continue
-        if (fitsSetting(key, value, clock[key])) {
+        // Check the stored timer even when disabled, without enabling it for cross-setting checks.
+        const validTimer = key !== "custom_nodatatimer" || RX.noDataMinutes.test(String(value))
+        if (fitsSetting(key, value, clock[key]) && validTimer) {
             config[key] = isBlock(clock[key]) ? { ...clone(clock[key]), ...clone(file[key]) } : clone(value)
             taken.push(key)
         } else {
             kept.push(key)
         }
     }
-    // Alarms and the no-data timer are checked as if switched on, so a file can't carry a bad value in one that is off.
-    const allOn = { custom_nodatatimer_enable: true, ...Object.fromEntries(ALARMS.map(a => [`alarm_${a.t}_enabled`, true])) }
+    // Check alarm values even when their alarms are switched off.
+    const alarmsOn = Object.fromEntries(ALARMS.map(a => [`alarm_${a.t}_enabled`, true]))
     const errorKeys = key => (key === "nightscout_url" ? ["ns_host", "ns_port"] : key === "tz_libc" ? ["tz"] : [key])
     // A block's checks report as "<key>_<setting>".
     const hasError = (errors, key) => errorKeys(key).some(k => errors[k] || (isBlock(clock[key]) && Object.keys(errors).some(e => e.startsWith(`${k}_`))))
     for (;;) {
         const c = normalizeLoaded(config)
-        const errors = validateConfig({ ...c, ...allOn }, { openNetwork: isOpenNetwork(c), tzNames })
+        const errors = validateConfig({ ...c, ...alarmsOn }, { openNetwork: isOpenNetwork(c), tzNames })
         const rejected = taken.filter(key => !kept.includes(key) && hasError(errors, key))
         if (!rejected.length) return { config: c, kept }
         rejected.forEach(key => { config[key] = clone(clock[key]); kept.push(key) })
