@@ -6,6 +6,7 @@
 #include <LittleFS.h>
 #include <WiFi.h>
 #include <esp_system.h>
+#include <esp_wifi.h>
 
 #include "BGSourceManager.h"
 #include "DisplayManager.h"
@@ -162,6 +163,22 @@ bool tryConnectToWiFi(String wifi_type, String ssid, String username, String pas
     int timeout = WIFI_CONNECT_TIMEOUT;
 
     WiFi.mode(WIFI_STA);
+
+    // Apply a custom MAC address if one is configured (stored in config.json
+    // like any other setting).
+    String customMac = SettingsManager.settings.custom_mac;
+    customMac.trim();
+    if (customMac.length() > 0) {
+        uint8_t macBuf[6];
+        if (SettingsManager.parseCustomMac(customMac, macBuf)) {
+            esp_err_t err = esp_wifi_set_mac(WIFI_IF_STA, macBuf);
+            if (err == ESP_OK) {
+                DEBUG_PRINTF("Successfully spoofed MAC: %s\n", customMac.c_str());
+            } else {
+                DEBUG_PRINTF("Failed to set MAC: %d\n", err);
+            }
+        }
+    }
 
     DEBUG_PRINTF("Connecting to %s (%s)\n", ssid.c_str(), wifi_type.c_str());
 
@@ -421,6 +438,20 @@ void ServerManager_::setupWebServer(IPAddress ip) {
                     sendSaveValidationError(
                         "Alarm repeat interval must be 60, 120, or 300 seconds");
                     return;
+                }
+            }
+
+            // Validate the custom MAC address; it is stored in config.json
+            // like any other setting.
+            if (!data["custom_mac"].isNull()) {
+                String macStr = data["custom_mac"].as<String>();
+                macStr.trim();
+                if (macStr.length() > 0) {
+                    uint8_t macBytes[6];
+                    if (!SettingsManager.parseCustomMac(macStr, macBytes)) {
+                        sendSaveValidationError("custom_mac must be a valid MAC address (e.g. A4:83:E7:2B:10:9C)");
+                        return;
+                    }
                 }
             }
 
