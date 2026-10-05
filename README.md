@@ -13,7 +13,7 @@
 >
 > You can reach me at **artiom@gmail.com**.
 
-### Current version: 0.31.0
+### Current version: 1.0.0
 
 ![Build and Release](https://github.com/ktomy/nightscout-clock/actions/workflows/build_release.yml/badge.svg)
 
