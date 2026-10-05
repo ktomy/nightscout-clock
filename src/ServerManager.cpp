@@ -8,6 +8,7 @@
 #include <esp_system.h>
 #include <esp_wifi.h>
 
+#include "BGDisplayManager.h"
 #include "BGSourceManager.h"
 #include "DisplayManager.h"
 #include "PeripheryManager.h"
@@ -474,9 +475,36 @@ void ServerManager_::setupWebServer(IPAddress ip) {
         } else {
             jsonResponse += "0";
         }
+        jsonResponse += ", \"faceId\": ";
+        jsonResponse += String(bgDisplayManager.getCurrentFaceId());
         jsonResponse += "}";
         request->send(200, "application/json", jsonResponse);
     });
+
+    // Switch the currently displayed face immediately, like the side buttons.
+    // Temporary: it does not change the default face, schedule, or cycling.
+    ws->addHandler(new AsyncCallbackJsonWebHandler(
+        "/api/face", [this](AsyncWebServerRequest* request, JsonVariant& json) {
+            if (!enforceAuthentication(request)) {
+                return;
+            }
+            if (!json.is<JsonObject>() || !json.as<JsonObject>()["face"].is<int>()) {
+                request->send(400, "application/json",
+                              "{\"status\": \"error\", \"error\": \"face must be an integer face id\"}");
+                return;
+            }
+            int id = json.as<JsonObject>()["face"].as<int>();
+            if (bgDisplayManager.getFaces().count(id) == 0) {
+                request->send(400, "application/json",
+                              "{\"status\": \"error\", \"error\": \"unknown face id\"}");
+                return;
+            }
+            bgDisplayManager.setFace(id);
+            String body = "{\"status\": \"ok\", \"face\": ";
+            body += id;
+            body += "}";
+            request->send(200, "application/json", body);
+        }));
 
     ws->on("/config.json", HTTP_GET, [this](AsyncWebServerRequest* request) {
         if (!enforceAuthentication(request)) {
