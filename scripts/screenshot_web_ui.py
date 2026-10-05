@@ -34,6 +34,10 @@ def main():
     parser.add_argument("--width", type=positive_int, default=1440, help="viewport width (default: 1440)")
     parser.add_argument("--height", type=positive_int, default=900, help="viewport height (default: 900)")
     parser.add_argument("--browser", type=Path, help="use an installed Chrome/Chromium executable")
+    parser.add_argument(
+        "--all-tabs", action="store_true",
+        help="capture every tab; append the tab ID to --output for tabs other than Display",
+    )
     args = parser.parse_args()
     if args.output.suffix.lower() != ".png":
         parser.error("--output must have a .png extension")
@@ -126,12 +130,30 @@ def main():
             if errors:
                 raise RuntimeError("UI failed to render cleanly:\n" + "\n".join(errors))
             args.output.parent.mkdir(parents=True, exist_ok=True)
-            page.screenshot(path=str(args.output), full_page=True, animations="disabled")
+            tabs = page.locator(".tabs [data-tab]").evaluate_all(
+                "buttons => buttons.map(button => button.dataset.tab)"
+            ) if args.all_tabs else ["display"]
+            for tab in tabs:
+                page.set_viewport_size({"width": args.width, "height": args.height})
+                # Desktop and phone navigation share tab IDs; click the visible control.
+                page.locator(f'[data-tab="{tab}"]:visible').click()
+                page.locator(f"#tab_{tab}").wait_for(state="visible")
+                # Put fixed controls at the bottom of the full-page image, not over its fields.
+                page.set_viewport_size({
+                    "width": args.width,
+                    "height": page.evaluate("document.documentElement.scrollHeight"),
+                })
+                output = args.output if tab == "display" else args.output.with_name(
+                    f"{args.output.stem}-{tab}{args.output.suffix}"
+                )
+                page.screenshot(path=str(output), full_page=True, animations="disabled")
+                print(f"Saved {output.resolve()}")
+            if errors:
+                raise RuntimeError("UI failed to render cleanly:\n" + "\n".join(errors))
             browser.close()
     except (Error, RuntimeError, OSError) as error:
         print(f"Screenshot failed: {error}", file=sys.stderr)
         return 1
-    print(f"Saved {args.output.resolve()}")
     return 0
 
 
