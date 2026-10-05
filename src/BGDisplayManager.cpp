@@ -51,6 +51,7 @@ void BGDisplayManager_::setup() {
         {"dragon", "Dragon", new BGDisplayFaceDragon()},
         {"big_text_dark", "Big text (dark)", new BGDisplayFaceBigTextDark()},
         {"rainbow_clock", "Rainbow clock", new BGDisplayFaceRainbowClock()},
+        {"big_text_rainbow", "Rainbow big text", new BGDisplayFaceBigTextRainbow()},
     };
 
     configureActiveFaces();
