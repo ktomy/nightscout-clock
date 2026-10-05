@@ -11,7 +11,7 @@ const preview = (() => {
     let config = null
     let main = null          // module driving the big panel; only the person's choices change its face
     let thumbModule = null   // a second module for the face cards, so drawing them never moves the big panel
-    let faceCount = 0        // faces this firmware has; a face the page knows and the firmware lacks gets no picture
+    let faceIds = []         // faces this firmware has; a face the page knows and the firmware lacks gets no picture
     let bootSeq = 0
     let thumbSeq = 0
     let liveTimer = null
@@ -19,7 +19,7 @@ const preview = (() => {
     let scenario = { bg: 118, trend: 4, age: 1, history: "steady" }
     let lux = 40
     let canvas = null
-    let faceIndex = null     // face the big panel shows; null = the config's default face
+    let faceId = null        // face the big panel shows; null = the config's default face
     let thumbs = []          // [{canvas, face}] drawn after each boot
     let toneLog = []         // buzzer changes while the preview ran: [[ms, hz], ...]
 
@@ -119,7 +119,7 @@ const preview = (() => {
             if (!(w[0] || w[1] || w[2])) lost++
             else if (f.some((c, k) => c && !w[k])) partial++
         })
-        return { drawn, lost, partial, brightness: M._emu_brightness(), face: M._emu_get_face(), displayOn: M._emu_display_on() === 1 }
+        return { drawn, lost, partial, brightness: M._emu_brightness(), face: currentFace(M), displayOn: M._emu_display_on() === 1 }
     }
 
     // Buzzer changes, played as a square wave like the clock's PWM buzzer.
@@ -157,6 +157,9 @@ const preview = (() => {
     }
 
     // A fresh emulated clock for every settings change, as the device loads a save.
+    const setFace = (M, id) => M.ccall("emu_set_face", null, ["string"], [id])
+    const currentFace = M => M.ccall("emu_get_face", "string", [], [])
+
     async function reboot() {
         if (!window.createClockEmu || !config) return
         const seq = ++bootSeq
@@ -171,8 +174,8 @@ const preview = (() => {
         if (seq !== bootSeq) return
         main = M
         thumbModule = T
-        faceCount = M._emu_face_count()
-        if (faceIndex != null && faceIndex < faceCount) M._emu_set_face(faceIndex)
+        faceIds = JSON.parse(M.ccall("emu_face_ids", "string", [], []))
+        if (faceIds.includes(faceId)) setFace(M, faceId)
         showReadings(M)
         draw()
         drawThumbs()
@@ -191,9 +194,9 @@ const preview = (() => {
         if (!T) return
         for (const t of thumbs) {
             if (seq !== thumbSeq || T !== thumbModule) return
-            t.canvas.hidden = t.face >= faceCount
+            t.canvas.hidden = !faceIds.includes(t.face)
             if (t.canvas.hidden) continue
-            T._emu_set_face(t.face)
+            setFace(T, t.face)
             showReadings(T)
             drawPanel(t.canvas, T, 6, false)
             await nextFrame()
@@ -215,7 +218,7 @@ const preview = (() => {
         start,
         // Keep showing the face the person is looking at; only a new default face switches it.
         setConfig(next) {
-            if (!config || next.default_face !== config.default_face) faceIndex = null
+            if (!config || next.default_face !== config.default_face) faceId = null
             config = clone(next)
             scheduleReboot()
         },
@@ -230,16 +233,16 @@ const preview = (() => {
             draw()
         },
         showFace(id) {
-            faceIndex = id
-            if (!main || id >= faceCount) return
-            main._emu_set_face(id)
+            faceId = id
+            if (!main || !faceIds.includes(id)) return
+            setFace(main, id)
             showReadings(main)
             draw()
         },
         press(button) {
             if (!main) return
             main._emu_button(BUTTON[button])
-            faceIndex = main._emu_get_face()
+            faceId = currentFace(main)
             draw()
         },
         setThumbs(list) { thumbs = list; drawThumbs() },
@@ -293,7 +296,8 @@ const preview = (() => {
             pump()
             return true
         },
-        get faceCount() { return faceCount },
+        get faceCount() { return faceIds.length },
+        hasFace(id) { return faceIds.includes(id) },
         stats() { return main ? stats(main) : null },
         // For tests: buzzer changes since the last call, and the panel as rows of [r, g, b] on the LEDs.
         takeTones() { const t = toneLog; toneLog = []; return t },
