@@ -38,6 +38,11 @@ fieldset.off input, fieldset.off select, fieldset.off .windows { opacity: .55; }
 .top-inner { max-width: 880px; margin: 0 auto; padding: 12px var(--pad); display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
 .brand { display: flex; align-items: center; gap: 12px; min-width: 0; flex: 1 1 auto; }
 .brand-mark { width: 36px; height: 36px; border-radius: 9px; display: grid; place-items: center; background: linear-gradient(135deg, #03b5d3, #2563eb); color: #fff; font-weight: 700; flex: none; }
+.brand-text { min-width: 0; flex: 1 1 auto; }
+.brand-name { display: flex; align-items: center; gap: 4px; min-width: 0; }
+.brand-name h1 { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* The pencil keeps its 44px tap target without making the header taller. */
+.brand-name .btn.icon { margin: -8px 0; }
 .brand-sub { font: 13px/18px var(--mono); color: var(--muted); }
 .pills { display: flex; flex-wrap: wrap; gap: 8px; width: 100%; order: 3; }
 .pill { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border: 1px solid var(--line); border-radius: 999px; font-size: 13px; line-height: 18px; color: var(--text-2); background: var(--surface-low); white-space: nowrap; }
@@ -64,7 +69,7 @@ fieldset.off input, fieldset.off select, fieldset.off .windows { opacity: .55; }
 .field > label, .label { font-weight: 500; }
 .help { color: var(--muted); }
 .err { color: #fca5a5; }
-.field.invalid input, .field.invalid select { border-color: #f87171; }
+.field.invalid input, .field.invalid select, .band.invalid > select { border-color: #f87171; }
 input[type=text], input[type=password], input[type=email], input[type=time], select {
   width: 100%; min-width: 0; min-height: 44px; font: 16px/22px var(--sans); color: var(--text); background: var(--surface-sunk);
   border: 1px solid var(--line-2); border-radius: var(--radius); padding: 10px 12px; outline: none;
@@ -128,6 +133,7 @@ input[type=range] { width: 100%; height: 44px; accent-color: var(--cyan); margin
 .face[aria-pressed="true"] { border-color: var(--cyan); box-shadow: 0 0 0 1px var(--cyan) inset; }
 .face-status { font-size: 14px; color: var(--cyan); white-space: nowrap; }
 .face[aria-pressed="false"] .face-status { color: var(--muted); }
+.drawer { display: grid; gap: 12px; border: 1px solid var(--line); background: var(--surface-low); border-radius: var(--radius); padding: 12px; }
 
 /* ---------- glucose ranges ---------- */
 .bandbar { display: flex; height: 10px; border-radius: 999px; overflow: hidden; background: var(--surface-top); }
@@ -136,6 +142,7 @@ input[type=range] { width: 100%; height: 44px; accent-color: var(--cyan); margin
 .band { background: var(--surface-low); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px; display: grid; gap: 6px; min-width: 0; }
 .band-top { display: flex; align-items: center; gap: 8px; font-weight: 600; }
 .band-top i { width: 12px; height: 12px; border-radius: 50%; flex: none; }
+.band-top .btn { margin: -10px -8px -10px auto; }
 
 /* ---------- alarms ---------- */
 .alarm { display: grid; gap: 16px; }

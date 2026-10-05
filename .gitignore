@@ -8,3 +8,4 @@
 .vscode/ipch
 /log/*
 /logs/*
+/.agents/*

@@ -60,6 +60,14 @@ void BGDisplayManager_::setup() {
     facesNames[10] = "Rainbow big text";
     faces.push_back(new BGDisplayFaceSmiley());
     facesNames[11] = "Smiley";
+    faces.push_back(new BGDisplayFaceSimpleDark());
+    facesNames[12] = "Simple (dark)";
+    faces.push_back(new BGDisplayFaceRaceCar());
+    facesNames[13] = "Race car";
+    faces.push_back(new BGDisplayFaceDragon());
+    facesNames[14] = "Dragon";
+    faces.push_back(new BGDisplayFaceBigTextDark());
+    facesNames[15] = "Big text (dark)";
 
     if (faces.size() != CLOCK_FACE_COUNT) {
         DEBUG_PRINTF(
@@ -114,11 +122,9 @@ std::map<int, String> BGDisplayManager_::getFaces() { return facesNames; }
 
 int BGDisplayManager_::getCurrentFaceId() { return currentFaceIndex; }
 
-bool BGDisplayManager_::suppressesNewAlarms() const {
-    return currentFace->suppressesNewAlarms();
-}
+bool BGDisplayManager_::suppressesNewAlarms() const { return currentFace->suppressesNewAlarms(); }
 
-GlucoseIntervals BGDisplayManager_::getGlucoseIntervals() { return glucoseIntervals; }
+const GlucoseIntervals& BGDisplayManager_::getGlucoseIntervals() const { return glucoseIntervals; }
 
 void BGDisplayManager_::setFace(int id) {
     if (id < 0 || static_cast<size_t>(id) >= faces.size()) {
@@ -193,6 +199,26 @@ void BGDisplayManager_::tick() {
     updateFaceSchedule();
     updateFaceCycle();
     maybeRrefreshScreen();
+    if (!MATRIX_OFF && drawAnimationFrame(lastRenderedDataWasOld, false)) {
+        DisplayManager.update();
+    }
+}
+
+// Draws the moving part of an animated face for the current step while the reading is fresh.
+// Returns false when there is nothing to draw, or `redraw` is false and this step is already shown.
+bool BGDisplayManager_::drawAnimationFrame(bool dataIsOld, bool redraw) {
+    const unsigned long stepMillis = currentFace->getAnimationStepMillis();
+    if (stepMillis == 0 || dataIsOld || displayedReadings.empty()) {
+        return false;
+    }
+
+    const unsigned long frame = millis() / stepMillis;
+    if (frame == lastAnimationFrame && !redraw) {
+        return false;
+    }
+    lastAnimationFrame = frame;
+    currentFace->showAnimationFrame(displayedReadings, frame);
+    return true;
 }
 
 // Cycling and the schedule both own the face, so cycling wins when both are on.
@@ -235,8 +261,8 @@ void BGDisplayManager_::updateFaceSchedule() {
         }
     }
 
-    const bool reachedRowTime = minuteOfDay == faceSchedule[current].startMinutes &&
-                                minuteOfDay != lastScheduleMinuteOfDay;
+    const bool reachedRowTime =
+        minuteOfDay == faceSchedule[current].startMinutes && minuteOfDay != lastScheduleMinuteOfDay;
     lastScheduleMinuteOfDay = minuteOfDay;
 
     if (current == appliedScheduleEntry && !reachedRowTime) {
@@ -283,6 +309,7 @@ void BGDisplayManager_::runRenderCycle(RenderReason reason, const tm& timeInfo) 
             DisplayManager.clearMatrix();
             if (displayedReadings.size() > 0) {
                 currentFace->showReadings(displayedReadings, dataIsOld);
+                drawAnimationFrame(dataIsOld, true);
             } else {
                 currentFace->showNoData();
             }

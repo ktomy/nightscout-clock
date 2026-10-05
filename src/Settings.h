@@ -9,11 +9,41 @@
 #include "SettingsSchedule.h"
 #include "enums.h"
 
+// Big text face: the value takes early_stale_color once a reading is early_stale_minutes old.
+struct BigTextFaceSettings {
+    bool early_stale_enabled = false;
+    DISPLAY_COLOR early_stale_color = DISPLAY_COLOR::CYAN;
+    int early_stale_minutes = 6;
+};
+
+// Unicorn face: a moving mane moves its colors at `speed` in the `flow` style while the reading is fresh.
+struct UnicornFaceSettings {
+    bool mane_moving = false;
+    ANIMATION_SPEED speed = ANIMATION_SPEED::NORMAL;
+    MANE_FLOW flow = MANE_FLOW::DOWN;
+};
+
+// Race car face: the race moves at `speed` while the reading is fresh.
+struct RaceCarFaceSettings {
+    ANIMATION_SPEED speed = ANIMATION_SPEED::NORMAL;
+};
+
+// Simple (dark) and Big text (dark) faces: the color of the number while the reading is fresh.
+struct SimpleDarkFaceSettings {
+    DISPLAY_COLOR value_color = DISPLAY_COLOR::WHITE;
+};
+
+// Dragon face: the flame moves at `speed` while the reading is fresh.
+struct DragonFaceSettings {
+    ANIMATION_SPEED speed = ANIMATION_SPEED::NORMAL;
+};
+
 class Settings {
 public:
     String ssid;
     String wifi_password;
     String hostname;
+    String custom_mac;
     String nightscout_url;
     String nightscout_api_key;
     bool nightscout_simplified_api;
@@ -22,6 +52,11 @@ public:
     int bg_high_warn_limit;
     int bg_low_urgent_limit;
     int bg_high_urgent_limit;
+    DISPLAY_COLOR bg_color_urgent_low;
+    DISPLAY_COLOR bg_color_low;
+    DISPLAY_COLOR bg_color_normal;
+    DISPLAY_COLOR bg_color_high;
+    DISPLAY_COLOR bg_color_urgent_high;
     BRIGHTNES_MODE brightness_mode;
     int brightness_level;
     int default_clockface;
@@ -69,6 +104,11 @@ public:
     int custom_nodatatimer;
     int bg_data_too_old_threshold_minutes = 20;
     DISPLAY_COLOR data_old_color = DISPLAY_COLOR::GRAY;
+    BigTextFaceSettings face_big_text;
+    UnicornFaceSettings face_unicorn;
+    RaceCarFaceSettings face_race_car;
+    SimpleDarkFaceSettings face_simple_dark;
+    DragonFaceSettings face_dragon;
     bool alarm_intensive_mode;
     int alarm_repeat_interval_seconds = 300;
     bool web_auth_enable;

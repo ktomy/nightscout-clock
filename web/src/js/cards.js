@@ -135,21 +135,45 @@ function toggleRow(key, title, desc) {
  * Use aria-pressed to show the current choice and mark changes for validation.
  * @param {string} key - Draft setting to bind.
  * @param {SelectOption[]} options - Button values and labels.
- * @param {{numeric?: boolean, label?: string}} [settings={}] - Value conversion and accessible group label.
+ * @param {{numeric?: boolean, label?: string, prop?: string}} [settings={}] - Value conversion and accessible group label.
  * @returns {HTMLElement}
  */
-function segmented(key, options, { numeric = false, label } = {}) {
-    const box = el("div.seg", { role: "group", "aria-label": label, id: idFor(key) })
-    /**
-     * Update button selection states from the draft after a choice is saved.
-     * @returns {void}
-     */
-    const paint = () => $$("button", box).forEach(b => b.setAttribute("aria-pressed", String(String(form.get(key)) === b.dataset.value)))
+function segmented(key, options, { numeric = false, label, prop } = {}) {
+    const name = prop ? `${key}_${prop}` : key
+    const get = () => (prop ? (form.get(key) || {})[prop] : form.get(key))
+    const put = v => form.set(key, prop ? { ...form.get(key), [prop]: v } : v)
+    const box = el("div.seg", { role: "group", "aria-label": label, id: idFor(name) })
+    const paint = () => $$("button", box).forEach(b => b.setAttribute("aria-pressed", String(String(get()) === b.dataset.value)))
     for (const [value, text] of options) {
         box.append(el("button", {
             type: "button", dataset: { value: String(value) },
-            onclick: () => { form.set(key, numeric ? Number(value) : String(value)); form.touch(key); paint() },
+            onclick: () => { put(numeric ? Number(value) : String(value)); form.touch(name); paint() },
         }, text))
+    }
+    paint()
+    return box
+}
+
+/**
+ * Build a color picker as labelled swatches, for palettes too long to read as a row of text buttons.
+ * @param {string} key - Draft setting to bind.
+ * @param {SelectOption[]} options - Color names and labels.
+ * @param {{prop?: string, label?: string, fallback?: string}} [settings={}] - Nested property, accessible group label, and the color shown while the setting is unset.
+ * @returns {HTMLElement}
+ */
+function swatches(key, options, { prop, label, fallback } = {}) {
+    const name = prop ? `${key}_${prop}` : key
+    const get = () => (prop ? (form.get(key) || {})[prop] : form.get(key)) || fallback
+    const put = v => form.set(key, prop ? { ...form.get(key), [prop]: v } : v)
+    const box = el("div.swatches", { role: "group", "aria-label": label, id: idFor(name) })
+    /**
+     * Mark the swatch matching the draft as selected.
+     * @returns {void}
+     */
+    const paint = () => $$("button", box).forEach(b => b.setAttribute("aria-pressed", String(b.dataset.value === get())))
+    for (const [value, text] of options) {
+        box.append(el("button.swatch", { type: "button", dataset: { value }, onclick: () => { put(value); form.touch(name); paint() } },
+            el("i", { style: `background:${COLOR_HEX[value]}` }), text))
     }
     paint()
     return box
@@ -296,8 +320,84 @@ function facesCard() {
         $("input", row).disabled = !!form.get("face_schedule_enabled")
         return row
     })
-    return card("Clock faces", null, el("div.stack", faces, defaultFace, el("hr.divider"), cyclingToggle,
-        interval), { id: "card_faces" })
+    return card("Clock faces", null, el("div.stack", faces, defaultFace, faceDrawers(), el("hr.divider"),
+        cyclingToggle, interval), { id: "card_faces" })
+}
+
+// Settings that belong to a face, by face id, shown in a drawer while that face is active. Faces sharing
+// settings share one drawer, titled with the active faces it covers.
+const FACE_DRAWERS = { 3: bigTextSettings, 6: unicornSettings, 8: darkFaceSettings, 9: raceCarSettings, 10: dragonSettings, 11: darkFaceSettings }
+
+function faceDrawers() {
+    return reactive(["inactive_faces"], () => {
+        const active = activeFaceIds(form.get("inactive_faces"))
+        const faces = FACES.filter(f => FACE_DRAWERS[f.id] && active.includes(f.id))
+        if (!faces.length) return el("span", { hidden: true })
+        const builds = [...new Set(faces.map(f => FACE_DRAWERS[f.id]))]
+        return el("div.stack", el("hr.divider"), ...builds.map(build =>
+            drawer(faces.filter(f => FACE_DRAWERS[f.id] === build).map(f => f.name).join(" and "), build())))
+    })
+}
+
+// Open the drawer when a setting needs attention.
+function drawer(title, body) {
+    const panel = el("div.stack", { hidden: !ui.openDrawers.has(title) }, body)
+    const toggle = el("button.btn.sm", { type: "button" })
+    const setOpen = open => {
+        panel.hidden = !open
+        toggle.textContent = open ? "Hide" : "Show"
+        toggle.setAttribute("aria-expanded", String(open))
+        open ? ui.openDrawers.add(title) : ui.openDrawers.delete(title)
+    }
+    toggle.addEventListener("click", () => setOpen(panel.hidden))
+    setOpen(!panel.hidden)
+    const off = form.on("errors", () => {
+        if (!panel.isConnected) return off()
+        if (panel.hidden && $(".invalid", panel)) setOpen(true)
+    })
+    return el("div.drawer", el("div.row.spread", el("h3", title), toggle), panel)
+}
+
+function bigTextSettings() {
+    return el("div.stack",
+        field("face_big_text_early_stale_color", "Color when a reading is late", segmented("face_big_text", EARLY_STALE_COLORS, { prop: "early_stale_color", label: "Color when a reading is late" }),
+            "Color late readings until the old-data threshold. Off keeps the usual glucose colors."),
+        field("face_big_text_early_stale_minutes", "Late after", segmented("face_big_text", EARLY_STALE_MINUTES, { numeric: true, prop: "early_stale_minutes", label: "Late after" })))
+}
+
+function unicornSettings() {
+    return reactive(["face_unicorn"], () => {
+        const moving = (form.get("face_unicorn") || {}).mane === "moving"
+        return el("div.stack",
+            field("face_unicorn_mane", "Mane", segmented("face_unicorn", MANE_MODES, { prop: "mane", label: "Mane" }),
+                "A moving mane moves its colors while the reading is fresh, and stops in the old data color when data is old."),
+            moving ? field("face_unicorn_speed", "Speed", segmented("face_unicorn", ANIMATION_SPEEDS, { prop: "speed", label: "Speed" })) : null,
+            moving ? field("face_unicorn_flow", "Motion", segmented("face_unicorn", MANE_FLOWS, { prop: "flow", label: "Motion" }),
+                "Top to bottom rolls the colors down the bands. Colors scroll back slides them from the head toward the tips. Light runs along the bands keeps each band's color and runs a light toward the tips.") : null)
+    })
+}
+
+function dragonSettings() {
+    return el("div.stack",
+        field("face_dragon_speed", "Speed", segmented("face_dragon", ANIMATION_SPEEDS, { prop: "speed", label: "Speed" }),
+            "The flame moves while the reading is fresh, and goes out when data is old."))
+}
+
+function raceCarSettings() {
+    return el("div.stack",
+        field("face_race_car_speed", "Speed", segmented("face_race_car", ANIMATION_SPEEDS, { prop: "speed", label: "Speed" }),
+            "The speed lines show the glucose color while the reading is fresh, and the race stops in the old data color when data is old."))
+}
+
+function darkFaceSettings() {
+    const warning = el("p.help", { role: "status" },
+        "Gray is not visible at the lowest brightness. Choose another number color if you run the clock dim.")
+    const updateWarning = () => { warning.hidden = form.get("face_simple_dark")?.value_color !== "gray" }
+    updateWarning()
+    onChangeWhileAttached(warning, key => { if (key === "face_simple_dark") updateWarning() })
+    return field("face_simple_dark_value_color", "Number color", el("div.stack",
+        swatches("face_simple_dark", DARK_VALUE_COLORS, { prop: "value_color", label: "Number color", fallback: "white" }), warning),
+        "Both dark faces use it. The trend arrow keeps the glucose colors and old data still uses the old data color, so red, yellow and green here do not track the reading.")
 }
 
 /**
@@ -423,19 +523,8 @@ function brightnessCard() {
  * @returns {HTMLElement}
  */
 function oldDataCard() {
-    const box = el("div.swatches", { role: "group", "aria-label": "Color when data is old", id: idFor("data_old_color") })
-    /**
-     * Mark the color swatch matching the draft as selected, defaulting to gray when unset.
-     * @returns {void}
-     */
-    const paint = () => $$("button", box).forEach(b => b.setAttribute("aria-pressed", String(b.dataset.value === (form.get("data_old_color") || "gray"))))
-    for (const [value, text] of OLD_DATA_COLORS) {
-        box.append(el("button.swatch", { type: "button", dataset: { value }, onclick: () => { form.set("data_old_color", value); paint() } },
-            el("i", { style: `background:${COLOR_HEX[value]}` }), text))
-    }
-    paint()
     return card("When data is old", null, el("div.stack",
-        field("data_old_color", "Color", box,
+        field("data_old_color", "Color", swatches("data_old_color", OLD_DATA_COLORS, { label: "Color when data is old", fallback: "gray" }),
             "Also used for the \"no data\" screen. Gray is not visible at the lowest brightness, so if you run the clock dim, choose one of the others to keep stale readings readable."),
         el("hr.divider"),
         toggleRow("custom_nodatatimer_enable", "Custom no data timer", "Minutes without a reading before the clock shows data as old. Otherwise 20 minutes."),
@@ -605,8 +694,10 @@ function rangesCard() {
     syncBtn()
     onChangeWhileAttached(loadBtn, k => { if (k === "data_source") syncBtn() })
 
-    // The bar and the in-range text follow the limits as they are typed.
-    const bar = el("div.bandbar", { "aria-hidden": "true" }, ...BANDS.map(b => el("i", { style: `background:${COLOR_HEX[b.color]}` })))
+    // The bar and the in-range text follow the limits and colors as they change.
+    const colorKeys = BANDS.map(b => b.color)
+    const swatch = key => COLOR_HEX[form.get(key)] || "transparent"
+    const bar = el("div.bandbar", { "aria-hidden": "true" }, ...BANDS.map(() => el("i")))
     const normal = el("p.help")
     /**
      * Calculate color-band widths from ordered glucose limits, using equal widths for invalid ordering.
@@ -620,15 +711,33 @@ function rangesCard() {
         const edges = ordered ? [40, ...lim.map(v => Math.min(400, Math.max(40, v))), 400] : [0, 1, 2, 3, 4, 5]
         const widths = edges.slice(1).map((v, i) => Math.max(v - edges[i], 4))
         const sum = widths.reduce((a, b) => a + b, 0)
-        $$("i", bar).forEach((seg, i) => { seg.style.width = `${(widths[i] / sum) * 100}%` })
+        $$("i", bar).forEach((seg, i) => {
+            seg.style.width = `${(widths[i] / sum) * 100}%`
+            seg.style.background = swatch(BANDS[i].color)
+        })
         normal.textContent = `${mgdlToText(form.get("low_mgdl"), units)} – ${mgdlToText(form.get("high_mgdl"), units)}`
     }
     drawBar()
-    onChangeWhileAttached(bar, k => { if (LIMIT_KEYS.includes(k) || k === "units") drawBar() })
+    onChangeWhileAttached(bar, k => { if (LIMIT_KEYS.includes(k) || colorKeys.includes(k) || k === "units") drawBar() })
 
-    const bands = reactive(["units"], () => el("div.bands", ...BANDS.map(b => el("div.band",
-        el("div.band-top", el("i", { style: `background:${COLOR_HEX[b.color]}` }), el("span", b.name)),
-        b.limit ? field(b.limit, b.label, numberInput(b.limit, { units: form.get("units") })) : normal))))
+    // Each range shows its color; the pencil opens the color choice, which stays open while it is invalid.
+    const bands = reactive(["units", "data_old_color", ...colorKeys], () => el("div.bands", ...BANDS.map(b => {
+        const pick = selectInput(b.color, BAND_COLORS)
+        pick.setAttribute("aria-label", `${b.name} color`)
+        pick.hidden = !form.errors[b.color]
+        const pencil = el("button.btn.ghost.icon", {
+            type: "button", "aria-label": `Change ${b.name.toLowerCase()} color`, "aria-expanded": String(!pick.hidden),
+            onclick: () => {
+                pick.hidden = !pick.hidden
+                pencil.setAttribute("aria-expanded", String(!pick.hidden))
+                if (!pick.hidden) pick.focus()
+            },
+        }, icon("pencil"))
+        return el("div.band", { dataset: { field: b.color } },
+            el("div.band-top", el("i", { style: `background:${swatch(b.color)}` }), el("span", b.name), pencil),
+            pick, el("p.err", { hidden: true }),
+            b.limit ? field(b.limit, b.label, numberInput(b.limit, { units: form.get("units") })) : normal)
+    })))
     return card("Glucose-related settings", null, el("div.stack",
         field("units", "Blood glucose units", segmented("units", UNITS, { label: "Blood glucose units" })), bar, bands),
         { aside: loadBtn, id: "card_ranges" })
@@ -853,7 +962,11 @@ function wifiCard() {
             field("ssid", "WiFi network name (SSID)", textInput("ssid", { maxlength: 32 })),
             field("password", "WiFi password", pw)),
         el("label.check", open, "Open WiFi network (no password)"),
-        warn), { id: "card_wifi" })
+        warn,
+        field("custom_mac", "Custom MAC address",
+            textInput("custom_mac", { placeholder: "A4:83:E7:2B:10:9C", maxlength: 17, trim: true }),
+            "If this network uses a captive portal that only lets known devices through, enter another device's MAC address here. Leave blank to use the clock's factory hardware MAC.")),
+        { id: "card_wifi" })
 }
 
 /**
@@ -977,7 +1090,7 @@ function versionStatusNodes() {
 
 // ---------- tabs ----------
 const TABS = { display: displayTab, glucose: glucoseTab, alarms: alarmsTab, system: systemTab }
-const ui = { tab: "display", timezones: null, timezoneNames: null, status: null, patients: null, patientsLoading: false, versions: {}, fileNetwork: null, fileReport: null }
+const ui = { tab: "display", timezones: null, timezoneNames: null, status: null, patients: null, patientsLoading: false, versions: {}, fileNetwork: null, fileReport: null, openDrawers: new Set() }
 
 /**
  * Replace one tab's contents using its builder and reapply visible validation errors.

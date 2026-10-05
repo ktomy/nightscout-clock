@@ -14,7 +14,7 @@
 >
 > You can reach me at **artiom@gmail.com**.
 
-### Current version: 0.31.0
+### Current version: 1.0.0
 
 ![Build and Release](https://github.com/ktomy/nightscout-clock/actions/workflows/build_release.yml/badge.svg)
 
@@ -24,14 +24,17 @@ _Nightscout Clock (or NSClock) is an open-source product aimed at helping caregi
 
 ## Here is what it can do
 
-- 12 clock faces, including colorful glucose, diagnostic, and system-information views
+- 16 clock faces, including colorful glucose, diagnostic and system-information views, animated characters,
+  dark-room layouts, and a time-only face
 - Can get glucose data from Dexcom Share, Nightscout, LibreLink Up or Medtrum EasyFollow
 - Supports mg/dl and mmol/l
 - 10 minutes setup through web browser
 - Configurable low/high limits
 - Audible alarms in case the blood sugar is too low or too high
 - Automatic brightness adjustment
-- Notifies of stall data
+- Marks stale readings with a configurable color and a cross instead of the trend arrow
+- Daily face and brightness schedules, or automatic cycling through your chosen faces
+- Offline configuration page with settings backup and restore
 - ...and more
 
 ### YouTube review
@@ -47,37 +50,43 @@ Thanks [@CallumMcK](https://github.com/CallumMcK)
 3. Unpack, turn on (press on `<` and `>` buttons for a few seconds)
 4. Connect the USB-C cable (comes with the clock) to your computer
 5. Go to the [installation page](https://ktomy.github.io/nightscout-clock/)
-6. Follow the instructions. If the installation fails (error messages during installation, read [this](https://github.com/ktomy/nightscout-clock/discussions/57)
-7. Once the clock installed, take out your phone and join `nsclock` wi-fi network. Then go to `http://192.168.4.1/`
+6. Follow the instructions. If installation fails, see the [installation troubleshooting discussion](https://github.com/ktomy/nightscout-clock/discussions/57).
+7. Once the clock is installed, take out your phone and join `nsclock` wi-fi network. Then go to `http://192.168.4.1/`
 8. Set up your device, provide the Wi-Fi network details, your Dexcom, Nightscout, LibreLink Up or Medtrum EasyFollow credentials, glucose warning limits and other parameters
 9. You're all set, enjoy!
 
 ## How to update
 
-[![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/7mFZJ7_EFN4/0.jpg)](https://www.youtube.com/watch?v=7mFZJ7_EFN4)
+Updates use a full reflash and reset the clock's settings. Make a note of your settings before updating. If your installed version has **Backup and restore**, download a settings file first; after updating, load it on the **WiFi & system** tab, review the settings, and select **Save and restart**. Include network settings when restoring your WiFi connection; the web login must be configured separately.
+
+[![How to update Nightscout Clock](https://img.youtube.com/vi/7mFZJ7_EFN4/0.jpg)](https://www.youtube.com/watch?v=7mFZJ7_EFN4)
 
 Thanks [@CallumMcK](https://github.com/CallumMcK)
 
-## More information for people who needs it
+## More information
 
 Nightscout Clock is a custom firmware for Ulanzi TC001. It can also run (with minor changes) on AWTRIX-Light custom hardware, so if you need a bigger display, feel free to research.
 
 ### Clockfaces
 
-| Name             | Look                                                                                                                                          | Comment                                                                                                                                                                                                                                                                                                                                                                                                     |
-| ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Simple           | <img width="500" alt="Simple" src="https://github.com/user-attachments/assets/ad281e9f-8c7f-41ff-ba82-23c634171158" />                        | Horizontal bars in the bottom of the display <br /> indicate the time since the last reading <br />No bars: less than one minute <br /> 1..5 green bars: 1..5 minutes <br /> 5 yellow bars: 6..19 minutes <br /> value and bars use the configured old-data color from 20 minutes (default threshold) <br /> and the trend arrow is replaced by an X in the same color                                      |
-| BIG DIGITS       | <img width="500" alt="Big Digits" src="https://github.com/user-attachments/assets/1feae65b-21e9-4c20-8960-b75583baa142" />                    |                                                                                                                                                                                                                                                                                                                                                                                                             |
-| 3-hours graph    | <img width="500" alt="graph" src="https://github.com/user-attachments/assets/45d92097-f459-44d4-b1ae-a35c3cb38700" />                         |                                                                                                                                                                                                                                                                                                                                                                                                             |
-| Graph and value  | <img width="500" alt="Graph and value" src="https://github.com/user-attachments/assets/db9046aa-5121-43fa-b367-807cdf3c5ef3" />               | The dots on the right side replace the trend arrow.<br>2 white dots = horizontal arrow.<br>2 colored dots (white + green) = 45° arrow.<br>3 dots = vertical arrow.<br>4 dots = double arrow.<br>Colored dots above = upward trend.<br>Colored dots below = downward trend. <br /><br /> Dots under the value are the same as <br /> horizontal bars on the other faces.<br /> See "Simple" face for details |
-| Delta            | <img width="500" alt="Photo of the Nightscout Clock" src="https://github.com/user-attachments/assets/f8005f49-6e32-43f1-bd84-0bb4e4691d7f" /> |                                                                                                                                                                                                                                                                                                                                                                                                             |
-| Time and value   | <img width="500" alt="Time and value" src="https://github.com/user-attachments/assets/cd72bf15-85e3-4621-b5ca-d639c1849cd5" />                | The dots on the right side replace the trend arrow.<br>2 white dots = horizontal arrow.<br>2 colored dots (white + green) = 45° arrow.<br>3 dots = vertical arrow.<br>4 dots = double arrow.<br>Colored dots above = upward trend.<br>Colored dots below = downward trend. <br /><br /> For the bottom-side bars see "Simple" face for details                                                              |
-| Unicorn          | <img width="500" alt="Unicorn and value" src="https://github.com/user-attachments/assets/78dd56a8-1501-493d-98be-5fb59ac9778d" />             | Rainbow mane for normal readings, warning or urgent colors outside the configured limits, and the configured old-data color for stale readings. Age bars appear below the value.                                                                                                                                                                                                                            |
-| Time only        | _(live time-only view)_                                                                                                                        | Shows the time while hiding glucose readings and suppressing new glucose alarms.                                                                                                                                                                                                                                                                                                                         |
-| Diagnostics      | _(live diagnostics view)_                                                                                                                     | Scrolling diagnostics and clock information.                                                                                                                                                                                                                                                                                                                                                                |
-| Battery/uptime   | _(live battery and uptime view)_                                                                                                              | Shows battery status and device uptime.                                                                                                                                                                                                                                                                                                                                                                     |
-| Rainbow big text | _(live animated view)_                                                                                                                        | Large glucose text with a strong animated rainbow anchored to the default glucose-state color; stale readings blink.                                                                                                                                                                                                                                                                                         |
-| Smiley           | _(live smiley view)_                                                                                                                          | A face that reflects glucose level: happy in range, sad when low, concerned when high, and neutral for stale or missing data.                                                                                                                                                                                                                                                                               |
+| Name | Look | Comment |
+| --- | --- | --- |
+| Simple | <img width="500" alt="Simple" src="https://github.com/user-attachments/assets/ad281e9f-8c7f-41ff-ba82-23c634171158" /> | Glucose value, trend, and age bars. |
+| BIG DIGITS | <img width="500" alt="Big Digits" src="https://github.com/user-attachments/assets/1feae65b-21e9-4c20-8960-b75583baa142" /> | Large glucose digits, with optional early-stale coloring. |
+| 3-hours graph | <img width="500" alt="graph" src="https://github.com/user-attachments/assets/45d92097-f459-44d4-b1ae-a35c3cb38700" /> | Full-width glucose graph. |
+| Graph and value | <img width="500" alt="Graph and value" src="https://github.com/user-attachments/assets/db9046aa-5121-43fa-b367-807cdf3c5ef3" /> | Graph, value, and trend indicator. |
+| Delta | <img width="500" alt="Photo of the Nightscout Clock" src="https://github.com/user-attachments/assets/f8005f49-6e32-43f1-bd84-0bb4e4691d7f" /> | Value, trend, and delta. |
+| Time and value | <img width="500" alt="Time and value" src="https://github.com/user-attachments/assets/cd72bf15-85e3-4621-b5ca-d639c1849cd5" /> | Clock, glucose value, and trend indicator. |
+| Unicorn | <img width="500" alt="Unicorn and value" src="https://github.com/user-attachments/assets/78dd56a8-1501-493d-98be-5fb59ac9778d" /> | Animated or still mane colored by glucose range. |
+| Time only | _(live time-only view)_ | Shows time while hiding glucose and suppressing new glucose alarms. |
+| Diagnostics | _(live diagnostics view)_ | Scrolling diagnostics and clock information. |
+| Battery/uptime | _(live battery and uptime view)_ | Battery status and device uptime. |
+| Rainbow big text | _(live animated view)_ | Large animated rainbow glucose text; stale readings blink. |
+| Smiley | _(live smiley view)_ | Expression reflects glucose level, with the reading beside it. |
+| Simple (dark) | _(live dark-room view)_ | Configurable number color, glucose-colored trend arrow, and no age bars. |
+| Race car | _(live animated view)_ | Animated race car with glucose-colored speed lines and stale stop/fade. |
+| Dragon | _(live animated view)_ | Animated dragon breathing glucose-colored fire; stale fire is extinguished. |
+| Big text (dark) | _(live dark-room view)_ | Large digits in the dark-face number color with a glucose-colored trend arrow. |
 
 #### Active clock faces
 
@@ -91,13 +100,39 @@ While cycling is enabled, the left and right buttons restart the interval withou
 
 #### Face and brightness schedule
 
-Under Device settings the clock can change its face and brightness on a schedule. Each row gives a time of day, a face and a brightness, either a manual level or one of the automatic modes. From that time the clock shows that face at that brightness until the next row, and the last row of the day runs overnight, so a Big text row in the morning and a Simple row at brightness 1 in the evening make a bedside clock that is readable by day and easy to sleep next to. The buttons still change the face between rows. The schedule and automatic cycling cannot both be on, and a clock that does not know the time yet stays on its default face.
+The **Daily schedule** card on the **Display** tab can change the clock's face and brightness at up to eight times each day. Each row gives a time, an active face, and a manual brightness level or automatic mode. That selection lasts until the next row, including overnight. For example, use Big text in the morning and Simple at brightness 1 in the evening. The buttons still change the face between rows. Scheduling and automatic cycling cannot both be on; until the clock knows the time, it stays on its default face.
 
 ### Configuration web interface
 
-<img alt="Nightscout Clock configuration web interface" src="docs/images/web-ui.png" />
+The settings page works offline and adapts to desktop and phone screens. Four tabs group the controls; changes take effect when you select **Save and restart**. Use the pencil beside the heading to name your clock.
 
-The Backup and restore card on the System tab downloads the clock's settings as a file and loads such a file back into the page, where you review it and save; WiFi settings are loaded only when you ask, and the web login never is. The file contains your WiFi and data source passwords, so keep it private.
+The screenshots below show the 1.0 settings interface with sample data, captured before the version bump.
+
+#### Display
+
+Choose active clock faces, face-specific colors and animations, automatic cycling or a daily schedule, brightness, old-data behavior, and time settings.
+
+<img alt="Display tab: clock faces, daily schedule, brightness, old-data and time settings" src="docs/images/web-ui.png" />
+
+#### Glucose
+
+Connect your data source and configure glucose units, range limits, and colors.
+
+<img alt="Glucose tab: data source, glucose limits and range colors" src="docs/images/web-ui-glucose.png" />
+
+#### Alarms
+
+Configure high, low, and urgent-low alarms, including sounds, snooze durations, alert windows, and repeat behavior.
+
+<img alt="Alarms tab: high, low and urgent-low alarms and repeat settings" src="docs/images/web-ui-alarms.png" />
+
+#### WiFi & system
+
+Set up WiFi, an optional secondary network, a custom MAC address or hostname, and web login protection. This tab also shows the firmware version and provides settings backup and restore.
+
+<img alt="WiFi and system tab: network, authentication, backup and firmware settings" src="docs/images/web-ui-system.png" />
+
+The **Backup and restore** card downloads the clock's settings as a file and loads a file into the page for review before saving. WiFi settings are loaded only when requested; the web login is never imported. The file contains WiFi and data source passwords, so keep it private.
 
 ### Alarm settings
 
@@ -114,11 +149,12 @@ High, low, and urgent-low alarms each have their own threshold, snooze duration,
   - Support for a secondary WiFi (e.g. if you want to take the clock in your car for a long trip)
   - Support for WPA-Enterprise
   - Ability to set a custom hostname in case you have multiple NSClocks on the same network
+  - A name for each clock (such as Kitchen or Bedroom), set with the pencil beside the Web UI heading and shown as the page heading and browser tab title
 - Simple glucose value display with trend arrow
-- Changing color based on limits
+- Changing color based on limits. Each glucose range's color (red, yellow, green, yellow, red by default) can be changed next to its limit in the Web UI, and every face follows it
 - Nightscout data source, the clock gets units type and value boundaries from Nightscout (see [how to](https://youtu.be/GGiep2gdx_o) set up using [Nightscout.pro](https://www.nightscout.pro/) as data source)
 - [Juggluco](https://www.juggluco.nl/) data source (support for HTTP Nightscout endpoints)
-- [Improve WiFi](https://github.com/improv-wifi) compatibility (setting up WiFi during the installation)
+- [Improv Wi-Fi](https://github.com/improv-wifi) compatibility (setting up WiFi during the installation)
 - [Gluroo](https://gluroo.com/) data source (API_SECRET within the URL parameters) (see how to setup [video](https://youtu.be/unG-l6XXWxw))
 - Simplified Nightscout API like xDrip+ [Open Web Service](https://github.com/NightscoutFoundation/xDrip/blob/master/Documentation/technical/Local_Web_Services.md) support. When adding it as a data source, choose Nightscout and check the `Simplified API` checkbox. Make sure your source device (e.g. your phone running xDrip) has a static IP address and is on the same WiFi network. Also don't forget to check the port setting; for xDrip it is usually `17580`
 - Dexcom Share data source
@@ -138,7 +174,7 @@ High, low, and urgent-low alarms each have their own threshold, snooze duration,
   - Simple clock face (value and trend arrow)
   - Full-width glucose graph
   - Graph, value and trend indicator
-  - BIG DIGITS
+  - BIG DIGITS, with an optional color for a late reading
   - Value, trend and delta
   - Clock and BG value (timezone is set in the clock's web interface)
   - Diagnostics
@@ -146,11 +182,15 @@ High, low, and urgent-low alarms each have their own threshold, snooze duration,
   - Rainbow big text with an animated glucose-state-colored rainbow and stale-reading blink
   - Smiley face, reflecting the glucose level with happy, sad, concerned, or neutral expressions
   - Unicorn and glucose value, with mane colors based on glucose limits
+  - Race car and glucose value, with speed lines in the glucose color
   - Time only, always hiding glucose and suppressing new alarms while selected; already-triggered alarms continue normally
+  - Simple (dark): the number in a color of your choice with the glucose color on the trend arrow, for night
+  - Dragon and glucose value, breathing fire in colors based on glucose limits
+  - Big text (dark): the same with BIG DIGITS
 - Configurable color for old readings and no-data screens: gray (default), cyan, magenta, or blue. Choose it on the Display tab of the Web UI; the alternatives help keep stale readings visible at low brightness
 - Smart data and screen update timings: read data once it appears, refresh screen when needed
 - API data source. The clock has a simple Nightscout-like API which can receive glucose values from an external source. The main purpose of this feature is the ability to test the clock during the clockfaces development. In order to activate this feature, select the API data source within the clock's Web UI. Here are the endpoints:
-  - /api/v1/entries POST endpoint receives an array of Nightscout-like entries. The only significant fields are `sgv`, `date` and `trend` or `direction`. Due to the limited memory the API is stable when sent less than 10 recotds
+  - /api/v1/entries POST endpoint receives an array of Nightscout-like entries. The only significant fields are `sgv`, `date` and `trend` or `direction`. Due to the limited memory the API is stable when sent fewer than 10 records
   - /api/v1/entries DELETE endpoint deletes all entries regardless of the payload
   - `scripts/ns_emulator.py` is a helper that pushes sample readings to this API for testing (e.g. to exercise clock-face moods). Point its `nightscout_url` at your clock, then run `python scripts/ns_emulator.py --one-value 110` for a single reading or `--sin` for a sinusoid history; see the script header for a curl example. The script's docstring lists handy values for the different faces.
 - Firmware versioning
@@ -167,6 +207,26 @@ High, low, and urgent-low alarms each have their own threshold, snooze duration,
   - ...more... (if you are the author of a CGM data collecting app/service and you want your data to be displayed on the Nightscout Clock, please contact me)
 
 ## Changes
+
+### 1.0.0
+
+- Rebuilt the configuration page as a self-contained, offline UI with Display, Glucose, Alarms, and WiFi & system tabs, responsive layouts, and unsaved-change indicators; removed Bootstrap and jQuery dependencies, thanks [@nishanm](https://github.com/nishanm) ([#192](https://github.com/ktomy/nightscout-clock/pull/192))
+- Added settings backup and restore: download a configuration file, load it for review, optionally include network settings, and save when ready; web login settings are never imported, thanks [@nishanm](https://github.com/nishanm) ([#197](https://github.com/ktomy/nightscout-clock/pull/197))
+- Added daily face and brightness schedules with up to eight changes per day, including overnight use, thanks [@nishanm](https://github.com/nishanm) ([#190](https://github.com/ktomy/nightscout-clock/pull/190))
+- Added active-face selection for button navigation, automatic cycling, default-face selection, and scheduling, thanks [@nishanm](https://github.com/nishanm) ([#195](https://github.com/ktomy/nightscout-clock/pull/195))
+- Added the Time only face, which hides glucose and suppresses new alarms while selected; already-triggered and snoozed alarms continue normally, thanks [@nishanm](https://github.com/nishanm) ([#193](https://github.com/ktomy/nightscout-clock/pull/193))
+- Added Simple (dark) and Big text (dark), sharing a configurable number color while retaining glucose-colored trend arrows and urgent/old-data colors, thanks [@nishanm](https://github.com/nishanm) ([#191](https://github.com/ktomy/nightscout-clock/pull/191), [#200](https://github.com/ktomy/nightscout-clock/pull/200))
+- Added the Race car face with animated speed lines, road, and wheels, selectable animation speeds, and a stopped, faded scene for stale readings, thanks [@nishanm](https://github.com/nishanm) ([#203](https://github.com/ktomy/nightscout-clock/pull/203))
+- Added the Dragon face with animated flames, selectable animation speeds, and extinguished fire for stale readings, bringing the total to 12 clock faces, thanks [@nishanm](https://github.com/nishanm) ([#202](https://github.com/ktomy/nightscout-clock/pull/202))
+- Redrew the Unicorn and added optional mane animation, motion styles, speeds, and twinkling; the mane stops when readings become stale, thanks [@nishanm](https://github.com/nishanm) ([#201](https://github.com/ktomy/nightscout-clock/pull/201))
+- Added configurable colors for all five glucose ranges, used throughout the clock faces and graphs, thanks [@nishanm](https://github.com/nishanm) ([#199](https://github.com/ktomy/nightscout-clock/pull/199))
+- Added an optional early-stale color to Big text for readings 6, 10, or 15 minutes old; the old-data color takes precedence at the configured old-data threshold, thanks [@nishanm](https://github.com/nishanm) ([#178](https://github.com/ktomy/nightscout-clock/pull/178))
+- Replaced stale trend arrows with a cross in the old-data color, thanks [@nishanm](https://github.com/nishanm) ([#194](https://github.com/ktomy/nightscout-clock/pull/194))
+- Added editable clock names, shown in the settings heading and browser tab, thanks [@nishanm](https://github.com/nishanm) ([#196](https://github.com/ktomy/nightscout-clock/pull/196))
+- Added an optional custom WiFi MAC address, thanks [@adamecker](https://github.com/adamecker) ([#224](https://github.com/ktomy/nightscout-clock/pull/224))
+- Fixed fatal-error messages being invisible at minimum brightness or using the large-digit font, thanks [@nishanm](https://github.com/nishanm) ([#207](https://github.com/ktomy/nightscout-clock/pull/207))
+- Moved web UI sources to `web/src/` and generated compressed assets during filesystem builds, thanks [@nishanm](https://github.com/nishanm) ([#192](https://github.com/ktomy/nightscout-clock/pull/192))
+- Added reproducible screenshots for every settings tab
 
 ### 0.31
 

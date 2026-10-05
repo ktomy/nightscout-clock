@@ -44,6 +44,7 @@ public:
     void selectButtonLong();
     void setPower(bool power);
     void setBrightness(int bri);
+    uint8_t getBrightness() const { return currentBrightness; }
     void update();
     void clearMatrixPart(uint8_t x, uint8_t y, uint8_t width, uint8_t height, bool updateMatrix = true);
     float getTextWidth(const char* text, byte textCase);

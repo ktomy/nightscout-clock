@@ -1,5 +1,6 @@
 {
     "ssid": "",
+    "custom_mac": "",
     "password": "",
     "dhcp": true,
     "ip": "",
@@ -19,6 +20,11 @@
     "low_urgent_mgdl": 55,
     "high_mgdl": 180,
     "high_urgent_mgdl": 250,
+    "bg_color_urgent_low": "red",
+    "bg_color_low": "yellow",
+    "bg_color_normal": "green",
+    "bg_color_high": "yellow",
+    "bg_color_urgent_high": "red",
     "brightness_mode": "auto_linear",
     "brightness_level": 100,
     "default_face": 3,
@@ -58,9 +64,28 @@
     "additional_wifi_password": "",
     "custom_hostname_enable": false,
     "custom_hostname": "",
+    "clock_name": "",
     "custom_nodatatimer_enable": false,
     "custom_nodatatimer": 20,
     "data_old_color": "gray",
+    "face_big_text": {
+        "early_stale_color": "off",
+        "early_stale_minutes": 6
+    },
+    "face_unicorn": {
+        "mane": "still",
+        "speed": "normal",
+        "flow": "down"
+    },
+    "face_race_car": {
+        "speed": "normal"
+    },
+    "face_simple_dark": {
+        "value_color": "white"
+    },
+    "face_dragon": {
+        "speed": "normal"
+    },
     "web_auth_enable": false,
     "web_auth_password": ""
 }

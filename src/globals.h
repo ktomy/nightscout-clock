@@ -5,7 +5,7 @@
 
 #include "enums.h"
 
-#define VERSION "0.31.0"
+#define VERSION "1.0.0"
 
 #ifdef DEBUG
 #define DEBUG_PRINTLN(x)        \
@@ -31,7 +31,7 @@
 
 // How many clock faces BGDisplayManager registers. Face ids are validated against this both in
 // the settings API and when loading a config, so this must be updated when a face is added.
-#define CLOCK_FACE_COUNT 12
+#define CLOCK_FACE_COUNT 16
 #define CONFIG_JSON "/config.json"
 #define CONFIG_JSON_FACTORY "/config_initial.json"
 #define WIFI_CONNECT_TIMEOUT 15000
@@ -52,10 +52,10 @@
 #define COLOR_BLUE static_cast<uint16_t>(DISPLAY_COLOR::BLUE)
 #define COLOR_CYAN static_cast<uint16_t>(DISPLAY_COLOR::CYAN)
 #define COLOR_MAGENTA static_cast<uint16_t>(DISPLAY_COLOR::MAGENTA)
-
-#define BG_COLOR_NORMAL COLOR_GREEN
-#define BG_COLOR_WARNING COLOR_YELLOW
+// Compatibility aliases used by the original diagnostic/system faces.
 #define BG_COLOR_URGENT COLOR_RED
+#define BG_COLOR_WARNING COLOR_YELLOW
+#define BG_COLOR_NORMAL COLOR_GREEN
 
 extern bool BLOCK_NAVIGATION;
 extern float TEMP_OFFSET;

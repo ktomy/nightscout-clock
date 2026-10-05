@@ -8,15 +8,15 @@
 void BGDisplayFaceTextBase::showReading(
     const GlucoseReading reading, int16_t x, int16_t y, TEXT_ALIGNMENT alignment, FONT_TYPE font,
     bool isOld, bool updateMatrix) const {
+    DisplayManager.setTextColor(isOld ? getDataOldColor() : getColorByBGValue(reading));
+    printReading(reading, x, y, alignment, font, updateMatrix);
+}
+
+void BGDisplayFaceTextBase::printReading(
+    const GlucoseReading& reading, int16_t x, int16_t y, TEXT_ALIGNMENT alignment, FONT_TYPE font,
+    bool updateMatrix) const {
     String readingToDisplay = getPrintableReading(reading.sgv);
-    if (!isOld) {
-        SetDisplayColorByBGValue(reading);
-    } else {
-        DisplayManager.setTextColor(getDataOldColor());
-    }
-
     DisplayManager.setFont(font);
-
     DisplayManager.printText(x, y, readingToDisplay.c_str(), alignment, 2, updateMatrix);
 }
 
@@ -25,24 +25,12 @@ void BGDisplayFaceTextBase::SetDisplayColorByBGValue(const GlucoseReading& readi
 }
 
 uint16_t BGDisplayFaceTextBase::getDisplayColorByBGValue(const GlucoseReading& reading) const {
+    return getColorByBGValue(reading);
+}
+
+uint16_t BGDisplayFaceTextBase::getColorByBGValue(const GlucoseReading& reading) const {
     auto bgLevel = bgDisplayManager.getGlucoseIntervals().getBGLevel(reading.sgv);
-    auto textColor = COLOR_GRAY;
-
-    switch (bgLevel) {
-        case BG_LEVEL::URGENT_LOW:
-        case BG_LEVEL::URGENT_HIGH:
-            textColor = BG_COLOR_URGENT;
-            break;
-        case BG_LEVEL::WARNING_LOW:
-        case BG_LEVEL::WARNING_HIGH:
-            textColor = BG_COLOR_WARNING;
-            break;
-        case BG_LEVEL::NORMAL:
-            textColor = BG_COLOR_NORMAL;
-            break;
-    }
-
-    return textColor;
+    return getBandColor(bgLevel);
 }
 
 String BGDisplayFaceTextBase::getPrintableReading(const int sgv) const {
@@ -61,70 +49,34 @@ String BGDisplayFaceTextBase::getPrintableReading(const int sgv) const {
 
 // Glucose trends
 const uint8_t symbol_doubleUp[] PROGMEM = {
-    0b01010000,
-    0b11111000,
-    0b01010000,
-    0b01010000,
-    0b01010000,
+    0b01010000, 0b11111000, 0b01010000, 0b01010000, 0b01010000,
 };
 const uint8_t symbol_singleUp[] PROGMEM = {
-    0b00100000,
-    0b01110000,
-    0b10101000,
-    0b00100000,
-    0b00100000,
+    0b00100000, 0b01110000, 0b10101000, 0b00100000, 0b00100000,
 };
 const uint8_t symbol_fortyFiveUp[] PROGMEM = {
-    0b00111000,
-    0b00011000,
-    0b00101000,
-    0b01000000,
-    0b10000000,
+    0b00111000, 0b00011000, 0b00101000, 0b01000000, 0b10000000,
 };
 const uint8_t symbol_flat[] PROGMEM = {
-    0b00100000,
-    0b00010000,
-    0b11111000,
-    0b00010000,
-    0b00100000,
+    0b00100000, 0b00010000, 0b11111000, 0b00010000, 0b00100000,
 };
 const uint8_t symbol_fortyFiveDown[] PROGMEM = {
-    0b10000000,
-    0b01000000,
-    0b00101000,
-    0b00011000,
-    0b00111000,
+    0b10000000, 0b01000000, 0b00101000, 0b00011000, 0b00111000,
 };
 const uint8_t symbol_singleDown[] PROGMEM = {
-    0b00100000,
-    0b00100000,
-    0b10101000,
-    0b01110000,
-    0b00100000,
+    0b00100000, 0b00100000, 0b10101000, 0b01110000, 0b00100000,
 };
 const uint8_t symbol_doubleDown[] PROGMEM = {
-    0b01010000,
-    0b01010000,
-    0b01010000,
-    0b11111000,
-    0b01010000,
+    0b01010000, 0b01010000, 0b01010000, 0b11111000, 0b01010000,
 };
 
 const uint8_t symbol_empty[] PROGMEM = {
-    0b00000000,
-    0b00000000,
-    0b00000000,
-    0b00000000,
-    0b00000000,
+    0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000,
 };
 
 // Drawn in the arrow's place once the reading is too old: the clock has no current trend to show.
 const uint8_t symbol_dataOld[] PROGMEM = {
-    0b10001000,
-    0b01010000,
-    0b00100000,
-    0b01010000,
-    0b10001000,
+    0b10001000, 0b01010000, 0b00100000, 0b01010000, 0b10001000,
 };
 
 const std::map<BG_TREND, const uint8_t*> glucoseTrendSymbols = {
@@ -143,13 +95,21 @@ const std::map<BG_TREND, const uint8_t*> glucoseTrendSymbols = {
 void BGDisplayFaceTextBase::showTrendArrow(
     const GlucoseReading reading, int16_t x, int16_t y, bool dataIsOld, bool colorByReading,
     bool updateMatrix) const {
+    const uint16_t color = colorByReading ? getColorByBGValue(reading) : COLOR_WHITE;
     if (dataIsOld) {
         DisplayManager.drawBitmap(x, y, symbol_dataOld, 5, 5, getDataOldColor(), updateMatrix);
         return;
     }
-
-    const uint16_t color = colorByReading ? getDisplayColorByBGValue(reading) : COLOR_WHITE;
     DisplayManager.drawBitmap(x, y, glucoseTrendSymbols.at(reading.trend), 5, 5, color, updateMatrix);
+}
+
+void BGDisplayFaceTextBase::showTrendArrow(
+    const GlucoseReading reading, int16_t x, int16_t y, bool dataIsOld, uint16_t freshColor) const {
+    if (dataIsOld) {
+        DisplayManager.drawBitmap(x, y, symbol_dataOld, 5, 5, getDataOldColor());
+        return;
+    }
+    DisplayManager.drawBitmap(x, y, glucoseTrendSymbols.at(reading.trend), 5, 5, freshColor);
 }
 
 #pragma endregion Show arrow

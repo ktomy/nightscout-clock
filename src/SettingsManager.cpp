@@ -88,12 +88,35 @@ bool SettingsManager_::isValidAlarmRepeatInterval(int intervalSeconds) {
     return intervalSeconds == 60 || intervalSeconds == 120 || intervalSeconds == 300;
 }
 
+bool SettingsManager_::parseCustomMac(const String& macStr, uint8_t* macBytes) {
+    int values[6];
+    int parsed = sscanf(macStr.c_str(), "%x:%x:%x:%x:%x:%x",
+                        &values[0], &values[1], &values[2],
+                        &values[3], &values[4], &values[5]);
+    if (parsed != 6) {
+        parsed = sscanf(macStr.c_str(), "%x-%x-%x-%x-%x-%x",
+                        &values[0], &values[1], &values[2],
+                        &values[3], &values[4], &values[5]);
+    }
+    if (parsed != 6) {
+        return false;
+    }
+    for (int i = 0; i < 6; i++) {
+        if (values[i] < 0 || values[i] > 255) {
+            return false;
+        }
+        macBytes[i] = (uint8_t)values[i];
+    }
+    return true;
+}
+
 bool SettingsManager_::loadSettingsFromFile() {
     auto doc = readConfigJsonFile();
     if (doc == NULL)
         return false;
 
     settings.ssid = (*doc)["ssid"].as<String>();
+    settings.custom_mac = (*doc)["custom_mac"] | "";
     settings.wifi_password = (*doc)["password"].as<String>();
 
     settings.bg_low_warn_limit = (*doc)["low_mgdl"].as<int>();
@@ -101,6 +124,16 @@ bool SettingsManager_::loadSettingsFromFile() {
     settings.bg_low_urgent_limit = (*doc)["low_urgent_mgdl"].as<int>();
     settings.bg_high_urgent_limit = (*doc)["high_urgent_mgdl"].as<int>();
     settings.bg_units = (*doc)["units"].as<String>() == "mmol" ? BG_UNIT::MMOLL : BG_UNIT::MGDL;
+    settings.bg_color_urgent_low =
+        displayColorFromString((*doc)["bg_color_urgent_low"].as<String>(), DISPLAY_COLOR::RED);
+    settings.bg_color_low =
+        displayColorFromString((*doc)["bg_color_low"].as<String>(), DISPLAY_COLOR::YELLOW);
+    settings.bg_color_normal =
+        displayColorFromString((*doc)["bg_color_normal"].as<String>(), DISPLAY_COLOR::GREEN);
+    settings.bg_color_high =
+        displayColorFromString((*doc)["bg_color_high"].as<String>(), DISPLAY_COLOR::YELLOW);
+    settings.bg_color_urgent_high =
+        displayColorFromString((*doc)["bg_color_urgent_high"].as<String>(), DISPLAY_COLOR::RED);
 
     String brightness_mode = (*doc)["brightness_mode"].as<String>();
     if (brightness_mode == "manual") {
@@ -248,6 +281,32 @@ bool SettingsManager_::loadSettingsFromFile() {
     settings.data_old_color = displayColorFromString(
         (*doc)["data_old_color"].as<String>(), DISPLAY_COLOR::GRAY);
 
+    // Big text face
+    JsonObject bigText = (*doc)["face_big_text"].as<JsonObject>();
+    String earlyStaleColor = bigText["early_stale_color"] | "off";
+    settings.face_big_text.early_stale_enabled = earlyStaleColor != "off";
+    settings.face_big_text.early_stale_color =
+        displayColorFromString(earlyStaleColor, DISPLAY_COLOR::CYAN);
+    settings.face_big_text.early_stale_minutes = bigText["early_stale_minutes"] | 6;
+
+    // Unicorn face
+    JsonObject unicorn = (*doc)["face_unicorn"].as<JsonObject>();
+    settings.face_unicorn.mane_moving = unicorn["mane"].as<String>() == "moving";
+    settings.face_unicorn.speed = animationSpeedFromString(unicorn["speed"].as<String>());
+    settings.face_unicorn.flow = maneFlowFromString(unicorn["flow"].as<String>());
+
+    // Race car face
+    JsonObject raceCar = (*doc)["face_race_car"].as<JsonObject>();
+    settings.face_race_car.speed = animationSpeedFromString(raceCar["speed"].as<String>());
+
+    // Simple (dark) face
+    settings.face_simple_dark.value_color = displayColorFromString(
+        (*doc)["face_simple_dark"]["value_color"].as<String>(), DISPLAY_COLOR::WHITE);
+
+    // Dragon face
+    JsonObject dragon = (*doc)["face_dragon"].as<JsonObject>();
+    settings.face_dragon.speed = animationSpeedFromString(dragon["speed"].as<String>());
+
     // Web interface authentication
     settings.web_auth_enable = (*doc)["web_auth_enable"].as<bool>();
     settings.web_auth_password = (*doc)["web_auth_password"].as<String>();
@@ -264,12 +323,18 @@ bool SettingsManager_::saveSettingsToFile() {
         return false;
 
     (*doc)["ssid"] = settings.ssid;
+    (*doc)["custom_mac"] = settings.custom_mac;
     (*doc)["password"] = settings.wifi_password;
 
     (*doc)["low_mgdl"] = settings.bg_low_warn_limit;
     (*doc)["high_mgdl"] = settings.bg_high_warn_limit;
     (*doc)["low_urgent_mgdl"] = settings.bg_low_urgent_limit;
     (*doc)["high_urgent_mgdl"] = settings.bg_high_urgent_limit;
+    (*doc)["bg_color_urgent_low"] = toString(settings.bg_color_urgent_low);
+    (*doc)["bg_color_low"] = toString(settings.bg_color_low);
+    (*doc)["bg_color_normal"] = toString(settings.bg_color_normal);
+    (*doc)["bg_color_high"] = toString(settings.bg_color_high);
+    (*doc)["bg_color_urgent_high"] = toString(settings.bg_color_urgent_high);
 
     (*doc)["units"] = settings.bg_units == BG_UNIT::MMOLL ? "mmol" : "mgdl";
 
@@ -383,6 +448,30 @@ bool SettingsManager_::saveSettingsToFile() {
     (*doc)["custom_nodatatimer_enable"] = settings.custom_nodatatimer_enable;
     (*doc)["custom_nodatatimer"] = settings.custom_nodatatimer;
     (*doc)["data_old_color"] = toString(settings.data_old_color);
+
+    // Big text face
+    JsonObject bigText = (*doc)["face_big_text"].to<JsonObject>();
+    bigText["early_stale_color"] = settings.face_big_text.early_stale_enabled
+                                       ? toString(settings.face_big_text.early_stale_color)
+                                       : "off";
+    bigText["early_stale_minutes"] = settings.face_big_text.early_stale_minutes;
+
+    // Unicorn face
+    JsonObject unicorn = (*doc)["face_unicorn"].to<JsonObject>();
+    unicorn["mane"] = settings.face_unicorn.mane_moving ? "moving" : "still";
+    unicorn["speed"] = toString(settings.face_unicorn.speed);
+    unicorn["flow"] = toString(settings.face_unicorn.flow);
+
+    // Race car face
+    JsonObject raceCar = (*doc)["face_race_car"].to<JsonObject>();
+    raceCar["speed"] = toString(settings.face_race_car.speed);
+
+    // Simple (dark) face
+    (*doc)["face_simple_dark"]["value_color"] = toString(settings.face_simple_dark.value_color);
+
+    // Dragon face
+    JsonObject dragon = (*doc)["face_dragon"].to<JsonObject>();
+    dragon["speed"] = toString(settings.face_dragon.speed);
 
     // Web interface authentication
     (*doc)["web_auth_enable"] = settings.web_auth_enable;
