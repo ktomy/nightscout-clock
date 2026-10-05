@@ -25,6 +25,7 @@
  * @property {string} bgSource Active firmware source name, such as LIBRELINKUP.
  * @property {string} bgSourceStatus Source state/error code, such as connected or initialized.
  * @property {number} sgv Latest glucose in mg/dl, or zero when no reading is available.
+ * @property {string} faceId Currently displayed clock-face id.
  */
 /**
  * Password protection and session state reported by the clock.
@@ -258,6 +259,13 @@ const api = (() => {
      */
     const tryAlarm = rtttl => request("POST", "/api/alarm", { body: { rtttl } })
     /**
+     * Show a clock face immediately, like the side buttons. Temporary: it does
+     * not change the default face, schedule, or cycling.
+     * @param {string} face - Face id to show.
+     * @returns {Promise<ApiReply<ActionStatus>>}
+     */
+    const switchFace = face => request("POST", "/api/face", { body: { face } })
+    /**
      * Fetch LibreLinkUp patient choices from the clock's active connection.
      * @returns {Promise<ApiReply<PatientEntry[]>>}
      */
@@ -298,5 +306,5 @@ const api = (() => {
         })
     }
 
-    return { on: events.on, startStatus, saveSettings, authStatus, login, logout, loadConfig, version, downloadLogs, timezones, tryAlarm, patients }
+    return { on: events.on, startStatus, saveSettings, authStatus, login, logout, loadConfig, version, downloadLogs, timezones, tryAlarm, switchFace, patients }
 })()
