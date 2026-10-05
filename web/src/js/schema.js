@@ -77,6 +77,7 @@ const FACES = [
     { id: "rainbow_clock", name: "Rainbow clock" },
     { id: "big_text_rainbow", name: "Rainbow big text" },
     { id: "rainbow_mood", name: "Rainbow mood" },
+    { id: "battery_uptime", name: "Battery and uptime" },
 ]
 
 // The config stores the faces switched off, so a face added later starts active.
