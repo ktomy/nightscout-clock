@@ -60,6 +60,10 @@ void BGDisplayManager_::setup() {
     facesNames[10] = "Dragon";
     faces.push_back(new BGDisplayFaceBigTextDark());
     facesNames[11] = "Big text (dark)";
+    faces.push_back(new BGDisplayFaceRainbowClock());
+    facesNames[12] = "Rainbow clock";
+    faces.push_back(new BGDisplayFaceBigTextRainbow());
+    facesNames[13] = "Rainbow big text";
 
     if (faces.size() != CLOCK_FACE_COUNT) {
         DEBUG_PRINTF(
