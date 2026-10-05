@@ -50,6 +50,7 @@ void BGDisplayManager_::setup() {
         {"race_car", "Race car", new BGDisplayFaceRaceCar()},
         {"dragon", "Dragon", new BGDisplayFaceDragon()},
         {"big_text_dark", "Big text (dark)", new BGDisplayFaceBigTextDark()},
+        {"rainbow_clock", "Rainbow clock", new BGDisplayFaceRainbowClock()},
     };
 
     configureActiveFaces();
