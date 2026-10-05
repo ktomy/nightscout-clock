@@ -205,7 +205,7 @@ bool BGDisplayFaceUnicorn::maneNeighbour(int sgv, BG_LEVEL level, uint16_t& colo
 void BGDisplayFaceUnicorn::drawMane(int sgv, bool dataIsOld, bool moving, unsigned long frame) const {
     const BG_LEVEL level = bgDisplayManager.getGlucoseIntervals().getBGLevel(sgv);
     const bool inRange = level == BG_LEVEL::NORMAL || level == BG_LEVEL::INVALID;
-    const bool urgent = level == BG_LEVEL::URGENT_LOW || level == BG_LEVEL::URGENT_HIGH;
+    const bool urgent = isUrgent(level);
     const MANE_FLOW flow = SettingsManager.settings.face_unicorn.flow;
     const bool wisps = moving && !dataIsOld;
     uint16_t neighbour = 0;
