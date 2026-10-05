@@ -29,7 +29,7 @@
     "brightness_level": 100,
     "default_face": 3,
     "face_cycle_enabled": false,
-    "inactive_faces": [],
+    "inactive_faces": [16, 17],
     "face_cycle_interval_seconds": 60,
     "face_schedule_enabled": false,
     "face_schedule": [],

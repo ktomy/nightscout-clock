@@ -60,6 +60,20 @@ void BGDisplayManager_::setup() {
     facesNames[10] = "Dragon";
     faces.push_back(new BGDisplayFaceBigTextDark());
     facesNames[11] = "Big text (dark)";
+    faces.push_back(new BGDisplayFaceRainbowClock());
+    facesNames[12] = "Rainbow clock";
+    faces.push_back(new BGDisplayFaceBigTextRainbow());
+    facesNames[13] = "Rainbow big text";
+    faces.push_back(new BGDisplayFaceRainbowSparkle());
+    facesNames[14] = "Rainbow sparkle";
+    faces.push_back(new BGDisplayFaceBigTextWithAge());
+    facesNames[15] = "Big text + age";
+    faces.push_back(new BGDisplayFaceDiagnostics());
+    facesNames[16] = "Diagnostics";
+    faces.push_back(new BGDisplayFaceBatteryUptime());
+    facesNames[17] = "Battery and uptime";
+    faces.push_back(new BGDisplayFaceTitleScroll());
+    facesNames[18] = "Custom title scroll";
 
     if (faces.size() != CLOCK_FACE_COUNT) {
         DEBUG_PRINTF(
