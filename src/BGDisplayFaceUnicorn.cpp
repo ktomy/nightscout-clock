@@ -210,9 +210,9 @@ void BGDisplayFaceUnicorn::drawMane(int sgv, bool dataIsOld, bool moving, unsign
     const bool wisps = moving && !dataIsOld;
     uint16_t neighbour = 0;
     const bool mixes = moving && !dataIsOld && maneNeighbour(sgv, level, neighbour);
-    // The run flow at the lowest brightness uses its own colors, and its tips stay put so they leave no
-    // dark cell.
-    const bool lowest = moving && !dataIsOld && flow == MANE_FLOW::RUN &&
+    // The run flow at the lowest brightness uses its own colors for an in-range reading, and its tips
+    // stay put so they leave no dark cell. Out of range keeps the glucose colors.
+    const bool lowest = moving && !dataIsOld && inRange && flow == MANE_FLOW::RUN &&
                         DisplayManager.getBrightness() <= MIN_BRIGHTNESS;
 
     // Moving tips drift a row up or down into empty cells, so those cells are cleared before the mane is drawn.
