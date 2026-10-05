@@ -159,7 +159,11 @@ def commit_and_push(version, tag_name):
     if staged_changes.returncode != 1:
         fail("could not inspect staged release changes")
 
-    run_git("commit", "-m", f"Bump version to {version}")
+    run_git(
+        "commit", "-m", f"Bump version to {version}",
+        "-m", f"Set the firmware, installer manifest, and README to version {version} "
+        "so the release artifacts and documentation identify the same release.",
+    )
     run_git("tag", tag_name)
 
     print(f"Atomically pushing main and {tag_name}...", flush=True)

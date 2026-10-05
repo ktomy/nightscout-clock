@@ -48,8 +48,8 @@ Thanks [@CallumMcK](https://github.com/CallumMcK)
 3. Unpack, turn on (press on `<` and `>` buttons for a few seconds)
 4. Connect the USB-C cable (comes with the clock) to your computer
 5. Go to the [installation page](https://ktomy.github.io/nightscout-clock/)
-6. Follow the instructions. If the installation fails (error messages during installation, read [this](https://github.com/ktomy/nightscout-clock/discussions/57)
-7. Once the clock installed, take out your phone and join `nsclock` wi-fi network. Then go to `http://192.168.4.1/`
+6. Follow the instructions. If installation fails, see the [installation troubleshooting discussion](https://github.com/ktomy/nightscout-clock/discussions/57).
+7. Once the clock is installed, take out your phone and join `nsclock` wi-fi network. Then go to `http://192.168.4.1/`
 8. Set up your device, provide the Wi-Fi network details, your Dexcom, Nightscout, LibreLink Up or Medtrum EasyFollow credentials, glucose warning limits and other parameters
 9. You're all set, enjoy!
 
@@ -57,11 +57,11 @@ Thanks [@CallumMcK](https://github.com/CallumMcK)
 
 Updates use a full reflash and reset the clock's settings. Make a note of your settings before updating. If your installed version has **Backup and restore**, download a settings file first; after updating, load it on the **WiFi & system** tab, review the settings, and select **Save and restart**. Include network settings when restoring your WiFi connection; the web login must be configured separately.
 
-[![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/7mFZJ7_EFN4/0.jpg)](https://www.youtube.com/watch?v=7mFZJ7_EFN4)
+[![How to update Nightscout Clock](https://img.youtube.com/vi/7mFZJ7_EFN4/0.jpg)](https://www.youtube.com/watch?v=7mFZJ7_EFN4)
 
 Thanks [@CallumMcK](https://github.com/CallumMcK)
 
-## More information for people who needs it
+## More information
 
 Nightscout Clock is a custom firmware for Ulanzi TC001. It can also run (with minor changes) on AWTRIX-Light custom hardware, so if you need a bigger display, feel free to research.
 
@@ -100,7 +100,7 @@ The **Daily schedule** card on the **Display** tab can change the clock's face a
 
 The settings page works offline and adapts to desktop and phone screens. Four tabs group the controls; changes take effect when you select **Save and restart**. Use the pencil beside the heading to name your clock.
 
-The screenshots below show the current development UI with sample data.
+The screenshots below show the 1.0 settings interface with sample data, captured before the version bump.
 
 #### Display
 
@@ -148,7 +148,7 @@ High, low, and urgent-low alarms each have their own threshold, snooze duration,
 - Changing color based on limits. Each glucose range's color (red, yellow, green, yellow, red by default) can be changed next to its limit in the Web UI, and every face follows it
 - Nightscout data source, the clock gets units type and value boundaries from Nightscout (see [how to](https://youtu.be/GGiep2gdx_o) set up using [Nightscout.pro](https://www.nightscout.pro/) as data source)
 - [Juggluco](https://www.juggluco.nl/) data source (support for HTTP Nightscout endpoints)
-- [Improve WiFi](https://github.com/improv-wifi) compatibility (setting up WiFi during the installation)
+- [Improv Wi-Fi](https://github.com/improv-wifi) compatibility (setting up WiFi during the installation)
 - [Gluroo](https://gluroo.com/) data source (API_SECRET within the URL parameters) (see how to setup [video](https://youtu.be/unG-l6XXWxw))
 - Simplified Nightscout API like xDrip+ [Open Web Service](https://github.com/NightscoutFoundation/xDrip/blob/master/Documentation/technical/Local_Web_Services.md) support. When adding it as a data source, choose Nightscout and check the `Simplified API` checkbox. Make sure your source device (e.g. your phone running xDrip) has a static IP address and is on the same WiFi network. Also don't forget to check the port setting; for xDrip it is usually `17580`
 - Dexcom Share data source
@@ -180,7 +180,7 @@ High, low, and urgent-low alarms each have their own threshold, snooze duration,
 - Configurable color for old readings and no-data screens: gray (default), cyan, magenta, or blue. Choose it on the Display tab of the Web UI; the alternatives help keep stale readings visible at low brightness
 - Smart data and screen update timings: read data once it appears, refresh screen when needed
 - API data source. The clock has a simple Nightscout-like API which can receive glucose values from an external source. The main purpose of this feature is the ability to test the clock during the clockfaces development. In order to activate this feature, select the API data source within the clock's Web UI. Here are the endpoints:
-  - /api/v1/entries POST endpoint receives an array of Nightscout-like entries. The only significant fields are `sgv`, `date` and `trend` or `direction`. Due to the limited memory the API is stable when sent less than 10 recotds
+  - /api/v1/entries POST endpoint receives an array of Nightscout-like entries. The only significant fields are `sgv`, `date` and `trend` or `direction`. Due to the limited memory the API is stable when sent fewer than 10 records
   - /api/v1/entries DELETE endpoint deletes all entries regardless of the payload
 - Firmware versioning
 - Alarms with configurable thresholds, snooze times, repeat interval, sounds, and weekday/time alert windows
@@ -197,7 +197,7 @@ High, low, and urgent-low alarms each have their own threshold, snooze duration,
 
 ## Changes
 
-### 1.0.0 (upcoming)
+### 1.0.0
 
 - Rebuilt the configuration page as a self-contained, offline UI with Display, Glucose, Alarms, and WiFi & system tabs, responsive layouts, and unsaved-change indicators; removed Bootstrap and jQuery dependencies, thanks [@nishanm](https://github.com/nishanm) ([#192](https://github.com/ktomy/nightscout-clock/pull/192))
 - Added settings backup and restore: download a configuration file, load it for review, optionally include network settings, and save when ready; web login settings are never imported, thanks [@nishanm](https://github.com/nishanm) ([#197](https://github.com/ktomy/nightscout-clock/pull/197))
