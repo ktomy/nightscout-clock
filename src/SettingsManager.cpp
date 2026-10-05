@@ -172,6 +172,12 @@ bool SettingsManager_::loadSettingsFromFile() {
                 faceAlreadyAdded[faceId] = true;
             }
         }
+    } else {
+        // No face preferences stored (fresh config or one predating the
+        // inactive_faces setting): the diagnostics faces are opt-in, so keep
+        // them out of the rotation by default. Face 16 is Diagnostics
+        // (see BGDisplayManager::setup()).
+        settings.inactive_faces.push_back(16);
     }
     if (settings.face_cycle_enabled &&
         CLOCK_FACE_COUNT - static_cast<int>(settings.inactive_faces.size()) < 2) {

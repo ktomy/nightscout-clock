@@ -78,6 +78,7 @@ const FACES = [
     { id: 13, name: "Rainbow big text" },
     { id: 14, name: "Rainbow sparkle" },
     { id: 15, name: "Big text + age" },
+    { id: 16, name: "Diagnostics" },
 ]
 
 // The config stores the faces switched off, so a face added later starts active.
