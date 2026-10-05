@@ -123,10 +123,8 @@ const AGE_DOTS = [["on", "On"], ["off", "Off"]]
 const MANE_MODES = [["still", "Still"], ["moving", "Moving"]]
 const MANE_FLOWS = [["down", "Top to bottom"], ["back", "Colors scroll back"], ["run", "Light runs along the bands"]]
 const ANIMATION_SPEEDS = [["calm", "Calm"], ["normal", "Normal"], ["lively", "Lively"]]
-// Every color the firmware can draw except black, which is invisible on the black panel. The glucose
-// colors stay on the trend arrow, so the number keeps whichever of these is chosen.
-const DARK_VALUE_COLORS = [["white", "White"], ["cyan", "Cyan"], ["blue", "Blue"], ["magenta", "Magenta"],
-    ["gray", "Gray"], ["green", "Green"], ["yellow", "Yellow"], ["red", "Red"]]
+// No glucose colors, which would read as a glucose state, and no gray, which is dark at the lowest brightness.
+const DARK_VALUE_COLORS = [["white", "White"], ["cyan", "Cyan"], ["blue", "Blue"], ["magenta", "Magenta"]]
 const CYCLE_INTERVALS = [[10, "10 s"], [30, "30 s"], [60, "1 min"], [120, "2 min"], [180, "3 min"], [300, "5 min"]]
 const TIME_FORMATS = [["24", "24h"], ["12", "AM/PM"]]
 const SNOOZES = [[5, "5 minutes"], [10, "10 minutes"], [15, "15 minutes"], [30, "30 minutes"], [60, "1 hour"], [120, "2 hours"], [0, "Until next trigger"]]
@@ -392,6 +390,14 @@ function validateConfig(c, ctx) {
     if (active.includes("simple_dark") || active.includes("big_text_dark")) {
         need("face_simple_dark_value_color", darkValueColor !== oldColor,
             `The dark faces' number color must differ from the old data color (${OLD_DATA_COLORS.find(([v]) => v === oldColor)[1]}), or a fresh reading would look old.`)
+        need("face_simple_dark_value_color", inOptions(darkValueColor, DARK_VALUE_COLORS), "Please choose a number color.")
+        // The number keeps one color whatever the reading, so it must not match a range color.
+        const numberBand = BANDS.find(b => c[b.color] === darkValueColor)
+        if (numberBand) {
+            need("face_simple_dark_value_color", false,
+                `${numberBand.name} readings use this color. Choose another number color, or every reading would look ${numberBand.name.toLowerCase()}.`)
+            need(numberBand.color, false, "The dark faces' number uses this color. Choose another color.")
+        }
     }
     need("tz", RX.timezone.test(text(c.tz_libc)) && (!ctx.tzNames || ctx.tzNames.has(c.tz)), "Please select your time zone.")
     need("time_format", inOptions(c.time_format, TIME_FORMATS), "Please select the time format (AM/PM or 24h).")
