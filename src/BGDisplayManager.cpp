@@ -72,6 +72,8 @@ void BGDisplayManager_::setup() {
     facesNames[16] = "Diagnostics";
     faces.push_back(new BGDisplayFaceBatteryUptime());
     facesNames[17] = "Battery and uptime";
+    faces.push_back(new BGDisplayFaceTitleScroll());
+    facesNames[18] = "Custom title scroll";
 
     if (faces.size() != CLOCK_FACE_COUNT) {
         DEBUG_PRINTF(
