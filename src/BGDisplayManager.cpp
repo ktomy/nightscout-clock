@@ -70,6 +70,8 @@ void BGDisplayManager_::setup() {
     facesNames[15] = "Big text + age";
     faces.push_back(new BGDisplayFaceDiagnostics());
     facesNames[16] = "Diagnostics";
+    faces.push_back(new BGDisplayFaceBatteryUptime());
+    facesNames[17] = "Battery and uptime";
 
     if (faces.size() != CLOCK_FACE_COUNT) {
         DEBUG_PRINTF(
