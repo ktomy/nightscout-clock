@@ -149,7 +149,7 @@ bool SettingsManager_::loadSettingsFromFile() {
     }
 
     settings.brightness_level = (*doc)["brightness_level"].as<int>() - 1;
-    settings.default_clockface = (*doc)["default_face"].as<int>();
+    settings.default_clockface = (*doc)["default_face"].as<String>();
 
     settings.face_cycle_enabled = (*doc)["face_cycle_enabled"] | false;
     settings.face_cycle_interval_seconds = (*doc)["face_cycle_interval_seconds"] | 60;
@@ -159,24 +159,8 @@ bool SettingsManager_::loadSettingsFromFile() {
     }
 
     settings.inactive_faces.clear();
-    bool faceAlreadyAdded[CLOCK_FACE_COUNT] = {};
-    if ((*doc)["inactive_faces"].is<JsonArray>()) {
-        for (JsonVariant face : (*doc)["inactive_faces"].as<JsonArray>()) {
-            if (!face.is<int>()) {
-                continue;
-            }
-
-            int faceId = face.as<int>();
-            if (faceId >= 0 && faceId < CLOCK_FACE_COUNT && !faceAlreadyAdded[faceId]) {
-                settings.inactive_faces.push_back(faceId);
-                faceAlreadyAdded[faceId] = true;
-            }
-        }
-    }
-    if (settings.face_cycle_enabled &&
-        CLOCK_FACE_COUNT - static_cast<int>(settings.inactive_faces.size()) < 2) {
-        DEBUG_PRINTLN("Too few valid faces in config, disabling face cycling");
-        settings.face_cycle_enabled = false;
+    for (JsonVariant face : (*doc)["inactive_faces"].as<JsonArray>()) {
+        settings.inactive_faces.push_back(face.as<String>());
     }
 
     settings.face_schedule_enabled = (*doc)["face_schedule_enabled"] | false;
@@ -347,7 +331,7 @@ bool SettingsManager_::saveSettingsToFile() {
     (*doc)["face_cycle_interval_seconds"] = settings.face_cycle_interval_seconds;
     (*doc).remove("inactive_faces");
     JsonArray inactiveFaces = (*doc)["inactive_faces"].to<JsonArray>();
-    for (int faceId : settings.inactive_faces) {
+    for (const String& faceId : settings.inactive_faces) {
         inactiveFaces.add(faceId);
     }
     (*doc)["face_schedule_enabled"] = settings.face_schedule_enabled;

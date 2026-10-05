@@ -35,6 +35,15 @@ My computer is running linux, but you can use Windows or MacOS as well, there ar
 - You should be able to see the debug output in the VS Code terminal
 - If something goes wrong and you are stuck, feel free to start a [discussion](https://github.com/ktomy/nightscout-clock/discussions)
 
+### Adding a clock face
+
+Register the face instance, label, and a unique, stable snake_case ID (for example,
+`big_text`) together in `BGDisplayManager::setup()`. Add the same ID to `FACES` in
+`web/src/js/schema.js`, and use it in `FACE_DRAWERS` if the face has settings. Keep
+both lists in the intended navigation/display order. IDs do not depend on that
+order; no numeric ID allocation or face-count update is needed. Configuration
+stores these IDs in `default_face`, `inactive_faces`, and schedule rows.
+
 ### Updating the web UI screenshots
 
 The web UI source is in `web/src/`, including the original icon and timezone JSON in

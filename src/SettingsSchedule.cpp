@@ -21,13 +21,12 @@ std::vector<FaceScheduleEntry> readFaceSchedule(JsonVariantConst configured) {
 
         FaceScheduleEntry entry;
         entry.startMinutes = parseTimeOfDayMinutes(item["time"].as<String>());
-        entry.face = item["face"] | -1;
+        entry.face = item["face"].as<String>();
         entry.brightness = item["brightness"] | 0;
 
         const bool brightnessIsKnown = (entry.brightness >= 1 && entry.brightness <= 10) ||
                                        entry.brightness == 100 || entry.brightness == 101;
-        if (entry.startMinutes < 0 || entry.face < 0 || entry.face >= CLOCK_FACE_COUNT ||
-            !brightnessIsKnown) {
+        if (entry.startMinutes < 0 || !brightnessIsKnown) {
             DEBUG_PRINTLN("Ignoring a schedule row that cannot be applied");
             continue;
         }

@@ -4,7 +4,6 @@
 #include <Arduino.h>
 
 #include <list>
-#include <map>
 #include <vector>
 
 #include "BGDisplayFace.h"
@@ -74,14 +73,19 @@ struct GlucoseIntervals {
     }
 };
 
+struct RegisteredClockFace {
+    String id;
+    String name;
+    BGDisplayFace* instance;
+};
+
 class BGDisplayManager_ {
 private:
     std::list<GlucoseReading> displayedReadings;
-    std::vector<BGDisplayFace*> faces;
+    std::vector<RegisteredClockFace> faces;
     BGDisplayFace* currentFace;
     int currentFaceIndex;
     GlucoseIntervals glucoseIntervals;
-    std::map<int, String> facesNames;
     bool lastRenderedDataWasOld = false;
     bool faceCycleActive = false;
     bool faceCycleTimerStarted = false;
@@ -94,6 +98,8 @@ private:
     int lastScheduleMinuteOfDay = -1;
 
     bool drawAnimationFrame(bool dataIsOld, bool redraw);
+    int findFaceIndex(const String& id) const;
+    void setFaceByIndex(int index);
     void configureActiveFaces();
     void updateFaceCycle();
     void configureFaceSchedule();
@@ -112,11 +118,11 @@ public:
     GlucoseReading* getLastDisplayedGlucoseReading();
     const GlucoseIntervals& getGlucoseIntervals() const;
 
-    std::map<int, String> getFaces();
-    int getCurrentFaceId();
+    const std::vector<RegisteredClockFace>& getFaces() const;
+    String getCurrentFaceId() const;
     bool suppressesNewAlarms() const;
 
-    void setFace(int id);
+    void setFace(const String& id);
     void showNextFace();
     void showPreviousFace();
 

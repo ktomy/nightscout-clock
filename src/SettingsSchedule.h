@@ -1,6 +1,7 @@
 #ifndef SettingsSchedule_h
 #define SettingsSchedule_h
 
+#include <Arduino.h>
 #include <ArduinoJson.h>
 
 #include <vector>
@@ -9,7 +10,7 @@
 // value: 1-10 for a manual level, 100 and 101 for the two automatic modes.
 struct FaceScheduleEntry {
     int startMinutes = 0;  // minutes since midnight, 0-1439
-    int face = 0;
+    String face;
     int brightness = 100;
 };
 

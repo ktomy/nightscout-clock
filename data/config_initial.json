@@ -27,7 +27,7 @@
     "bg_color_urgent_high": "red",
     "brightness_mode": "auto_linear",
     "brightness_level": 100,
-    "default_face": 3,
+    "default_face": "big_text",
     "face_cycle_enabled": false,
     "inactive_faces": [],
     "face_cycle_interval_seconds": 60,
