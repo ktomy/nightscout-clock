@@ -17,6 +17,7 @@
 #include "BGDisplayFaceRaceCar.h"
 #include "BGDisplayFaceBigTextRainbow.h"
 #include "BGDisplayFaceRainbowClock.h"
+#include "BGDisplayFaceRainbowSparkle.h"
 #include "BGDisplayFaceSimple.h"
 #include "BGDisplayFaceSimpleDark.h"
 #include "BGDisplayFaceTimeOnly.h"

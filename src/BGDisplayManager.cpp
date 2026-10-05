@@ -64,6 +64,8 @@ void BGDisplayManager_::setup() {
     facesNames[12] = "Rainbow clock";
     faces.push_back(new BGDisplayFaceBigTextRainbow());
     facesNames[13] = "Rainbow big text";
+    faces.push_back(new BGDisplayFaceRainbowSparkle());
+    facesNames[14] = "Rainbow sparkle";
 
     if (faces.size() != CLOCK_FACE_COUNT) {
         DEBUG_PRINTF(
