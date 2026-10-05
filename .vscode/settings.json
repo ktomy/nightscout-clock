@@ -67,5 +67,6 @@
     "[cpp]": {
         "editor.defaultFormatter": "ms-vscode.cpptools"
     },
-    "editor.autoIndent": "full"
+    "editor.autoIndent": "full",
+    "Slingshot.readFileLineLimit": 3000
 }
