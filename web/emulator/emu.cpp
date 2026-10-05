@@ -114,10 +114,22 @@ EMSCRIPTEN_KEEPALIVE void emu_button(int id) {
     }
 }
 
-EMSCRIPTEN_KEEPALIVE int emu_get_face() { return bgDisplayManager.getCurrentFaceId(); }
-EMSCRIPTEN_KEEPALIVE void emu_set_face(int id) { bgDisplayManager.setFace(id); }
-EMSCRIPTEN_KEEPALIVE int emu_face_count() {
-    return static_cast<int>(bgDisplayManager.getFaces().size());
+EMSCRIPTEN_KEEPALIVE const char* emu_get_face() {
+    static String id;
+    id = bgDisplayManager.getCurrentFaceId();
+    return id.c_str();
+}
+EMSCRIPTEN_KEEPALIVE void emu_set_face(const char* id) { bgDisplayManager.setFace(id); }
+// The IDs of the faces this firmware has, as a JSON array in registration order.
+EMSCRIPTEN_KEEPALIVE const char* emu_face_ids() {
+    static std::string json;
+    JsonDocument doc;
+    for (const auto& face : bgDisplayManager.getFaces()) {
+        doc.add(face.id);
+    }
+    json.clear();
+    serializeJson(doc, json);
+    return json.c_str();
 }
 
 // Strip index of panel pixel (x, y).
