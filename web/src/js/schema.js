@@ -378,6 +378,12 @@ function validateConfig(c, ctx) {
     if (active.includes("big_text") && (bigText.early_stale_color || "off") !== "off") {
         need("face_big_text_early_stale_color", bigText.early_stale_color !== oldColor,
             `The Big text late color must differ from the old data color (${OLD_DATA_COLORS.find(([v]) => v === oldColor)[1]}), or the two can't be told apart.`)
+        const lateBand = BANDS.find(b => c[b.color] === bigText.early_stale_color)
+        if (lateBand) {
+            need("face_big_text_early_stale_color", false,
+                `${lateBand.name} readings use this color. Choose another late color, or a late reading could look ${lateBand.name.toLowerCase()}.`)
+            need(lateBand.color, false, "Big text shows late readings in this color. Choose another color.")
+        }
         need("face_big_text_early_stale_minutes", bigText.early_stale_minutes < oldMinutes,
             `The Big text late color must start before data counts as old (${oldMinutes} minutes). Choose fewer minutes, a longer no data timer, or Off.`)
     }

@@ -361,7 +361,7 @@ function drawer(title, body) {
 function bigTextSettings() {
     return el("div.stack",
         field("face_big_text_early_stale_color", "Color when a reading is late", segmented("face_big_text", EARLY_STALE_COLORS, { prop: "early_stale_color", label: "Color when a reading is late" }),
-            "Color late readings until the old-data threshold. Off keeps the usual glucose colors."),
+            "Color late readings until the old-data threshold. Urgent readings keep their glucose color. Off keeps the usual glucose colors."),
         field("face_big_text_early_stale_minutes", "Late after", segmented("face_big_text", EARLY_STALE_MINUTES, { numeric: true, prop: "early_stale_minutes", label: "Late after" })),
         field("face_big_text_age_dots", "Age dots", segmented("face_big_text", AGE_DOTS, { prop: "age_dots", label: "Age dots" }),
             "One dot under the trend arrow for each minute since the last reading, up to five."))

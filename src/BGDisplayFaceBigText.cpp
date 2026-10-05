@@ -34,8 +34,11 @@ RenderDecision BGDisplayFaceBigText::getRenderDecision(const RenderContext& ctx)
     return BGDisplayFace::getRenderDecision(ctx);
 }
 
+// An urgent reading is never shown as late, so it keeps its glucose color.
 bool BGDisplayFaceBigText::isEarlyStale(const GlucoseReading& reading, bool dataIsOld) const {
     const auto& bigText = SettingsManager.settings.face_big_text;
-    return bigText.early_stale_enabled && !dataIsOld &&
+    const auto level = bgDisplayManager.getGlucoseIntervals().getBGLevel(reading.sgv);
+    const bool urgent = level == BG_LEVEL::URGENT_LOW || level == BG_LEVEL::URGENT_HIGH;
+    return bigText.early_stale_enabled && !dataIsOld && !urgent &&
            reading.getSecondsAgo() >= 60 * bigText.early_stale_minutes;
 }
