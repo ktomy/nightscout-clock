@@ -289,7 +289,7 @@ function facesCard() {
             const on = !inactive.includes(f.id)
             const status = !on ? "Not active" : !cycling && form.get("default_face") === f.id ? "✓ Active, default" : "✓ Active"
             // A face the clock's firmware doesn't draw keeps its tile, without a picture.
-            const canvas = el("canvas", { width: 192, height: 48, "aria-hidden": "true", hidden: preview.faceCount > 0 && f.id >= preview.faceCount })
+            const canvas = el("canvas", { width: 192, height: 48, "aria-hidden": "true", hidden: preview.faceCount > 0 && !preview.hasFace(f.id) })
             thumbs.push({ canvas, face: f.id })
             list.append(el("button.face", {
                 type: "button", "aria-pressed": String(on), dataset: { face: f.id },
