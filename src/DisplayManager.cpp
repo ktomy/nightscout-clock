@@ -118,6 +118,22 @@ uint32_t hsvToRgb(uint8_t h, uint8_t s, uint8_t v) {
     return ((uint16_t)(rgb.r & 0xF8) << 8) | ((uint16_t)(rgb.g & 0xFC) << 3) | (rgb.b >> 3);
 }
 
+uint16_t DisplayManager_::rgb565(uint8_t r, uint8_t g, uint8_t b) {
+    return ((uint16_t)(r & 0xF8) << 8) | ((uint16_t)(g & 0xFC) << 3) | (b >> 3);
+}
+
+uint16_t DisplayManager_::hsvToRgb565(uint8_t hue) {
+    uint8_t region = hue / 43, rem = (hue - (region * 43)) * 6, q = 255 - rem, t = rem;
+    switch (region) {
+        case 0: return rgb565(255, t, 0);
+        case 1: return rgb565(q, 255, 0);
+        case 2: return rgb565(0, 255, t);
+        case 3: return rgb565(0, q, 255);
+        case 4: return rgb565(t, 0, 255);
+        default: return rgb565(255, 0, q);
+    }
+}
+
 float DisplayManager_::getTextWidth(const char* text, byte textCase) {
     float width = 0;
     for (const char* c = text; *c != '\0'; ++c) {
