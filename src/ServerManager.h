@@ -20,7 +20,6 @@ private:
     IPAddress setAPmode(String ssid, String psk);
     void saveConfigHandler();
     bool initTimeIfNeeded();
-    void setTimezone();
     String getHostname();
     bool isWebAuthEnabled() const;
     bool isRequestAuthenticated(AsyncWebServerRequest* request) const;
@@ -40,10 +39,12 @@ public:
     unsigned long getUtcEpoch();
     tm getTimezonedTime();
     bool tryGetTimezonedTime(tm& timeinfo);
+    void setTimezone();
     AsyncWebHandler addHandler(AsyncWebHandler* handler);
     void removeStaticFileHandler();
     void addStaticFileHandler();
     bool enforceAuthentication(AsyncWebServerRequest* request);
+    void forgetLogin();
     int failedAttempts = 0;
     void reconnectWifi();
 };

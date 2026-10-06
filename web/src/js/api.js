@@ -56,6 +56,7 @@
 /**
  * Options controlling save/restart behavior and progress display.
  * @typedef {Object} SaveOptions
+ * @property {boolean} [restart=true] Restart after saving settings that require it.
  * @property {boolean} [setupMode=false] Skip reconnect probing when moving off the setup WiFi network.
  * @property {(phase: 'saving' | 'restarting', seconds?: number) => void} [onPhase] Progress callback.
  */
@@ -257,13 +258,13 @@ const api = (() => {
     const reset = () => request("POST", "/api/reset", { body: {}, timeout: 4000 })
 
     /**
-     * Pause polling, save the configuration, restart the clock, and report progress or failure.
+     * Pause polling, save the configuration, optionally restart the clock, and report progress or failure.
      * Wait for it to return unless initial setup moves it onto a different WiFi network.
      * @param {ClockConfig} config - Configuration payload to save.
      * @param {SaveOptions} [options={}] - Initial-setup flag and progress callback.
      * @returns {Promise<SaveResult>}
      */
-    function saveSettings(config, { setupMode = false, onPhase = () => {} } = {}) {
+    function saveSettings(config, { restart = true, setupMode = false, onPhase = () => {} } = {}) {
         return exclusive(async () => {
             onPhase("saving")
             try {
@@ -276,6 +277,7 @@ const api = (() => {
             } catch (e) {
                 return { ok: false, error: `${e.message} The settings may not have been saved; save again.` }
             }
+            if (!restart) return { ok: true }
             onPhase("restarting")
             try { await reset() } catch (e) { /* the clock may restart before it answers */ }
             if (setupMode) return { ok: true, setupMode: true }
