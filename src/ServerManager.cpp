@@ -292,6 +292,21 @@ bool canReachInternet() {
     return false;
 }
 
+// Cache the internet reachability probe: /api/status is polled every 15s by
+// the web UI, and the probe does a blocking TCP connect that can stall the
+// async web server task for up to 4s. Refresh the cache at most every 60s.
+static bool cachedInternetReachable = false;
+static unsigned long lastInternetCheckMs = 0;
+
+bool cachedCanReachInternet() {
+    unsigned long now = millis();
+    if (lastInternetCheckMs == 0 || now - lastInternetCheckMs > 60000) {
+        cachedInternetReachable = canReachInternet();
+        lastInternetCheckMs = now;
+    }
+    return cachedInternetReachable;
+}
+
 void ServerManager_::setupWebServer(IPAddress ip) {
 #ifdef DEBUG_BG_SOURCE
     DEBUG_PRINTLN("ServerManager::setupWebServer");
@@ -460,7 +475,7 @@ void ServerManager_::setupWebServer(IPAddress ip) {
         String jsonResponse = "{\"isConnected\": ";
         jsonResponse += this->isConnected ? "true" : "false";
         jsonResponse += ", \"hasInternet\": ";
-        jsonResponse += canReachInternet() ? "true" : "false";
+        jsonResponse += cachedCanReachInternet() ? "true" : "false";
         jsonResponse += ", \"isInAPMode\": ";
         jsonResponse += this->isInAPMode ? "true" : "false";
         jsonResponse += ", \"bgSource\": \"";
