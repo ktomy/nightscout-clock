@@ -83,7 +83,7 @@ jobs:
         with:
           name: firmware
           path: combined-artifacts/
-          retention-days: 1
+          retention-days: 90
 
   deploy:
     name: Deploy on Github Pages
@@ -102,13 +102,8 @@ jobs:
         with:
           name: firmware
           path: artifacts
-      - name: Setup artifacts directories and files
-        run: |
-          mkdir -p www/artifacts www/debug/artifacts
-          cp artifacts/release/*.bin www/artifacts/
-          cp artifacts/debug/*.bin www/debug/artifacts/
-      - name: Copy debug manifest
-        run: cp www/debug/manifest-debug.json www/debug/manifest.json
+      - name: Assemble Pages site
+        run: bash scripts/assemble_pages.sh artifacts
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
