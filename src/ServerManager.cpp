@@ -478,6 +478,16 @@ void ServerManager_::setupWebServer(IPAddress ip) {
         request->send(200, "application/json", jsonResponse);
     });
 
+    // Download the in-memory debug log buffer (see LogBuffer). Requires
+    // authentication, same as /api/save, since logs may contain network
+    // details.
+    ws->on("/api/logs", HTTP_GET, [this](AsyncWebServerRequest* request) {
+        if (!enforceAuthentication(request)) {
+            return;
+        }
+        request->send(200, "text/plain", LogBuffer::get());
+    });
+
     ws->on("/config.json", HTTP_GET, [this](AsyncWebServerRequest* request) {
         if (!enforceAuthentication(request)) {
             return;
