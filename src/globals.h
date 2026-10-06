@@ -66,10 +66,5 @@ extern uint16_t BATTERY_RAW;
 extern bool MATRIX_OFF;
 extern uint8_t MIN_BRIGHTNESS;
 extern uint8_t MAX_BRIGHTNESS;
-// MelodyPlayer halves these; HIGH plays exactly as alerts always have (50% duty, the buzzer's loudest).
-#define ALARM_VOLUME_LOW 64
-#define ALARM_VOLUME_MEDIUM 128
-#define ALARM_VOLUME_HIGH 255
-#define DEFAULT_ALARM_VOLUME ALARM_VOLUME_HIGH
 extern const String sound_boot PROGMEM;
 #endif  // Globals_H
