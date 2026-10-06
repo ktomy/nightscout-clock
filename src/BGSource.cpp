@@ -40,24 +40,65 @@ void BGSource::tick() {
 
         glucoseReadings = updateReadings(glucoseReadings);
 
-        auto lastReading =
-            glucoseReadings.size() > 0 ? glucoseReadings.back() : GlucoseReading{0, BG_TREND::NONE, 0};
-        if (lastReading.epoch > currentTime - 60 && lastReading.epoch < currentTime) {
-#ifdef DEBUG_BG_SOURCE
-            DEBUG_PRINTF(
-                "BGSource::tick: Adjusting lastCallAttemptEpoch to %llu from %llu (delte %llu)",
-                lastReading.epoch + 5, currentTime, currentTime - (lastReading.epoch + 5))
-#endif
-            // 5 seconds to save the value
-            lastCallAttemptEpoch = lastReading.epoch + 5;
+        if (!lastFetchSucceeded) {
+            // The fetch failed: escalate through a quick backoff ladder (1s, 5s,
+            // 10s, 15s), then back off smartly. Past 4 failures, if the last
+            // reading is under 15 minutes old the next data point should land on
+            // the 5-minute CGM cadence, so wait for it; at 15+ minutes stale the
+            // G7 retries every minute, so poll every minute.
+            consecutiveFetchFailures++;
+            int attempt = consecutiveFetchFailures;
+            unsigned long retryDelaySec = 60;
+            bool waitForNextPoint = false;
+            if (consecutiveFetchFailures <= 4) {
+                const unsigned long ladder[] = {1, 5, 10, 15};
+                retryDelaySec = ladder[consecutiveFetchFailures - 1];
+            } else {
+                // Ladder exhausted: take a smart wait, then reset so the next
+                // cycle starts with a fresh 1s/5s/10s/15s ladder.
+                consecutiveFetchFailures = 0;
+                auto lastReading = glucoseReadings.size() > 0 ? glucoseReadings.back()
+                                                              : GlucoseReading{0, BG_TREND::NONE, 0};
+                unsigned long long stalenessSec =
+                    lastReading.epoch > 0 ? (currentTime - lastReading.epoch) : 0;
+                if (lastReading.epoch > 0 && stalenessSec < 15 * 60) {
+                    unsigned long long nextExpected = lastReading.epoch + 300 + 15;
+                    if (nextExpected > currentTime + 60) {
+                        // Trigger (currentTime > lastCallAttemptEpoch + 60) at nextExpected.
+                        lastCallAttemptEpoch = nextExpected - 60;
+                        waitForNextPoint = true;
+                    }
+                }
+                // else: 15+ minutes stale (or no readings): retry every 60s.
+            }
+            if (!waitForNextPoint) {
+                lastCallAttemptEpoch = currentTime + retryDelaySec - 60;
+            }
+            DEBUG_PRINTF("BGSource::tick: fetch failed (attempt %d), next try in %lus%s",
+                         attempt, retryDelaySec,
+                         waitForNextPoint ? " (waiting for next 5-min data point)" : "");
         } else {
+            consecutiveFetchFailures = 0;
+            auto lastReading =
+                glucoseReadings.size() > 0 ? glucoseReadings.back()
+                                             : GlucoseReading{0, BG_TREND::NONE, 0};
+            if (lastReading.epoch > currentTime - 60 && lastReading.epoch < currentTime) {
 #ifdef DEBUG_BG_SOURCE
-            DEBUG_PRINTF(
-                "BGSource::tick: Not adjusting lastCallAttemptEpoch to last reading %llu from %llu "
-                "(delta: %llu)",
-                lastReading.epoch, currentTime, currentTime - (lastReading.epoch + 5))
+                DEBUG_PRINTF(
+                    "BGSource::tick: Adjusting lastCallAttemptEpoch to %llu from %llu (delte %llu)",
+                    lastReading.epoch + 5, currentTime, currentTime - (lastReading.epoch + 5))
 #endif
-            lastCallAttemptEpoch = currentTime;
+                // 5 seconds to save the value
+                lastCallAttemptEpoch = lastReading.epoch + 5;
+            } else {
+#ifdef DEBUG_BG_SOURCE
+                DEBUG_PRINTF(
+                    "BGSource::tick: Not adjusting lastCallAttemptEpoch to last reading %llu from %llu "
+                    "(delta: %llu)",
+                    lastReading.epoch, currentTime, currentTime - (lastReading.epoch + 5))
+#endif
+                lastCallAttemptEpoch = currentTime;
+            }
         }
 
     } else {
