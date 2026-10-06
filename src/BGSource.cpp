@@ -59,9 +59,13 @@ void BGSource::tick() {
                 consecutiveFetchFailures = 0;
                 auto lastReading = glucoseReadings.size() > 0 ? glucoseReadings.back()
                                                               : GlucoseReading{0, BG_TREND::NONE, 0};
+                // Guard against future-dated readings (clock skew): only trust
+                // staleness when the reading is not newer than now.
+                bool haveValidReading =
+                    lastReading.epoch > 0 && lastReading.epoch <= currentTime;
                 unsigned long long stalenessSec =
-                    lastReading.epoch > 0 ? (currentTime - lastReading.epoch) : 0;
-                if (lastReading.epoch > 0 && stalenessSec < 15 * 60) {
+                    haveValidReading ? (currentTime - lastReading.epoch) : 0;
+                if (haveValidReading && stalenessSec < 15 * 60) {
                     unsigned long long nextExpected = lastReading.epoch + 300 + 15;
                     if (nextExpected > currentTime + 60) {
                         // Trigger (currentTime > lastCallAttemptEpoch + 60) at nextExpected.
