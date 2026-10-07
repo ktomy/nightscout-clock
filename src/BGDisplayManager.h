@@ -10,10 +10,10 @@
 #include "BGDisplayFaceBatteryUptime.h"
 #include "BGDisplayFaceBigText.h"
 #include "BGDisplayFaceBigTextDark.h"
-#include "BGDisplayFaceDragon.h"
 #include "BGDisplayFaceBigTextRainbow.h"
 #include "BGDisplayFaceClock.h"
 #include "BGDisplayFaceDiagnostics.h"
+#include "BGDisplayFaceDragon.h"
 #include "BGDisplayFaceGraph.h"
 #include "BGDisplayFaceGraphAndBG.h"
 #include "BGDisplayFaceRaceCar.h"
@@ -101,6 +101,7 @@ private:
     bool faceScheduleActive = false;
     int appliedScheduleEntry = -1;
     int lastScheduleMinuteOfDay = -1;
+    bool brightnessOverlayWasActive = false;
 
     bool drawAnimationFrame(bool dataIsOld, bool redraw);
     int findFaceIndex(const String& id) const;

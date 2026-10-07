@@ -301,6 +301,31 @@ bool SettingsManager_::loadSettingsFromFile() {
     return true;
 }
 
+// Re-reads only the brightness settings from the persisted config file.
+// The web UI always reboots after saving, so the file holds exactly what was
+// configured there; the middle button's tweaks stay in memory only, and a
+// long press restores the configured values through this.
+bool SettingsManager_::loadBrightnessFromFile() {
+    JsonDocument* doc = readConfigJsonFile();
+    if (doc == NULL) {
+        return false;
+    }
+    String brightness_mode = (*doc)["brightness_mode"].as<String>();
+    if (brightness_mode == "manual") {
+        settings.brightness_mode = BRIGHTNES_MODE::MANUAL;
+    } else if (brightness_mode == "auto_linear") {
+        settings.brightness_mode = BRIGHTNES_MODE::AUTO_LINEAR;
+    } else if (brightness_mode == "auto_dimmed") {
+        settings.brightness_mode = BRIGHTNES_MODE::AUTO_DIMMED;
+    } else {
+        delete doc;
+        return false;
+    }
+    settings.brightness_level = (*doc)["brightness_level"].as<int>() - 1;
+    delete doc;
+    return true;
+}
+
 bool SettingsManager_::saveSettingsToFile() {
     auto doc = readConfigJsonFile();
     if (doc == NULL)

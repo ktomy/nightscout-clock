@@ -17,6 +17,9 @@ public:
     void setup();
     bool loadSettingsFromFile();
     bool saveSettingsToFile();
+    // Re-reads only the brightness settings from the persisted config file,
+    // without disturbing anything else in memory.
+    bool loadBrightnessFromFile();
     bool trySaveJsonAsSettings(JsonDocument doc);
     void factoryReset();
     // The repeat intervals the WebUI offers; shared with the save endpoint.
