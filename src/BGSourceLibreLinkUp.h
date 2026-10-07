@@ -8,13 +8,9 @@
 #include "BGSource.h"
 #include "SettingsManager.h"
 
-#define LIBRE_LINK_UP_VERSION "4.16.0"
-#define LIBRE_LINK_UP_PRODUCT "llu.ios"
-#define USER_AGENT                                                                              \
-    "Mozilla/5.0 (iPhone; CPU OS 17_4.1 like Mac OS X) AppleWebKit/536.26 (KHTML, like Gecko) " \
-    "Version/17.4.1 "                                                                           \
-    "Mobile/10A5355d "                                                                          \
-    "Safari/8536.25"
+#define LIBRE_LINK_UP_VERSION "5.0.1"
+#define LIBRE_LINK_UP_PRODUCT "llu.android"
+#define USER_AGENT "LibreLinkUp/5.0.1"
 
 #define MAX_RETRY_COUNT 10
 

@@ -107,6 +107,42 @@ AuthTicket BGSourceLibreLinkUp::login() {
         DisplayManager.showFatalError(String("Invalid LibreLinkUp login response: ") + error.c_str());
     }
 
+    // Status 4 = server demands a step (currently Terms-of-Use re-accept).
+    // Seen since the LibreLinkUp 5.0.0 rollout. Accept the step, then reboot
+    // into a clean login. Note: the status-4 response carries a short-lived
+    // authTicket but NO user.id, so there is no account-id to send — the
+    // continue endpoint validates the Bearer token only.
+    if (doc["status"].as<int>() == 4) {
+        String stepType = doc["data"]["step"]["type"].as<String>();
+        String stepToken = doc["data"]["authTicket"]["token"].as<String>();
+        DEBUG_PRINTF("Login requires step: %s\n", stepType.c_str());
+
+        String url = "https://" + libreEndpoints[SettingsManager.settings.librelinkup_region] +
+                     "/auth/continue/" + stepType;
+
+        client->begin(*wifiSecureClient, url);
+        client->setTimeout(15000);
+        for (auto& header : standardHeaders) {
+            client->addHeader(header.first, header.second);
+        }
+        client->addHeader("Authorization", "Bearer " + stepToken);
+
+        auto stepResponseCode = client->POST("{}");
+        DEBUG_PRINTF("Step accept response: %d\n", stepResponseCode);
+        client->end();
+
+        if (stepResponseCode == HTTP_CODE_OK) {
+            DisplayManager.clearMatrix();
+            DisplayManager.setTextColor(COLOR_CYAN);
+            DisplayManager.printText(0, 6, "Accept", TEXT_ALIGNMENT::CENTER, 0);
+            DisplayManager.update();
+            delay(2000);
+            ESP.restart();
+        }
+        status = "login_step_failed";
+        DisplayManager.showFatalError("LibreLinkUp requires action in the LibreLinkUp app");
+    }
+
     if (doc["status"].as<int>() != 0) {
         DEBUG_PRINTF("Failed to login to LibreLinkUp, non-zero status %s\n", response.c_str());
         status = "login_failed";
