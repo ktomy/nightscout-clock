@@ -1,19 +1,35 @@
-; Copy this file to platformio.local.ini and uncomment the settings for your
-; machine. The local file is ignored by Git and overrides platformio.ini.
+; -----------------------------------------------------------------------------
+; Per-machine PlatformIO overrides (TEMPLATE)
+; -----------------------------------------------------------------------------
+; Copy this file to "platformio.local.ini" (same directory) and edit the values
+; for YOUR computer:
+;
+;     cp platformio.local.ini.example platformio.local.ini
+;
+; "platformio.local.ini" is git-ignored, so your serial port and upload speed
+; never end up in a commit. platformio.ini references this file via:
+;
+;     [platformio]
+;     extra_configs = platformio.local.ini
+;
+; PlatformIO merges the settings below on top of platformio.ini. The helper
+; scripts resolve the same PlatformIO configuration through scripts/get_port.sh.
+; -----------------------------------------------------------------------------
 
 [env]
-; Linux (prefer the stable /dev/serial/by-id path):
-; upload_port = /dev/serial/by-id/usb-your-device
-
-; macOS:
+; --- Serial port ---------------------------------------------------------------
+; Set the device path for your board. Find it with: pio device list
+;
+;   macOS    -> /dev/cu.usbserial-XXXX  or  /dev/cu.SLAB_USBtoUART
+;   Linux    -> /dev/ttyUSB0  or a stable /dev/serial/by-id/usb-...-port0 path
+;   Windows  -> COM3 (check Device Manager for the number)
 ; upload_port = /dev/cu.usbserial-your-device
 
-; Windows:
-; upload_port = COM3
+; --- Upload speed (optional) ---------------------------------------------------
+; platformio.ini defaults to a safe 115200. Uncomment to go faster once stable.
+; Common values: 460800, 921600. Drop back down if uploads start failing.
+;upload_speed = 921600
 
-; Optional for PlatformIO's native serial monitor. The helper scripts always
-; use upload_port so upload, reset, and monitor target the same device.
+; --- Serial monitor port (optional) --------------------------------------------
+; Usually the same as upload_port. Only needed if they differ.
 ; monitor_port = ${env.upload_port}
-
-; Optional machine-specific speed override:
-; upload_speed = 921600
