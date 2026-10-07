@@ -149,7 +149,7 @@ bool SettingsManager_::loadSettingsFromFile() {
     }
 
     settings.brightness_level = (*doc)["brightness_level"].as<int>() - 1;
-    settings.default_clockface = (*doc)["default_face"].as<int>();
+    settings.default_clockface = (*doc)["default_face"].as<String>();
 
     settings.face_cycle_enabled = (*doc)["face_cycle_enabled"] | false;
     settings.face_cycle_interval_seconds = (*doc)["face_cycle_interval_seconds"] | 60;
@@ -159,24 +159,8 @@ bool SettingsManager_::loadSettingsFromFile() {
     }
 
     settings.inactive_faces.clear();
-    bool faceAlreadyAdded[CLOCK_FACE_COUNT] = {};
-    if ((*doc)["inactive_faces"].is<JsonArray>()) {
-        for (JsonVariant face : (*doc)["inactive_faces"].as<JsonArray>()) {
-            if (!face.is<int>()) {
-                continue;
-            }
-
-            int faceId = face.as<int>();
-            if (faceId >= 0 && faceId < CLOCK_FACE_COUNT && !faceAlreadyAdded[faceId]) {
-                settings.inactive_faces.push_back(faceId);
-                faceAlreadyAdded[faceId] = true;
-            }
-        }
-    }
-    if (settings.face_cycle_enabled &&
-        CLOCK_FACE_COUNT - static_cast<int>(settings.inactive_faces.size()) < 2) {
-        DEBUG_PRINTLN("Too few valid faces in config, disabling face cycling");
-        settings.face_cycle_enabled = false;
+    for (JsonVariant face : (*doc)["inactive_faces"].as<JsonArray>()) {
+        settings.inactive_faces.push_back(face.as<String>());
     }
 
     settings.face_schedule_enabled = (*doc)["face_schedule_enabled"] | false;
@@ -317,6 +301,31 @@ bool SettingsManager_::loadSettingsFromFile() {
     return true;
 }
 
+// Re-reads only the brightness settings from the persisted config file.
+// The web UI always reboots after saving, so the file holds exactly what was
+// configured there; the middle button's tweaks stay in memory only, and a
+// long press restores the configured values through this.
+bool SettingsManager_::loadBrightnessFromFile() {
+    JsonDocument* doc = readConfigJsonFile();
+    if (doc == NULL) {
+        return false;
+    }
+    String brightness_mode = (*doc)["brightness_mode"].as<String>();
+    if (brightness_mode == "manual") {
+        settings.brightness_mode = BRIGHTNES_MODE::MANUAL;
+    } else if (brightness_mode == "auto_linear") {
+        settings.brightness_mode = BRIGHTNES_MODE::AUTO_LINEAR;
+    } else if (brightness_mode == "auto_dimmed") {
+        settings.brightness_mode = BRIGHTNES_MODE::AUTO_DIMMED;
+    } else {
+        delete doc;
+        return false;
+    }
+    settings.brightness_level = (*doc)["brightness_level"].as<int>() - 1;
+    delete doc;
+    return true;
+}
+
 bool SettingsManager_::saveSettingsToFile() {
     auto doc = readConfigJsonFile();
     if (doc == NULL)
@@ -347,7 +356,7 @@ bool SettingsManager_::saveSettingsToFile() {
     (*doc)["face_cycle_interval_seconds"] = settings.face_cycle_interval_seconds;
     (*doc).remove("inactive_faces");
     JsonArray inactiveFaces = (*doc)["inactive_faces"].to<JsonArray>();
-    for (int faceId : settings.inactive_faces) {
+    for (const String& faceId : settings.inactive_faces) {
         inactiveFaces.add(faceId);
     }
     (*doc)["face_schedule_enabled"] = settings.face_schedule_enabled;

@@ -10,7 +10,7 @@
  * One daily change of clock face and brightness, using the clock's configured timezone.
  * @typedef {Object} FaceScheduleEntry
  * @property {string} time Start time as HH:MM; may be empty while editing.
- * @property {number} face Registered clock-face ID.
+ * @property {string} face Registered clock-face ID.
  * @property {number} brightness Manual level 1–10, or automatic mode 100/101.
  */
 /**
@@ -28,9 +28,9 @@
  *   face_schedule_enabled?: boolean,
  *   face_schedule?: FaceScheduleEntry[],
  *   face_cycle_enabled: boolean,
- *   inactive_faces: number[],
+ *   inactive_faces: string[],
  *   brightness_level: number,
- *   default_face: number,
+ *   default_face: string,
  *   tz: string,
  *   tz_libc: string,
  *   alarm_high_alert_windows: AlertWindow[],
@@ -60,24 +60,24 @@
  * @property {string} defaultMelody Default RTTTL sound.
  */
 
-// IDs must match the registration order in BGDisplayManager::setup().
+// Stable IDs must match BGDisplayManager::setup(); array order controls UI display order.
 const FACES = [
-  { id: 0, name: "Simple" },
-  { id: 1, name: "Full glucose graph" },
-  { id: 2, name: "Glucose graph and value" },
-  { id: 3, name: "Big text" },
-  { id: 4, name: "Value and delta" },
-  { id: 5, name: "Current time and BG value" },
-  { id: 6, name: "Unicorn" },
-  { id: 7, name: "Time only" },
-  { id: 8, name: "Diagnostics" },
-  { id: 9, name: "Battery and uptime" },
-  { id: 10, name: "Rainbow big text" },
-  { id: 11, name: "Smiley" },
-  { id: 12, name: "Simple (dark)" },
-  { id: 13, name: "Race car" },
-  { id: 14, name: "Dragon" },
-  { id: 15, name: "Big text (dark)" },
+  { id: "simple", name: "Simple" },
+  { id: "graph", name: "Full glucose graph" },
+  { id: "graph_and_bg", name: "Glucose graph and value" },
+  { id: "big_text", name: "Big text" },
+  { id: "value_and_diff", name: "Value and delta" },
+  { id: "clock", name: "Current time and BG value" },
+  { id: "unicorn", name: "Unicorn" },
+  { id: "time_only", name: "Time only" },
+  { id: "diagnostics", name: "Diagnostics" },
+  { id: "battery_uptime", name: "Battery and uptime" },
+  { id: "big_text_rainbow", name: "Rainbow big text" },
+  { id: "smiley", name: "Smiley" },
+  { id: "simple_dark", name: "Simple (dark)" },
+  { id: "race_car", name: "Race car" },
+  { id: "dragon", name: "Dragon" },
+  { id: "big_text_dark", name: "Big text (dark)" },
 ];
 
 // The config stores the faces switched off, so a face added later starts active.
@@ -784,7 +784,6 @@ function normalizeLoaded(c) {
   [
     ...LIMIT_KEYS,
     "brightness_level",
-    "default_face",
     "face_cycle_interval_seconds",
     "alarm_repeat_interval_seconds",
     "custom_nodatatimer",
@@ -800,12 +799,18 @@ function normalizeLoaded(c) {
   const inactive = Array.isArray(out.inactive_faces) ? out.inactive_faces : [];
   out.inactive_faces = [
     ...new Set(
-      inactive.map(Number).filter((id) => FACES.some((f) => f.id === id)),
+      inactive.filter(
+        (id) => typeof id === "string" && FACES.some((f) => f.id === id),
+      ),
     ),
   ];
   const active = activeFaceIds(out.inactive_faces);
   if (active.length && !active.includes(out.default_face))
     out.default_face = active[0];
+  // Remove schedule rows that the firmware cannot apply, so they are not repeatedly re-saved.
+  out.face_schedule = out.face_schedule.filter((row) =>
+    KEY_ITEMS.face_schedule(row),
+  );
   return out;
 }
 
@@ -886,7 +891,7 @@ const KEY_ITEMS = Object.fromEntries(
 KEY_ITEMS.face_schedule = (row) =>
   isBlock(row) &&
   isTime(row.time) &&
-  isInt(row.face) &&
+  typeof row.face === "string" &&
   inOptions(row.face, KEY_OPTIONS.default_face) &&
   isInt(row.brightness) &&
   inOptions(row.brightness, KEY_OPTIONS.brightness_level);
@@ -909,6 +914,8 @@ function fitsSetting(key, value, clockValue) {
     return value.every((item) =>
       sample === undefined
         ? (isInt(item) && (!options || inOptions(item, options))) ||
+          (typeof item === "string" &&
+            (!options || inOptions(item, options))) ||
           isBlock(item)
         : typeof item === typeof sample &&
           fitsSetting(key, item, sample) &&

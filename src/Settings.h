@@ -59,9 +59,9 @@ public:
     DISPLAY_COLOR bg_color_urgent_high;
     BRIGHTNES_MODE brightness_mode;
     int brightness_level;
-    int default_clockface;
+    String default_clockface;
     bool face_cycle_enabled = false;
-    std::vector<int> inactive_faces;
+    std::vector<String> inactive_faces;
     int face_cycle_interval_seconds = 60;
     bool face_schedule_enabled = false;
     std::vector<FaceScheduleEntry> face_schedule;

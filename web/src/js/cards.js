@@ -307,7 +307,7 @@ function facesCard() {
     const defaultFace = reactive(["face_cycle_enabled", "inactive_faces"], () => {
         if (form.get("face_cycle_enabled")) return el("span", { hidden: true })
         const active = FACES.filter(f => activeFaceIds(form.get("inactive_faces")).includes(f.id))
-        return field("default_face", "Face shown by default", selectInput("default_face", active.map(f => [f.id, f.name]), { numeric: true }))
+        return field("default_face", "Face shown by default", selectInput("default_face", active.map(f => [f.id, f.name])))
     })
     // Show the cycling interval buttons only when automatic face cycling is enabled.
     const interval = reactive(["face_cycle_enabled"], () => form.get("face_cycle_enabled")
@@ -326,7 +326,7 @@ function facesCard() {
 
 // Settings that belong to a face, by face id, shown in a drawer while that face is active. Faces sharing
 // settings share one drawer, titled with the active faces it covers.
-const FACE_DRAWERS = { 3: bigTextSettings, 6: unicornSettings, 8: darkFaceSettings, 9: raceCarSettings, 10: dragonSettings, 11: darkFaceSettings }
+const FACE_DRAWERS = { big_text: bigTextSettings, unicorn: unicornSettings, simple_dark: darkFaceSettings, race_car: raceCarSettings, dragon: dragonSettings, big_text_dark: darkFaceSettings }
 
 function faceDrawers() {
     return reactive(["inactive_faces"], () => {
@@ -446,16 +446,16 @@ function faceScheduleCard() {
                 time.value = entry.time
                 time.addEventListener("input", () => update({ time: time.value }))
                 /**
-                 * Build a row-specific dropdown whose changes are stored as numeric face or brightness values.
+                 * Build a row-specific dropdown whose changes store a string face ID or numeric brightness.
                  * @param {'face' | 'brightness'} name - Schedule entry property to edit.
-                 * @param {SelectOption[]} options - Available numeric values and labels.
+                 * @param {SelectOption[]} options - Available values and labels.
                  * @returns {HTMLSelectElement}
                  */
                 const select = (name, options) => {
                     const control = el("select", { id: `schedule_${i}_${name}` })
                     for (const [value, label] of options) control.add(new Option(label, value))
                     control.value = String(entry[name])
-                    control.addEventListener("change", () => update({ [name]: Number(control.value) }))
+                    control.addEventListener("change", () => update({ [name]: name === "brightness" ? Number(control.value) : control.value }))
                     return control
                 }
                 return el("div.stack",

@@ -189,7 +189,8 @@ void PeripheryManager_::tick() {
         LDR_RAW = sampleAverage;
         CURRENT_LUX = (roundf(photocell.getSmoothedLux() * 1000) / 1000);
 
-        if (!MATRIX_OFF && SettingsManager.settings.brightness_mode != BRIGHTNES_MODE::MANUAL) {
+        if (!MATRIX_OFF && SettingsManager.settings.brightness_mode != BRIGHTNES_MODE::MANUAL &&
+            !DisplayManager.isBrightnessOverlayActive()) {
             auto resultingBrightness = MIN_BRIGHTNESS;
 
             switch (SettingsManager.settings.brightness_mode) {

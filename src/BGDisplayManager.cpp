@@ -36,38 +36,25 @@ void BGDisplayManager_::setup() {
     glucoseIntervals.addInterval(
         SettingsManager.settings.bg_high_urgent_limit, 401, BG_LEVEL::URGENT_HIGH);
 
-    faces.push_back(new BGDisplayFaceSimple());
-    facesNames[0] = "Simple";
-    faces.push_back(new BGDisplayFaceGraph());
-    facesNames[1] = "Full graph";
-    faces.push_back(new BGDisplayFaceGraphAndBG());
-    facesNames[2] = "Graph and BG";
-    faces.push_back(new BGDisplayFaceBigText());
-    facesNames[3] = "Big text";
-    faces.push_back(new BGDisplayFaceValueAndDiff());
-    facesNames[4] = "Value and diff";
-    faces.push_back(new BGDisplayFaceClock());
-    facesNames[5] = "Clock and value";
-    faces.push_back(new BGDisplayFaceUnicorn());
-    facesNames[6] = "Unicorn";
-    faces.push_back(new BGDisplayFaceTimeOnly());
-    facesNames[7] = "Time only";
-    faces.push_back(new BGDisplayFaceDiagnostics());
-    facesNames[8] = "Diagnostics";
-    faces.push_back(new BGDisplayFaceBatteryUptime());
-    facesNames[9] = "Battery and uptime";
-    faces.push_back(new BGDisplayFaceBigTextRainbow());
-    facesNames[10] = "Rainbow big text";
-    faces.push_back(new BGDisplayFaceSmiley());
-    facesNames[11] = "Smiley";
-    faces.push_back(new BGDisplayFaceSimpleDark());
-    facesNames[12] = "Simple (dark)";
-    faces.push_back(new BGDisplayFaceRaceCar());
-    facesNames[13] = "Race car";
-    faces.push_back(new BGDisplayFaceDragon());
-    facesNames[14] = "Dragon";
-    faces.push_back(new BGDisplayFaceBigTextDark());
-    facesNames[15] = "Big text (dark)";
+    // Stable IDs identify faces; registration order only controls navigation.
+    faces = {
+        {"simple", "Simple", new BGDisplayFaceSimple()},
+        {"graph", "Full graph", new BGDisplayFaceGraph()},
+        {"graph_and_bg", "Graph and BG", new BGDisplayFaceGraphAndBG()},
+        {"big_text", "Big text", new BGDisplayFaceBigText()},
+        {"value_and_diff", "Value and diff", new BGDisplayFaceValueAndDiff()},
+        {"clock", "Clock and value", new BGDisplayFaceClock()},
+        {"unicorn", "Unicorn", new BGDisplayFaceUnicorn()},
+        {"time_only", "Time only", new BGDisplayFaceTimeOnly()},
+        {"diagnostics", "Diagnostics", new BGDisplayFaceDiagnostics()},
+        {"battery_uptime", "Battery and uptime", new BGDisplayFaceBatteryUptime()},
+        {"big_text_rainbow", "Rainbow big text", new BGDisplayFaceBigTextRainbow()},
+        {"smiley", "Smiley", new BGDisplayFaceSmiley()},
+        {"simple_dark", "Simple (dark)", new BGDisplayFaceSimpleDark()},
+        {"race_car", "Race car", new BGDisplayFaceRaceCar()},
+        {"dragon", "Dragon", new BGDisplayFaceDragon()},
+        {"big_text_dark", "Big text (dark)", new BGDisplayFaceBigTextDark()},
+    };
 
     if (faces.size() != CLOCK_FACE_COUNT) {
         DEBUG_PRINTF(
@@ -81,14 +68,14 @@ void BGDisplayManager_::setup() {
     if (faceCycleActive) {
         currentFaceIndex = activeFaces.front();
     } else {
-        currentFaceIndex = SettingsManager.settings.default_clockface;
+        currentFaceIndex = findFaceIndex(SettingsManager.settings.default_clockface);
     }
 
     if (currentFaceIndex < 0 || static_cast<size_t>(currentFaceIndex) >= faces.size()) {
         currentFaceIndex = 0;
     }
 
-    currentFace = (faces[currentFaceIndex]);
+    currentFace = faces[currentFaceIndex].instance;
 }
 
 // The active faces are the ones the buttons move between, and the ones cycling runs through.
@@ -97,10 +84,11 @@ void BGDisplayManager_::configureActiveFaces() {
     faceCycleActive = false;
     faceCycleTimerStarted = false;
 
-    const std::vector<int>& inactiveFaces = SettingsManager.settings.inactive_faces;
-    for (int faceId = 0; static_cast<size_t>(faceId) < faces.size(); faceId++) {
-        if (std::find(inactiveFaces.begin(), inactiveFaces.end(), faceId) == inactiveFaces.end()) {
-            activeFaces.push_back(faceId);
+    const std::vector<String>& inactiveFaces = SettingsManager.settings.inactive_faces;
+    for (int index = 0; static_cast<size_t>(index) < faces.size(); index++) {
+        if (std::find(inactiveFaces.begin(), inactiveFaces.end(), faces[index].id) ==
+            inactiveFaces.end()) {
+            activeFaces.push_back(index);
         }
     }
 
@@ -118,21 +106,32 @@ void BGDisplayManager_::configureActiveFaces() {
     faceCycleActive = true;
 }
 
-std::map<int, String> BGDisplayManager_::getFaces() { return facesNames; }
+const std::vector<RegisteredClockFace>& BGDisplayManager_::getFaces() const { return faces; }
 
-int BGDisplayManager_::getCurrentFaceId() { return currentFaceIndex; }
+String BGDisplayManager_::getCurrentFaceId() const { return faces[currentFaceIndex].id; }
+
+int BGDisplayManager_::findFaceIndex(const String& id) const {
+    for (size_t index = 0; index < faces.size(); index++) {
+        if (faces[index].id == id) {
+            return static_cast<int>(index);
+        }
+    }
+    return -1;
+}
 
 bool BGDisplayManager_::suppressesNewAlarms() const { return currentFace->suppressesNewAlarms(); }
 
 const GlucoseIntervals& BGDisplayManager_::getGlucoseIntervals() const { return glucoseIntervals; }
 
-void BGDisplayManager_::setFace(int id) {
-    if (id < 0 || static_cast<size_t>(id) >= faces.size()) {
+void BGDisplayManager_::setFace(const String& id) { setFaceByIndex(findFaceIndex(id)); }
+
+void BGDisplayManager_::setFaceByIndex(int index) {
+    if (index < 0 || static_cast<size_t>(index) >= faces.size()) {
         return;
     }
 
-    currentFaceIndex = id;
-    currentFace = (faces[currentFaceIndex]);
+    currentFaceIndex = index;
+    currentFace = faces[currentFaceIndex].instance;
     lastRefreshEpoch = 0;
     resetFaceCycleTimer();
     runRenderCycle(RenderReason::FACE_CHANGE, ServerManager.getTimezonedTime());
@@ -145,12 +144,12 @@ void BGDisplayManager_::showNextFace() {
 
     auto current = std::find(activeFaces.begin(), activeFaces.end(), currentFaceIndex);
     if (current == activeFaces.end()) {
-        setFace(activeFaces.front());
+        setFaceByIndex(activeFaces.front());
         return;
     }
 
     current++;
-    setFace(current == activeFaces.end() ? activeFaces.front() : *current);
+    setFaceByIndex(current == activeFaces.end() ? activeFaces.front() : *current);
 }
 
 void BGDisplayManager_::showPreviousFace() {
@@ -160,9 +159,9 @@ void BGDisplayManager_::showPreviousFace() {
 
     auto current = std::find(activeFaces.begin(), activeFaces.end(), currentFaceIndex);
     if (current == activeFaces.end() || current == activeFaces.begin()) {
-        setFace(activeFaces.back());
+        setFaceByIndex(activeFaces.back());
     } else {
-        setFace(*--current);
+        setFaceByIndex(*--current);
     }
 }
 
@@ -196,6 +195,19 @@ void BGDisplayManager_::updateFaceCycle() {
 }
 
 void BGDisplayManager_::tick() {
+    const bool brightnessOverlayActive = DisplayManager.isBrightnessOverlayActive();
+    if (brightnessOverlayActive) {
+        brightnessOverlayWasActive = true;
+        return;
+    }
+
+    if (brightnessOverlayWasActive) {
+        brightnessOverlayWasActive = false;
+        resetFaceCycleTimer();
+        maybeRrefreshScreen(true);
+        return;
+    }
+
     updateFaceSchedule();
     updateFaceCycle();
     maybeRrefreshScreen();
@@ -223,7 +235,12 @@ bool BGDisplayManager_::drawAnimationFrame(bool dataIsOld, bool redraw) {
 
 // Cycling and the schedule both own the face, so cycling wins when both are on.
 void BGDisplayManager_::configureFaceSchedule() {
-    faceSchedule = SettingsManager.settings.face_schedule;
+    faceSchedule.clear();
+    for (const FaceScheduleEntry& entry : SettingsManager.settings.face_schedule) {
+        if (findFaceIndex(entry.face) >= 0) {
+            faceSchedule.push_back(entry);
+        }
+    }
     std::sort(
         faceSchedule.begin(), faceSchedule.end(),
         [](const FaceScheduleEntry& a, const FaceScheduleEntry& b) {
@@ -275,7 +292,7 @@ void BGDisplayManager_::updateFaceSchedule() {
 // Applied the way the Web UI or the buttons would: the brightness settings change in memory,
 // so the automatic modes carry on from there, and the face is switched.
 void BGDisplayManager_::applyScheduleEntry(const FaceScheduleEntry& entry) {
-    DEBUG_PRINTF("Schedule: face %d, brightness %d\n", entry.face, entry.brightness);
+    DEBUG_PRINTF("Schedule: face %s, brightness %d\n", entry.face.c_str(), entry.brightness);
     if (entry.brightness >= 100) {
         SettingsManager.settings.brightness_mode = static_cast<BRIGHTNES_MODE>(entry.brightness);
     } else {
