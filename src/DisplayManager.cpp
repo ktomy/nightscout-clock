@@ -109,7 +109,62 @@ void DisplayManager_::applySettings() {
     DisplayManager.setBrightness(displayBrightness);
 }
 
-void DisplayManager_::tick() {}
+void DisplayManager_::showBrightnessOverlay() {
+    const unsigned long elapsed = millis() - brightnessOverlayStarted;
+    if (elapsed >= 2500) {
+        brightnessOverlayActive = false;
+        if (!MATRIX_OFF) {
+            clearMatrix();
+            update();
+        }
+        return;
+    }
+
+    if (MATRIX_OFF) {
+        return;  // Display is off; don't flash the overlay.
+    }
+
+    // The overlay only changes as it fades out, so throttle to one draw per
+    // 50 ms. (clearMatrix() here never pushes a frame, so unlike the first
+    // version there is no intermediate blank frame to skip.)
+    if (millis() - brightnessOverlayLastDraw < 50) {
+        return;
+    }
+    brightnessOverlayLastDraw = millis();
+
+    uint8_t intensity = 255;
+    if (elapsed > 2000) {
+        intensity = static_cast<uint8_t>(255 - ((elapsed - 2000) * 255 / 500));
+    }
+
+    const uint16_t color = ((intensity >> 3) << 11) | ((intensity >> 2) << 5) | (intensity >> 3);
+    const uint8_t brightnessIcon[7][7] = {
+        {0, 0, 0, 1, 0, 0, 0}, {0, 1, 0, 1, 0, 1, 0}, {0, 0, 1, 1, 1, 0, 0}, {1, 1, 1, 1, 1, 1, 1},
+        {0, 0, 1, 1, 1, 0, 0}, {0, 1, 0, 1, 0, 1, 0}, {0, 0, 0, 1, 0, 0, 0},
+    };
+
+    clearMatrix();
+    for (uint8_t row = 0; row < 7; row++) {
+        for (uint8_t column = 0; column < 7; column++) {
+            if (brightnessIcon[row][column] != 0) {
+                drawPixel(1 + column, row, color);
+            }
+        }
+    }
+
+    setTextColor(color);
+    const String value = brightnessOverlayShowsAuto ? "AUTO" : String(brightnessOverlayPercent) + "%";
+    printText(10, 6, value.c_str(), TEXT_ALIGNMENT::LEFT, 0);
+    update();
+}
+
+void DisplayManager_::tick() {
+    if (brightnessOverlayActive) {
+        showBrightnessOverlay();
+    }
+}
+
+bool DisplayManager_::isBrightnessOverlayActive() const { return brightnessOverlayActive; }
 
 uint32_t hsvToRgb(uint8_t h, uint8_t s, uint8_t v) {
     CHSV hsv(h, s, v);
@@ -265,7 +320,8 @@ void DisplayManager_::drawPixel(uint8_t x, uint8_t y, uint16_t color, bool updat
 void DisplayManager_::setBrightness(int bri) {
     if (MATRIX_OFF) {
         matrix->setBrightness(0);
-        currentBrightness = 0;
+        // Keep currentBrightness untouched so setPower(true) can restore it;
+        // overwriting it here left the display dark after a power cycle.
     } else {
         matrix->setBrightness(bri);
         currentBrightness = bri;
@@ -291,7 +347,8 @@ void DisplayManager_::leftButton() { bgDisplayManager.showPreviousFace(); }
 // cycle to next face
 void DisplayManager_::rightButton() { bgDisplayManager.showNextFace(); }
 
-// decrease brightness if not auto mode
+// decrease brightness if not auto mode (temporary; the web UI's configured
+// brightness is restored with a long press on the middle button)
 void DisplayManager_::leftButtonLong() {
     if (SettingsManager.settings.brightness_mode == BRIGHTNES_MODE::MANUAL) {
         int newBrightness = SettingsManager.settings.brightness_level - 1;
@@ -299,12 +356,12 @@ void DisplayManager_::leftButtonLong() {
             newBrightness = 1;
         }
         SettingsManager.settings.brightness_level = newBrightness;
-        SettingsManager.saveSettingsToFile();
         DisplayManager.applySettings();
     }
 }
 
-// increase brightness if not auto mode
+// increase brightness if not auto mode (temporary; the web UI's configured
+// brightness is restored with a long press on the middle button)
 void DisplayManager_::rightButtonLong() {
     if (SettingsManager.settings.brightness_mode == BRIGHTNES_MODE::MANUAL) {
         int newBrightness = SettingsManager.settings.brightness_level + 1;
@@ -312,13 +369,59 @@ void DisplayManager_::rightButtonLong() {
             newBrightness = 10;
         }
         SettingsManager.settings.brightness_level = newBrightness;
-        SettingsManager.saveSettingsToFile();
         DisplayManager.applySettings();
     }
 }
 
-void DisplayManager_::selectButton() {}
-void DisplayManager_::selectButtonLong() {}
+void DisplayManager_::selectButton() {
+    BRIGHTNES_MODE nextMode = SettingsManager.settings.brightness_mode;
+    int nextLevel = SettingsManager.settings.brightness_level;
+
+    const BRIGHTNES_MODE currentMode = SettingsManager.settings.brightness_mode;
+    switch (currentMode) {
+        case BRIGHTNES_MODE::MANUAL:
+            if (nextLevel < 10) {
+                nextLevel++;
+            } else {
+                nextMode = BRIGHTNES_MODE::AUTO_LINEAR;
+            }
+            break;
+        case BRIGHTNES_MODE::AUTO_LINEAR:
+            nextMode = BRIGHTNES_MODE::AUTO_DIMMED;
+            break;
+        case BRIGHTNES_MODE::AUTO_DIMMED:
+            nextMode = BRIGHTNES_MODE::MANUAL;
+            nextLevel = 1;
+            break;
+    }
+
+    // Button tweaks apply in memory only and never overwrite the brightness
+    // configured in the web UI; a long press restores the configured values.
+    SettingsManager.settings.brightness_mode = nextMode;
+    SettingsManager.settings.brightness_level = constrain(nextLevel, 1, 10);
+    applySettings();
+
+    brightnessOverlayShowsAuto = nextMode != BRIGHTNES_MODE::MANUAL;
+    brightnessOverlayPercent = SettingsManager.settings.brightness_level * 10;
+    brightnessOverlayStarted = millis();
+    brightnessOverlayActive = true;
+    showBrightnessOverlay();
+}
+
+void DisplayManager_::selectButtonLong() {
+    // Restore whatever brightness was configured in the web UI (the persisted
+    // settings file); button tweaks are temporary and never overwrite it.
+    if (!SettingsManager.loadBrightnessFromFile()) {
+        return;
+    }
+    applySettings();
+
+    brightnessOverlayShowsAuto = SettingsManager.settings.brightness_mode != BRIGHTNES_MODE::MANUAL;
+    brightnessOverlayPercent = SettingsManager.settings.brightness_level * 10;
+    brightnessOverlayStarted = millis();
+    brightnessOverlayActive = true;
+    showBrightnessOverlay();
+}
 
 void DisplayManager_::update() { matrix->show(); }
 

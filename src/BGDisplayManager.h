@@ -96,6 +96,7 @@ private:
     bool faceScheduleActive = false;
     int appliedScheduleEntry = -1;
     int lastScheduleMinuteOfDay = -1;
+    bool brightnessOverlayWasActive = false;
 
     bool drawAnimationFrame(bool dataIsOld, bool redraw);
     int findFaceIndex(const String& id) const;
