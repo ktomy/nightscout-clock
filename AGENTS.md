@@ -37,7 +37,7 @@ Use the IDE's PlatformIO actions or the helper scripts in `scripts/`; avoid call
 - `scripts/monitor.sh`: opens the serial monitor directly and saves logs under `logs/` using PlatformIO's `log2file` filter.
 - `scripts/reset.sh`: use this if the device becomes unstable and does not restart cleanly after upload.
 - `scripts/upload.sh --all`: use only for a full device refresh, when bootloader, partitions, firmware, and LittleFS all need to be reflashed.
-- `scripts/ns_emulator.py`: sends sample glucose entries to the device API for testing data processing and display behavior.
+- `scripts/ns_emulator.py`: sends sample glucose entries to the device API for testing data processing and display behavior. Requires the clock's data source set to "API"; set `nightscout_url` to the clock's IP, then use `--one-value <sgv>` (single reading), `--sin` (sinusoid history), and `--no-delete` (append instead of replacing). See the script's docstring for prerequisites and a curl equivalent.
 - `scripts/merge_bins.sh`: merges the build outputs into a single distributable binary, but this is not part of the active day-to-day workflow.
 
 ### Release workflow
@@ -49,7 +49,7 @@ For releases, follow the canonical procedure in `CONTRIBUTING.md`.
 - If needed, prepare the upcoming version changelog in `README.md`, but do not manually bump the `Current version` line before running the script.
 - After the release tag is pushed, monitor the GitHub Actions workflow `Build and deploy on Github Pages` and require it to succeed.
 
-`platformio.ini` defines the `ulanzi_debug` environment and loads the git-ignored `platformio.local.ini` for machine-specific settings. Copy `platformio.local.ini.example` and define `upload_port` there before using the upload, reset, or monitor scripts.
+`platformio.ini` defines the `ulanzi_debug` environment and loads the git-ignored `platformio.local.ini` for machine-specific settings such as `upload_port` and optional `upload_speed`. Copy `platformio.local.ini.example` and define `upload_port` there before using the upload, reset, or monitor scripts. Check that port after reconnecting the device or moving to another machine.
 
 ## Coding Style & Naming Conventions
 
@@ -91,6 +91,6 @@ Before opening a pull request, start a discussion or issue for non-trivial chang
 
 ## Configuration Tips
 
-The upload, reset, and monitor scripts resolve the same `upload_port` through `scripts/get_port.sh`. If flashing or monitoring fails on a different machine or after reconnecting the clock, update `upload_port` in `platformio.local.ini` before troubleshooting deeper firmware issues.
+Per-machine upload settings live in the git-ignored `platformio.local.ini` (copy it from `platformio.local.ini.example`), not in the tracked `platformio.ini`. The upload, reset, and monitor scripts resolve the same `upload_port` through `scripts/get_port.sh`. If flashing or monitoring fails on a different machine or after reconnecting the clock, update that port before troubleshooting deeper firmware issues.
 
 Treat `web/src/` as the web UI source and `data/` as the runtime payload built from it. If you change the device-served UI, verify both the browser behavior and the rebuilt filesystem image on hardware.

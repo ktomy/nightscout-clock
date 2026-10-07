@@ -46,11 +46,21 @@ void BGDisplayManager_::setup() {
         {"clock", "Clock and value", new BGDisplayFaceClock()},
         {"unicorn", "Unicorn", new BGDisplayFaceUnicorn()},
         {"time_only", "Time only", new BGDisplayFaceTimeOnly()},
+        {"diagnostics", "Diagnostics", new BGDisplayFaceDiagnostics()},
+        {"battery_uptime", "Battery and uptime", new BGDisplayFaceBatteryUptime()},
+        {"big_text_rainbow", "Rainbow big text", new BGDisplayFaceBigTextRainbow()},
+        {"smiley", "Smiley", new BGDisplayFaceSmiley()},
         {"simple_dark", "Simple (dark)", new BGDisplayFaceSimpleDark()},
         {"race_car", "Race car", new BGDisplayFaceRaceCar()},
         {"dragon", "Dragon", new BGDisplayFaceDragon()},
         {"big_text_dark", "Big text (dark)", new BGDisplayFaceBigTextDark()},
     };
+
+    if (faces.size() != CLOCK_FACE_COUNT) {
+        DEBUG_PRINTF(
+            "Face count mismatch: %u registered, CLOCK_FACE_COUNT is %d",
+            static_cast<unsigned int>(faces.size()), CLOCK_FACE_COUNT);
+    }
 
     configureActiveFaces();
     configureFaceSchedule();
@@ -76,7 +86,8 @@ void BGDisplayManager_::configureActiveFaces() {
 
     const std::vector<String>& inactiveFaces = SettingsManager.settings.inactive_faces;
     for (int index = 0; static_cast<size_t>(index) < faces.size(); index++) {
-        if (std::find(inactiveFaces.begin(), inactiveFaces.end(), faces[index].id) == inactiveFaces.end()) {
+        if (std::find(inactiveFaces.begin(), inactiveFaces.end(), faces[index].id) ==
+            inactiveFaces.end()) {
             activeFaces.push_back(index);
         }
     }
@@ -108,9 +119,7 @@ int BGDisplayManager_::findFaceIndex(const String& id) const {
     return -1;
 }
 
-bool BGDisplayManager_::suppressesNewAlarms() const {
-    return currentFace->suppressesNewAlarms();
-}
+bool BGDisplayManager_::suppressesNewAlarms() const { return currentFace->suppressesNewAlarms(); }
 
 const GlucoseIntervals& BGDisplayManager_::getGlucoseIntervals() const { return glucoseIntervals; }
 
@@ -269,8 +278,8 @@ void BGDisplayManager_::updateFaceSchedule() {
         }
     }
 
-    const bool reachedRowTime = minuteOfDay == faceSchedule[current].startMinutes &&
-                                minuteOfDay != lastScheduleMinuteOfDay;
+    const bool reachedRowTime =
+        minuteOfDay == faceSchedule[current].startMinutes && minuteOfDay != lastScheduleMinuteOfDay;
     lastScheduleMinuteOfDay = minuteOfDay;
 
     if (current == appliedScheduleEntry && !reachedRowTime) {

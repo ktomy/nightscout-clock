@@ -3,6 +3,7 @@
 ![Nightscout clock logo](https://github.com/ktomy/nightscout-clock/assets/1446257/1198c06d-b017-409d-aca3-2bca63581ecb)
 
 > [!IMPORTANT]
+>
 > ## This project is looking for a new maintainer or co-maintainer
 >
 > Over the past few months, I have not been able to spend as much time as this project deserves on support, maintenance, and development.
@@ -23,7 +24,8 @@ _Nightscout Clock (or NSClock) is an open-source product aimed at helping caregi
 
 ## Here is what it can do
 
-- 12 clock faces, including animated characters, dark-room layouts, and a time-only face
+- 16 clock faces, including colorful glucose, diagnostic and system-information views, animated characters,
+  dark-room layouts, and a time-only face
 - Can get glucose data from Dexcom Share, Nightscout, LibreLink Up or Medtrum EasyFollow
 - Supports mg/dl and mmol/l
 - 10 minutes setup through web browser
@@ -67,20 +69,24 @@ Nightscout Clock is a custom firmware for Ulanzi TC001. It can also run (with mi
 
 ### Clockfaces
 
-| Name            | Look                                                                                                 | Comment |
-| --------------- | ---------------------------------------------------------------------------------------------------- |---------|
-| Simple          | <img width="500" alt="Simple" src="https://github.com/user-attachments/assets/ad281e9f-8c7f-41ff-ba82-23c634171158" /> |   Horizontal bars in the bottom of the display <br /> indicate the time since the last reading <br />No bars: less than one minute <br /> 1..5 green bars: 1..5 minutes <br /> 5 yellow bars: 6..19 minutes <br /> value and bars use the configured old-data color from 20 minutes (default threshold) <br /> and the trend arrow is replaced by an X in the same color       |
-| BIG DIGITS      | <img width="500" alt="Big Digits" src="https://github.com/user-attachments/assets/1feae65b-21e9-4c20-8960-b75583baa142" /> | Has no age bars, so it can color the value cyan, blue or magenta once the reading is 6, 10 or 15 minutes old, in a color different from the old-data color. The old-data color still takes over at the data-is-old threshold. Off by default; set it in the Big text drawer of the Clock faces card. |
-| 3-hours graph   | <img width="500" alt="graph" src="https://github.com/user-attachments/assets/45d92097-f459-44d4-b1ae-a35c3cb38700" /> |         |
-| Graph and value | <img width="500" alt="Graph and value" src="https://github.com/user-attachments/assets/db9046aa-5121-43fa-b367-807cdf3c5ef3" /> |  The dots on the right side replace the trend arrow.<br>2 white dots = horizontal arrow.<br>2 colored dots (white + green) = 45° arrow.<br>3 dots = vertical arrow.<br>4 dots = double arrow.<br>Colored dots above = upward trend.<br>Colored dots below = downward trend. <br /><br /> Dots under the value are the same as <br /> horizontal bars on the other faces.<br /> See "Simple" face for details |
-| Delta           | <img width="500" alt="Photo of the Nightscout Clock" src="https://github.com/user-attachments/assets/f8005f49-6e32-43f1-bd84-0bb4e4691d7f" /> |         |
-| Time and value  | <img width="500" alt="Time and value" src="https://github.com/user-attachments/assets/cd72bf15-85e3-4621-b5ca-d639c1849cd5" /> | The dots on the right side replace the trend arrow.<br>2 white dots = horizontal arrow.<br>2 colored dots (white + green) = 45° arrow.<br>3 dots = vertical arrow.<br>4 dots = double arrow.<br>Colored dots above = upward trend.<br>Colored dots below = downward trend. <br /><br /> For the bottom-side bars see "Simple" face for details |
-| Unicorn         | <img width="500" alt="Unicorn and value" src="https://github.com/user-attachments/assets/78dd56a8-1501-493d-98be-5fb59ac9778d" /> | A unicorn whose mane of stepped color bands breaks into dim tips: magenta to blue for normal readings, warning or urgent colors outside the configured limits (every other band darker), and the configured old-data color for stale readings. Age bars appear below the value. Contributed by [@JuanMiste](https://github.com/JuanMiste); the picture was redrawn with a larger head and a banded mane in [#201](https://github.com/ktomy/nightscout-clock/pull/201).<br /><br />The mane is still by default; set it to moving (calm, normal or lively) in the Unicorn drawer of the Clock faces card, and choose how it moves: its colors flow down the bands, slide back toward the tips, or hold while a light runs along the bands. While the reading is fresh a low or high mane shows darker stripes, and in the outer quarter of the in-range, low or high band every third band of a moving mane takes the color of the band beyond that edge (green next to the in-range limit, the urgent color next to the urgent limit); dark stripes run past an urgent limit, and the mane stops in the old-data color when data is old. |
-| Race car        |  | A white race car speeds toward the value while speed lines stream past, the road slides back and the wheels spin. The speed lines show the glucose color: green in range; yellow with a darker stripe running through when low or high, with the urgent color mixed in near the urgent limit; and red with dark stripes past an urgent limit. For stale readings the whole race stops and is drawn faded, every other pixel, in the configured old-data color. Set the speed (calm, normal or lively) in the Race car drawer of the Clock faces card. Age bars appear below the value. |
-| Time only       | | Only the time: hours, minutes and seconds in 24-hour format, or hours, minutes and AM/PM in 12-hour format. Glucose is always hidden, including urgent readings and old or missing data. New glucose alarms are suppressed while this face is selected. Alarms already triggered, including snoozed alarms, continue normally. |
-| Simple (dark)   |  | Simple for a dark room: the number in one chosen color (any of the clock's colors except black, set in the Simple (dark) drawer of the Clock faces card), the trend arrow in the glucose range color, and no age bars. Urgent readings draw the number in the urgent color. Old data uses the old-data color. |
-| Dragon          |                                                                                                      | A little dragon breathes fire at the value, with age bars below it. The flame is magenta, orchid, purple and violet in range, the Unicorn's colors, and takes the low or high color outside the limits, with a darker stripe, the urgent color mixed in near the urgent limit, and dark stripes past an urgent limit, as on the moving Unicorn mane. When data is old the fire goes out and the dragon is drawn faded in the old-data color. Set the flame's speed (calm, normal or lively) in the Dragon drawer of the Clock faces card. |
-| Big text (dark) |  | Big text's large digits in the Simple (dark) number color, readable across a dark room; the trend arrow in the glucose range color, and no age bars. Both dark faces share one number color setting. |
+| Name | Look | Comment |
+| --- | --- | --- |
+| Simple | <img width="500" alt="Simple" src="https://github.com/user-attachments/assets/ad281e9f-8c7f-41ff-ba82-23c634171158" /> | Glucose value, trend, and age bars. |
+| BIG DIGITS | <img width="500" alt="Big Digits" src="https://github.com/user-attachments/assets/1feae65b-21e9-4c20-8960-b75583baa142" /> | Large glucose digits, with optional early-stale coloring. |
+| 3-hours graph | <img width="500" alt="graph" src="https://github.com/user-attachments/assets/45d92097-f459-44d4-b1ae-a35c3cb38700" /> | Full-width glucose graph. |
+| Graph and value | <img width="500" alt="Graph and value" src="https://github.com/user-attachments/assets/db9046aa-5121-43fa-b367-807cdf3c5ef3" /> | Graph, value, and trend indicator. |
+| Delta | <img width="500" alt="Photo of the Nightscout Clock" src="https://github.com/user-attachments/assets/f8005f49-6e32-43f1-bd84-0bb4e4691d7f" /> | Value, trend, and delta. |
+| Time and value | <img width="500" alt="Time and value" src="https://github.com/user-attachments/assets/cd72bf15-85e3-4621-b5ca-d639c1849cd5" /> | Clock, glucose value, and trend indicator. |
+| Unicorn | <img width="500" alt="Unicorn and value" src="https://github.com/user-attachments/assets/78dd56a8-1501-493d-98be-5fb59ac9778d" /> | Animated or still mane colored by glucose range. |
+| Time only | _(live time-only view)_ | Shows time while hiding glucose and suppressing new glucose alarms. |
+| Diagnostics | _(live diagnostics view)_ | Scrolling diagnostics and clock information. |
+| Battery/uptime | _(live battery and uptime view)_ | Battery status and device uptime. |
+| Rainbow big text | _(live animated view)_ | Large animated rainbow glucose text; stale readings blink. |
+| Smiley | _(live smiley view)_ | Expression reflects glucose level, with the reading beside it. |
+| Simple (dark) | _(live dark-room view)_ | Configurable number color, glucose-colored trend arrow, and no age bars. |
+| Race car | _(live animated view)_ | Animated race car with glucose-colored speed lines and stale stop/fade. |
+| Dragon | _(live animated view)_ | Animated dragon breathing glucose-colored fire; stale fire is extinguished. |
+| Big text (dark) | _(live dark-room view)_ | Large digits in the dark-face number color with a glucose-colored trend arrow. |
 
 #### Active clock faces
 
@@ -171,6 +177,10 @@ High, low, and urgent-low alarms each have their own threshold, snooze duration,
   - BIG DIGITS, with an optional color for a late reading
   - Value, trend and delta
   - Clock and BG value (timezone is set in the clock's web interface)
+  - Diagnostics
+  - Battery and uptime
+  - Rainbow big text with an animated glucose-state-colored rainbow and stale-reading blink
+  - Smiley face, reflecting the glucose level with happy, sad, concerned, or neutral expressions
   - Unicorn and glucose value, with mane colors based on glucose limits
   - Race car and glucose value, with speed lines in the glucose color
   - Time only, always hiding glucose and suppressing new alarms while selected; already-triggered alarms continue normally
@@ -182,6 +192,7 @@ High, low, and urgent-low alarms each have their own threshold, snooze duration,
 - API data source. The clock has a simple Nightscout-like API which can receive glucose values from an external source. The main purpose of this feature is the ability to test the clock during the clockfaces development. In order to activate this feature, select the API data source within the clock's Web UI. Here are the endpoints:
   - /api/v1/entries POST endpoint receives an array of Nightscout-like entries. The only significant fields are `sgv`, `date` and `trend` or `direction`. Due to the limited memory the API is stable when sent fewer than 10 records
   - /api/v1/entries DELETE endpoint deletes all entries regardless of the payload
+  - `scripts/ns_emulator.py` is a helper that pushes sample readings to this API for testing (e.g. to exercise clock-face moods). Point its `nightscout_url` at your clock, then run `python scripts/ns_emulator.py --one-value 110` for a single reading or `--sin` for a sinusoid history; see the script header for a curl example. The script's docstring lists handy values for the different faces.
 - Firmware versioning
 - Alarms with configurable thresholds, snooze times, repeat interval, sounds, and weekday/time alert windows
 - To turn the device on or off press both arrow buttons for 3 seconds
