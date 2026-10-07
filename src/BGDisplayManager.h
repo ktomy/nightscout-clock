@@ -7,15 +7,19 @@
 #include <vector>
 
 #include "BGDisplayFace.h"
+#include "BGDisplayFaceBatteryUptime.h"
 #include "BGDisplayFaceBigText.h"
 #include "BGDisplayFaceBigTextDark.h"
+#include "BGDisplayFaceBigTextRainbow.h"
 #include "BGDisplayFaceClock.h"
+#include "BGDisplayFaceDiagnostics.h"
 #include "BGDisplayFaceDragon.h"
 #include "BGDisplayFaceGraph.h"
 #include "BGDisplayFaceGraphAndBG.h"
 #include "BGDisplayFaceRaceCar.h"
 #include "BGDisplayFaceSimple.h"
 #include "BGDisplayFaceSimpleDark.h"
+#include "BGDisplayFaceSmiley.h"
 #include "BGDisplayFaceTimeOnly.h"
 #include "BGDisplayFaceUnicorn.h"
 #include "BGDisplayFaceValueAndDiff.h"
@@ -92,6 +96,7 @@ private:
     unsigned long lastFaceCycleMillis = 0;
     std::vector<int> activeFaces;
     unsigned long lastAnimationFrame = 0;
+    unsigned long lastFrequentRefreshMillis = 0;
     std::vector<FaceScheduleEntry> faceSchedule;  // sorted by start time
     bool faceScheduleActive = false;
     int appliedScheduleEntry = -1;
