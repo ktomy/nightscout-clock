@@ -270,7 +270,47 @@ function toast(message, kind = "ok", ms = 4500) {
  * @returns {HTMLElement}
  */
 function displayTab() {
-    return el("div.stack", facesCard(), faceScheduleCard(), brightnessCard(), oldDataCard(), timeCard())
+    return el("div.stack", facesCard(), faceSwitchCard(), faceScheduleCard(), brightnessCard(), oldDataCard(), timeCard())
+}
+
+/**
+ * Build the manual face-switch card: show any face immediately without
+ * touching the clock, for displays mounted out of reach. Temporary, like the
+ * side buttons: it does not change the default face, schedule, or cycling.
+ * @returns {HTMLElement}
+ */
+function faceSwitchCard() {
+    const select = el("select", { id: "face_switch_select", "aria-label": "Face to show" })
+    for (const f of FACES) select.add(new Option(f.name, f.id))
+    const nowShowing = el("p.help", "Now showing: …")
+    const setNowShowing = id => {
+        const f = FACES.find(x => x.id === id)
+        nowShowing.textContent = f ? `Now showing: ${f.name}.` : "Now showing: …"
+        if (f) select.value = String(f.id)
+    }
+    // Refresh the "now showing" line whenever a status poll arrives.
+    api.on("status", s => { if (s && typeof s.faceId === "number") setNowShowing(s.faceId) })
+    const status = el("p.help")
+    const btn = el("button.btn", { type: "button" }, "Switch now")
+    btn.addEventListener("click", async () => {
+        const id = Number(select.value)
+        btn.disabled = true
+        status.textContent = "Switching…"
+        try {
+            const r = await api.switchFace(id)
+            if (!r.ok || !r.data || r.data.status !== "ok") throw new Error(r.data && r.data.error)
+            setNowShowing(id)
+            status.textContent = ""
+        } catch (e) {
+            status.textContent = "Switch failed: the clock could not be reached."
+        } finally {
+            btn.disabled = false
+        }
+    })
+    return card("Switch face now",
+        "Show a face immediately without touching the clock — handy when it is mounted out of reach. This is temporary, like the side buttons: it does not change the default face, schedule, or cycling settings.",
+        el("div.stack", nowShowing, el("div.row", select, btn), status),
+        { id: "card_faceswitch" })
 }
 
 /**
