@@ -446,6 +446,7 @@ function normalizeLoaded(c) {
         ...ALARMS.flatMap(a => [`alarm_${a.t}_value`, `alarm_${a.t}_snooze_interval`, `alarm_${a.t}_volume`])].forEach(num)
     if (!inOptions(out.face_cycle_interval_seconds, CYCLE_INTERVALS)) out.face_cycle_interval_seconds = 60
     if (!inOptions(out.alarm_repeat_interval_seconds, REPEATS)) out.alarm_repeat_interval_seconds = 300
+    for (const a of ALARMS) if (!inOptions(out[`alarm_${a.t}_volume`], ALARM_VOLUMES)) out[`alarm_${a.t}_volume`] = 255
     const inactive = Array.isArray(out.inactive_faces) ? out.inactive_faces : []
     out.inactive_faces = [...new Set(inactive.filter(id => FACES.some(f => f.id === id)))]
     const active = activeFaceIds(out.inactive_faces)

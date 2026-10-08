@@ -419,7 +419,7 @@ void ServerManager_::setupWebServer(IPAddress ip) {
                 return;
             }
 
-            PeripheryManager.playRTTTLString(melody, data["volume"].as<uint8_t>());
+            PeripheryManager.playRTTTLString(melody, data["volume"] | 255);
             request->send(200, "application/json", "{\"status\": \"ok\"}");
         }));
 

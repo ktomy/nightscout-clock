@@ -230,9 +230,9 @@ bool SettingsManager_::loadSettingsFromFile() {
     settings.alarm_high_melody = (*doc)["alarm_high_melody"].as<String>();
     settings.alarm_low_melody = (*doc)["alarm_low_melody"].as<String>();
     settings.alarm_urgent_low_melody = (*doc)["alarm_urgent_low_melody"].as<String>();
-    settings.alarm_high_volume = (*doc)["alarm_high_volume"].as<int>();
-    settings.alarm_low_volume = (*doc)["alarm_low_volume"].as<int>();
-    settings.alarm_urgent_low_volume = (*doc)["alarm_urgent_low_volume"].as<int>();
+    settings.alarm_high_volume = (*doc)["alarm_high_volume"] | 255;
+    settings.alarm_low_volume = (*doc)["alarm_low_volume"] | 255;
+    settings.alarm_urgent_low_volume = (*doc)["alarm_urgent_low_volume"] | 255;
     settings.alarm_intensive_mode = (*doc)["alarm_intensive_mode"].as<bool>();
 
     settings.alarm_repeat_interval_seconds = (*doc)["alarm_repeat_interval_seconds"] | 300;
