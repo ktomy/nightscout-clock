@@ -933,7 +933,7 @@ function alertWindows(a) {
  * @returns {HTMLElement}
  */
 function systemTab() {
-    return el("div.stack", wifiCard(), extraWifiCard(), hostnameCard(), loginCard(), backupCard(), versionCard())
+    return el("div.stack", wifiCard(), extraWifiCard(), hostnameCard(), loginCard(), backupCard(), versionCard(), logsCard())
 }
 
 /**
@@ -1073,6 +1073,28 @@ function versionCard() {
         el("dl.kv", el("dt", "Current version"), el("dd", { id: "fw_current" }, ui.versions.current || "…"),
             el("dt", "Latest version"), el("dd", { id: "fw_latest" }, ui.versions.latest || "…")),
         el("p.help", { id: "fw_status" }, ...versionStatusNodes())), { id: "card_version" })
+}
+
+/**
+ * Download the clock's in-memory debug log for troubleshooting.
+ * @returns {HTMLElement}
+ */
+function logsCard() {
+    return card("Debug logs", "Download the clock's recent debug log for troubleshooting.", el("div.stack",
+        el("div.row",
+            el("button.btn", { type: "button", onclick: downloadDebugLogs }, icon("download"), "Download logs"))), { id: "card_logs" })
+}
+
+async function downloadDebugLogs() {
+    let text
+    try { text = await api.downloadLogs() }
+    catch (e) { return toast(e.message || "Could not download the logs.", "bad") }
+    const url = URL.createObjectURL(new Blob([text], { type: "text/plain" }))
+    const link = el("a", { href: url, download: "nightscout-clock-logs.txt", hidden: true })
+    document.body.append(link)
+    link.click()
+    link.remove()
+    setTimeout(() => URL.revokeObjectURL(url), 10000)
 }
 
 /**

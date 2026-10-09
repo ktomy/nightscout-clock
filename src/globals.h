@@ -3,19 +3,19 @@
 #include <Arduino.h>
 #include <IPAddress.h>
 
+#include "LogBuffer.h"
+
 #include "enums.h"
 
 #define VERSION "1.0.0"
 
 #ifdef DEBUG
-#define DEBUG_PRINTLN(x)        \
-    {                           \
-        Serial.print("[");      \
-        Serial.print(millis()); \
-        Serial.print("] [");    \
-        Serial.print(__func__); \
-        Serial.print("]: ");    \
-        Serial.println(x);      \
+#define DEBUG_PRINTLN(x)                                                                     \
+    {                                                                                        \
+        String _debugMessage =                                                               \
+            "[" + String(millis()) + "] [" + String(__func__) + "]: " + String(x);            \
+        Serial.println(_debugMessage);                                                       \
+        LogBuffer::append(_debugMessage + "\n");                                              \
     }
 #define DEBUG_PRINTF(format, ...)                                                            \
     {                                                                                        \
@@ -23,6 +23,9 @@
         Serial.print(formattedMessage);                                                      \
         Serial.printf(format, ##__VA_ARGS__);                                                \
         Serial.println();                                                                    \
+        char _debugPrintfBuf[256];                                                           \
+        snprintf(_debugPrintfBuf, sizeof(_debugPrintfBuf), format, ##__VA_ARGS__);            \
+        LogBuffer::append(formattedMessage + _debugPrintfBuf + "\n");                        \
     }
 #else
 #define DEBUG_PRINTLN(x)
