@@ -52,7 +52,7 @@ void BGDisplayManager_::setup() {
         {"big_text_dark", "Big text (dark)", new BGDisplayFaceBigTextDark()},
         {"rainbow_clock", "Rainbow clock", new BGDisplayFaceRainbowClock()},
         {"big_text_rainbow", "Rainbow big text", new BGDisplayFaceBigTextRainbow()},
-        {"rainbow_sparkle", "Rainbow sparkle", new BGDisplayFaceRainbowSparkle()},
+        {"rainbow_mood", "Rainbow mood", new BGDisplayFaceRainbowMood()},
     };
 
     configureActiveFaces();
