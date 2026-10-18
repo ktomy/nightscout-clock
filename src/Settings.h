@@ -9,11 +9,18 @@
 #include "SettingsSchedule.h"
 #include "enums.h"
 
-// Big text face: the value takes early_stale_color once a reading is early_stale_minutes old.
+// Big text face: the value takes early_stale_color once a reading is early_stale_minutes old, and age
+// dots under the trend arrow count the minutes since the reading.
 struct BigTextFaceSettings {
     bool early_stale_enabled = false;
     DISPLAY_COLOR early_stale_color = DISPLAY_COLOR::CYAN;
     int early_stale_minutes = 6;
+    bool age_dots = true;
+};
+
+// Big text (dark) face: optional age dots under the trend arrow count the minutes since the reading.
+struct BigTextDarkFaceSettings {
+    bool age_dots = false;
 };
 
 // Unicorn face: a moving mane moves its colors at `speed` in the `flow` style while the reading is fresh.
@@ -108,6 +115,7 @@ public:
     UnicornFaceSettings face_unicorn;
     RaceCarFaceSettings face_race_car;
     SimpleDarkFaceSettings face_simple_dark;
+    BigTextDarkFaceSettings face_big_text_dark;
     DragonFaceSettings face_dragon;
     bool alarm_intensive_mode;
     int alarm_repeat_interval_seconds = 300;
