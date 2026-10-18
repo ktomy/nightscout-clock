@@ -373,7 +373,7 @@ function validateConfig(c, ctx) {
     const bigText = c.face_big_text || {}
     const oldMinutes = c.custom_nodatatimer_enable && c.custom_nodatatimer > 5 && c.custom_nodatatimer <= 60 ? c.custom_nodatatimer : 20
     const oldColor = c.data_old_color || "gray"
-    if (active.includes(3) && (bigText.early_stale_color || "off") !== "off") {
+    if (active.includes("big_text") && (bigText.early_stale_color || "off") !== "off") {
         need("face_big_text_early_stale_color", bigText.early_stale_color !== oldColor,
             `The Big text late color must differ from the old data color (${OLD_DATA_COLORS.find(([v]) => v === oldColor)[1]}), or the two can't be told apart.`)
         need("face_big_text_early_stale_minutes", bigText.early_stale_minutes < oldMinutes,
@@ -381,7 +381,7 @@ function validateConfig(c, ctx) {
     }
     // A fresh number in the old data color would read as old data.
     const darkValueColor = (c.face_simple_dark || {}).value_color
-    if (active.includes(8) || active.includes(11)) {
+    if (active.includes("simple_dark") || active.includes("big_text_dark")) {
         need("face_simple_dark_value_color", darkValueColor !== oldColor,
             `The dark faces' number color must differ from the old data color (${OLD_DATA_COLORS.find(([v]) => v === oldColor)[1]}), or a fresh reading would look old.`)
     }
