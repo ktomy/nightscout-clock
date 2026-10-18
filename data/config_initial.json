@@ -70,7 +70,8 @@
     "data_old_color": "gray",
     "face_big_text": {
         "early_stale_color": "off",
-        "early_stale_minutes": 6
+        "early_stale_minutes": 6,
+        "age_dots": "on"
     },
     "face_unicorn": {
         "mane": "still",
@@ -82,6 +83,9 @@
     },
     "face_simple_dark": {
         "value_color": "white"
+    },
+    "face_big_text_dark": {
+        "age_dots": "off"
     },
     "face_dragon": {
         "speed": "normal"

@@ -2,9 +2,10 @@
 #define BGDISPLAYFACEBIGTEXT_H
 
 #include "BGDisplayFaceTextBase.h"
+#include "BGDisplayFaceWithAge.h"
 #include "BGSource.h"
 
-class BGDisplayFaceBigText : public BGDisplayFaceTextBase {
+class BGDisplayFaceBigText : public BGDisplayFaceTextBase, public BGDisplayFaceWithAge {
 public:
     void showReadings(const std::list<GlucoseReading>& readings, bool dataIsOld = false) const override;
     RenderDecision getRenderDecision(const RenderContext& ctx) const override;

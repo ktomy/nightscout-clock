@@ -15,10 +15,17 @@ void BGDisplayFaceBigText::showReadings(
 
     // show arrow in the right part of the screen
     showTrendArrow(readings.back(), MATRIX_WIDTH - 5, 1, dataIsOld);
+    if (SettingsManager.settings.face_big_text.age_dots) {
+        drawAgeDotsUnderArrow(readings.back());
+    }
 }
 
-// A reading becomes early stale as time passes, so every tick inside that window redraws.
+// Age dots change every minute; without them, a reading becomes early stale as time passes, so every
+// tick inside that window redraws.
 RenderDecision BGDisplayFaceBigText::getRenderDecision(const RenderContext& ctx) const {
+    if (SettingsManager.settings.face_big_text.age_dots) {
+        return BGDisplayFaceWithAge::getRenderDecision(ctx);
+    }
     if (ctx.reason == RenderReason::TIME_TICK && !ctx.readings.empty() &&
         isEarlyStale(ctx.readings.back(), ctx.dataIsOld)) {
         return RenderDecision::FULL;

@@ -272,6 +272,7 @@ bool SettingsManager_::loadSettingsFromFile() {
     settings.face_big_text.early_stale_color =
         displayColorFromString(earlyStaleColor, DISPLAY_COLOR::CYAN);
     settings.face_big_text.early_stale_minutes = bigText["early_stale_minutes"] | 6;
+    settings.face_big_text.age_dots = bigText["age_dots"].as<String>() != "off";
 
     // Unicorn face
     JsonObject unicorn = (*doc)["face_unicorn"].as<JsonObject>();
@@ -286,6 +287,9 @@ bool SettingsManager_::loadSettingsFromFile() {
     // Simple (dark) face
     settings.face_simple_dark.value_color = displayColorFromString(
         (*doc)["face_simple_dark"]["value_color"].as<String>(), DISPLAY_COLOR::WHITE);
+
+    // Big text (dark) face
+    settings.face_big_text_dark.age_dots = (*doc)["face_big_text_dark"]["age_dots"].as<String>() == "on";
 
     // Dragon face
     JsonObject dragon = (*doc)["face_dragon"].as<JsonObject>();
@@ -464,6 +468,7 @@ bool SettingsManager_::saveSettingsToFile() {
                                        ? toString(settings.face_big_text.early_stale_color)
                                        : "off";
     bigText["early_stale_minutes"] = settings.face_big_text.early_stale_minutes;
+    bigText["age_dots"] = settings.face_big_text.age_dots ? "on" : "off";
 
     // Unicorn face
     JsonObject unicorn = (*doc)["face_unicorn"].to<JsonObject>();
@@ -477,6 +482,9 @@ bool SettingsManager_::saveSettingsToFile() {
 
     // Simple (dark) face
     (*doc)["face_simple_dark"]["value_color"] = toString(settings.face_simple_dark.value_color);
+
+    // Big text (dark) face
+    (*doc)["face_big_text_dark"]["age_dots"] = settings.face_big_text_dark.age_dots ? "on" : "off";
 
     // Dragon face
     JsonObject dragon = (*doc)["face_dragon"].to<JsonObject>();

@@ -118,6 +118,7 @@ const OLD_DATA_COLORS = [["gray", "Gray"], ["cyan", "Cyan"], ["magenta", "Magent
 // No red, yellow or green: those are glucose colors.
 const EARLY_STALE_COLORS = [["off", "Off"], ["cyan", "Cyan"], ["blue", "Blue"], ["magenta", "Magenta"]]
 const EARLY_STALE_MINUTES = [[6, "6 min"], [10, "10 min"], [15, "15 min"]]
+const AGE_DOTS = [["on", "On"], ["off", "Off"]]
 const MANE_MODES = [["still", "Still"], ["moving", "Moving"]]
 const MANE_FLOWS = [["down", "Top to bottom"], ["back", "Colors scroll back"], ["run", "Light runs along the bands"]]
 const ANIMATION_SPEEDS = [["calm", "Calm"], ["normal", "Normal"], ["lively", "Lively"]]
