@@ -166,27 +166,11 @@ void DisplayManager_::tick() {
 
 bool DisplayManager_::isBrightnessOverlayActive() const { return brightnessOverlayActive; }
 
-uint32_t hsvToRgb(uint8_t h, uint8_t s, uint8_t v) {
+uint16_t DisplayManager_::hsvToRgb(uint8_t h, uint8_t s, uint8_t v) {
     CHSV hsv(h, s, v);
     CRGB rgb;
     hsv2rgb_spectrum(hsv, rgb);
     return ((uint16_t)(rgb.r & 0xF8) << 8) | ((uint16_t)(rgb.g & 0xFC) << 3) | (rgb.b >> 3);
-}
-
-uint16_t DisplayManager_::rgb565(uint8_t r, uint8_t g, uint8_t b) {
-    return ((uint16_t)(r & 0xF8) << 8) | ((uint16_t)(g & 0xFC) << 3) | (b >> 3);
-}
-
-uint16_t DisplayManager_::hsvToRgb565(uint8_t hue) {
-    uint8_t region = hue / 43, rem = (hue - (region * 43)) * 6, q = 255 - rem, t = rem;
-    switch (region) {
-        case 0: return rgb565(255, t, 0);
-        case 1: return rgb565(q, 255, 0);
-        case 2: return rgb565(0, 255, t);
-        case 3: return rgb565(0, q, 255);
-        case 4: return rgb565(t, 0, 255);
-        default: return rgb565(255, 0, q);
-    }
 }
 
 float DisplayManager_::getTextWidth(const char* text, byte textCase) {
@@ -281,7 +265,7 @@ void DisplayManager_::HSVtext(int16_t x, int16_t y, const char* text, bool clear
     uint16_t xpos = 0;
     for (uint16_t i = 0; i < strlen(text); i++) {
         uint8_t hue = map(i, 0, strlen(text), 0, 255) + hueOffset;
-        uint32_t textColor = hsvToRgb(hue, 255, 255);
+        uint16_t textColor = hsvToRgb(hue, 255, 255);
         matrix->setTextColor(textColor);
         const char* myChar = &text[i];
 

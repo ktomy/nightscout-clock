@@ -13,7 +13,9 @@ public:
     void showAnimationFrame(
         const std::list<GlucoseReading>& readings, unsigned long frame) const override;
     RenderDecision getRenderDecision(const RenderContext& ctx) const override;
+    bool animatesWithoutFreshData() const override;
     bool ticksEverySecond() const override;
+    bool suppressesNewAlarms() const override;
 
 private:
     void showTime() const;

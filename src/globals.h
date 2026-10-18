@@ -32,8 +32,6 @@
 #define DEBUG_PRINTF(format, ...)
 #endif
 
-// How many clock faces BGDisplayManager registers. Face ids are validated against this both in
-// the settings API and when loading a config, so this must be updated when a face is added.
 #define CONFIG_JSON "/config.json"
 #define CONFIG_JSON_FACTORY "/config_initial.json"
 #define WIFI_CONNECT_TIMEOUT 15000

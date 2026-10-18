@@ -20,6 +20,8 @@ public:
     void tick();
 
     void HSVtext(int16_t x, int16_t y, const char* text, bool clear, byte textCase);
+    // Converts a FastLED hue, saturation and value to an RGB565 color.
+    uint16_t hsvToRgb(uint8_t h, uint8_t s, uint8_t v);
     void printText(int16_t x, int16_t y, const char* text, TEXT_ALIGNMENT alignment, byte textCase);
     void setTextColor(uint16_t color);
     void clearMatrix();
@@ -32,10 +34,6 @@ public:
     void showFatalError(String errorMessage);
     void scrollColorfulText(String message);
     void drawPixel(uint8_t x, uint8_t y, uint16_t color, bool updateMatrix = false);
-    // Pack 8-bit RGB into 16-bit 565 format, and convert a hue (0-255, full
-    // saturation and value) to 565. Used by faces with rainbow coloring.
-    uint16_t rgb565(uint8_t r, uint8_t g, uint8_t b);
-    uint16_t hsvToRgb565(uint8_t hue);
     void leftButton();
     void rightButton();
     void leftButtonLong();
