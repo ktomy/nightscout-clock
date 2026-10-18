@@ -1,5 +1,7 @@
 #include "LogBuffer.h"
 
+#ifdef DEBUG
+
 char LogBuffer::buffer[LogBuffer::CAPACITY];
 size_t LogBuffer::writePos = 0;
 size_t LogBuffer::used = 0;
@@ -53,3 +55,5 @@ String LogBuffer::get() {
     xSemaphoreGive(m);
     return result;
 }
+
+#endif  // DEBUG

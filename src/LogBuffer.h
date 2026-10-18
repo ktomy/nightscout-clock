@@ -1,6 +1,8 @@
 #ifndef LOGBUFFER_H
 #define LOGBUFFER_H
 
+#ifdef DEBUG
+
 #include <Arduino.h>
 
 #include <freertos/FreeRTOS.h>
@@ -25,5 +27,7 @@ private:
     static SemaphoreHandle_t mutex;
     static SemaphoreHandle_t getMutex();
 };
+
+#endif  // DEBUG
 
 #endif  // LOGBUFFER_H
