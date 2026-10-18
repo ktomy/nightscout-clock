@@ -933,7 +933,7 @@ function alertWindows(a) {
  * @returns {HTMLElement}
  */
 function systemTab() {
-    return el("div.stack", wifiCard(), extraWifiCard(), hostnameCard(), loginCard(), backupCard(), versionCard())
+    return el("div.stack", wifiCard(), extraWifiCard(), hostnameCard(), loginCard(), backupCard(), versionCard(), logsCard())
 }
 
 /**
@@ -1073,6 +1073,33 @@ function versionCard() {
         el("dl.kv", el("dt", "Current version"), el("dd", { id: "fw_current" }, ui.versions.current || "…"),
             el("dt", "Latest version"), el("dd", { id: "fw_latest" }, ui.versions.latest || "…")),
         el("p.help", { id: "fw_status" }, ...versionStatusNodes())), { id: "card_version" })
+}
+
+const DEBUG_FIRMWARE_URL = "https://ktomy.github.io/nightscout-clock/debug/"
+
+/**
+ * Download the clock's in-memory debug log for troubleshooting.
+ * @returns {HTMLElement}
+ */
+function logsCard() {
+    return card("Debug logs", "Download the clock's recent debug log for troubleshooting. The log can contain your data source passwords, API secrets, session tokens and glucose readings, so review it before sharing.", el("div.stack",
+        el("div.row",
+            el("button.btn", { type: "button", onclick: downloadDebugLogs }, icon("download"), "Download logs")),
+        el("p.help", "Only the debug firmware records logs. Install it from the ",
+            el("a", { href: DEBUG_FIRMWARE_URL, target: "_blank", rel: "noopener noreferrer" }, "debug firmware installer"), ".")), { id: "card_logs" })
+}
+
+async function downloadDebugLogs() {
+    let text
+    try { text = await api.downloadLogs() }
+    catch (e) { return toast(e.message || "Could not download the logs.", "bad") }
+    if (!text) return toast(`This firmware keeps no log. Install the debug firmware from ${DEBUG_FIRMWARE_URL} to record one.`, "warn", 8000)
+    const url = URL.createObjectURL(new Blob([text], { type: "text/plain" }))
+    const link = el("a", { href: url, download: "nightscout-clock-logs.txt", hidden: true })
+    document.body.append(link)
+    link.click()
+    link.remove()
+    setTimeout(() => URL.revokeObjectURL(url), 10000)
 }
 
 /**
