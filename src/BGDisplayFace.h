@@ -66,6 +66,9 @@ protected:
     // high, urgent color near the urgent limit, and every third pixel dark past an urgent limit.
     uint16_t getMotionColor(BG_LEVEL level, int quarter, int index, unsigned long frame) const;
     static unsigned long getStepMillis(ANIMATION_SPEED speed);
+    // A full-saturation rainbow color for `hue`. Below an eighth of the brightness range, a channel
+    // below full strength goes dark, so the hue steps through six colors of fully lit channels instead.
+    static uint16_t getRainbowColor(uint8_t hue);
 };
 
 #endif
