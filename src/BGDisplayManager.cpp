@@ -50,6 +50,7 @@ void BGDisplayManager_::setup() {
         {"race_car", "Race car", new BGDisplayFaceRaceCar()},
         {"dragon", "Dragon", new BGDisplayFaceDragon()},
         {"big_text_dark", "Big text (dark)", new BGDisplayFaceBigTextDark()},
+        {"rainbow_clock", "Rainbow clock", new BGDisplayFaceRainbowClock()},
     };
 
     configureActiveFaces();
@@ -207,11 +208,15 @@ void BGDisplayManager_::tick() {
     }
 }
 
-// Draws the moving part of an animated face for the current step while the reading is fresh.
+// Draws the moving part of an animated face for the current step while the reading is fresh,
+// or at any time for a face that animates without fresh data.
 // Returns false when there is nothing to draw, or `redraw` is false and this step is already shown.
 bool BGDisplayManager_::drawAnimationFrame(bool dataIsOld, bool redraw) {
     const unsigned long stepMillis = currentFace->getAnimationStepMillis();
-    if (stepMillis == 0 || dataIsOld || displayedReadings.empty()) {
+    if (stepMillis == 0) {
+        return false;
+    }
+    if (!currentFace->animatesWithoutFreshData() && (dataIsOld || displayedReadings.empty())) {
         return false;
     }
 

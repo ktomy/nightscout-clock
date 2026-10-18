@@ -166,7 +166,7 @@ void DisplayManager_::tick() {
 
 bool DisplayManager_::isBrightnessOverlayActive() const { return brightnessOverlayActive; }
 
-uint32_t hsvToRgb(uint8_t h, uint8_t s, uint8_t v) {
+uint16_t DisplayManager_::hsvToRgb(uint8_t h, uint8_t s, uint8_t v) {
     CHSV hsv(h, s, v);
     CRGB rgb;
     hsv2rgb_spectrum(hsv, rgb);
@@ -265,7 +265,7 @@ void DisplayManager_::HSVtext(int16_t x, int16_t y, const char* text, bool clear
     uint16_t xpos = 0;
     for (uint16_t i = 0; i < strlen(text); i++) {
         uint8_t hue = map(i, 0, strlen(text), 0, 255) + hueOffset;
-        uint32_t textColor = hsvToRgb(hue, 255, 255);
+        uint16_t textColor = hsvToRgb(hue, 255, 255);
         matrix->setTextColor(textColor);
         const char* myChar = &text[i];
 
