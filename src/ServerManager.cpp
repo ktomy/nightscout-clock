@@ -493,6 +493,18 @@ void ServerManager_::setupWebServer(IPAddress ip) {
         request->send(200, "application/json", jsonResponse);
     });
 
+#ifdef DEBUG
+    // Download the in-memory debug log buffer (see LogBuffer). Requires
+    // authentication, same as /api/save, since logs may contain network
+    // details. Release builds keep no log, so the route answers 404 there.
+    ws->on("/api/logs", HTTP_GET, [this](AsyncWebServerRequest* request) {
+        if (!enforceAuthentication(request)) {
+            return;
+        }
+        request->send(200, "text/plain", LogBuffer::get());
+    });
+#endif
+
     ws->on("/config.json", HTTP_GET, [this](AsyncWebServerRequest* request) {
         if (!enforceAuthentication(request)) {
             return;

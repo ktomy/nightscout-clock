@@ -362,7 +362,9 @@ function bigTextSettings() {
     return el("div.stack",
         field("face_big_text_early_stale_color", "Color when a reading is late", segmented("face_big_text", EARLY_STALE_COLORS, { prop: "early_stale_color", label: "Color when a reading is late" }),
             "Color late readings until the old-data threshold. Off keeps the usual glucose colors."),
-        field("face_big_text_early_stale_minutes", "Late after", segmented("face_big_text", EARLY_STALE_MINUTES, { numeric: true, prop: "early_stale_minutes", label: "Late after" })))
+        field("face_big_text_early_stale_minutes", "Late after", segmented("face_big_text", EARLY_STALE_MINUTES, { numeric: true, prop: "early_stale_minutes", label: "Late after" })),
+        field("face_big_text_age_dots", "Age dots", segmented("face_big_text", AGE_DOTS, { prop: "age_dots", label: "Age dots" }),
+            "One dot under the trend arrow for each minute since the last reading, up to five."))
 }
 
 function unicornSettings() {
@@ -395,9 +397,14 @@ function darkFaceSettings() {
     const updateWarning = () => { warning.hidden = form.get("face_simple_dark")?.value_color !== "gray" }
     updateWarning()
     onChangeWhileAttached(warning, key => { if (key === "face_simple_dark") updateWarning() })
-    return field("face_simple_dark_value_color", "Number color", el("div.stack",
+    const valueColor = field("face_simple_dark_value_color", "Number color", el("div.stack",
         swatches("face_simple_dark", DARK_VALUE_COLORS, { prop: "value_color", label: "Number color", fallback: "white" }), warning),
         "Both dark faces use it. The trend arrow keeps the glucose colors and old data still uses the old data color, so red, yellow and green here do not track the reading.")
+    // Only Big text (dark) has room for age dots under its arrow.
+    if (!activeFaceIds(form.get("inactive_faces")).includes("big_text_dark")) return valueColor
+    return el("div.stack", valueColor,
+        field("face_big_text_dark_age_dots", "Age dots on Big text (dark)", segmented("face_big_text_dark", AGE_DOTS, { prop: "age_dots", label: "Age dots on Big text (dark)" }),
+            "One dot under the trend arrow for each minute since the last reading, up to five."))
 }
 
 /**
@@ -933,7 +940,7 @@ function alertWindows(a) {
  * @returns {HTMLElement}
  */
 function systemTab() {
-    return el("div.stack", wifiCard(), extraWifiCard(), hostnameCard(), loginCard(), backupCard(), versionCard())
+    return el("div.stack", wifiCard(), extraWifiCard(), hostnameCard(), loginCard(), backupCard(), versionCard(), logsCard())
 }
 
 /**
@@ -1073,6 +1080,33 @@ function versionCard() {
         el("dl.kv", el("dt", "Current version"), el("dd", { id: "fw_current" }, ui.versions.current || "…"),
             el("dt", "Latest version"), el("dd", { id: "fw_latest" }, ui.versions.latest || "…")),
         el("p.help", { id: "fw_status" }, ...versionStatusNodes())), { id: "card_version" })
+}
+
+const DEBUG_FIRMWARE_URL = "https://ktomy.github.io/nightscout-clock/debug/"
+
+/**
+ * Download the clock's in-memory debug log for troubleshooting.
+ * @returns {HTMLElement}
+ */
+function logsCard() {
+    return card("Debug logs", "Download the clock's recent debug log for troubleshooting. The log can contain your data source passwords, API secrets, session tokens and glucose readings, so review it before sharing.", el("div.stack",
+        el("div.row",
+            el("button.btn", { type: "button", onclick: downloadDebugLogs }, icon("download"), "Download logs")),
+        el("p.help", "Only the debug firmware records logs. Install it from the ",
+            el("a", { href: DEBUG_FIRMWARE_URL, target: "_blank", rel: "noopener noreferrer" }, "debug firmware installer"), ".")), { id: "card_logs" })
+}
+
+async function downloadDebugLogs() {
+    let text
+    try { text = await api.downloadLogs() }
+    catch (e) { return toast(e.message || "Could not download the logs.", "bad") }
+    if (!text) return toast(`This firmware keeps no log. Install the debug firmware from ${DEBUG_FIRMWARE_URL} to record one.`, "warn", 8000)
+    const url = URL.createObjectURL(new Blob([text], { type: "text/plain" }))
+    const link = el("a", { href: url, download: "nightscout-clock-logs.txt", hidden: true })
+    document.body.append(link)
+    link.click()
+    link.remove()
+    setTimeout(() => URL.revokeObjectURL(url), 10000)
 }
 
 /**

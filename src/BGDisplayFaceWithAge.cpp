@@ -17,6 +17,11 @@ RenderDecision BGDisplayFaceWithAge::getRenderDecision(const RenderContext& ctx)
 
 RenderDecision BGDisplayFaceWithAge::getAgeTickRenderDecision() const { return RenderDecision::FULL; }
 
+// Width 9 gives one-pixel dots with one-pixel gaps, at x 23 to 31.
+void BGDisplayFaceWithAge::drawAgeDotsUnderArrow(const GlucoseReading& lastReading) const {
+    drawTimerBlocks(lastReading, 9, MATRIX_WIDTH - 9, 7);
+}
+
 // Draw horizontal blocks equal to the number of minutes since the last reading, up to five blocks.
 void BGDisplayFaceWithAge::drawTimerBlocks(
     GlucoseReading lastReading, int width, int xPosition, int yPosition) const {
