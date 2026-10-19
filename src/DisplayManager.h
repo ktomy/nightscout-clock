@@ -20,6 +20,8 @@ public:
     void tick();
 
     void HSVtext(int16_t x, int16_t y, const char* text, bool clear, byte textCase);
+    // Converts a FastLED hue, saturation and value to an RGB565 color.
+    uint16_t hsvToRgb(uint8_t h, uint8_t s, uint8_t v);
     void printText(
         int16_t x, int16_t y, const char* text, TEXT_ALIGNMENT alignment, byte textCase,
         bool updateMatrix = false);

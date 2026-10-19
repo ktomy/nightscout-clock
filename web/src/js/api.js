@@ -235,6 +235,18 @@ const api = (() => {
      */
     const version = () => request("GET", "/version.txt?" + Date.now(), { raw: true }).then(r => (r.ok ? r.text() : ""))
     /**
+     * Fetch the clock's in-memory debug log as plain text for troubleshooting.
+     * Release firmware keeps no log and answers 404, which resolves to an empty string.
+     * Throws on transport or other HTTP errors; a 401 surfaces through the shared "locked" event.
+     * @returns {Promise<string>} Log contents, oldest first.
+     */
+    const downloadLogs = async () => {
+        const r = await request("GET", "/api/logs", { raw: true, timeout: 15000 })
+        if (r.status === 404) return ""
+        if (!r.ok) throw new Error(`The clock answered ${r.status}.`)
+        return r.text()
+    }
+    /**
      * Load the timezone name/rule pairs as JSON for the timezone picker.
      * @returns {Promise<TimezoneEntry[]>}
      */
@@ -286,5 +298,5 @@ const api = (() => {
         })
     }
 
-    return { on: events.on, startStatus, saveSettings, authStatus, login, logout, loadConfig, version, timezones, tryAlarm, patients }
+    return { on: events.on, startStatus, saveSettings, authStatus, login, logout, loadConfig, version, downloadLogs, timezones, tryAlarm, patients }
 })()

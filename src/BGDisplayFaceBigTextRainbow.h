@@ -4,16 +4,16 @@
 #include "BGDisplayFaceTextBase.h"
 #include "BGSource.h"
 
+// Big glucose reading in a moving rainbow; the trend arrow shows the glucose range color.
 class BGDisplayFaceBigTextRainbow : public BGDisplayFaceTextBase {
 public:
     void showReadings(const std::list<GlucoseReading>& readings, bool dataIsOld = false) const override;
-    bool needsFrequentRefresh() const override;
-    unsigned long getFrequentRefreshIntervalMs() const override;
-    RenderDecision getRenderDecision(const RenderContext& ctx) const override;
-    bool ticksEverySecond() const override;
+    unsigned long getAnimationStepMillis() const override;
+    void showAnimationFrame(
+        const std::list<GlucoseReading>& readings, unsigned long frame) const override;
 
 private:
-    void showAnimatedReading(const GlucoseReading& reading, bool dataIsOld) const;
+    void showAnimatedReading(const GlucoseReading& reading) const;
 };
 
-#endif
+#endif  // BGDISPLAYFACEBIGTEXTRAINBOW_H

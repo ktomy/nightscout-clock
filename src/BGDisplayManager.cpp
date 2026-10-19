@@ -52,7 +52,9 @@ void BGDisplayManager_::setup() {
         {"big_text_dark", "Big text (dark)", new BGDisplayFaceBigTextDark()},
         {"diagnostics", "Diagnostics", new BGDisplayFaceDiagnostics()},
         {"battery_uptime", "Battery and uptime", new BGDisplayFaceBatteryUptime()},
+        {"rainbow_clock", "Rainbow clock", new BGDisplayFaceRainbowClock()},
         {"big_text_rainbow", "Rainbow big text", new BGDisplayFaceBigTextRainbow()},
+        {"rainbow_mood", "Rainbow mood", new BGDisplayFaceRainbowMood()},
         {"smiley", "Smiley", new BGDisplayFaceSmiley()},
     };
 
@@ -82,7 +84,8 @@ void BGDisplayManager_::configureActiveFaces() {
 
     const std::vector<String>& inactiveFaces = SettingsManager.settings.inactive_faces;
     for (int index = 0; static_cast<size_t>(index) < faces.size(); index++) {
-        if (std::find(inactiveFaces.begin(), inactiveFaces.end(), faces[index].id) == inactiveFaces.end()) {
+        if (std::find(inactiveFaces.begin(), inactiveFaces.end(), faces[index].id) ==
+            inactiveFaces.end()) {
             activeFaces.push_back(index);
         }
     }
@@ -114,9 +117,7 @@ int BGDisplayManager_::findFaceIndex(const String& id) const {
     return -1;
 }
 
-bool BGDisplayManager_::suppressesNewAlarms() const {
-    return currentFace->suppressesNewAlarms();
-}
+bool BGDisplayManager_::suppressesNewAlarms() const { return currentFace->suppressesNewAlarms(); }
 
 const GlucoseIntervals& BGDisplayManager_::getGlucoseIntervals() const { return glucoseIntervals; }
 
@@ -220,11 +221,15 @@ void BGDisplayManager_::tick() {
     }
 }
 
-// Draws the moving part of an animated face for the current step while the reading is fresh.
+// Draws the moving part of an animated face for the current step while the reading is fresh,
+// or at any time for a face that animates without fresh data.
 // Returns false when there is nothing to draw, or `redraw` is false and this step is already shown.
 bool BGDisplayManager_::drawAnimationFrame(bool dataIsOld, bool redraw) {
     const unsigned long stepMillis = currentFace->getAnimationStepMillis();
-    if (stepMillis == 0 || dataIsOld || displayedReadings.empty()) {
+    if (stepMillis == 0) {
+        return false;
+    }
+    if (!currentFace->animatesWithoutFreshData() && (dataIsOld || displayedReadings.empty())) {
         return false;
     }
 
@@ -282,8 +287,8 @@ void BGDisplayManager_::updateFaceSchedule() {
         }
     }
 
-    const bool reachedRowTime = minuteOfDay == faceSchedule[current].startMinutes &&
-                                minuteOfDay != lastScheduleMinuteOfDay;
+    const bool reachedRowTime =
+        minuteOfDay == faceSchedule[current].startMinutes && minuteOfDay != lastScheduleMinuteOfDay;
     lastScheduleMinuteOfDay = minuteOfDay;
 
     if (current == appliedScheduleEntry && !reachedRowTime) {

@@ -47,6 +47,8 @@ public:
     // Redraws only the moving part of the face for animation step `frame`.
     virtual void showAnimationFrame(
         const std::list<GlucoseReading>& readings, unsigned long frame) const {}
+    // Faces that show no glucose keep animating when the readings are old or missing.
+    virtual bool animatesWithoutFreshData() const { return false; }
     // Faces that change every second get a TIME_TICK every second instead of every minute.
     virtual bool ticksEverySecond() const;
     // Suppress new alarms while this face is selected; existing alarms continue normally.
@@ -70,6 +72,9 @@ protected:
     // high, urgent color near the urgent limit, and every third pixel dark past an urgent limit.
     uint16_t getMotionColor(BG_LEVEL level, int quarter, int index, unsigned long frame) const;
     static unsigned long getStepMillis(ANIMATION_SPEED speed);
+    // A full-saturation rainbow color for `hue`. Below an eighth of the brightness range, a channel
+    // below full strength goes dark, so the hue steps through six colors of fully lit channels instead.
+    static uint16_t getRainbowColor(uint8_t hue);
 };
 
 #endif

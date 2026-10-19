@@ -98,6 +98,19 @@ uint16_t BGDisplayFace::getMotionColor(
     return (r << 11) | (g << 5) | b;
 }
 
+uint16_t BGDisplayFace::getRainbowColor(uint8_t hue) {
+    static const uint16_t DIM_COLORS[6] = {
+        static_cast<uint16_t>(DISPLAY_COLOR::RED),   static_cast<uint16_t>(DISPLAY_COLOR::YELLOW),
+        static_cast<uint16_t>(DISPLAY_COLOR::GREEN), static_cast<uint16_t>(DISPLAY_COLOR::CYAN),
+        static_cast<uint16_t>(DISPLAY_COLOR::BLUE),  static_cast<uint16_t>(DISPLAY_COLOR::MAGENTA),
+    };
+    const int rich = MIN_BRIGHTNESS + (MAX_BRIGHTNESS - MIN_BRIGHTNESS) / 8;
+    if (DisplayManager.getBrightness() < rich) {
+        return DIM_COLORS[hue * 6 / 256];
+    }
+    return DisplayManager.hsvToRgb(hue, 255, 255);
+}
+
 unsigned long BGDisplayFace::getStepMillis(ANIMATION_SPEED speed) {
     switch (speed) {
         case ANIMATION_SPEED::CALM:
