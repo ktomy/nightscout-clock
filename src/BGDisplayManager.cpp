@@ -50,9 +50,12 @@ void BGDisplayManager_::setup() {
         {"race_car", "Race car", new BGDisplayFaceRaceCar()},
         {"dragon", "Dragon", new BGDisplayFaceDragon()},
         {"big_text_dark", "Big text (dark)", new BGDisplayFaceBigTextDark()},
+        {"diagnostics", "Diagnostics", new BGDisplayFaceDiagnostics()},
+        {"battery_uptime", "Battery and uptime", new BGDisplayFaceBatteryUptime()},
         {"rainbow_clock", "Rainbow clock", new BGDisplayFaceRainbowClock()},
         {"big_text_rainbow", "Rainbow big text", new BGDisplayFaceBigTextRainbow()},
         {"rainbow_mood", "Rainbow mood", new BGDisplayFaceRainbowMood()},
+        {"smiley", "Smiley", new BGDisplayFaceSmiley()},
     };
 
     configureActiveFaces();
@@ -69,6 +72,8 @@ void BGDisplayManager_::setup() {
     }
 
     currentFace = faces[currentFaceIndex].instance;
+    currentFace->onActivate();
+    DisplayManager.setFont(FONT_TYPE::MEDIUM);
 }
 
 // The active faces are the ones the buttons move between, and the ones cycling runs through.
@@ -79,7 +84,8 @@ void BGDisplayManager_::configureActiveFaces() {
 
     const std::vector<String>& inactiveFaces = SettingsManager.settings.inactive_faces;
     for (int index = 0; static_cast<size_t>(index) < faces.size(); index++) {
-        if (std::find(inactiveFaces.begin(), inactiveFaces.end(), faces[index].id) == inactiveFaces.end()) {
+        if (std::find(inactiveFaces.begin(), inactiveFaces.end(), faces[index].id) ==
+            inactiveFaces.end()) {
             activeFaces.push_back(index);
         }
     }
@@ -111,9 +117,7 @@ int BGDisplayManager_::findFaceIndex(const String& id) const {
     return -1;
 }
 
-bool BGDisplayManager_::suppressesNewAlarms() const {
-    return currentFace->suppressesNewAlarms();
-}
+bool BGDisplayManager_::suppressesNewAlarms() const { return currentFace->suppressesNewAlarms(); }
 
 const GlucoseIntervals& BGDisplayManager_::getGlucoseIntervals() const { return glucoseIntervals; }
 
@@ -126,6 +130,8 @@ void BGDisplayManager_::setFaceByIndex(int index) {
 
     currentFaceIndex = index;
     currentFace = faces[currentFaceIndex].instance;
+    currentFace->onActivate();
+    DisplayManager.setFont(FONT_TYPE::MEDIUM);
     lastRefreshEpoch = 0;
     resetFaceCycleTimer();
     runRenderCycle(RenderReason::FACE_CHANGE, ServerManager.getTimezonedTime());
@@ -205,6 +211,11 @@ void BGDisplayManager_::tick() {
     updateFaceSchedule();
     updateFaceCycle();
     maybeRrefreshScreen();
+    if (!MATRIX_OFF && currentFace->needsFrequentRefresh() &&
+        millis() - lastFrequentRefreshMillis >= currentFace->getFrequentRefreshIntervalMs()) {
+        lastFrequentRefreshMillis = millis();
+        runRenderCycle(RenderReason::FORCED, ServerManager.getTimezonedTime());
+    }
     if (!MATRIX_OFF && drawAnimationFrame(lastRenderedDataWasOld, false)) {
         DisplayManager.update();
     }
@@ -276,8 +287,8 @@ void BGDisplayManager_::updateFaceSchedule() {
         }
     }
 
-    const bool reachedRowTime = minuteOfDay == faceSchedule[current].startMinutes &&
-                                minuteOfDay != lastScheduleMinuteOfDay;
+    const bool reachedRowTime =
+        minuteOfDay == faceSchedule[current].startMinutes && minuteOfDay != lastScheduleMinuteOfDay;
     lastScheduleMinuteOfDay = minuteOfDay;
 
     if (current == appliedScheduleEntry && !reachedRowTime) {
