@@ -66,6 +66,30 @@ void BGAlarmManager_::setup() {
     }
 }
 
+// A sounding or snoozed alarm keeps that state when its range is unchanged.
+void BGAlarmManager_::reloadSettings() {
+    bool hadActiveAlarm = activeAlarm != NULL;
+    AlarmData previous;
+    if (hadActiveAlarm) {
+        previous = *activeAlarm;
+    }
+    activeAlarm = NULL;
+    enabledAlarms.clear();
+    setup();
+
+    if (!hadActiveAlarm) {
+        return;
+    }
+    for (AlarmData& alarmData : enabledAlarms) {
+        if (alarmData.bottom == previous.bottom && alarmData.top == previous.top) {
+            alarmData.lastAlarmTime = previous.lastAlarmTime;
+            alarmData.isSnoozed = previous.isSnoozed;
+            activeAlarm = &alarmData;
+            return;
+        }
+    }
+}
+
 // True when this alarm is allowed to sound now: no windows means at any time,
 // otherwise only while one of them is open.
 static bool isInsideAlertWindow(const std::vector<AlertWindow>& alertWindows) {

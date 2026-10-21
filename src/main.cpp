@@ -74,6 +74,28 @@ void showJoinAP() {
     apModeHintPosition -= 0.18;
 }
 
+// Loads a settings save from the Web UI and redoes what setup() derived from the settings.
+void applySavedSettings() {
+    std::lock_guard<std::recursive_mutex> lock(SettingsManager.mutex);
+    Settings previous = SettingsManager.settings;
+    if (!SettingsManager.loadSettingsFromFile()) {
+        return;
+    }
+    // A login change signs the Web UI out, as a restart did.
+    if (previous.web_auth_enable != SettingsManager.settings.web_auth_enable ||
+        previous.web_auth_password != SettingsManager.settings.web_auth_password) {
+        ServerManager.forgetLogin();
+    }
+
+    ServerManager.setTimezone();
+    // Automatic brightness follows the light sensor on its next reading.
+    if (SettingsManager.settings.brightness_mode == BRIGHTNES_MODE::MANUAL) {
+        DisplayManager.applySettings();
+    }
+    bgAlarmManager.reloadSettings();
+    bgDisplayManager.reloadSettings(previous);
+}
+
 void loop() {
 #ifdef DEBUG_MEMORY
 
@@ -88,6 +110,10 @@ void loop() {
 #endif
 
     ServerManager.tick();
+
+    if (SettingsManager.reloadRequested.exchange(false)) {
+        applySavedSettings();
+    }
 
     if (ServerManager.isConnected) {
         bgSourceManager.tick();
