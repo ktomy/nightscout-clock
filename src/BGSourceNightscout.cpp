@@ -18,6 +18,7 @@ std::list<GlucoseReading> BGSourceNightscout::updateReadings(
 
 std::list<GlucoseReading> BGSourceNightscout::updateReadings(
     String baseUrl, String apiKey, bool simplifiedApi, std::list<GlucoseReading> existingReadings) {
+    lastFetchSucceeded = true;
     unsigned long long currentEpoch = ServerManager.getUtcEpoch();
     // set last epoch to now - 3 hours (we don't want to get too many readings)
     unsigned long long lastReadingEpoch = currentEpoch - BG_BACKFILL_SECONDS;
@@ -109,6 +110,9 @@ std::list<GlucoseReading> BGSourceNightscout::retrieveReadings(
 #endif
 
     auto responseCode = initiateCall(url, ssl, apiKey);
+    if (responseCode != HTTP_CODE_OK) {
+        lastFetchSucceeded = false;
+    }
     String responseContent = client->getString();
 #ifdef DEBUG_BG_SOURCE
     DEBUG_PRINTLN("Response: " + responseContent);
@@ -264,7 +268,6 @@ int BGSourceNightscout::initiateCall(LCBUrl url, bool ssl, String apiKey) {
         auto hashedApiKey = sha1(apiKey);
         client->addHeader("api-secret", hashedApiKey);
 #ifdef DEBUG_BG_SOURCE
-        DEBUG_PRINTLN("API Key: " + apiKey);
         DEBUG_PRINTLN("Hashed API Key: " + hashedApiKey);
 #endif
     }
