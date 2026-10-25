@@ -48,7 +48,7 @@ Thanks [@CallumMcK](https://github.com/CallumMcK)
 3. Unpack, turn on (press on `<` and `>` buttons for a few seconds)
 4. Connect the USB-C cable (comes with the clock) to your computer
 5. Go to the [installation page](https://ktomy.github.io/nightscout-clock/)
-6. Follow the instructions. If installation fails, see the [installation troubleshooting discussion](https://github.com/ktomy/nightscout-clock/discussions/57).
+6. Follow the instructions. If installation fails, see the [troubleshooting guide](TROUBLESHOOTING.md#installation) and the [installation troubleshooting discussion](https://github.com/ktomy/nightscout-clock/discussions/57).
 7. Once the clock is installed, take out your phone and join `nsclock` wi-fi network. Then go to `http://192.168.4.1/`
 8. Set up your device, provide the Wi-Fi network details, your Dexcom, Nightscout, LibreLink Up or Medtrum EasyFollow credentials, glucose warning limits and other parameters
 9. You're all set, enjoy!
@@ -60,6 +60,10 @@ Updates use a full reflash and reset the clock's settings. Make a note of your s
 [![How to update Nightscout Clock](https://img.youtube.com/vi/7mFZJ7_EFN4/0.jpg)](https://www.youtube.com/watch?v=7mFZJ7_EFN4)
 
 Thanks [@CallumMcK](https://github.com/CallumMcK)
+
+## Troubleshooting
+
+If the clock does not install, connect to WiFi, show data, or keeps restarting, see the [troubleshooting guide](TROUBLESHOOTING.md). It also explains how to collect logs with the debug firmware when reporting an issue.
 
 ## More information
 
