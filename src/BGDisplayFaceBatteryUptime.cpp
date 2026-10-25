@@ -1,5 +1,7 @@
 #include "BGDisplayFaceBatteryUptime.h"
 
+#include <esp_timer.h>
+
 #include "globals.h"
 
 namespace {
@@ -35,6 +37,8 @@ RenderDecision BGDisplayFaceBatteryUptime::getRenderDecision(const RenderContext
 
 void BGDisplayFaceBatteryUptime::showSystemInfo() const {
     DisplayManager.clearMatrix();
+    // The previous face may have left LARGE selected, which is too wide for this layout.
+    DisplayManager.setFont(FONT_TYPE::MEDIUM);
 
     String batteryText = String(BATTERY_PERCENT) + "%";
     String uptimeText = formatUptime();
@@ -58,18 +62,18 @@ void BGDisplayFaceBatteryUptime::showBatteryIndicator() const {
 }
 
 String BGDisplayFaceBatteryUptime::formatUptime() const {
-    unsigned long uptimeSeconds = millis() / 1000;
-    unsigned long uptimeMinutes = uptimeSeconds / 60;
+    // esp_timer is 64-bit, unlike millis(), which wraps after about 49.7 days.
+    uint64_t uptimeMinutes = esp_timer_get_time() / 1000000ULL / 60;
 
     if (uptimeMinutes < 100) {
         return String(uptimeMinutes) + "M";
     }
 
-    unsigned long uptimeHours = uptimeMinutes / 60;
+    uint64_t uptimeHours = uptimeMinutes / 60;
     if (uptimeHours < 100) {
         return String(uptimeHours) + "H";
     }
 
-    unsigned long uptimeDays = uptimeHours / 24;
+    uint64_t uptimeDays = uptimeHours / 24;
     return String(uptimeDays) + "D";
 }
