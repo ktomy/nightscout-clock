@@ -233,7 +233,10 @@ GlucoseReading BGSourceLibreLinkUp::getLibreLinkUpConnection() {
     String url =
         "https://" + libreEndpoints[SettingsManager.settings.librelinkup_region] + "/llu/connections";
 
-    client->begin(url);
+    // Use the shared secure client like the login and graph requests do. begin(url) built a new
+    // TLS client on every poll and dropped the shared one each time.
+    client->begin(*wifiSecureClient, url);
+    client->setTimeout(15000);  // Set timeout to 15 seconds (15000 milliseconds)
     for (auto& header : standardHeaders) {
         client->addHeader(header.first, header.second);
     }
@@ -257,6 +260,7 @@ GlucoseReading BGSourceLibreLinkUp::getLibreLinkUpConnection() {
     }
 
     String response = client->getString();
+    client->end();
 
 #ifdef DEBUG_BG_SOURCE
     DEBUG_PRINTLN("Connection Response: " + response);
@@ -267,7 +271,10 @@ GlucoseReading BGSourceLibreLinkUp::getLibreLinkUpConnection() {
     if (error) {
         if (error == DeserializationError::EmptyInput) {
             DEBUG_PRINTLN("Empty response from LibreLinkUp, no data to process");
-            retryCount += 1;
+            // A failed request is already counted above; count it once.
+            if (responseCode == HTTP_CODE_OK) {
+                retryCount += 1;
+            }
             if (retryCount <= MAX_RETRY_COUNT) {
                 return GlucoseReading();  // return empty reading to indicate no data
             }
@@ -477,6 +484,7 @@ std::list<GlucoseReading> BGSourceLibreLinkUp::getReadings(unsigned long long la
         retryCount = 0;
     }
     String response = client->getString();
+    client->end();
 
 #ifdef DEBUG_BG_SOURCE
     DEBUG_PRINTLN("Graph Response: " + response);
@@ -503,7 +511,10 @@ std::list<GlucoseReading> BGSourceLibreLinkUp::getReadings(unsigned long long la
     if (error) {
         if (error == DeserializationError::EmptyInput) {
             DEBUG_PRINTLN("Empty response from LibreLinkUp, no data to process");
-            retryCount += 1;
+            // A failed request is already counted above; count it once.
+            if (responseCode == HTTP_CODE_OK) {
+                retryCount += 1;
+            }
             if (retryCount <= MAX_RETRY_COUNT) {
                 return std::list<GlucoseReading>{readingFromConnection};
             }
@@ -558,7 +569,6 @@ std::list<GlucoseReading> BGSourceLibreLinkUp::getReadings(unsigned long long la
 #endif
 
     doc.clear();
-    client->end();
 
     return glucoseReadings;
 }
