@@ -8,8 +8,9 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 VERSION_FILE = REPO_ROOT / "data" / "version.txt"
 GLOBALS_FILE = REPO_ROOT / "src" / "globals.h"
 MANIFEST_FILE = REPO_ROOT / "www" / "manifest.json"
+DEBUG_MANIFEST_FILE = REPO_ROOT / "www" / "debug" / "manifest-debug.json"
 README_FILE = REPO_ROOT / "README.md"
-RELEASE_FILES = (VERSION_FILE, GLOBALS_FILE, MANIFEST_FILE, README_FILE)
+RELEASE_FILES = (VERSION_FILE, GLOBALS_FILE, MANIFEST_FILE, DEBUG_MANIFEST_FILE, README_FILE)
 
 
 def fail(message):
@@ -67,7 +68,9 @@ def get_next_version(current_version, bump_type):
 
 
 def get_unexpected_changes():
-    status_lines = git_output("status", "--porcelain", "--untracked-files=all").splitlines()
+    # Not git_output(): stripping would drop the leading space of the first status line.
+    status = run_git("status", "--porcelain", "--untracked-files=all", capture_output=True).stdout
+    status_lines = status.splitlines()
     return [line for line in status_lines if line[3:] != "README.md"]
 
 
@@ -138,13 +141,18 @@ def replace_single_line(path, prefix, replacement):
         output_file.writelines(lines)
 
 
+def update_manifest_version(path, version, indent):
+    manifest_data = json.loads(path.read_text())
+    manifest_data["version"] = version
+    path.write_text(json.dumps(manifest_data, indent=indent) + "\n")
+
+
 def update_release_files(version):
     VERSION_FILE.write_text(version)
     replace_single_line(GLOBALS_FILE, '#define VERSION "', f'#define VERSION "{version}"')
 
-    manifest_data = json.loads(MANIFEST_FILE.read_text())
-    manifest_data["version"] = version
-    MANIFEST_FILE.write_text(json.dumps(manifest_data, indent=4) + "\n")
+    update_manifest_version(MANIFEST_FILE, version, indent=4)
+    update_manifest_version(DEBUG_MANIFEST_FILE, f"{version}-debug", indent=2)
 
     replace_single_line(README_FILE, "### Current version:", f"### Current version: {version}")
 
