@@ -84,16 +84,16 @@ void BGDisplayManager_::reloadSettings(const Settings& previous) {
         previous.face_cycle_enabled != SettingsManager.settings.face_cycle_enabled ||
         previous.inactive_faces != SettingsManager.settings.inactive_faces;
     const auto& settings = SettingsManager.settings;
-    bool scheduleChanged = faceSettingsChanged ||
-        previous.face_schedule_enabled != settings.face_schedule_enabled ||
+    bool scheduleChanged =
+        faceSettingsChanged || previous.face_schedule_enabled != settings.face_schedule_enabled ||
         previous.tz_libc_value != settings.tz_libc_value ||
         previous.face_schedule.size() != settings.face_schedule.size() ||
-        !std::equal(previous.face_schedule.begin(), previous.face_schedule.end(),
-                    settings.face_schedule.begin(),
-                    [](const FaceScheduleEntry& a, const FaceScheduleEntry& b) {
-                        return a.startMinutes == b.startMinutes && a.face == b.face &&
-                               a.brightness == b.brightness;
-                    });
+        !std::equal(
+            previous.face_schedule.begin(), previous.face_schedule.end(), settings.face_schedule.begin(),
+            [](const FaceScheduleEntry& a, const FaceScheduleEntry& b) {
+                return a.startMinutes == b.startMinutes && a.face == b.face &&
+                       a.brightness == b.brightness;
+            });
     if (scheduleChanged) {
         configureFaceSchedule();
     }

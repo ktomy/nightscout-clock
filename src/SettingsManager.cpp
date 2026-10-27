@@ -307,10 +307,10 @@ bool SettingsManager_::loadSettingsFromFile() {
 }
 
 // Re-reads only the brightness settings from the persisted config file.
-// The web UI always reboots after saving, so the file holds exactly what was
-// configured there; the middle button's tweaks stay in memory only, and a
-// long press restores the configured values through this.
+// The file holds what the web UI last saved; the middle button's tweaks stay
+// in memory only, and a long press restores the configured values through this.
 bool SettingsManager_::loadBrightnessFromFile() {
+    std::lock_guard<std::recursive_mutex> lock(mutex);
     JsonDocument* doc = readConfigJsonFile();
     if (doc == NULL) {
         return false;
