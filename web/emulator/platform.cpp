@@ -6,6 +6,7 @@
 #include <SPIFFS.h>
 #include <Ticker.h>
 #include <Wire.h>
+#include <esp_timer.h>
 
 #include <algorithm>
 #include <string>
@@ -48,6 +49,7 @@ extern "C" time_t emu_time(time_t* out) {
 extern "C" unsigned long millis(void) { return static_cast<unsigned long>(nowMillis); }
 extern "C" unsigned long micros(void) { return static_cast<unsigned long>(nowMillis * 1000); }
 extern "C" void delay(unsigned long ms) { nowMillis += ms; }
+extern "C" int64_t esp_timer_get_time(void) { return static_cast<int64_t>(nowMillis) * 1000; }
 extern "C" void yield(void) {}
 
 // WMath.cpp from the ESP32 Arduino core.
