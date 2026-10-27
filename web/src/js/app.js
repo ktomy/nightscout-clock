@@ -279,7 +279,13 @@ async function loadTimezones() {
         ui.timezones = list
         ui.timezoneNames = new Set(list.map(z => z.name))
         const zone = Intl.DateTimeFormat().resolvedOptions().timeZone
-        if (!form.get("tz") && ui.timezoneNames.has(zone)) {
+        const rule = form.get("tz_libc")
+        if (!form.get("tz") && rule) {
+            // The clock has a time zone rule but no zone name (an older page saved only the rule): name a zone with
+            // that rule, this browser's if it has it. Never replace the rule, or a save would move the clock's time.
+            const named = list.find(z => z.name === zone && z.value === rule) || list.find(z => z.value === rule)
+            if (named) form.set("tz", named.name)
+        } else if (!form.get("tz") && ui.timezoneNames.has(zone)) {
             // No zone saved yet: use this browser's (it shows as an unsaved change).
             form.set("tz_libc", list.find(z => z.name === zone).value)
             form.set("tz", zone)
