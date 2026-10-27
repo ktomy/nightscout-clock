@@ -31,6 +31,10 @@ void BGSourceLibreLinkUp::deleteAuthTicket() {
 
 void BGSourceLibreLinkUp::setup() {
     BGSource::setup();
+    // Open a new connection for every request. Since the connections request moved to the
+    // shared secure client it reused the login's open connection, and on some networks the
+    // server never answered on it, so every start failed with a -11 read timeout.
+    client->setReuse(false);
     ServerManager.removeStaticFileHandler();
 
     // add handler to retrieve patients list
