@@ -337,6 +337,13 @@ function validateConfig(c, ctx) {
     // Glucose
     need("units", inOptions(units, UNITS), "Please select blood glucose units type.")
     for (const k of LIMIT_KEYS) need(k, isGlucose(c[k], units), units === "mmol" ? "Enter 2.0 to 29.9." : "Enter 30 to 399.")
+    // The clock builds its glucose ranges from the four limits in this order. Out of order, a range is empty and
+    // readings land in the wrong one: with low above high, an in-range reading shows as low.
+    if (LIMIT_KEYS.every(k => isGlucose(c[k], units))) {
+        const names = { low_urgent_mgdl: "urgent low", low_mgdl: "low", high_mgdl: "high" }
+        LIMIT_KEYS.slice(1).forEach((k, i) => need(k, c[k] > c[LIMIT_KEYS[i]],
+            `Must be above the ${names[LIMIT_KEYS[i]]} limit. The limits go up: urgent low, low, high, urgent high.`))
+    }
     for (const b of BANDS) need(b.color, inOptions(c[b.color], BAND_COLORS), "Please choose a color.")
     const bandName = key => BANDS.find(b => b.color === key).name
     for (const [a, b] of BAND_COLORS_APART) {
