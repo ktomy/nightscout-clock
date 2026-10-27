@@ -13,7 +13,7 @@
 >
 > You can reach me at **artiom@gmail.com**.
 
-### Current version: 1.1.0
+### Current version: 1.1.1
 
 ![Build and Release](https://github.com/ktomy/nightscout-clock/actions/workflows/build_release.yml/badge.svg)
 
@@ -210,6 +210,14 @@ High, low, and urgent-low alarms each have their own threshold, snooze duration,
   - ...more... (if you are the author of a CGM data collecting app/service and you want your data to be displayed on the Nightscout Clock, please contact me)
 
 ## Changes
+
+### 1.1.1
+
+- Fixed LibreLinkUp failing right after login with "Error getting connections from LibreLinkUp: -11" for some users; each request now opens its own connection, thanks [@nishanm](https://github.com/nishanm) ([#258](https://github.com/ktomy/nightscout-clock/pull/258))
+- Fixed a clock updated from 1.0.0 forgetting its default face, switched-off faces and scheduled faces; settings files saved from 1.0.0 now load them too, thanks [@nishanm](https://github.com/nishanm) ([#254](https://github.com/ktomy/nightscout-clock/pull/254))
+- Fixed the settings page moving the clock to the phone's time zone when opened from a device in another zone, thanks [@nishanm](https://github.com/nishanm) ([#256](https://github.com/ktomy/nightscout-clock/pull/256))
+- The settings page now refuses glucose limits that are out of order, which made in-range readings show as low, thanks [@nishanm](https://github.com/nishanm) ([#255](https://github.com/ktomy/nightscout-clock/pull/255))
+- Kept the glucose state visible: Big text keeps the urgent color while a reading is late, the Unicorn mane keeps its warning and urgent colors at the lowest brightness, and the dark faces' number color is limited to white, cyan, blue or magenta, different from the range colors, thanks [@nishanm](https://github.com/nishanm) ([#257](https://github.com/ktomy/nightscout-clock/pull/257))
 
 ### 1.1.0
 
