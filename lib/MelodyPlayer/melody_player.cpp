@@ -27,6 +27,16 @@ std::unique_ptr<T> make_unique(Args&&... args) {
     return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
 }
 
+#ifdef ESP32
+// ledcWriteTone leaves the channel at 10-bit resolution and 50% duty, the loudest the buzzer goes.
+// Full volume keeps that untouched; lower volumes scale the 0-127 value to the same 10-bit range.
+static void applyVolume(unsigned char pwmChannel, byte volume) {
+    if (volume < 127) {
+        ledcWrite(pwmChannel, (uint32_t)volume * 4);
+    }
+}
+#endif
+
 void MelodyPlayer::play() {
     if (melodyState == nullptr) {
         return;
@@ -52,6 +62,7 @@ void MelodyPlayer::play() {
         } else {
 #ifdef ESP32
             ledcWriteTone(pwmChannel, computedNote.frequency);
+            applyVolume(pwmChannel, volume);
 #else
             tone(pin, computedNote.frequency);
 #endif
@@ -110,8 +121,7 @@ void changeTone(MelodyPlayer* player) {
             if (!player->muted) {
 #ifdef ESP32
                 ledcWriteTone(player->pwmChannel, computedNote.frequency);
-                if (false)
-                    ledcWrite(player->pwmChannel, player->volume);
+                applyVolume(player->pwmChannel, player->volume);
 #else
                 tone(player->pin, computedNote.frequency);
 #endif

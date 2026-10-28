@@ -13,6 +13,7 @@ struct AlarmData {
     int snoozeTimeMinutes;
     std::vector<AlertWindow> alertWindows;
     String alarmSound;
+    byte alarmVolume;
     bool isSnoozed;
 };
 
