@@ -111,6 +111,7 @@ bool SettingsManager_::parseCustomMac(const String& macStr, uint8_t* macBytes) {
 }
 
 bool SettingsManager_::loadSettingsFromFile() {
+    std::lock_guard<std::recursive_mutex> lock(mutex);
     auto doc = readConfigJsonFile();
     if (doc == NULL)
         return false;
@@ -306,10 +307,10 @@ bool SettingsManager_::loadSettingsFromFile() {
 }
 
 // Re-reads only the brightness settings from the persisted config file.
-// The web UI always reboots after saving, so the file holds exactly what was
-// configured there; the middle button's tweaks stay in memory only, and a
-// long press restores the configured values through this.
+// The file holds what the web UI last saved; the middle button's tweaks stay
+// in memory only, and a long press restores the configured values through this.
 bool SettingsManager_::loadBrightnessFromFile() {
+    std::lock_guard<std::recursive_mutex> lock(mutex);
     JsonDocument* doc = readConfigJsonFile();
     if (doc == NULL) {
         return false;
@@ -331,6 +332,11 @@ bool SettingsManager_::loadBrightnessFromFile() {
 }
 
 bool SettingsManager_::saveSettingsToFile() {
+    std::lock_guard<std::recursive_mutex> lock(mutex);
+    // A web save not applied yet is newer than these settings.
+    if (reloadRequested) {
+        return false;
+    }
     auto doc = readConfigJsonFile();
     if (doc == NULL)
         return false;
@@ -503,6 +509,7 @@ bool SettingsManager_::saveSettingsToFile() {
 }
 
 bool SettingsManager_::trySaveJsonAsSettings(JsonDocument doc) {
+    std::lock_guard<std::recursive_mutex> lock(mutex);
     DEBUG_PRINTLN(doc.as<String>());
     auto file = LittleFS.open(CONFIG_JSON, FILE_WRITE);
     if (!file) {
