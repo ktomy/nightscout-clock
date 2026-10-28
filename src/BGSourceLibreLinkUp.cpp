@@ -31,9 +31,9 @@ void BGSourceLibreLinkUp::deleteAuthTicket() {
 
 void BGSourceLibreLinkUp::setup() {
     BGSource::setup();
-    // Open a new connection for every request. Since the connections request moved to the
-    // shared secure client it reused the login's open connection, and on some networks the
-    // server never answered on it, so every start failed with a -11 read timeout.
+    // Open a new connection for every request: each request ends with client->end(), which then
+    // closes its connection. Reusing the login's connection for the connections request made
+    // every start fail with a -11 read timeout on some networks.
     client->setReuse(false);
     ServerManager.removeStaticFileHandler();
 
@@ -96,6 +96,9 @@ AuthTicket BGSourceLibreLinkUp::login() {
     }
 
     String response = client->getString();
+    // Close the login's connection. HTTPClient reuses a connection that still looks open even with
+    // reuse off, and the server may already be closing it, so the next request got no answer.
+    client->end();
 
     // #ifdef DEBUG_BG_SOURCE
     //     DEBUG_PRINTLN("Response: " + response);
@@ -160,7 +163,6 @@ AuthTicket BGSourceLibreLinkUp::login() {
         SettingsManager.saveSettingsToFile();
         DEBUG_PRINTF("Redirecting to region %s\n", region.c_str());
         doc.clear();
-        client->end();
         DisplayManager.clearMatrix();
         DisplayManager.setTextColor(COLOR_CYAN);
         DisplayManager.printText(0, 6, "Redirect", TEXT_ALIGNMENT::CENTER, 0);
