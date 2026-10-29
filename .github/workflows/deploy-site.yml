@@ -1,0 +1,103 @@
+name: Deploy site on simulator changes
+
+# Publishes the GitHub Pages site (browser installer + face simulator) when
+# simulator/ or www/ changes on main, without cutting a firmware release.
+# Firmware binaries are reused from the successful release build for the
+# checkout's version (never "latest", which would race an in-flight release),
+# so the installer keeps serving the released firmware that matches update.json.
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+  actions: read
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - "simulator/**"
+      - "www/**"
+      - "scripts/assemble_pages.sh"
+      - ".github/workflows/deploy-site.yml"
+
+jobs:
+  deploy:
+    name: Deploy site to GitHub Pages
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Setup Pages
+        uses: actions/configure-pages@v3
+      - name: Detect release push (tag workflow deploys the site)
+        id: release_check
+        run: |
+          # The release script pushes the "Bump version" commit together with
+          # its v-* tag in one atomic push. That commit touches
+          # www/manifest.json, which triggers this workflow on main -- but the
+          # tag workflow (build_release.yml) already deploys the site for
+          # releases, so running here is redundant and races the in-flight
+          # tag build (its artifacts don't exist yet -> failure + email).
+          git fetch --tags --force origin
+          TAGS=$(git tag --points-at HEAD)
+          if echo "$TAGS" | grep -q '^v-'; then
+            echo "Release commit (tagged $(echo "$TAGS" | tr '\n' ' ')). Skipping: the v-* tag workflow deploys the site."
+            echo "is_release=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "is_release=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Download release firmware artifacts for this version
+        if: steps.release_check.outputs.is_release != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Pin the artifacts to the checkout's version. Taking "latest successful"
+          # here races the tag build: the version-bump push triggers this workflow
+          # while the v-* tag build is still running, and the previous release's
+          # binaries would be deployed under the new version's update.json.
+          VERSION=$(tr -d '[:space:]' < data/version.txt)
+          # The matching tag build may still be running if this push landed
+          # right after a release; wait for it instead of failing immediately.
+          RUN_ID=""
+          for i in $(seq 1 24); do
+            RUN_ID=$(gh run list --workflow build_release.yml --status success --limit 50 \
+              --json databaseId,headBranch \
+              --jq "[.[] | select(.headBranch == \"v-$VERSION\")][0].databaseId")
+            if [ -n "$RUN_ID" ] && [ "$RUN_ID" != "null" ]; then
+              break
+            fi
+            RUN_ID=""
+            echo "Waiting for the v-$VERSION tag build to succeed... (attempt $i/24)"
+            sleep 30
+          done
+          if [ -z "$RUN_ID" ]; then
+            echo "::error::No successful 'Build and deploy on Github Pages' run for v-$VERSION found after waiting. The release build may have failed; re-run this workflow after it completes."
+            exit 1
+          fi
+          echo "Reusing firmware artifacts from run $RUN_ID (v-$VERSION)"
+          if ! gh run download "$RUN_ID" --name firmware --dir artifacts; then
+            echo "::error::Could not download the 'firmware' artifact from run $RUN_ID (it may have expired). Publish a new v-* release first."
+            exit 1
+          fi
+      - name: Assemble Pages site
+        if: steps.release_check.outputs.is_release != 'true'
+        run: bash scripts/assemble_pages.sh artifacts
+      - name: Upload artifact
+        if: steps.release_check.outputs.is_release != 'true'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: "www"
+      - name: Deploy to GitHub Pages
+        if: steps.release_check.outputs.is_release != 'true'
+        id: deployment
+        uses: actions/deploy-pages@v4
