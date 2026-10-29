@@ -13,7 +13,7 @@
 >
 > You can reach me at **artiom@gmail.com**.
 
-### Current version: 1.1.1
+### Current version: 1.1.2
 
 ![Build and Release](https://github.com/ktomy/nightscout-clock/actions/workflows/build_release.yml/badge.svg)
 
@@ -210,6 +210,10 @@ High, low, and urgent-low alarms each have their own threshold, snooze duration,
   - ...more... (if you are the author of a CGM data collecting app/service and you want your data to be displayed on the Nightscout Clock, please contact me)
 
 ## Changes
+
+### 1.1.2
+
+- Fixed LibreLinkUp still failing at start with "Error getting connections from LibreLinkUp: -11" for some users after 1.1.1; the login now closes its connection before the next request, thanks [@nishanm](https://github.com/nishanm) ([#259](https://github.com/ktomy/nightscout-clock/pull/259))
 
 ### 1.1.1
 
