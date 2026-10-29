@@ -213,7 +213,7 @@ High, low, and urgent-low alarms each have their own threshold, snooze duration,
 
 ### 1.1.2
 
-- Fixed LibreLinkUp still failing at start with "Error getting connections from LibreLinkUp: -11" for some users after 1.1.1; the login now closes its connection before the next request, thanks [@nishanm](https://github.com/nishanm) ([#259](https://github.com/ktomy/nightscout-clock/pull/259))
+- Attempted to fix LibreLinkUp still failing at start with "Error getting connections from LibreLinkUp: -11" for some users after 1.1.1; the login now closes its connection before the next request, thanks [@nishanm](https://github.com/nishanm) ([#259](https://github.com/ktomy/nightscout-clock/pull/259))
 
 ### 1.1.1
 
