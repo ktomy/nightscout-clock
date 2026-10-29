@@ -11,6 +11,10 @@
 #include "globals.h"
 #include "improv_consume.h"
 
+// The loop runs the data sources' TLS handshakes, and LibreLinkUp's connections request starts one
+// deep in its call chain. The ECDSA check in that handshake overflowed the default 8 KB stack.
+SET_LOOP_TASK_STACK_SIZE(16 * 1024);
+
 float apModeHintPosition = MATRIX_WIDTH;  // Start the scrolling right after the screen
 
 void setup() {
@@ -84,6 +88,7 @@ void loop() {
         lastMemoryCheck = currentMillis;
         auto freeMemory = ESP.getFreeHeap();
         DEBUG_PRINTLN("Free memory: " + String(freeMemory));
+        DEBUG_PRINTLN("Loop stack never used: " + String(uxTaskGetStackHighWaterMark(NULL)) + " bytes");
     }
 #endif
 
