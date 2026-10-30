@@ -22,10 +22,14 @@ public:
     void HSVtext(int16_t x, int16_t y, const char* text, bool clear, byte textCase);
     // Converts a FastLED hue, saturation and value to an RGB565 color.
     uint16_t hsvToRgb(uint8_t h, uint8_t s, uint8_t v);
-    void printText(int16_t x, int16_t y, const char* text, TEXT_ALIGNMENT alignment, byte textCase);
+    void printText(
+        int16_t x, int16_t y, const char* text, TEXT_ALIGNMENT alignment, byte textCase,
+        bool updateMatrix = false);
     void setTextColor(uint16_t color);
-    void clearMatrix();
-    void drawBitmap(int16_t x, int16_t y, const uint8_t bitmap[], int16_t w, int16_t h, uint16_t color);
+    void clearMatrix(bool updateMatrix = false);
+    void drawBitmap(
+        int16_t x, int16_t y, const uint8_t bitmap[], int16_t w, int16_t h, uint16_t color,
+        bool updateMatrix = false);
     // Like drawBitmap, but each pixel carries its own palette index instead of a single mask color.
     // sprite[] holds one index per pixel (0 = transparent, skip); palette[] holds the color for
     // index N at palette[N-1]. Arrays may be in RAM or memory-mapped PROGMEM on ESP32.
@@ -45,7 +49,7 @@ public:
     uint8_t getBrightness() const { return currentBrightness; }
     void update();
     bool isBrightnessOverlayActive() const;
-    void clearMatrixPart(uint8_t x, uint8_t y, uint8_t width, uint8_t height);
+    void clearMatrixPart(uint8_t x, uint8_t y, uint8_t width, uint8_t height, bool updateMatrix = true);
     float getTextWidth(const char* text, byte textCase);
     void setFont(FONT_TYPE fontType);
 
