@@ -54,6 +54,7 @@ protected:
     uint16_t getDataOldColor() const;
     // The display color of a glucose range.
     uint16_t getBandColor(BG_LEVEL level) const;
+    static bool isUrgent(BG_LEVEL level);
     // Which quarter of the low or high range a reading is in: 0 next to in range, 3 next to urgent.
     static int getWarningQuarter(int sgv, BG_LEVEL level);
     // Seven eighths of the way to white: the lighter stripe of a moving part, lit at the lowest brightness.

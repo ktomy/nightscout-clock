@@ -53,13 +53,17 @@ int BGDisplayFace::getWarningQuarter(int sgv, BG_LEVEL level) {
     return width > 0 ? std::min(3, std::max(0, 4 * distance / width)) : 1;
 }
 
+bool BGDisplayFace::isUrgent(BG_LEVEL level) {
+    return level == BG_LEVEL::URGENT_LOW || level == BG_LEVEL::URGENT_HIGH;
+}
+
 uint16_t BGDisplayFace::getMotionColor(
     BG_LEVEL level, int quarter, int index, unsigned long frame) const {
     const unsigned long position = index + frame;
     const bool third = position % 3 == 0;
     BG_LEVEL shown = level;
     bool light = false;
-    if (level == BG_LEVEL::URGENT_LOW || level == BG_LEVEL::URGENT_HIGH) {
+    if (isUrgent(level)) {
         if (third) {
             return 0;
         }

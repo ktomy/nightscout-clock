@@ -13,7 +13,7 @@
 >
 > You can reach me at **artiom@gmail.com**.
 
-### Current version: 1.0.0
+### Current version: 1.1.2
 
 ![Build and Release](https://github.com/ktomy/nightscout-clock/actions/workflows/build_release.yml/badge.svg)
 
@@ -23,7 +23,7 @@ _Nightscout Clock (or NSClock) is an open-source product aimed at helping caregi
 
 ## Here is what it can do
 
-- 12 clock faces, including animated characters, dark-room layouts, and a time-only face
+- 16 clock faces, including animated characters, rainbow faces, dark-room layouts, and a time-only face
 - Can get glucose data from Dexcom Share, Nightscout, LibreLink Up or Medtrum EasyFollow
 - Supports mg/dl and mmol/l
 - 10 minutes setup through web browser
@@ -48,7 +48,7 @@ Thanks [@CallumMcK](https://github.com/CallumMcK)
 3. Unpack, turn on (press on `<` and `>` buttons for a few seconds)
 4. Connect the USB-C cable (comes with the clock) to your computer
 5. Go to the [installation page](https://ktomy.github.io/nightscout-clock/)
-6. Follow the instructions. If installation fails, see the [installation troubleshooting discussion](https://github.com/ktomy/nightscout-clock/discussions/57).
+6. Follow the instructions. If installation fails, see the [troubleshooting guide](TROUBLESHOOTING.md#installation) and the [installation troubleshooting discussion](https://github.com/ktomy/nightscout-clock/discussions/57).
 7. Once the clock is installed, take out your phone and join `nsclock` wi-fi network. Then go to `http://192.168.4.1/`
 8. Set up your device, provide the Wi-Fi network details, your Dexcom, Nightscout, LibreLink Up or Medtrum EasyFollow credentials, glucose warning limits and other parameters
 9. You're all set, enjoy!
@@ -61,6 +61,10 @@ Updates use a full reflash and reset the clock's settings. Make a note of your s
 
 Thanks [@CallumMcK](https://github.com/CallumMcK)
 
+## Troubleshooting
+
+If the clock does not install, connect to WiFi, show data, or keeps restarting, see the [troubleshooting guide](TROUBLESHOOTING.md). It also explains how to collect logs with the debug firmware when reporting an issue.
+
 ## More information
 
 Nightscout Clock is a custom firmware for Ulanzi TC001. It can also run (with minor changes) on AWTRIX-Light custom hardware, so if you need a bigger display, feel free to research.
@@ -70,7 +74,7 @@ Nightscout Clock is a custom firmware for Ulanzi TC001. It can also run (with mi
 | Name            | Look                                                                                                 | Comment |
 | --------------- | ---------------------------------------------------------------------------------------------------- |---------|
 | Simple          | <img width="500" alt="Simple" src="https://github.com/user-attachments/assets/ad281e9f-8c7f-41ff-ba82-23c634171158" /> |   Horizontal bars in the bottom of the display <br /> indicate the time since the last reading <br />No bars: less than one minute <br /> 1..5 green bars: 1..5 minutes <br /> 5 yellow bars: 6..19 minutes <br /> value and bars use the configured old-data color from 20 minutes (default threshold) <br /> and the trend arrow is replaced by an X in the same color       |
-| BIG DIGITS      | <img width="500" alt="Big Digits" src="https://github.com/user-attachments/assets/1feae65b-21e9-4c20-8960-b75583baa142" /> | Has no age bars, so it can color the value cyan, blue or magenta once the reading is 6, 10 or 15 minutes old, in a color different from the old-data color. The old-data color still takes over at the data-is-old threshold. Off by default; set it in the Big text drawer of the Clock faces card. |
+| BIG DIGITS      | <img width="500" alt="Big Digits" src="https://github.com/user-attachments/assets/1feae65b-21e9-4c20-8960-b75583baa142" /> | Age dots under the trend arrow show one dot per minute since the last reading, up to five; they turn yellow after five minutes and take the old-data color once data is old. They are on by default and can be turned off in the Big text drawer of the Clock faces card.<br /><br />The value can also turn cyan, blue or magenta once the reading is 6, 10 or 15 minutes old, in a color different from the old-data color and the range colors. An urgent reading keeps its urgent color. The old-data color still takes over at the data-is-old threshold. Off by default; set it in the same drawer. |
 | 3-hours graph   | <img width="500" alt="graph" src="https://github.com/user-attachments/assets/45d92097-f459-44d4-b1ae-a35c3cb38700" /> |         |
 | Graph and value | <img width="500" alt="Graph and value" src="https://github.com/user-attachments/assets/db9046aa-5121-43fa-b367-807cdf3c5ef3" /> |  The dots on the right side replace the trend arrow.<br>2 white dots = horizontal arrow.<br>2 colored dots (white + green) = 45° arrow.<br>3 dots = vertical arrow.<br>4 dots = double arrow.<br>Colored dots above = upward trend.<br>Colored dots below = downward trend. <br /><br /> Dots under the value are the same as <br /> horizontal bars on the other faces.<br /> See "Simple" face for details |
 | Delta           | <img width="500" alt="Photo of the Nightscout Clock" src="https://github.com/user-attachments/assets/f8005f49-6e32-43f1-bd84-0bb4e4691d7f" /> |         |
@@ -78,13 +82,17 @@ Nightscout Clock is a custom firmware for Ulanzi TC001. It can also run (with mi
 | Unicorn         | <img width="500" alt="Unicorn and value" src="https://github.com/user-attachments/assets/78dd56a8-1501-493d-98be-5fb59ac9778d" /> | A unicorn whose mane of stepped color bands breaks into dim tips: magenta to blue for normal readings, warning or urgent colors outside the configured limits (every other band darker), and the configured old-data color for stale readings. Age bars appear below the value. Contributed by [@JuanMiste](https://github.com/JuanMiste); the picture was redrawn with a larger head and a banded mane in [#201](https://github.com/ktomy/nightscout-clock/pull/201).<br /><br />The mane is still by default; set it to moving (calm, normal or lively) in the Unicorn drawer of the Clock faces card, and choose how it moves: its colors flow down the bands, slide back toward the tips, or hold while a light runs along the bands. While the reading is fresh a low or high mane shows darker stripes, and in the outer quarter of the in-range, low or high band every third band of a moving mane takes the color of the band beyond that edge (green next to the in-range limit, the urgent color next to the urgent limit); dark stripes run past an urgent limit, and the mane stops in the old-data color when data is old. |
 | Race car        |  | A white race car speeds toward the value while speed lines stream past, the road slides back and the wheels spin. The speed lines show the glucose color: green in range; yellow with a darker stripe running through when low or high, with the urgent color mixed in near the urgent limit; and red with dark stripes past an urgent limit. For stale readings the whole race stops and is drawn faded, every other pixel, in the configured old-data color. Set the speed (calm, normal or lively) in the Race car drawer of the Clock faces card. Age bars appear below the value. |
 | Time only       | | Only the time: hours, minutes and seconds in 24-hour format, or hours, minutes and AM/PM in 12-hour format. Glucose is always hidden, including urgent readings and old or missing data. New glucose alarms are suppressed while this face is selected. Alarms already triggered, including snoozed alarms, continue normally. |
-| Simple (dark)   |  | Simple for a dark room: the number in one chosen color (any of the clock's colors except black, set in the Simple (dark) drawer of the Clock faces card), the trend arrow in the glucose range color, and no age bars. Urgent readings draw the number in the urgent color. Old data uses the old-data color. |
+| Simple (dark)   |  | Simple for a dark room: the number in one chosen color (white, cyan, blue or magenta, different from every range color, set in the Simple (dark) drawer of the Clock faces card), the trend arrow in the glucose range color, and no age bars. Urgent readings draw the number in the urgent color. Old data uses the old-data color. |
 | Dragon          |                                                                                                      | A little dragon breathes fire at the value, with age bars below it. The flame is magenta, orchid, purple and violet in range, the Unicorn's colors, and takes the low or high color outside the limits, with a darker stripe, the urgent color mixed in near the urgent limit, and dark stripes past an urgent limit, as on the moving Unicorn mane. When data is old the fire goes out and the dragon is drawn faded in the old-data color. Set the flame's speed (calm, normal or lively) in the Dragon drawer of the Clock faces card. |
-| Big text (dark) |  | Big text's large digits in the Simple (dark) number color, readable across a dark room; the trend arrow in the glucose range color, and no age bars. Both dark faces share one number color setting. |
+| Big text (dark) |  | Big text's large digits in the Simple (dark) number color, readable across a dark room, and the trend arrow in the glucose range color. Both dark faces share one number color setting. Big text's age dots are available too, off by default; turn them on in the Big text (dark) drawer of the Clock faces card. |
+| Rainbow clock   |  | The time with every character in a moving rainbow: hours, minutes and seconds in 24-hour format, or hours, minutes and AM/PM in 12-hour format. Like Time only, it always hides glucose and suppresses new alarms while selected; already-triggered and snoozed alarms continue normally. Contributed by [@adamecker](https://github.com/adamecker). |
+| Rainbow big text |  | Big text's large digits, each in a moving full rainbow whatever the value, with the trend arrow in the glucose range color. Stale readings stop and use the old-data color. Contributed by [@adamecker](https://github.com/adamecker). |
+| Rainbow mood    |  | A smiley, the value in rainbow digits, and the trend arrow. The smiley takes the glucose range color and changes expression with it: happy in range, shocked when low or falling, dizzy when high. Stale readings stop and use the old-data color. Contributed by [@adamecker](https://github.com/adamecker). |
+| Battery and uptime |  | The clock's battery level as a bar and a percentage, and the time since the clock started, in minutes, hours or days. It shows no glucose. Off by default; turn it on in the Clock faces card. Contributed by [@adamecker](https://github.com/adamecker). |
 
 #### Active clock faces
 
-The Web UI's Clock faces card selects which faces are active. All of them are active out of the box, and so is any face added by a later update; turning off the ones you never use shortens what the left and right buttons move between, and the default face is chosen among the active ones.
+The Web UI's Clock faces card selects which faces are active. All of them except Battery and uptime are active out of the box; turning off the ones you never use shortens what the left and right buttons move between, and the default face is chosen among the active ones.
 
 #### Automatic clock-face cycling
 
@@ -100,7 +108,7 @@ The **Daily schedule** card on the **Display** tab can change the clock's face a
 
 The settings page works offline and adapts to desktop and phone screens. Four tabs group the controls; changes take effect when you select **Save and restart**. Use the pencil beside the heading to name your clock.
 
-The screenshots below show the 1.0 settings interface with sample data, captured before the version bump.
+The screenshots below show the 1.1 settings interface with sample data, captured before the version bump.
 
 #### Display
 
@@ -158,6 +166,7 @@ High, low, and urgent-low alarms each have their own threshold, snooze duration,
 - Brightness adjustment
   - Brightness can be adjusted within the Web UI
   - Automatic brightness adjustment based on the ambient light
+  - A single press of the middle button steps through brightness levels 1 to 10 and the automatic modes, showing the level for a moment; the change lasts until the clock restarts, and a long press restores the brightness set in the Web UI
   - Double-click on the middle button on the clock turns the display on and off
 - Multiple clock faces support
   - Default clock face can be selected in the Web UI
@@ -168,7 +177,7 @@ High, low, and urgent-low alarms each have their own threshold, snooze duration,
   - Simple clock face (value and trend arrow)
   - Full-width glucose graph
   - Graph, value and trend indicator
-  - BIG DIGITS, with an optional color for a late reading
+  - BIG DIGITS, with age dots and an optional color for a late reading
   - Value, trend and delta
   - Clock and BG value (timezone is set in the clock's web interface)
   - Unicorn and glucose value, with mane colors based on glucose limits
@@ -177,12 +186,17 @@ High, low, and urgent-low alarms each have their own threshold, snooze duration,
   - Simple (dark): the number in a color of your choice with the glucose color on the trend arrow, for night
   - Dragon and glucose value, breathing fire in colors based on glucose limits
   - Big text (dark): the same with BIG DIGITS
+  - Rainbow clock: the time in moving rainbow colors, hiding glucose and suppressing new alarms like Time only
+  - Rainbow big text: BIG DIGITS in a moving rainbow
+  - Rainbow mood: a smiley whose expression follows the glucose range, beside the value in rainbow digits
+  - Battery and uptime: battery level and time since start, off by default
 - Configurable color for old readings and no-data screens: gray (default), cyan, magenta, or blue. Choose it on the Display tab of the Web UI; the alternatives help keep stale readings visible at low brightness
 - Smart data and screen update timings: read data once it appears, refresh screen when needed
 - API data source. The clock has a simple Nightscout-like API which can receive glucose values from an external source. The main purpose of this feature is the ability to test the clock during the clockfaces development. In order to activate this feature, select the API data source within the clock's Web UI. Here are the endpoints:
   - /api/v1/entries POST endpoint receives an array of Nightscout-like entries. The only significant fields are `sgv`, `date` and `trend` or `direction`. Due to the limited memory the API is stable when sent fewer than 10 records
   - /api/v1/entries DELETE endpoint deletes all entries regardless of the payload
 - Firmware versioning
+- Debug firmware keeps a log of recent debug messages that can be downloaded from the Debug logs card on the WiFi & system tab, so a clock can be diagnosed without a computer attached. The log can contain passwords, API secrets and glucose readings, so review it before sharing
 - Alarms with configurable thresholds, snooze times, repeat interval, sounds, and weekday/time alert windows
 - To turn the device on or off press both arrow buttons for 3 seconds
 - To reset the device to factory defaults (hard reset) during boot sequence (when version number is displayed) keep the center (select) button pressed.
@@ -190,12 +204,40 @@ High, low, and urgent-low alarms each have their own threshold, snooze duration,
 ### My TODO list
 
 - Add more clock faces
-  - Battery, humidity and temperature
+  - Humidity and temperature
 - Smooth color change (rainbow) based on the value and boundaries
 - Add more data sources
   - ...more... (if you are the author of a CGM data collecting app/service and you want your data to be displayed on the Nightscout Clock, please contact me)
 
 ## Changes
+
+### 1.1.2
+
+- Attempted to fix LibreLinkUp still failing at start with "Error getting connections from LibreLinkUp: -11" for some users after 1.1.1; the login now closes its connection before the next request, thanks [@nishanm](https://github.com/nishanm) ([#259](https://github.com/ktomy/nightscout-clock/pull/259))
+
+### 1.1.1
+
+- Fixed LibreLinkUp failing right after login with "Error getting connections from LibreLinkUp: -11" for some users; each request now opens its own connection, thanks [@nishanm](https://github.com/nishanm) ([#258](https://github.com/ktomy/nightscout-clock/pull/258))
+- Fixed a clock updated from 1.0.0 forgetting its default face, switched-off faces and scheduled faces; settings files saved from 1.0.0 now load them too, thanks [@nishanm](https://github.com/nishanm) ([#254](https://github.com/ktomy/nightscout-clock/pull/254))
+- Fixed the settings page moving the clock to the phone's time zone when opened from a device in another zone, thanks [@nishanm](https://github.com/nishanm) ([#256](https://github.com/ktomy/nightscout-clock/pull/256))
+- The settings page now refuses glucose limits that are out of order, which made in-range readings show as low, thanks [@nishanm](https://github.com/nishanm) ([#255](https://github.com/ktomy/nightscout-clock/pull/255))
+- Kept the glucose state visible: Big text keeps the urgent color while a reading is late, the Unicorn mane keeps its warning and urgent colors at the lowest brightness, and the dark faces' number color is limited to white, cyan, blue or magenta, different from the range colors, thanks [@nishanm](https://github.com/nishanm) ([#257](https://github.com/ktomy/nightscout-clock/pull/257))
+
+### 1.1.0
+
+- Added the Rainbow clock face, showing the time in moving rainbow colors; like Time only, it hides glucose and suppresses new alarms while selected, thanks [@adamecker](https://github.com/adamecker) ([#241](https://github.com/ktomy/nightscout-clock/pull/241))
+- Added the Rainbow big text face, with every large digit in a moving rainbow and the trend arrow in the glucose range color, thanks [@adamecker](https://github.com/adamecker) ([#242](https://github.com/ktomy/nightscout-clock/pull/242))
+- Added the Rainbow mood face, with a smiley whose expression and color follow the glucose range beside the value in rainbow digits, thanks [@adamecker](https://github.com/adamecker) ([#243](https://github.com/ktomy/nightscout-clock/pull/243))
+- Added the Battery and uptime face, showing the battery level and the time since start; it is off by default, thanks [@adamecker](https://github.com/adamecker) ([#248](https://github.com/ktomy/nightscout-clock/pull/248))
+- Added age dots under the trend arrow to Big text (on by default) and Big text (dark) (off by default), thanks [@adamecker](https://github.com/adamecker) ([#245](https://github.com/ktomy/nightscout-clock/pull/245))
+- Added middle-button brightness control: a single press steps through levels 1 to 10 and the automatic modes until the next restart, and a long press restores the saved brightness; also fixed the display staying dark after turning it off and on in manual brightness mode, thanks [@adamecker](https://github.com/adamecker) ([#219](https://github.com/ktomy/nightscout-clock/pull/219))
+- Added a downloadable debug log to debug firmware, available from the Debug logs card on the WiFi & system tab, thanks [@adamecker](https://github.com/adamecker) ([#240](https://github.com/ktomy/nightscout-clock/pull/240))
+- Fixed LibreLinkUp logins that require accepting updated terms of use; the clock now accepts the step and logs in again instead of showing a credentials error, thanks [@waldokilian2](https://github.com/waldokilian2) ([#237](https://github.com/ktomy/nightscout-clock/pull/237))
+- Fixed repeated LibreLinkUp connection failures quickly leading to a fatal error and restart, thanks [@nishanm](https://github.com/nishanm) ([#247](https://github.com/ktomy/nightscout-clock/pull/247))
+- Made the settings page load faster by checking internet reachability at most once a minute, thanks [@adamecker](https://github.com/adamecker) ([#234](https://github.com/ktomy/nightscout-clock/pull/234))
+- Fixed the settings page keeping a scheduled time whose face the clock does not have, thanks [@nishanm](https://github.com/nishanm) ([#211](https://github.com/ktomy/nightscout-clock/pull/211))
+- Switched clock faces to stable IDs, so new faces no longer compete for ID numbers ([#244](https://github.com/ktomy/nightscout-clock/pull/244))
+- Fixed the build and release pipelines on the current GitHub runners
 
 ### 1.0.0
 

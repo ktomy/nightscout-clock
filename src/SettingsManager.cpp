@@ -149,7 +149,7 @@ bool SettingsManager_::loadSettingsFromFile() {
     }
 
     settings.brightness_level = (*doc)["brightness_level"].as<int>() - 1;
-    settings.default_clockface = (*doc)["default_face"].as<String>();
+    settings.default_clockface = readFaceId((*doc)["default_face"]);
 
     settings.face_cycle_enabled = (*doc)["face_cycle_enabled"] | false;
     settings.face_cycle_interval_seconds = (*doc)["face_cycle_interval_seconds"] | 60;
@@ -160,7 +160,7 @@ bool SettingsManager_::loadSettingsFromFile() {
 
     settings.inactive_faces.clear();
     for (JsonVariant face : (*doc)["inactive_faces"].as<JsonArray>()) {
-        settings.inactive_faces.push_back(face.as<String>());
+        settings.inactive_faces.push_back(readFaceId(face));
     }
 
     settings.face_schedule_enabled = (*doc)["face_schedule_enabled"] | false;

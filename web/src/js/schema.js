@@ -77,7 +77,27 @@ const FACES = [
     { id: "rainbow_clock", name: "Rainbow clock" },
     { id: "big_text_rainbow", name: "Rainbow big text" },
     { id: "rainbow_mood", name: "Rainbow mood" },
+    { id: "battery_uptime", name: "Battery and uptime" },
 ]
+
+// Clocks set up on 1.0.0 or earlier stored each face as its number, the face's index in this order.
+// Must match NUMBERED_FACE_IDS in SettingsSchedule.cpp.
+const NUMBERED_FACE_IDS = FACES.slice(0, 12).map(f => f.id)
+// Any other number is left as it is, so it is refused like any unknown face.
+const readFaceId = id => typeof id === "number" ? NUMBERED_FACE_IDS[id] ?? id : id
+
+/**
+ * Copy settings with every face named by its string ID, so a clock or settings file from 1.0.0 keeps its faces.
+ * @param {ClockConfig} c - Settings from the clock or a settings file.
+ * @returns {ClockConfig}
+ */
+function readFaceIds(c) {
+    const out = { ...c }
+    if ("default_face" in out) out.default_face = readFaceId(out.default_face)
+    if (Array.isArray(out.inactive_faces)) out.inactive_faces = out.inactive_faces.map(readFaceId)
+    if (Array.isArray(out.face_schedule)) out.face_schedule = out.face_schedule.map(row => isBlock(row) ? { ...row, face: readFaceId(row.face) } : row)
+    return out
+}
 
 // The config stores the faces switched off, so a face added later starts active.
 const activeFaceIds = inactive => FACES.map(f => f.id).filter(id => !(inactive || []).includes(id))
@@ -122,10 +142,8 @@ const AGE_DOTS = [["on", "On"], ["off", "Off"]]
 const MANE_MODES = [["still", "Still"], ["moving", "Moving"]]
 const MANE_FLOWS = [["down", "Top to bottom"], ["back", "Colors scroll back"], ["run", "Light runs along the bands"]]
 const ANIMATION_SPEEDS = [["calm", "Calm"], ["normal", "Normal"], ["lively", "Lively"]]
-// Every color the firmware can draw except black, which is invisible on the black panel. The glucose
-// colors stay on the trend arrow, so the number keeps whichever of these is chosen.
-const DARK_VALUE_COLORS = [["white", "White"], ["cyan", "Cyan"], ["blue", "Blue"], ["magenta", "Magenta"],
-    ["gray", "Gray"], ["green", "Green"], ["yellow", "Yellow"], ["red", "Red"]]
+// No glucose colors, which would read as a glucose state, and no gray, which is dark at the lowest brightness.
+const DARK_VALUE_COLORS = [["white", "White"], ["cyan", "Cyan"], ["blue", "Blue"], ["magenta", "Magenta"]]
 const CYCLE_INTERVALS = [[10, "10 s"], [30, "30 s"], [60, "1 min"], [120, "2 min"], [180, "3 min"], [300, "5 min"]]
 const TIME_FORMATS = [["24", "24h"], ["12", "AM/PM"]]
 const SNOOZES = [[5, "5 minutes"], [10, "10 minutes"], [15, "15 minutes"], [30, "30 minutes"], [60, "1 hour"], [120, "2 hours"], [0, "Until next trigger"]]
@@ -338,6 +356,13 @@ function validateConfig(c, ctx) {
     // Glucose
     need("units", inOptions(units, UNITS), "Please select blood glucose units type.")
     for (const k of LIMIT_KEYS) need(k, isGlucose(c[k], units), units === "mmol" ? "Enter 2.0 to 29.9." : "Enter 30 to 399.")
+    // The clock builds its glucose ranges from the four limits in this order. Out of order, a range is empty and
+    // readings land in the wrong one: with low above high, an in-range reading shows as low.
+    if (LIMIT_KEYS.every(k => isGlucose(c[k], units))) {
+        const names = { low_urgent_mgdl: "urgent low", low_mgdl: "low", high_mgdl: "high" }
+        LIMIT_KEYS.slice(1).forEach((k, i) => need(k, c[k] > c[LIMIT_KEYS[i]],
+            `Must be above the ${names[LIMIT_KEYS[i]]} limit. The limits go up: urgent low, low, high, urgent high.`))
+    }
     for (const b of BANDS) need(b.color, inOptions(c[b.color], BAND_COLORS), "Please choose a color.")
     const bandName = key => BANDS.find(b => b.color === key).name
     for (const [a, b] of BAND_COLORS_APART) {
@@ -377,6 +402,12 @@ function validateConfig(c, ctx) {
     if (active.includes("big_text") && (bigText.early_stale_color || "off") !== "off") {
         need("face_big_text_early_stale_color", bigText.early_stale_color !== oldColor,
             `The Big text late color must differ from the old data color (${OLD_DATA_COLORS.find(([v]) => v === oldColor)[1]}), or the two can't be told apart.`)
+        const lateBand = BANDS.find(b => c[b.color] === bigText.early_stale_color)
+        if (lateBand) {
+            need("face_big_text_early_stale_color", false,
+                `${lateBand.name} readings use this color. Choose another late color, or a late reading could look ${lateBand.name.toLowerCase()}.`)
+            need(lateBand.color, false, "Big text shows late readings in this color. Choose another color.")
+        }
         need("face_big_text_early_stale_minutes", bigText.early_stale_minutes < oldMinutes,
             `The Big text late color must start before data counts as old (${oldMinutes} minutes). Choose fewer minutes, a longer no data timer, or Off.`)
     }
@@ -385,6 +416,14 @@ function validateConfig(c, ctx) {
     if (active.includes("simple_dark") || active.includes("big_text_dark")) {
         need("face_simple_dark_value_color", darkValueColor !== oldColor,
             `The dark faces' number color must differ from the old data color (${OLD_DATA_COLORS.find(([v]) => v === oldColor)[1]}), or a fresh reading would look old.`)
+        need("face_simple_dark_value_color", inOptions(darkValueColor, DARK_VALUE_COLORS), "Please choose a number color.")
+        // The number keeps one color whatever the reading, so it must not match a range color.
+        const numberBand = BANDS.find(b => c[b.color] === darkValueColor)
+        if (numberBand) {
+            need("face_simple_dark_value_color", false,
+                `${numberBand.name} readings use this color. Choose another number color, or every reading would look ${numberBand.name.toLowerCase()}.`)
+            need(numberBand.color, false, "The dark faces' number uses this color. Choose another color.")
+        }
     }
     need("tz", RX.timezone.test(text(c.tz_libc)) && (!ctx.tzNames || ctx.tzNames.has(c.tz)), "Please select your time zone.")
     need("time_format", inOptions(c.time_format, TIME_FORMATS), "Please select the time format (AM/PM or 24h).")
@@ -433,7 +472,7 @@ function buildSaveJson(c) {
  * @returns {ClockConfig}
  */
 function normalizeLoaded(c) {
-    const out = clone(c)
+    const out = readFaceIds(clone(c))
     out.face_schedule ??= []
     /**
      * Convert one integer-string setting to a number in the copied configuration, leaving other values alone.
@@ -516,6 +555,7 @@ function fitsSetting(key, value, clockValue) {
 // The clock's settings with a file's values applied. A value that doesn't fit, or that the checks run before a save
 // reject, keeps the clock's value and is listed in `kept`. Keys the clock doesn't have are ignored.
 function mergeSettingsFile(file, clock, { network, tzNames }) {
+    file = readFaceIds(file)
     const config = clone(clock)
     const taken = [], kept = []
     for (const key of Object.keys(clock)) {
