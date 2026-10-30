@@ -361,7 +361,7 @@ function drawer(title, body) {
 function bigTextSettings() {
     return el("div.stack",
         field("face_big_text_early_stale_color", "Color when a reading is late", segmented("face_big_text", EARLY_STALE_COLORS, { prop: "early_stale_color", label: "Color when a reading is late" }),
-            "Color late readings until the old-data threshold. Off keeps the usual glucose colors."),
+            "Color late readings until the old-data threshold. Urgent readings keep their glucose color. Off keeps the usual glucose colors."),
         field("face_big_text_early_stale_minutes", "Late after", segmented("face_big_text", EARLY_STALE_MINUTES, { numeric: true, prop: "early_stale_minutes", label: "Late after" })),
         field("face_big_text_age_dots", "Age dots", segmented("face_big_text", AGE_DOTS, { prop: "age_dots", label: "Age dots" }),
             "One dot under the trend arrow for each minute since the last reading, up to five."))
@@ -392,14 +392,9 @@ function raceCarSettings() {
 }
 
 function darkFaceSettings() {
-    const warning = el("p.help", { role: "status" },
-        "Gray is not visible at the lowest brightness. Choose another number color if you run the clock dim.")
-    const updateWarning = () => { warning.hidden = form.get("face_simple_dark")?.value_color !== "gray" }
-    updateWarning()
-    onChangeWhileAttached(warning, key => { if (key === "face_simple_dark") updateWarning() })
-    const valueColor = field("face_simple_dark_value_color", "Number color", el("div.stack",
-        swatches("face_simple_dark", DARK_VALUE_COLORS, { prop: "value_color", label: "Number color", fallback: "white" }), warning),
-        "Both dark faces use it. The trend arrow keeps the glucose colors and old data still uses the old data color, so red, yellow and green here do not track the reading.")
+    const valueColor = field("face_simple_dark_value_color", "Number color",
+        swatches("face_simple_dark", DARK_VALUE_COLORS, { prop: "value_color", label: "Number color", fallback: "white" }),
+        "Both dark faces use it. Urgent readings and the trend arrow keep the glucose colors, and old data uses the old data color.")
     // Only Big text (dark) has room for age dots under its arrow.
     if (!activeFaceIds(form.get("inactive_faces")).includes("big_text_dark")) return valueColor
     return el("div.stack", valueColor,

@@ -14,7 +14,7 @@ void BGDisplayFaceSimpleDark::showDarkReading(
     const uint16_t bandColor = getColorByBGValue(reading);
     const auto level = bgDisplayManager.getGlucoseIntervals().getBGLevel(reading.sgv);
     // An urgent number takes the urgent color, so it stays obvious even without a trend arrow.
-    const bool urgent = level == BG_LEVEL::URGENT_LOW || level == BG_LEVEL::URGENT_HIGH;
+    const bool urgent = isUrgent(level);
     const uint16_t valueColor =
         urgent ? bandColor
                : static_cast<uint16_t>(SettingsManager.settings.face_simple_dark.value_color);

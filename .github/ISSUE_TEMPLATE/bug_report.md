@@ -7,6 +7,9 @@ assignees: ''
 
 ---
 
+<!-- Before reporting, please check the troubleshooting guide: https://github.com/ktomy/nightscout-clock/blob/main/TROUBLESHOOTING.md
+For restarts, freezes and other intermittent problems, attach logs from the debug firmware: https://github.com/ktomy/nightscout-clock/blob/main/TROUBLESHOOTING.md#collecting-logs-with-the-debug-firmware -->
+
 **Describe the bug**
 A clear and concise description of what the bug is.
 

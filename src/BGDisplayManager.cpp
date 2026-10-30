@@ -58,7 +58,6 @@ void BGDisplayManager_::setup() {
         {"rainbow_clock", "Rainbow clock", new BGDisplayFaceRainbowClock()},
         {"big_text_rainbow", "Rainbow big text", new BGDisplayFaceBigTextRainbow()},
         {"rainbow_mood", "Rainbow mood", new BGDisplayFaceRainbowMood()},
-        {"smiley", "Smiley", new BGDisplayFaceSmiley()},
     };
 
     if (faces.size() != CLOCK_FACE_COUNT) {
