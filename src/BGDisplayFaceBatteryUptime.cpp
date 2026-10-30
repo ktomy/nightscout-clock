@@ -66,14 +66,14 @@ String BGDisplayFaceBatteryUptime::formatUptime() const {
     uint64_t uptimeMinutes = esp_timer_get_time() / 1000000ULL / 60;
 
     if (uptimeMinutes < 100) {
-        return String(uptimeMinutes) + "M";
+        return String((unsigned long)uptimeMinutes) + "M";
     }
 
     uint64_t uptimeHours = uptimeMinutes / 60;
     if (uptimeHours < 100) {
-        return String(uptimeHours) + "H";
+        return String((unsigned long)uptimeHours) + "H";
     }
 
     uint64_t uptimeDays = uptimeHours / 24;
-    return String(uptimeDays) + "D";
+    return String((unsigned long)uptimeDays) + "D";
 }

@@ -46,9 +46,6 @@ void BGDisplayManager_::setup() {
         {"clock", "Clock and value", new BGDisplayFaceClock()},
         {"unicorn", "Unicorn", new BGDisplayFaceUnicorn()},
         {"time_only", "Time only", new BGDisplayFaceTimeOnly()},
-        {"diagnostics", "Diagnostics", new BGDisplayFaceDiagnostics()},
-        {"battery_uptime", "Battery and uptime", new BGDisplayFaceBatteryUptime()},
-        {"smiley", "Smiley", new BGDisplayFaceSmiley()},
         {"simple_dark", "Simple (dark)", new BGDisplayFaceSimpleDark()},
         {"race_car", "Race car", new BGDisplayFaceRaceCar()},
         {"dragon", "Dragon", new BGDisplayFaceDragon()},
@@ -58,13 +55,8 @@ void BGDisplayManager_::setup() {
         {"rainbow_clock", "Rainbow clock", new BGDisplayFaceRainbowClock()},
         {"big_text_rainbow", "Rainbow big text", new BGDisplayFaceBigTextRainbow()},
         {"rainbow_mood", "Rainbow mood", new BGDisplayFaceRainbowMood()},
+        {"smiley", "Smiley", new BGDisplayFaceSmiley()},
     };
-
-    if (faces.size() != CLOCK_FACE_COUNT) {
-        DEBUG_PRINTF(
-            "Face count mismatch: %u registered, CLOCK_FACE_COUNT is %d",
-            static_cast<unsigned int>(faces.size()), CLOCK_FACE_COUNT);
-    }
 
     configureActiveFaces();
     configureFaceSchedule();

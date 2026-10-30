@@ -23,8 +23,7 @@ _Nightscout Clock (or NSClock) is an open-source product aimed at helping caregi
 
 ## Here is what it can do
 
-- 16 clock faces, including colorful glucose, diagnostic and system-information views, animated characters,
-  dark-room layouts, and a time-only face
+- 16 clock faces, including animated characters, rainbow faces, dark-room layouts, and a time-only face
 - Can get glucose data from Dexcom Share, Nightscout, LibreLink Up or Medtrum EasyFollow
 - Supports mg/dl and mmol/l
 - 10 minutes setup through web browser
@@ -86,10 +85,12 @@ Nightscout Clock is a custom firmware for Ulanzi TC001. It can also run (with mi
 | Simple (dark)   |  | Simple for a dark room: the number in one chosen color (white, cyan, blue or magenta, different from every range color, set in the Simple (dark) drawer of the Clock faces card), the trend arrow in the glucose range color, and no age bars. Urgent readings draw the number in the urgent color. Old data uses the old-data color. |
 | Dragon          |                                                                                                      | A little dragon breathes fire at the value, with age bars below it. The flame is magenta, orchid, purple and violet in range, the Unicorn's colors, and takes the low or high color outside the limits, with a darker stripe, the urgent color mixed in near the urgent limit, and dark stripes past an urgent limit, as on the moving Unicorn mane. When data is old the fire goes out and the dragon is drawn faded in the old-data color. Set the flame's speed (calm, normal or lively) in the Dragon drawer of the Clock faces card. |
 | Big text (dark) |  | Big text's large digits in the Simple (dark) number color, readable across a dark room, and the trend arrow in the glucose range color. Both dark faces share one number color setting. Big text's age dots are available too, off by default; turn them on in the Big text (dark) drawer of the Clock faces card. |
+| Diagnostics | | Scrolling date/time and glucose information. |
+| Battery and uptime |  | The clock's battery level as a bar and a percentage, and the time since the clock started, in minutes, hours or days. It shows no glucose. Off by default; turn it on in the Clock faces card. Contributed by [@adamecker](https://github.com/adamecker). |
 | Rainbow clock   |  | The time with every character in a moving rainbow: hours, minutes and seconds in 24-hour format, or hours, minutes and AM/PM in 12-hour format. Like Time only, it always hides glucose and suppresses new alarms while selected; already-triggered and snoozed alarms continue normally. Contributed by [@adamecker](https://github.com/adamecker). |
 | Rainbow big text |  | Big text's large digits, each in a moving full rainbow whatever the value, with the trend arrow in the glucose range color. Stale readings stop and use the old-data color. Contributed by [@adamecker](https://github.com/adamecker). |
 | Rainbow mood    |  | A smiley, the value in rainbow digits, and the trend arrow. The smiley takes the glucose range color and changes expression with it: happy in range, shocked when low or falling, dizzy when high. Stale readings stop and use the old-data color. Contributed by [@adamecker](https://github.com/adamecker). |
-| Battery and uptime |  | The clock's battery level as a bar and a percentage, and the time since the clock started, in minutes, hours or days. It shows no glucose. Off by default; turn it on in the Clock faces card. Contributed by [@adamecker](https://github.com/adamecker). |
+| Smiley | | Happy in range, sad when low, concerned when high, and neutral for stale or missing data. |
 
 #### Active clock faces
 
