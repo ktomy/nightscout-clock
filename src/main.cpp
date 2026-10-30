@@ -45,7 +45,7 @@ void setup() {
     bgSourceManager.setup(SettingsManager.settings.bg_source);
     bgDisplayManager.setup();
     bgAlarmManager.setup();
-    // PeripheryManager.playRTTTLString(sound_boot);
+    // PeripheryManager.playMelody(sound_boot);
 
     DEBUG_PRINTLN("Setup done");
     if (ServerManager.isConnected) {

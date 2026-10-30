@@ -27,7 +27,6 @@ MelodyPlayer player(BUZZER_PIN, 1, LOW);
 Button2 button_left(BUTTON_UP_PIN);
 Button2 button_right(BUTTON_DOWN_PIN);
 Button2 button_select(BUTTON_SELECT_PIN);
-const byte BUZZER_VOLUME = 64;
 
 #define USED_PHOTOCELL LightDependentResistor::GL5516
 #define PHOTOCELL_SERIES_RESISTOR 10000
@@ -121,8 +120,6 @@ void PeripheryManager_::setup() {
     DEBUG_PRINTLN(F("Setup periphery"));
     startTime = millis();
     pinMode(LDR_PIN, INPUT);
-    player.setVolume(BUZZER_VOLUME);
-
     button_left.setClickHandler(left_button_pressed);
     button_right.setClickHandler(right_button_pressed);
 
@@ -161,14 +158,21 @@ void PeripheryManager_::tick() {
             CURRENT_HUM += HUM_OFFSET;
         }
         if (BATTERY_PERCENT <= 5) {
-            bool alertDue = lastLowBatteryAlertMillis == 0 ||
-                            currentMillis_BatTempHum - lastLowBatteryAlertMillis >= LOW_BATTERY_ALERT_INTERVAL_MS;
-            // Don't interrupt a melody that is already sounding (e.g. a glucose
-            // alarm) - the single shared player would cut it off. Leave
-            // lastLowBatteryAlertMillis untouched so we retry on the next poll.
-            if (alertDue && !player.isPlaying()) {
-                PeripheryManager.playRTTTLString(LOW_BATTERY_BEEP);
-                lastLowBatteryAlertMillis = currentMillis_BatTempHum;
+            if (!SettingsManager.settings.low_battery_alert_enable) {
+                // Alert disabled by user: don't beep and reset the timer so
+                // re-enabling later doesn't trigger an immediate beep.
+                lastLowBatteryAlertMillis = 0;
+            } else {
+                bool alertDue = lastLowBatteryAlertMillis == 0 ||
+                                currentMillis_BatTempHum - lastLowBatteryAlertMillis >= LOW_BATTERY_ALERT_INTERVAL_MS;
+                // Don't interrupt a melody that is already sounding (e.g. a glucose
+                // alarm) - the single shared player would cut it off. Leave
+                // lastLowBatteryAlertMillis untouched so we retry on the next poll.
+                if (alertDue && !player.isPlaying()) {
+                    Melody melody = MelodyFactory.loadRtttlString(LOW_BATTERY_BEEP);
+                    player.playAsync(melody);
+                    lastLowBatteryAlertMillis = currentMillis_BatTempHum;
+                }
             }
         } else {
             lastLowBatteryAlertMillis = 0;
@@ -278,8 +282,7 @@ const char* PeripheryManager_::readUptime() {
     return uptime;
 }
 
-const void PeripheryManager_::playRTTTLString(String rtttl) {
-    static char melodyName[64];
+void PeripheryManager_::playMelody(String rtttl) {
     Melody melody = MelodyFactory.loadRtttlString(rtttl.c_str());
     player.playAsync(melody);
 }
