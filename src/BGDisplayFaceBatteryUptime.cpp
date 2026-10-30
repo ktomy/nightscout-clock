@@ -1,22 +1,24 @@
 #include "BGDisplayFaceBatteryUptime.h"
 
+#include <esp_timer.h>
+
 #include "globals.h"
 
 namespace {
 constexpr int BATTERY_INDICATOR_X = 11;
 constexpr int BATTERY_INDICATOR_Y = 0;
 constexpr int BATTERY_DOT_COUNT = 10;
+}  // namespace
 
-uint16_t getBatteryColor() {
+uint16_t BGDisplayFaceBatteryUptime::getBatteryColor() const {
     if (BATTERY_PERCENT < 10) {
-        return COLOR_RED;
+        return getBandColor(BG_LEVEL::URGENT_LOW);
     }
     if (BATTERY_PERCENT < 30) {
-        return COLOR_YELLOW;
+        return getBandColor(BG_LEVEL::WARNING_LOW);
     }
-    return COLOR_GREEN;
+    return getBandColor(BG_LEVEL::NORMAL);
 }
-}  // namespace
 
 void BGDisplayFaceBatteryUptime::showReadings(
     const std::list<GlucoseReading>& /*readings*/, bool /*dataIsOld*/) const {
@@ -25,12 +27,18 @@ void BGDisplayFaceBatteryUptime::showReadings(
 
 void BGDisplayFaceBatteryUptime::showNoData() const { showSystemInfo(); }
 
-bool BGDisplayFaceBatteryUptime::needsFrequentRefresh() const { return true; }
-
-unsigned long BGDisplayFaceBatteryUptime::getFrequentRefreshIntervalMs() const { return 10000; }
+// The uptime readout has minute resolution, so re-render on the per-minute tick.
+RenderDecision BGDisplayFaceBatteryUptime::getRenderDecision(const RenderContext& ctx) const {
+    if (ctx.reason == RenderReason::TIME_TICK) {
+        return RenderDecision::FULL;
+    }
+    return BGDisplayFace::getRenderDecision(ctx);
+}
 
 void BGDisplayFaceBatteryUptime::showSystemInfo() const {
-    DisplayManager.clearMatrix(false);
+    DisplayManager.clearMatrix();
+    // The previous face may have left LARGE selected, which is too wide for this layout.
+    DisplayManager.setFont(FONT_TYPE::MEDIUM);
 
     String batteryText = String(BATTERY_PERCENT) + "%";
     String uptimeText = formatUptime();
@@ -38,12 +46,10 @@ void BGDisplayFaceBatteryUptime::showSystemInfo() const {
     showBatteryIndicator();
 
     DisplayManager.setTextColor(getBatteryColor());
-    DisplayManager.printText(0, 7, batteryText.c_str(), TEXT_ALIGNMENT::LEFT, 2, false);
+    DisplayManager.printText(0, 7, batteryText.c_str(), TEXT_ALIGNMENT::LEFT, 2);
 
     DisplayManager.setTextColor(COLOR_WHITE);
-    DisplayManager.printText(31, 7, uptimeText.c_str(), TEXT_ALIGNMENT::RIGHT, 2, false);
-
-    DisplayManager.update();
+    DisplayManager.printText(31, 7, uptimeText.c_str(), TEXT_ALIGNMENT::RIGHT, 2);
 }
 
 void BGDisplayFaceBatteryUptime::showBatteryIndicator() const {
@@ -56,18 +62,18 @@ void BGDisplayFaceBatteryUptime::showBatteryIndicator() const {
 }
 
 String BGDisplayFaceBatteryUptime::formatUptime() const {
-    unsigned long uptimeSeconds = millis() / 1000;
-    unsigned long uptimeMinutes = uptimeSeconds / 60;
+    // esp_timer is 64-bit, unlike millis(), which wraps after about 49.7 days.
+    uint64_t uptimeMinutes = esp_timer_get_time() / 1000000ULL / 60;
 
     if (uptimeMinutes < 100) {
-        return String(uptimeMinutes) + "M";
+        return String((unsigned long)uptimeMinutes) + "M";
     }
 
-    unsigned long uptimeHours = uptimeMinutes / 60;
+    uint64_t uptimeHours = uptimeMinutes / 60;
     if (uptimeHours < 100) {
-        return String(uptimeHours) + "H";
+        return String((unsigned long)uptimeHours) + "H";
     }
 
-    unsigned long uptimeDays = uptimeHours / 24;
-    return String(uptimeDays) + "D";
+    uint64_t uptimeDays = uptimeHours / 24;
+    return String((unsigned long)uptimeDays) + "D";
 }
