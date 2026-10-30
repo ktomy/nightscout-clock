@@ -65,7 +65,9 @@
     "files.autoSaveDelay": 500,
     "editor.formatOnSave": true,
     "[cpp]": {
-        "editor.defaultFormatter": "ms-vscode.cpptools"
+        "editor.defaultFormatter": "ms-vscode.cpptools",
+        "editor.formatOnSave": true
     },
+    "C_Cpp.clang_format_style": "file",
     "editor.autoIndent": "full"
 }

@@ -168,7 +168,7 @@ void BGAlarmManager_::tick() {
                 activeAlarm = &alarmData;
                 alarmData.lastAlarmTime = ServerManager.getUtcEpoch();
                 alarmData.isSnoozed = false;
-                PeripheryManager.playRTTTLString(alarmData.alarmSound);
+                PeripheryManager.playMelody(alarmData.alarmSound);
                 DEBUG_PRINTLN("Playing alarm sound (nee alarm occurred)");
             } else {
                 if (activeAlarm->isSnoozed) {
@@ -177,7 +177,7 @@ void BGAlarmManager_::tick() {
                             60 * activeAlarm->snoozeTimeMinutes) {
                         activeAlarm->isSnoozed = false;
                         activeAlarm->lastAlarmTime = ServerManager.getUtcEpoch();
-                        PeripheryManager.playRTTTLString(alarmData.alarmSound);
+                        PeripheryManager.playMelody(alarmData.alarmSound);
                         DEBUG_PRINTLN("Playing alarm sound after snooze");
                     } else {
 #ifdef DEBUG_ALARMS
@@ -198,7 +198,7 @@ void BGAlarmManager_::tick() {
                     if (ServerManager.getUtcEpoch() - activeAlarm->lastAlarmTime >
                         alarmIntervalSeconds) {
                         activeAlarm->lastAlarmTime = ServerManager.getUtcEpoch();
-                        PeripheryManager.playRTTTLString(alarmData.alarmSound);
+                        PeripheryManager.playMelody(alarmData.alarmSound);
                         DEBUG_PRINTLN("Playing alarm sound (alarm already active, not snoozed)");
                     } else {
 #ifdef DEBUG_ALARMS

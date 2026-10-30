@@ -63,7 +63,8 @@ void onErrorCallback(improv::Error err) {
 }
 
 void getAvailableWifiNetworks() {
-    WiFi.mode(WIFI_STA);
+    wifi_mode_t previousMode = WiFi.getMode();
+    WiFi.mode(previousMode == WIFI_AP || previousMode == WIFI_AP_STA ? WIFI_AP_STA : WIFI_STA);
     WiFi.disconnect();
     int networkNum = WiFi.scanNetworks();
 
@@ -80,6 +81,8 @@ void getAvailableWifiNetworks() {
     std::vector<uint8_t> data =
         improv::build_rpc_response(improv::GET_WIFI_NETWORKS, std::vector<std::string>{}, false);
     send_response(data);
+
+    WiFi.mode(previousMode);
 }
 
 std::vector<std::string> getLocalUrl() {

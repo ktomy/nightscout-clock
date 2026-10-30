@@ -935,7 +935,7 @@ function alertWindows(a) {
  * @returns {HTMLElement}
  */
 function systemTab() {
-    return el("div.stack", wifiCard(), extraWifiCard(), hostnameCard(), loginCard(), backupCard(), versionCard(), logsCard())
+    return el("div.stack", wifiCard(), extraWifiCard(), hostnameCard(), lowBatteryCard(), loginCard(), backupCard(), versionCard(), logsCard())
 }
 
 /**
@@ -1008,6 +1008,15 @@ function hostnameCard() {
  * Build web password protection controls and show the password field only when protection is enabled.
  * @returns {HTMLElement}
  */
+/**
+ * Build a toggle for the low-battery alert beep, disabled by default so a
+ * clock with a missing or worn-out battery does not beep every two minutes.
+ * @returns {HTMLElement}
+ */
+function lowBatteryCard() {
+    return card("Low battery alert", null, toggleRow("low_battery_alert_enable", "Beep when battery is critically low", "Disabled by default. When on, the clock beeps once every two minutes while the battery reads 5% or less."), { id: "card_low_battery" })
+}
+
 function loginCard() {
     return card("Web interface authentication", null, el("div.stack",
         toggleRow("web_auth_enable", "Require a password to change settings", "Settings stay locked until someone unlocks them with this password; a login lasts 10 minutes."),

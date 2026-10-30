@@ -48,6 +48,9 @@ float sampleSum = 0.0;
 float sampleAverage = 0.0;
 float brightnessPercent = 0.0;
 int lastBrightness = 0;
+unsigned long lastLowBatteryAlertMillis = 0;
+const unsigned long LOW_BATTERY_ALERT_INTERVAL_MS = 2UL * 60UL * 1000UL;
+const char* LOW_BATTERY_BEEP = "bat:d=32,o=6,b=220:c";
 
 // The getter for the instantiated singleton instance
 PeripheryManager_& PeripheryManager_::getInstance() {
@@ -117,7 +120,6 @@ void PeripheryManager_::setup() {
     DEBUG_PRINTLN(F("Setup periphery"));
     startTime = millis();
     pinMode(LDR_PIN, INPUT);
-
     button_left.setClickHandler(left_button_pressed);
     button_right.setClickHandler(right_button_pressed);
 
@@ -154,6 +156,26 @@ void PeripheryManager_::tick() {
             sht31.readBoth(&CURRENT_TEMP, &CURRENT_HUM);
             CURRENT_TEMP += TEMP_OFFSET;
             CURRENT_HUM += HUM_OFFSET;
+        }
+        if (BATTERY_PERCENT <= 5) {
+            if (!SettingsManager.settings.low_battery_alert_enable) {
+                // Alert disabled by user: don't beep and reset the timer so
+                // re-enabling later doesn't trigger an immediate beep.
+                lastLowBatteryAlertMillis = 0;
+            } else {
+                bool alertDue = lastLowBatteryAlertMillis == 0 ||
+                                currentMillis_BatTempHum - lastLowBatteryAlertMillis >= LOW_BATTERY_ALERT_INTERVAL_MS;
+                // Don't interrupt a melody that is already sounding (e.g. a glucose
+                // alarm) - the single shared player would cut it off. Leave
+                // lastLowBatteryAlertMillis untouched so we retry on the next poll.
+                if (alertDue && !player.isPlaying()) {
+                    Melody melody = MelodyFactory.loadRtttlString(LOW_BATTERY_BEEP);
+                    player.playAsync(melody);
+                    lastLowBatteryAlertMillis = currentMillis_BatTempHum;
+                }
+            }
+        } else {
+            lastLowBatteryAlertMillis = 0;
         }
     }
 
@@ -260,8 +282,7 @@ const char* PeripheryManager_::readUptime() {
     return uptime;
 }
 
-const void PeripheryManager_::playRTTTLString(String rtttl) {
-    static char melodyName[64];
+void PeripheryManager_::playMelody(String rtttl) {
     Melody melody = MelodyFactory.loadRtttlString(rtttl.c_str());
     player.playAsync(melody);
 }
