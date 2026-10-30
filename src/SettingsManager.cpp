@@ -252,6 +252,9 @@ bool SettingsManager_::loadSettingsFromFile() {
     // Custom No Data Timer
     settings.custom_nodatatimer_enable = (*doc)["custom_nodatatimer_enable"].as<bool>();
     settings.custom_nodatatimer = (*doc)["custom_nodatatimer"].as<int>();
+
+    // Low battery alert
+    settings.low_battery_alert_enable = (*doc)["low_battery_alert_enable"] | false;
     if (settings.custom_nodatatimer_enable == true && settings.custom_nodatatimer > 5 &&
         settings.custom_nodatatimer <= 60) {
         settings.bg_data_too_old_threshold_minutes = settings.custom_nodatatimer;
@@ -460,6 +463,7 @@ bool SettingsManager_::saveSettingsToFile() {
     // Custom No Data Timer
     (*doc)["custom_nodatatimer_enable"] = settings.custom_nodatatimer_enable;
     (*doc)["custom_nodatatimer"] = settings.custom_nodatatimer;
+    (*doc)["low_battery_alert_enable"] = settings.low_battery_alert_enable;
     (*doc)["data_old_color"] = toString(settings.data_old_color);
 
     // Big text face

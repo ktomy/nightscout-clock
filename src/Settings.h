@@ -109,6 +109,7 @@ public:
     String custom_hostname;
     bool custom_nodatatimer_enable;
     int custom_nodatatimer;
+    bool low_battery_alert_enable = false;
     int bg_data_too_old_threshold_minutes = 20;
     DISPLAY_COLOR data_old_color = DISPLAY_COLOR::GRAY;
     BigTextFaceSettings face_big_text;

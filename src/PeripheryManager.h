@@ -23,7 +23,7 @@ public:
     void setup();
     void tick();
     const char* readUptime();
-    const void playRTTTLString(String rtttl);
+    void playMelody(String rtttl);
     const bool isButtonSelectPressed();
 };
 

@@ -136,6 +136,8 @@ Set up WiFi, an optional secondary network, a custom MAC address or hostname, an
 
 The **Backup and restore** card downloads the clock's settings as a file and loads a file into the page for review before saving. WiFi settings are loaded only when requested; the web login is never imported. The file contains WiFi and data source passwords, so keep it private.
 
+The **Low battery alert** toggle lets you enable or disable the clock's beep when the battery reads 5% or less. It is off by default, so a clock with a low battery does not beep every two minutes. Turn it on if you want to be notified when the battery needs recharging.
+
 ### Alarm settings
 
 High, low, and urgent-low alarms each have their own threshold, snooze duration, sound, and optional alert windows in the Web UI.
@@ -213,6 +215,8 @@ High, low, and urgent-low alarms each have their own threshold, snooze duration,
 
 ### 1.1.2
 
+- Removed the hard-coded buzzer volume reduction so alarms play at full volume instead of being forced quieter with no user override.
+- Added a **Low battery alert** setting (off by default) on the WiFi & system tab. When on, the clock beeps once every two minutes while the battery reads 5% or less; when off, a low battery no longer beeps indefinitely.
 - Attempted to fix LibreLinkUp still failing at start with "Error getting connections from LibreLinkUp: -11" for some users after 1.1.1; the login now closes its connection before the next request, thanks [@nishanm](https://github.com/nishanm) ([#259](https://github.com/ktomy/nightscout-clock/pull/259))
 
 ### 1.1.1
