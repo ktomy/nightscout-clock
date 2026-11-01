@@ -8,8 +8,6 @@
 #include <esp_system.h>
 #include <esp_wifi.h>
 
-#include <algorithm>
-
 #include "BGDisplayManager.h"
 #include "BGSourceManager.h"
 #include "DisplayManager.h"
@@ -492,6 +490,12 @@ void ServerManager_::setupWebServer(IPAddress ip) {
         } else {
             jsonResponse += "0";
         }
+        jsonResponse += ", \"hasRecentData\": ";
+        jsonResponse +=
+            !glucoseData.empty() && glucoseData.back().getSecondsAgo() <=
+                                        60 * SettingsManager.settings.bg_data_too_old_threshold_minutes
+                ? "true"
+                : "false";
         jsonResponse += ", \"faceId\": \"";
         jsonResponse += bgDisplayManager.getCurrentFaceId();
         jsonResponse += "\"}";
@@ -524,14 +528,11 @@ void ServerManager_::setupWebServer(IPAddress ip) {
                 return;
             }
             String id = json.as<JsonObject>()["face"].as<String>();
-            const auto& faces = bgDisplayManager.getFaces();
-            if (std::none_of(faces.begin(), faces.end(),
-                             [&id](const RegisteredClockFace& face) { return face.id == id; })) {
+            if (!bgDisplayManager.requestFace(id)) {
                 request->send(400, "application/json",
                               "{\"status\": \"error\", \"error\": \"unknown face id\"}");
                 return;
             }
-            bgDisplayManager.setFace(id);
             String body = "{\"status\": \"ok\", \"face\": \"";
             body += id;
             body += "\"}";

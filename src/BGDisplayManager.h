@@ -3,6 +3,7 @@
 
 #include <Arduino.h>
 
+#include <atomic>
 #include <list>
 #include <vector>
 
@@ -108,6 +109,8 @@ private:
     BGDisplayFaceNyanUnicorn nyanUnicornFace;
     bool surpriseModeActive = false;
     unsigned long surpriseStartMs = 0;
+    // Face asked for by the web server task, applied by tick() on the main loop; -1 means none.
+    std::atomic<int> pendingFaceIndex{-1};
 
     bool drawAnimationFrame(bool dataIsOld, bool redraw);
     int findFaceIndex(const String& id) const;
@@ -136,6 +139,7 @@ public:
     bool suppressesNewAlarms() const;
 
     void setFace(const String& id);
+    bool requestFace(const String& id);
     void showNextFace();
     void showPreviousFace();
 

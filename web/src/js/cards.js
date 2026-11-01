@@ -281,17 +281,17 @@ function displayTab() {
  */
 function faceSwitchCard() {
     const select = el("select", { id: "face_switch_select", "aria-label": "Face to show" })
+    select.add(new Option("Select…", ""))
     for (const f of FACES) select.add(new Option(f.name, f.id))
-    const nowShowing = el("p.help", "Now showing: …")
+    const currentFace = el("span.live-value", "…")
+    const nowShowing = el("p.help", "Now showing: ", currentFace)
     const setNowShowing = id => {
         const f = FACES.find(x => x.id === id)
-        nowShowing.textContent = f ? `Now showing: ${f.name}.` : "Now showing: …"
-        if (f) select.value = f.id
+        currentFace.textContent = f ? f.name : "…"
     }
-    // Refresh the "now showing" line whenever a status poll arrives.
-    api.on("status", s => { if (s && typeof s.faceId === "string") setNowShowing(s.faceId) })
     const status = el("p.help")
-    const btn = el("button.btn", { type: "button" }, "Switch now")
+    const btn = el("button.btn", { type: "button", disabled: true }, "Switch now")
+    select.addEventListener("change", () => { btn.disabled = !select.value })
     btn.addEventListener("click", async () => {
         const id = select.value
         btn.disabled = true
@@ -299,18 +299,32 @@ function faceSwitchCard() {
         try {
             const r = await api.switchFace(id)
             if (!r.ok || !r.data || r.data.status !== "ok") throw new Error(r.data && r.data.error)
+            select.value = ""
             setNowShowing(id)
             status.textContent = ""
         } catch (e) {
-            status.textContent = "Switch failed: the clock could not be reached."
+            status.textContent = "Can't show the selected face."
         } finally {
-            btn.disabled = false
+            btn.disabled = !select.value
         }
     })
-    return card("Switch face now",
+    const node = card("Switch face now",
         "Show a face immediately without touching the clock — handy when it is mounted out of reach. This is temporary, like the side buttons: it does not change the default face, schedule, or cycling settings.",
         el("div.stack", nowShowing, el("div.row", select, btn), status),
         { id: "card_faceswitch" })
+    // Offer the card only while the clock has recent glucose values to show.
+    const applyStatus = s => {
+        node.hidden = !(s && !s.isInAPMode && s.hasRecentData)
+        if (s && typeof s.faceId === "string") setNowShowing(s.faceId)
+    }
+    // Rebuilding the tab replaces this card, so each listener removes itself once its card is gone.
+    const whileAttached = (event, fn) => {
+        const off = api.on(event, arg => (node.isConnected ? fn(arg) : off()))
+    }
+    whileAttached("status", applyStatus)
+    whileAttached("status-error", () => { node.hidden = true })
+    applyStatus(ui.status)
+    return node
 }
 
 /**

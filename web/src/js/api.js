@@ -25,6 +25,7 @@
  * @property {string} bgSource Active firmware source name, such as LIBRELINKUP.
  * @property {string} bgSourceStatus Source state/error code, such as connected or initialized.
  * @property {number} sgv Latest glucose in mg/dl, or zero when no reading is available.
+ * @property {boolean} hasRecentData Whether the latest reading is within the too-old threshold.
  * @property {string} faceId Currently displayed clock-face id.
  */
 /**
