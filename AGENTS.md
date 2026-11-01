@@ -37,7 +37,8 @@ Use the IDE's PlatformIO actions or the helper scripts in `scripts/`; avoid call
 - `scripts/monitor.sh`: opens the serial monitor directly and saves logs under `logs/` using PlatformIO's `log2file` filter.
 - `scripts/reset.sh`: use this if the device becomes unstable and does not restart cleanly after upload.
 - `scripts/upload.sh --all`: use only for a full device refresh, when bootloader, partitions, firmware, and LittleFS all need to be reflashed.
-- `scripts/ns_emulator.py`: sends sample glucose entries to the device API for testing data processing and display behavior.
+- `scripts/ns_emulator.py`: sends sample glucose entries to the device API for testing data processing and display behavior. Requires the clock's data source set to "API"; see the script's docstring for usage.
+- `scripts/clock_address.py`: resolves the clock's address for scripts that call its API: `--url` first, then the git-ignored `.local_clock_ip` file in the repository root. New scripts that call the clock should use it.
 - `scripts/merge_bins.sh`: merges the build outputs into a single distributable binary, but this is not part of the active day-to-day workflow.
 
 ### Release workflow
