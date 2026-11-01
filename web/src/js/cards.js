@@ -333,36 +333,59 @@ function faceSwitchCard() {
  * @returns {HTMLElement}
  */
 function facesCard() {
-    // Rebuild face buttons when the default, cycling switch, or active faces change.
+    // Rebuild the lists when the default, cycling switch, or active faces change.
     const faces = reactive(["default_face", "face_cycle_enabled", "inactive_faces"], () => {
         const cycling = !!form.get("face_cycle_enabled")
         const inactive = form.get("inactive_faces") || []
+        const active = activeFaceIds(inactive)
         const thumbs = []
-        const list = el("div.faces", { role: "group", "aria-label": "Active clock faces" })
-        for (const f of FACES) {
-            const on = !inactive.includes(f.id)
-            const status = !on ? "Not active" : !cycling && form.get("default_face") === f.id ? "✓ Active, default" : "✓ Active"
-            // A face the clock's firmware doesn't draw keeps its tile, without a picture.
-            const canvas = el("canvas", { width: 192, height: 48, "aria-hidden": "true", hidden: preview.faceCount > 0 && !preview.hasFace(f.id) })
-            thumbs.push({ canvas, face: f.id })
-            list.append(el("button.face", {
-                type: "button", "aria-pressed": String(on), dataset: { face: f.id },
-                // Toggle this face in the sorted inactive selection.
-                onclick: () => {
-                    preview.showFace(f.id)
-                    const next = on ? [...inactive, f.id].sort((a, b) => a - b) : inactive.filter(x => x !== f.id)
-                    const active = activeFaceIds(next)
-                    // The default face is one of the active ones, so it moves before the list it is picked from.
-                    if (active.length && !active.includes(form.get("default_face"))) form.set("default_face", active[0])
-                    form.set("inactive_faces", next)
-                    form.touch("inactive_faces")
-                },
-            }, canvas, el("div.face-name", el("span", f.name), status ? el("span.face-status", status) : null), el("p.help", f.about)))
+        const setInactive = next => {
+            // Kept in the order of FACES, so the saved list does not depend on the order of taps.
+            next = FACES.map(f => f.id).filter(id => next.includes(id))
+            const nowActive = activeFaceIds(next)
+            // The default face is one of the active ones, so it moves before the list it is picked from.
+            if (nowActive.length && !nowActive.includes(form.get("default_face"))) form.set("default_face", nowActive[0])
+            form.set("inactive_faces", next)
+            form.touch("inactive_faces")
+        }
+        // A face the clock's firmware doesn't draw keeps its place, without a picture.
+        const thumb = id => {
+            const canvas = el("canvas", { width: 192, height: 48, "aria-hidden": "true", hidden: preview.faceCount > 0 && !preview.hasFace(id) })
+            thumbs.push({ canvas, face: id })
+            return canvas
+        }
+
+        const activeList = el("ul.face-list", { "aria-label": "Active clock faces" })
+        for (const f of FACES.filter(x => active.includes(x.id))) {
+            const isDefault = !cycling && form.get("default_face") === f.id
+            activeList.append(el("li.face-row", { dataset: { face: f.id } },
+                el("button.face-show", { type: "button", "aria-label": `Show ${f.name} in the preview`, onclick: () => preview.showFace(f.id) },
+                    thumb(f.id),
+                    el("span.face-text", el("span.face-title", f.name, isDefault ? el("span.tag", "Default") : null), el("span.help", f.about))),
+                el("button.btn.sm", {
+                    type: "button", "aria-label": `Remove ${f.name}`, disabled: active.length <= 1,
+                    title: active.length <= 1 ? "At least one face stays active" : null,
+                    onclick: () => setInactive([...inactive, f.id]),
+                }, "Remove")))
+        }
+
+        const more = FACES.filter(x => !active.includes(x.id))
+        const gallery = el("div.faces", { role: "group", "aria-label": "More clock faces" })
+        for (const f of more) {
+            gallery.append(el("div.face", { dataset: { face: f.id } },
+                el("button.face-show", { type: "button", "aria-label": `Show ${f.name} in the preview`, onclick: () => preview.showFace(f.id) },
+                    thumb(f.id), el("span.face-title", f.name), el("span.help", f.about)),
+                el("button.btn.sm", {
+                    type: "button", "aria-label": `Add ${f.name}`,
+                    onclick: () => { preview.showFace(f.id); setInactive(inactive.filter(x => x !== f.id)) },
+                }, "Add")))
         }
         preview.setThumbs(thumbs)
-        return el("div.field", { dataset: { field: "inactive_faces" } },
-            el("p.help", "Tap the faces you use. The left and right buttons move only between these, and cycling runs through them in the order shown."),
-            list, el("p.err", { hidden: true }))
+        return el("div.field.stack", { dataset: { field: "inactive_faces" } },
+            el("p.help", "The faces you use. The left and right buttons move only between these, and cycling runs through them in this order. Tap a face to see it in the preview."),
+            activeList, el("p.err", { hidden: true }),
+            more.length ? drawer(`More faces (${more.length})`, el("div.stack",
+                el("p.help", "Tap a face to see it in the preview, and Add to use it."), gallery), "more_faces") : null)
     })
     const defaultFace = reactive(["face_cycle_enabled", "inactive_faces"], () => {
         if (form.get("face_cycle_enabled")) return el("span", { hidden: true })
@@ -400,14 +423,15 @@ function faceDrawers() {
 }
 
 // Open the drawer when a setting needs attention.
-function drawer(title, body) {
-    const panel = el("div.stack", { hidden: !ui.openDrawers.has(title) }, body)
+// key keeps a drawer open across rebuilds when its title changes (a count, say); it defaults to the title.
+function drawer(title, body, key = title) {
+    const panel = el("div.stack", { hidden: !ui.openDrawers.has(key) }, body)
     const toggle = el("button.btn.sm", { type: "button" })
     const setOpen = open => {
         panel.hidden = !open
         toggle.textContent = open ? "Hide" : "Show"
         toggle.setAttribute("aria-expanded", String(open))
-        open ? ui.openDrawers.add(title) : ui.openDrawers.delete(title)
+        open ? ui.openDrawers.add(key) : ui.openDrawers.delete(key)
     }
     toggle.addEventListener("click", () => setOpen(panel.hidden))
     setOpen(!panel.hidden)
