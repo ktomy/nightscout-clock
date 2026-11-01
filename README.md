@@ -130,11 +130,13 @@ Configure high, low, and urgent-low alarms, including sounds, snooze durations, 
 
 #### WiFi & system
 
-Set up WiFi, an optional secondary network, a custom MAC address or hostname, and web login protection. This tab also shows the firmware version and provides settings backup and restore.
+Set up WiFi, an optional secondary network, a custom MAC address or hostname, an optional low battery alert, and web login protection. This tab also shows the firmware version and provides settings backup and restore.
 
 <img alt="WiFi and system tab: network, authentication, backup and firmware settings" src="docs/images/web-ui-system.png" />
 
 The **Backup and restore** card downloads the clock's settings as a file and loads a file into the page for review before saving. WiFi settings are loaded only when requested; the web login is never imported. The file contains WiFi and data source passwords, so keep it private.
+
+The **Low battery alert** switch, off by default, makes the clock beep every two minutes while the battery reads 5% or less.
 
 ### Alarm settings
 
