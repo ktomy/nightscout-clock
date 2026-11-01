@@ -103,24 +103,18 @@ private:
     int appliedScheduleEntry = -1;
     int lastScheduleMinuteOfDay = -1;
     bool brightnessOverlayWasActive = false;
-    // Unicorn mode: when enabled and a new reading is exactly 100, the Nyan
-    // unicorn runs across once, then the static unicorn face stays until the
-    // next reading arrives. That next reading makes the Nyan run away, then
-    // the face from before the celebration is restored.
-    bool unicornModeActive = false;
-    bool unicornNyanDone = false;
-    bool unicornExiting = false;
-    unsigned long unicornNyanStartMs = 0;
-    int unicornReturnFaceIndex = -1;
-    int nyanUnicornFaceIndex = -1;
-    int unicornFaceIndex = -1;
+    // Surprise mode: when enabled and a new reading is shown as exactly 100 or 5.6, the Nyan unicorn
+    // runs across once, then the selected face returns. It cannot be selected, so it is not in `faces`.
+    BGDisplayFaceNyanUnicorn nyanUnicornFace;
+    bool surpriseModeActive = false;
+    unsigned long surpriseStartMs = 0;
 
     bool drawAnimationFrame(bool dataIsOld, bool redraw);
     int findFaceIndex(const String& id) const;
     void setFaceByIndex(int index);
     void configureActiveFaces();
     void updateFaceCycle();
-    void updateUnicornMode();
+    void updateSurpriseMode();
     void configureFaceSchedule();
     void updateFaceSchedule();
     void applyScheduleEntry(const FaceScheduleEntry& entry);

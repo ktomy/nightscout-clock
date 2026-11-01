@@ -281,9 +281,20 @@ static void fewReadingsCompareAgainstTheWindowExtreme() {
     assert(mmolDiff(2 * MINUTE, {116, 117, 117}) == "+0.1");
 }
 
+static void surpriseReadingMatchesWhatIsShown() {
+    for (int sgv = 1; sgv <= 400; sgv++) {
+        assert(isSurpriseReading(sgv, false) == (formatReading(sgv, false) == "100"));
+        assert(isSurpriseReading(sgv, true) == (formatReading(sgv, true) == "5.6"));
+    }
+    assert(isSurpriseReading(100, true) && isSurpriseReading(101, true));
+    assert(!isSurpriseReading(99, true) && !isSurpriseReading(102, true));
+    assert(!isSurpriseReading(101, false));
+}
+
 int main() {
     mgdlReadingIsShownAsIs();
     mmolReadingIsRoundedToOneDecimal();
+    surpriseReadingMatchesWhatIsShown();
     everyMmolReadingRoundsToTheNearestTenth();
     equalNumbersOnScreenHaveAZeroDelta();
     consecutiveScreensAddUp();

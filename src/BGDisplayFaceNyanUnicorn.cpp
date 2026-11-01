@@ -85,19 +85,20 @@ void BGDisplayFaceNyanUnicorn::showReadings(const std::list<GlucoseReading>& rea
         nyanLastStepMs = now;
     }
 
-    int16_t ux = nyanScrollX, tEnd = ux + 1, tStart = ux - 10, bgX = tStart - valWidth - 2, arrX = bgX + valWidth + 1;
+    int16_t ux = nyanScrollX, tEnd = ux + 1, tStart = ux - 10, bgX = tStart - valWidth - 2;
     drawNyanRainbow(tStart, tEnd, wave);
     drawUnicorn(ux, 0, leg);
 
     DisplayManager.setFont(FONT_TYPE::MEDIUM);
-    uint8_t hue = (now / 15) % 255;
+    const uint8_t hueOffset = (now / 20) % 256;
+    const uint8_t textLength = valStr.length();
     int16_t curX = bgX;
-    for (size_t i = 0; i < valStr.length(); i++) {
+    for (uint8_t i = 0; i < textLength; i++) {
         char buf[2] = {valStr[i], '\0'};
-        uint16_t col = dataIsOld ? getDataOldColor() : DisplayManager.hsvToRgb(hue + (i * 35), 255, 255);
+        const uint8_t hue = map(i, 0, max((int)textLength, 1), 0, 255) + hueOffset;
+        uint16_t col = dataIsOld ? getDataOldColor() : getRainbowColor(hue);
         DisplayManager.setTextColor(col);
         DisplayManager.printText(curX, 6, buf, TEXT_ALIGNMENT::LEFT, 2);
         curX += DisplayManager.getTextWidth(buf, 2);
     }
-    showTrendArrow(lastReading, arrX, 1, dataIsOld);
 }

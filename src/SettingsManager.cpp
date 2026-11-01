@@ -165,7 +165,7 @@ bool SettingsManager_::loadSettingsFromFile() {
 
     settings.face_schedule_enabled = (*doc)["face_schedule_enabled"] | false;
     settings.face_schedule = readFaceSchedule((*doc)["face_schedule"]);
-    settings.unicorn_mode = (*doc)["unicorn_mode"] | false;
+    settings.surprise_mode = (*doc)["surprise_mode"] | false;
 
     String data_source = (*doc)["data_source"].as<String>();
     if (data_source == "nightscout") {
@@ -368,7 +368,7 @@ bool SettingsManager_::saveSettingsToFile() {
     }
     (*doc)["face_schedule_enabled"] = settings.face_schedule_enabled;
     writeFaceSchedule(*doc, "face_schedule", settings.face_schedule);
-    (*doc)["unicorn_mode"] = settings.unicorn_mode;
+    (*doc)["surprise_mode"] = settings.surprise_mode;
 
     String data_source = "no_source";
     switch (settings.bg_source) {

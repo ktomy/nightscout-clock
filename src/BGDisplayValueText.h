@@ -32,6 +32,11 @@ inline std::string formatReading(int sgv, bool mmol) {
     return formatDisplayTenths(toDisplayTenths(sgv, mmol), mmol);
 }
 
+// Surprise mode celebrates a reading shown as exactly 100 mg/dL or 5.6 mmol/L.
+inline bool isSurpriseReading(int sgv, bool mmol) {
+    return toDisplayTenths(sgv, mmol) == (mmol ? 56 : 100);
+}
+
 // Older readings than this are not compared directly with the last reading.
 constexpr unsigned long long DIFF_WINDOW_SECONDS = 6 * 60 + 30;
 // A delta estimated across a longer gap is scaled to this period.
