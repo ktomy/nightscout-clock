@@ -1,3 +1,37 @@
+r"""Nightscout emulator for the clock's "API" data source.
+
+Pushes sample glucose readings to the clock so that data processing and display
+behavior can be tested without a real CGM.
+
+Prerequisites
+-------------
+1. In the clock's Web UI, set the data source to "API" and let the clock restart.
+   /api/v1/entries is only available with this data source.
+2. Turn off web interface authentication, otherwise requests get a 401 response.
+3. Install the dependencies: pip install requests requests_toolbelt
+
+Usage
+-----
+    python scripts/ns_emulator.py --url http://<clock-ip>/ --one-value 110
+    python scripts/ns_emulator.py --url http://<clock-ip>/ --sin
+    python scripts/ns_emulator.py --url http://<clock-ip>/ --one-value 110 --no-delete
+
+--url         the clock's address (required)
+--one-value   send a single reading with this value
+--sin         send a sinusoid history of readings
+--no-delete   keep the existing readings; by default they are deleted first
+
+Values to exercise each glucose range with the default limits (mg/dL):
+    50  -> urgent low
+    110 -> in range
+    300 -> urgent high
+
+curl equivalent:
+    curl -X DELETE http://<clock-ip>/api/v1/entries
+    curl -X POST http://<clock-ip>/api/v1/entries \
+         -H "Content-Type: application/json" \
+         -d "[{\"sgv\":110,\"date\":$(date +%s)000,\"dateString\":\"$(date +%Y-%m-%dT%H:%M:%S)\",\"trend\":4}]"
+"""
 import json
 import random
 import requests
@@ -6,11 +40,16 @@ from requests_toolbelt.utils import dump
 import math
 import sys
 
-nightscout_url = "http://192.168.86.24/"
 # read command arguments:
+# --url [url]: the clock's address
 # --no-delete: do not delete the existing data
 # --sin: to have sinusoid data
-# --one-value=[value]: to send one value
+# --one-value [value]: to send one value
+
+if "--url" not in sys.argv or sys.argv.index("--url") + 1 >= len(sys.argv):
+    print(__doc__)
+    exit(2)
+nightscout_url = sys.argv[sys.argv.index("--url") + 1].rstrip("/") + "/"
 
 if "--no-delete" not in sys.argv:
     response = requests.delete(nightscout_url + "api/v1/entries", timeout=2)
