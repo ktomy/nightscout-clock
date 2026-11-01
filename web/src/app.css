@@ -199,13 +199,18 @@ input[type=range] { width: 100%; accent-color: var(--cyan); margin: 0; }
 .sim-warn { margin-top: var(--space-3); }
 
 /* ---------- face gallery ---------- */
-.faces { display: grid; gap: var(--space-3); grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); }
-.face { position: relative; display: grid; gap: 8px; text-align: left; appearance: none; border: 1px solid var(--line); background: var(--surface-low); color: var(--text); border-radius: var(--radius); padding: 10px; cursor: pointer; font: inherit; }
-.face canvas { width: 100%; height: auto; display: block; border-radius: 4px; background: #050505; }
-.face .face-name { display: flex; justify-content: space-between; gap: var(--space-2); font: var(--text-option); }
-.face[aria-pressed="true"] { border-color: var(--cyan); box-shadow: 0 0 0 1px var(--cyan) inset; }
-.face .face-status { font-size: 12px; font-weight: 500; color: var(--muted); white-space: nowrap; }
-.face[aria-pressed="true"] .face-status { color: var(--cyan); }
+.faces { display: grid; gap: var(--space-3); grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); }
+.face { display: grid; gap: 8px; align-content: start; border: 1px solid var(--line); background: var(--surface-low); border-radius: var(--radius); padding: 10px; }
+.face > .btn { justify-self: start; }
+.face-show { appearance: none; border: 0; background: none; color: var(--text); font: inherit; text-align: left; padding: 0; cursor: pointer; display: grid; gap: 6px; min-width: 0; }
+.face-show canvas { width: 100%; height: auto; display: block; border-radius: 4px; background: #050505; }
+.face-title { display: flex; align-items: center; gap: var(--space-2); font: var(--text-option); }
+/* Active faces: a compact list, picture beside the name, so a few faces fit without scrolling. */
+.face-list { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-2); }
+.face-row { display: flex; align-items: center; gap: var(--space-3); border: 1px solid var(--cyan); box-shadow: 0 0 0 1px var(--cyan) inset; background: var(--surface-low); border-radius: var(--radius); padding: 8px 10px; }
+.face-row .face-show { flex: 1; grid-template-columns: 128px minmax(0, 1fr); align-items: center; column-gap: var(--space-3); }
+.face-text { display: grid; gap: 2px; min-width: 0; }
+@media (max-width: 420px) { .face-row .face-show { grid-template-columns: 96px minmax(0, 1fr); } }
 .drawer { display: grid; gap: 12px; border: 1px solid var(--line); background: var(--surface-low); border-radius: var(--radius); padding: 12px; }
 
 /* ---------- glucose bands ---------- */
