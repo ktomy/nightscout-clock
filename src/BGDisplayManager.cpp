@@ -70,6 +70,8 @@ void BGDisplayManager_::setup() {
     }
 
     currentFace = faces[currentFaceIndex].instance;
+    currentFace->onActivate();
+    DisplayManager.setFont(FONT_TYPE::MEDIUM);
 }
 
 // The active faces are the ones the buttons move between, and the ones cycling runs through.
@@ -205,6 +207,13 @@ void BGDisplayManager_::tick() {
 
     updateFaceSchedule();
     updateFaceCycle();
+    if (currentFace->needsFrequentRefresh()) {
+        unsigned long now = millis();
+        if (now - lastFrequentRefreshMillis >= currentFace->getFrequentRefreshIntervalMs()) {
+            lastFrequentRefreshMillis = now;
+            runRenderCycle(RenderReason::FORCED, ServerManager.getTimezonedTime());
+        }
+    }
     maybeRrefreshScreen();
     if (!MATRIX_OFF && drawAnimationFrame(lastRenderedDataWasOld, false)) {
         DisplayManager.update();

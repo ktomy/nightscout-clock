@@ -190,8 +190,11 @@ float DisplayManager_::getTextWidth(const char* text, byte textCase) {
 }
 void DisplayManager_::setTextColor(uint16_t color) { matrix->setTextColor(color); }
 
-void DisplayManager_::clearMatrix() {
+void DisplayManager_::clearMatrix(bool updateMatrix) {
     matrix->clear();
+    if (updateMatrix) {
+        matrix->show();
+    }
 }
 
 // DisplayManager_::printText(int16_t x, int16_t y, const char *text, TEXT_ALIGNMENT alignment, byte
@@ -199,7 +202,8 @@ void DisplayManager_::clearMatrix() {
 // }
 
 void DisplayManager_::printText(
-    int16_t x, int16_t y, const char* text, TEXT_ALIGNMENT alignment, byte textCase) {
+    int16_t x, int16_t y, const char* text, TEXT_ALIGNMENT alignment, byte textCase,
+    bool updateMatrix) {
     if (alignment == TEXT_ALIGNMENT::LEFT) {
         matrix->setCursor(x, y);
     } else if (alignment == TEXT_ALIGNMENT::RIGHT) {
@@ -224,6 +228,10 @@ void DisplayManager_::printText(
         matrix->print(upperText);
     } else {
         matrix->print(text);
+    }
+
+    if (updateMatrix) {
+        matrix->show();
     }
 }
 
@@ -425,6 +433,10 @@ void DisplayManager_::selectButtonLong() {
 
 void DisplayManager_::update() { matrix->show(); }
 
-void DisplayManager_::clearMatrixPart(uint8_t x, uint8_t y, uint8_t width, uint8_t height) {
+void DisplayManager_::clearMatrixPart(
+    uint8_t x, uint8_t y, uint8_t width, uint8_t height, bool updateMatrix) {
     matrix->fillRect(x, y, width, height, 0);
+    if (updateMatrix) {
+        matrix->show();
+    }
 }
