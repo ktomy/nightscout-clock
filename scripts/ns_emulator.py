@@ -17,7 +17,7 @@ Usage
     python scripts/ns_emulator.py --one-value 110
     python scripts/ns_emulator.py --sin
     python scripts/ns_emulator.py --one-value 110 --no-delete
-    python scripts/ns_emulator.py --url http://<clock-ip>/ --one-value 110
+    python scripts/ns_emulator.py --url http://<clock_ip>/ --one-value 110
 
 --url         the clock's address; overrides .local_clock_ip
 --one-value   send a single reading with this value
@@ -30,8 +30,8 @@ Values to exercise each glucose range with the default limits (mg/dL):
     300 -> urgent high
 
 curl equivalent:
-    curl -X DELETE http://<clock-ip>/api/v1/entries
-    curl -X POST http://<clock-ip>/api/v1/entries \
+    curl -X DELETE http://<clock_ip>/api/v1/entries
+    curl -X POST http://<clock_ip>/api/v1/entries \
          -H "Content-Type: application/json" \
          -d "[{\"sgv\":110,\"date\":$(date +%s)000,\"dateString\":\"$(date +%Y-%m-%dT%H:%M:%S)\",\"trend\":4}]"
 """

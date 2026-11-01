@@ -382,7 +382,7 @@ High, low, and urgent-low alarms each have their own threshold, snooze duration,
 - Added API endpoint to switch display power on and off as in the example below
 
 ```
-curl -X POST http://nsclock.lan/api/displaypower \
+curl -X POST http://<clock_ip>/api/displaypower \
   -H "Content-Type: application/json" \
   -d '{"power": "off"}'
 ```
