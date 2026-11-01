@@ -192,6 +192,7 @@ High, low, and urgent-low alarms each have their own threshold, snooze duration,
   - Rainbow big text: BIG DIGITS in a moving rainbow
   - Rainbow mood: a smiley whose expression follows the glucose range, beside the value in rainbow digits
   - Battery and uptime: battery level and time since start, off by default
+- 100/5.6 surprise mode: when a new reading shows exactly 100 mg/dl or 5.6 mmol/l, a Nyan unicorn runs across the screen once, then the selected face returns. It is on by default in new configurations; turn it off on the Display tab of the Web UI
 - Configurable color for old readings and no-data screens: gray (default), cyan, magenta, or blue. Choose it on the Display tab of the Web UI; the alternatives help keep stale readings visible at low brightness
 - Smart data and screen update timings: read data once it appears, refresh screen when needed
 - API data source. The clock has a simple Nightscout-like API which can receive glucose values from an external source. The main purpose of this feature is the ability to test the clock during the clockfaces development. In order to activate this feature, select the API data source within the clock's Web UI. Here are the endpoints:

@@ -4,6 +4,7 @@
 #include <list>
 
 #include "BGSource.h"
+#include "BGDisplayValueText.h"
 #include "BGSourceManager.h"
 #include "DisplayManager.h"
 #include "ServerManager.h"
@@ -129,6 +130,7 @@ void BGDisplayManager_::setFaceByIndex(int index) {
 
     currentFaceIndex = index;
     currentFace = faces[currentFaceIndex].instance;
+    currentFace->onActivate();
     lastRefreshEpoch = 0;
     resetFaceCycleTimer();
     runRenderCycle(RenderReason::FACE_CHANGE, ServerManager.getTimezonedTime());
@@ -172,6 +174,11 @@ void BGDisplayManager_::updateFaceCycle() {
         return;
     }
 
+    // Surprise mode owns the face until the Nyan run finishes and the previous face is restored.
+    if (surpriseModeActive) {
+        return;
+    }
+
     if (MATRIX_OFF) {
         faceCycleTimerStarted = false;
         return;
@@ -191,6 +198,13 @@ void BGDisplayManager_::updateFaceCycle() {
     }
 }
 
+void BGDisplayManager_::updateSurpriseMode() {
+    // Let the Nyan run across once plus its pause, then restore the previous face.
+    if (!surpriseModeActive || millis() - surpriseStartMs < 8000) return;
+    surpriseModeActive = false;
+    setFaceByIndex(currentFaceIndex);
+}
+
 void BGDisplayManager_::tick() {
     const bool brightnessOverlayActive = DisplayManager.isBrightnessOverlayActive();
     if (brightnessOverlayActive) {
@@ -207,7 +221,8 @@ void BGDisplayManager_::tick() {
 
     updateFaceSchedule();
     updateFaceCycle();
-    if (currentFace->needsFrequentRefresh()) {
+    updateSurpriseMode();
+    if (!MATRIX_OFF && currentFace->needsFrequentRefresh()) {
         unsigned long now = millis();
         if (now - lastFrequentRefreshMillis >= currentFace->getFrequentRefreshIntervalMs()) {
             lastFrequentRefreshMillis = now;
@@ -264,6 +279,11 @@ void BGDisplayManager_::configureFaceSchedule() {
 // at its time, even a single row. No known time means no row applies.
 void BGDisplayManager_::updateFaceSchedule() {
     if (!faceScheduleActive) {
+        return;
+    }
+
+    // Surprise mode owns the face until the Nyan run finishes and the previous face is restored.
+    if (surpriseModeActive) {
         return;
     }
 
@@ -370,11 +390,28 @@ void BGDisplayManager_::maybeRrefreshScreen(bool force) {
 void BGDisplayManager_::showData(std::list<GlucoseReading> glucoseReadings) {
     if (glucoseReadings.size() == 0) {
         displayedReadings.clear();
+        if (surpriseModeActive) {
+            surpriseModeActive = false;
+            setFaceByIndex(currentFaceIndex);
+        }
         runRenderCycle(RenderReason::NEW_DATA, ServerManager.getTimezonedTime());
         return;
     }
 
     displayedReadings = glucoseReadings;
+
+    // Surprise mode: a new reading shown as exactly 100 or 5.6 makes the Nyan run across once, then the
+    // selected face returns. Another such reading during the run restarts it. The Nyan is not one of
+    // the registered faces, so currentFaceIndex stays on the selected face throughout.
+    if (SettingsManager.settings.surprise_mode &&
+        isSurpriseReading(
+            glucoseReadings.back().sgv, SettingsManager.settings.bg_units != BG_UNIT::MGDL)) {
+        surpriseModeActive = true;
+        surpriseStartMs = millis();
+        currentFace = &nyanUnicornFace;
+        currentFace->onActivate();
+    }
+
     runRenderCycle(RenderReason::NEW_DATA, ServerManager.getTimezonedTime());
 }
 

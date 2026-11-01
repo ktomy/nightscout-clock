@@ -270,7 +270,7 @@ function toast(message, kind = "ok", ms = 4500) {
  * @returns {HTMLElement}
  */
 function displayTab() {
-    return el("div.stack", facesCard(), faceScheduleCard(), brightnessCard(), oldDataCard(), timeCard())
+    return el("div.stack", facesCard(), faceScheduleCard(), surpriseModeCard(), brightnessCard(), oldDataCard(), timeCard())
 }
 
 /**
@@ -487,6 +487,14 @@ function faceScheduleCard() {
             "Add up to 8 different times. Each row applies its face and brightness until the next scheduled time, including overnight.")
     })
     return card("Daily schedule", null, el("div.stack", toggle, body), { id: "card_schedule" })
+}
+
+/** Surprise mode toggle: when on and BG is shown as exactly 100 or 5.6, the Nyan unicorn
+ * runs across the screen, then the selected face returns. */
+function surpriseModeCard() {
+    const toggle = toggleRow("surprise_mode", "100/5.6 surprise mode",
+        "When BG shows exactly 100 mg/dl or 5.6 mmol/l, the Nyan unicorn runs across the screen, then the selected face returns.")
+    return card("100/5.6 surprise mode", null, el("div.stack", toggle), { id: "card_surprise" })
 }
 
 /**

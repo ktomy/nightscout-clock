@@ -494,6 +494,7 @@ function normalizeLoaded(c) {
     // never be seen and would be posted back on every save. The firmware drops such a row in silence, so leaving
     // it in the file only keeps a setting that never takes effect: repair it here, the way default_face is.
     out.face_schedule = out.face_schedule.filter(row => KEY_ITEMS.face_schedule(row))
+    out.surprise_mode = !!out.surprise_mode
     return out
 }
 

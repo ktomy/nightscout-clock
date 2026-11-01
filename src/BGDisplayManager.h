@@ -15,6 +15,7 @@
 #include "BGDisplayFaceDragon.h"
 #include "BGDisplayFaceGraph.h"
 #include "BGDisplayFaceGraphAndBG.h"
+#include "BGDisplayFaceNyanUnicorn.h"
 #include "BGDisplayFaceRaceCar.h"
 #include "BGDisplayFaceRainbowClock.h"
 #include "BGDisplayFaceRainbowMood.h"
@@ -102,12 +103,18 @@ private:
     int appliedScheduleEntry = -1;
     int lastScheduleMinuteOfDay = -1;
     bool brightnessOverlayWasActive = false;
+    // Surprise mode: when enabled and a new reading is shown as exactly 100 or 5.6, the Nyan unicorn
+    // runs across once, then the selected face returns. It cannot be selected, so it is not in `faces`.
+    BGDisplayFaceNyanUnicorn nyanUnicornFace;
+    bool surpriseModeActive = false;
+    unsigned long surpriseStartMs = 0;
 
     bool drawAnimationFrame(bool dataIsOld, bool redraw);
     int findFaceIndex(const String& id) const;
     void setFaceByIndex(int index);
     void configureActiveFaces();
     void updateFaceCycle();
+    void updateSurpriseMode();
     void configureFaceSchedule();
     void updateFaceSchedule();
     void applyScheduleEntry(const FaceScheduleEntry& entry);
