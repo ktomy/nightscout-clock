@@ -8,6 +8,7 @@
 
 #include "Adafruit_SHT31.h"
 #include "DisplayManager.h"
+#include "LowBatteryAlert.h"
 #include "SettingsManager.h"
 #include "globals.h"
 
@@ -48,6 +49,8 @@ float sampleSum = 0.0;
 float sampleAverage = 0.0;
 float brightnessPercent = 0.0;
 int lastBrightness = 0;
+LowBatteryAlert lowBatteryAlert;
+const char* LOW_BATTERY_BEEP = "bat:d=32,o=6,b=220:c";
 
 // The getter for the instantiated singleton instance
 PeripheryManager_& PeripheryManager_::getInstance() {
@@ -150,6 +153,12 @@ void PeripheryManager_::tick() {
         uint16_t ADCVALUE = analogRead(BATTERY_PIN);
         BATTERY_PERCENT = max(min((int)map(ADCVALUE, 475, 665, 0, 100), 100), 0);
         BATTERY_RAW = ADCVALUE;
+        if (lowBatteryAlert.shouldBeep(
+                BATTERY_PERCENT, SettingsManager.settings.low_battery_alert_enable, player.isPlaying(),
+                currentMillis_BatTempHum)) {
+            Melody melody = MelodyFactory.loadRtttlString(LOW_BATTERY_BEEP);
+            player.playAsync(melody);
+        }
         if (SENSOR_READING) {
             sht31.readBoth(&CURRENT_TEMP, &CURRENT_HUM);
             CURRENT_TEMP += TEMP_OFFSET;

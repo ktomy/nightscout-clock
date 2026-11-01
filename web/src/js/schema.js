@@ -503,7 +503,7 @@ function normalizeLoaded(c) {
  * @returns {SettingsTab}
  */
 function tabOfKey(key) {
-    if (/^(ssid|password|additional_|custom_hostname|custom_mac|web_auth)/.test(key)) return "system"
+    if (/^(ssid|password|additional_|custom_hostname|custom_mac|web_auth|low_battery_)/.test(key)) return "system"
     if (/^alarm_/.test(key)) return "alarms"
     if (/^(data_source|ns_|api_secret|nightscout|dexcom|librelinkup|medtrum|units|low_|high_|bg_color)/.test(key)) return "glucose"
     return "display"

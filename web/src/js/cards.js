@@ -935,7 +935,7 @@ function alertWindows(a) {
  * @returns {HTMLElement}
  */
 function systemTab() {
-    return el("div.stack", wifiCard(), extraWifiCard(), hostnameCard(), loginCard(), backupCard(), versionCard(), logsCard())
+    return el("div.stack", wifiCard(), extraWifiCard(), hostnameCard(), lowBatteryCard(), loginCard(), backupCard(), versionCard(), logsCard())
 }
 
 /**
@@ -1002,6 +1002,14 @@ function hostnameCard() {
         reactive(["custom_hostname_enable"], () => form.get("custom_hostname_enable")
             ? el("div.grid", field("custom_hostname", "Custom hostname", textInput("custom_hostname")))
             : el("span", { hidden: true }))), { id: "card_hostname" })
+}
+
+/**
+ * Build the switch for the optional low-battery beep.
+ * @returns {HTMLElement}
+ */
+function lowBatteryCard() {
+    return card("Low battery alert", null, toggleRow("low_battery_alert_enable", "Beep when the battery is low", "When on, the clock beeps every two minutes while the battery reads 5% or less."), { id: "card_low_battery" })
 }
 
 /**

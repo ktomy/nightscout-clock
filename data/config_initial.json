@@ -67,6 +67,7 @@
     "clock_name": "",
     "custom_nodatatimer_enable": false,
     "custom_nodatatimer": 20,
+    "low_battery_alert_enable": false,
     "data_old_color": "gray",
     "face_big_text": {
         "early_stale_color": "off",
