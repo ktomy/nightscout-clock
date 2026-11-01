@@ -20,6 +20,8 @@ When adding firmware behavior, prefer extending the existing module family inste
 
 `data/` contains the runtime web assets packed into the LittleFS image served by the clock. The configuration UI source is in `web/src/`, with the original icon and timezone JSON in `web/src/assets/`. PlatformIO runs `node web/build.mjs` before filesystem builds to generate `data/index.html.gz`, `data/favicon.ico.gz`, and `data/tzdata.json.gz`. These outputs are ignored by Git; commit their sources instead. Node.js must match the version in `.node-version`; no npm packages are required.
 
+`test/` contains the host-side tests; see Testing Guidelines.
+
 `www/` is the GitHub Pages site, including the browser installer and debug pages; it is not part of the firmware filesystem image. `scripts/` contains contributor tooling for local build, upload, monitoring, release, and emulator/test-data tasks. Core firmware build configuration lives in `platformio.ini` and `partitions.csv`; `wokwi.toml` is only for experimental emulator setup and is not part of the regular test workflow.
 
 ## Build, Test, and Development Commands
@@ -74,7 +76,9 @@ For the web UI, keep JavaScript style consistent with the existing files in `web
 
 ## Testing Guidelines
 
-There is no formal automated test suite in the repository yet, so every change should be validated by building and testing on a real device. The normal workflow is `scripts/build.sh --upload --monitor`, or `scripts/build.sh --fs --upload --monitor` when files in `data/` changed.
+`test/run_tests.sh` runs the host-side tests, which need only `g++` and Node.js and also run on every pull request. They cover logic that compiles without Arduino, such as `src/SettingsAlertWindow.h`, and the web UI's `web/src/js/schema.js`. Tests must exercise the real source rather than a copy of it; to test firmware logic, move it into an Arduino-free header in `src/`.
+
+Host-side tests do not replace hardware testing: every change should still be validated by building and testing on a real device. The normal workflow is `scripts/build.sh --upload --monitor`, or `scripts/build.sh --fs --upload --monitor` when files in `data/` changed.
 
 Prefer testing against the real data source affected by your change. For display logic, parsing, and update flow, `scripts/ns_emulator.py` can push sample glucose entries into the device API so you can exercise behavior without waiting for live data.
 

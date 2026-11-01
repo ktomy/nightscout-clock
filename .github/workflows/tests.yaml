@@ -1,0 +1,22 @@
+name: Tests
+
+permissions:
+  contents: read
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: '.node-version'
+      - name: Run host-side tests
+        run: bash test/run_tests.sh
