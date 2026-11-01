@@ -52,11 +52,14 @@ public:
     void setFont(FONT_TYPE fontType);
 
 private:
+    void startBrightnessOverlay();
     void showBrightnessOverlay();
+    String brightnessOverlayText() const;
 
+    FONT_TYPE currentFontType = FONT_TYPE::MEDIUM;
     bool brightnessOverlayActive = false;
-    bool brightnessOverlayShowsAuto = false;
-    int brightnessOverlayPercent = 0;
+    // "OFF" was selected: the overlay shows it, and the display goes dark when the overlay ends.
+    bool powerOffAfterBrightnessOverlay = false;
     unsigned long brightnessOverlayStarted = 0;
     unsigned long brightnessOverlayLastDraw = 0;
 };

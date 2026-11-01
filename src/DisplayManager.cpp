@@ -31,6 +31,11 @@ FastLED_NeoMatrix* matrix = new FastLED_NeoMatrix(
     leds, 8, 8, 4, 1, NEO_MATRIX_TOP + NEO_MATRIX_LEFT + NEO_MATRIX_ROWS + NEO_MATRIX_PROGRESSIVE);
 
 void DisplayManager_::setFont(FONT_TYPE fontType) {
+    if (fontType == currentFontType) {
+        return;
+    }
+    currentFontType = fontType;
+
     switch (fontType) {
         case FONT_TYPE::SMALL:
             currentFont = AwtrixFont;
@@ -109,10 +114,37 @@ void DisplayManager_::applySettings() {
     DisplayManager.setBrightness(displayBrightness);
 }
 
+void DisplayManager_::startBrightnessOverlay() {
+    brightnessOverlayStarted = millis();
+    brightnessOverlayLastDraw = 0;
+    brightnessOverlayActive = true;
+    showBrightnessOverlay();
+}
+
+String DisplayManager_::brightnessOverlayText() const {
+    if (powerOffAfterBrightnessOverlay) {
+        return "OFF";
+    }
+    switch (SettingsManager.settings.brightness_mode) {
+        case BRIGHTNES_MODE::AUTO_LINEAR:
+            return "AUTO-1";
+        case BRIGHTNES_MODE::AUTO_DIMMED:
+            return "AUTO-2";
+        default:
+            break;
+    }
+    const int level = SettingsManager.settings.brightness_level;
+    return level == 0 ? String("MIN") : String(level * 10) + "%";
+}
+
 void DisplayManager_::showBrightnessOverlay() {
     const unsigned long elapsed = millis() - brightnessOverlayStarted;
     if (elapsed >= 2500) {
         brightnessOverlayActive = false;
+        if (powerOffAfterBrightnessOverlay) {
+            powerOffAfterBrightnessOverlay = false;
+            setPower(false);
+        }
         if (!MATRIX_OFF) {
             clearMatrix();
             update();
@@ -153,8 +185,12 @@ void DisplayManager_::showBrightnessOverlay() {
     }
 
     setTextColor(color);
-    const String value = brightnessOverlayShowsAuto ? "AUTO" : String(brightnessOverlayPercent) + "%";
-    printText(10, 6, value.c_str(), TEXT_ALIGNMENT::LEFT, 0);
+    // Faces may leave the large font active, which does not fit beside the icon. x = 9 leaves just
+    // enough room for the widest text, AUTO-1.
+    const FONT_TYPE selectedFont = currentFontType;
+    setFont(FONT_TYPE::MEDIUM);
+    printText(9, 6, brightnessOverlayText().c_str(), TEXT_ALIGNMENT::LEFT, 0);
+    setFont(selectedFont);
     update();
 }
 
@@ -340,6 +376,7 @@ void DisplayManager_::setBrightness(int bri) {
 
 void DisplayManager_::setPower(bool state) {
     if (state) {
+        powerOffAfterBrightnessOverlay = false;
         MATRIX_OFF = false;
         setBrightness(currentBrightness);
     } else {
@@ -360,8 +397,8 @@ void DisplayManager_::rightButton() { bgDisplayManager.showNextFace(); }
 void DisplayManager_::leftButtonLong() {
     if (SettingsManager.settings.brightness_mode == BRIGHTNES_MODE::MANUAL) {
         int newBrightness = SettingsManager.settings.brightness_level - 1;
-        if (newBrightness < 1) {
-            newBrightness = 1;
+        if (newBrightness < 0) {
+            newBrightness = 0;
         }
         SettingsManager.settings.brightness_level = newBrightness;
         DisplayManager.applySettings();
@@ -381,39 +418,40 @@ void DisplayManager_::rightButtonLong() {
     }
 }
 
+// The cycle: OFF, MIN, 10%..100%, AUTO-1, AUTO-2, and back to OFF. Button tweaks apply in memory
+// only and never overwrite the brightness configured in the web UI; a long press restores it.
 void DisplayManager_::selectButton() {
-    BRIGHTNES_MODE nextMode = SettingsManager.settings.brightness_mode;
-    int nextLevel = SettingsManager.settings.brightness_level;
+    Settings& settings = SettingsManager.settings;
 
-    const BRIGHTNES_MODE currentMode = SettingsManager.settings.brightness_mode;
-    switch (currentMode) {
-        case BRIGHTNES_MODE::MANUAL:
-            if (nextLevel < 10) {
-                nextLevel++;
-            } else {
-                nextMode = BRIGHTNES_MODE::AUTO_LINEAR;
-            }
-            break;
-        case BRIGHTNES_MODE::AUTO_LINEAR:
-            nextMode = BRIGHTNES_MODE::AUTO_DIMMED;
-            break;
-        case BRIGHTNES_MODE::AUTO_DIMMED:
-            nextMode = BRIGHTNES_MODE::MANUAL;
-            nextLevel = 1;
-            break;
+    if (MATRIX_OFF || powerOffAfterBrightnessOverlay) {
+        settings.brightness_mode = BRIGHTNES_MODE::MANUAL;
+        settings.brightness_level = 0;
+        // setPower(true) restores currentBrightness; set it first so that the first frame is
+        // already dim rather than a flash at the brightness the display had before going off.
+        currentBrightness = MIN_BRIGHTNESS;
+        setPower(true);
+    } else {
+        switch (settings.brightness_mode) {
+            case BRIGHTNES_MODE::MANUAL:
+                if (settings.brightness_level < 10) {
+                    settings.brightness_level++;
+                } else {
+                    settings.brightness_mode = BRIGHTNES_MODE::AUTO_LINEAR;
+                }
+                break;
+            case BRIGHTNES_MODE::AUTO_LINEAR:
+                settings.brightness_mode = BRIGHTNES_MODE::AUTO_DIMMED;
+                break;
+            case BRIGHTNES_MODE::AUTO_DIMMED:
+                // Show "OFF" at the lowest brightness, then go dark when the overlay ends.
+                powerOffAfterBrightnessOverlay = true;
+                setBrightness(MIN_BRIGHTNESS);
+                break;
+        }
     }
 
-    // Button tweaks apply in memory only and never overwrite the brightness
-    // configured in the web UI; a long press restores the configured values.
-    SettingsManager.settings.brightness_mode = nextMode;
-    SettingsManager.settings.brightness_level = constrain(nextLevel, 1, 10);
     applySettings();
-
-    brightnessOverlayShowsAuto = nextMode != BRIGHTNES_MODE::MANUAL;
-    brightnessOverlayPercent = SettingsManager.settings.brightness_level * 10;
-    brightnessOverlayStarted = millis();
-    brightnessOverlayActive = true;
-    showBrightnessOverlay();
+    startBrightnessOverlay();
 }
 
 void DisplayManager_::selectButtonLong() {
@@ -422,13 +460,9 @@ void DisplayManager_::selectButtonLong() {
     if (!SettingsManager.loadBrightnessFromFile()) {
         return;
     }
+    setPower(true);
     applySettings();
-
-    brightnessOverlayShowsAuto = SettingsManager.settings.brightness_mode != BRIGHTNES_MODE::MANUAL;
-    brightnessOverlayPercent = SettingsManager.settings.brightness_level * 10;
-    brightnessOverlayStarted = millis();
-    brightnessOverlayActive = true;
-    showBrightnessOverlay();
+    startBrightnessOverlay();
 }
 
 void DisplayManager_::update() { matrix->show(); }

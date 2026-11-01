@@ -168,8 +168,8 @@ High, low, and urgent-low alarms each have their own threshold, snooze duration,
 - Brightness adjustment
   - Brightness can be adjusted within the Web UI
   - Automatic brightness adjustment based on the ambient light
-  - A single press of the middle button steps through brightness levels 1 to 10 and the automatic modes, showing the level for a moment; the change lasts until the clock restarts, and a long press restores the brightness set in the Web UI
-  - Double-click on the middle button on the clock turns the display on and off
+  - A single press of the middle button steps through `OFF`, `MIN`, `10%` to `100%`, `AUTO-1` (the Web UI's "Auto: balanced") and `AUTO-2` ("Auto: for darker rooms"), showing the choice for a moment; the change lasts until the clock restarts, and a long press restores the brightness set in the Web UI
+  - When the display is off, a single press of the middle button turns it on at `MIN`, and a long press turns it on at the brightness set in the Web UI
 - Multiple clock faces support
   - Default clock face can be selected in the Web UI
   - Clock faces can be changed using arrow buttons on the clock
