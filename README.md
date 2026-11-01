@@ -4,7 +4,7 @@
 
 This is an active and developing project, new versions land every few weeks
 
-### Current version: 1.1.2
+### Current version: 1.2.0
 
 ![Build and Release](https://github.com/ktomy/nightscout-clock/actions/workflows/build_release.yml/badge.svg)
 
@@ -204,6 +204,20 @@ High, low, and urgent-low alarms each have their own threshold, snooze duration,
   - ...more... (if you are the author of a CGM data collecting app/service and you want your data to be displayed on the Nightscout Clock, please contact me)
 
 ## Changes
+
+### 1.2.0
+
+- Added the "Switch face now" card on the Display tab, showing any clock face immediately without touching the clock; like the side buttons, the switch is temporary and leaves the default face, schedule and cycling unchanged, thanks [@adamecker](https://github.com/adamecker) ([#232](https://github.com/ktomy/nightscout-clock/pull/232))
+- Added the 100/5.6 surprise mode: a new reading shown as exactly 100 mg/dl or 5.6 mmol/l makes a Nyan unicorn run across the screen once, then the selected face returns; it is on by default in new configurations, thanks [@adamecker](https://github.com/adamecker) ([#222](https://github.com/ktomy/nightscout-clock/pull/222))
+- Added an optional low battery alert on the WiFi & system tab: the clock beeps every two minutes while the battery reads 5% or less; it is off by default, because a worn-out or removed battery also reads 0%, thanks [@0m4r](https://github.com/0m4r) ([#267](https://github.com/ktomy/nightscout-clock/pull/267))
+- Reworked the middle button: a press now steps through `OFF`, `MIN`, `10%` to `100%`, `AUTO-1` and `AUTO-2`, replacing the double-click for turning the display off; when the display is off, a press wakes it at `MIN` and a long press at the brightness set in the Web UI; a press that snoozes an alarm no longer changes the brightness
+- Improved the Value and diff delta: in mmol/L it now always matches the two displayed values, instead of showing a false ±0.1 for readings that display the same; after a missed reading it shows the change scaled to five minutes, duplicate readings no longer produce a false zero, and it shows "?" when there is no usable previous reading or the jump is too big, thanks [@martinsuchan](https://github.com/martinsuchan) ([#168](https://github.com/ktomy/nightscout-clock/pull/168))
+- Fixed a crash and restart on every start with LibreLinkUp ("Stack canary watchpoint triggered"), seen on the debug firmware since 1.1.1; the main loop now has a larger stack for the secure connection, thanks [@nishanm](https://github.com/nishanm) ([#260](https://github.com/ktomy/nightscout-clock/pull/260))
+- Fixed scanning for networks over Improv disconnecting anyone using the setup access point, thanks [@0m4r](https://github.com/0m4r) ([#265](https://github.com/ktomy/nightscout-clock/pull/265))
+- Fixed the "To API" message being clipped, and prepared the display code for faces that refresh more often than once a minute, thanks [@0m4r](https://github.com/0m4r) ([#268](https://github.com/ktomy/nightscout-clock/pull/268))
+- The debug firmware now logs its version at boot and at the top of every downloaded debug log, thanks [@nishanm](https://github.com/nishanm) ([#262](https://github.com/ktomy/nightscout-clock/pull/262))
+- Added host-side tests that run on every pull request, thanks [@0m4r](https://github.com/0m4r) ([#266](https://github.com/ktomy/nightscout-clock/pull/266))
+- Improved the contributor tooling: helper scripts are executable, `build.sh` works on macOS, and the emulator and import scripts read the clock's address from an argument or a local file, thanks [@0m4r](https://github.com/0m4r) ([#263](https://github.com/ktomy/nightscout-clock/pull/263), [#264](https://github.com/ktomy/nightscout-clock/pull/264)); `ns_test_dataage.py` takes the Nightscout address as an argument ([#269](https://github.com/ktomy/nightscout-clock/pull/269))
 
 ### 1.1.2
 
