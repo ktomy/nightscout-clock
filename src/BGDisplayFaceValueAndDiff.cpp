@@ -1,5 +1,6 @@
 #include "BGDisplayFaceValueAndDiff.h"
 
+#include "BGDisplayValueText.h"
 #include "globals.h"
 
 void BGDisplayFaceValueAndDiff::showReadings(
@@ -35,71 +36,11 @@ void BGDisplayFaceValueAndDiff::showReadings(
 }
 
 String BGDisplayFaceValueAndDiff::getDiff(const std::list<GlucoseReading>& readings) const {
-    if (readings.size() < 2) {
-#ifdef DEBUG_DISPLAY
-        DEBUG_PRINTLN("Not enough readings to calculate diff");
-#endif
-        return "";
-    }
-
-    auto last = readings.back();
-    std::list<GlucoseReading> foundReadings;
-    // cycle through reading starting from the last one until the time of reading is less than 6.5
-    // minutes prior to the last reading. Store the found readings
-    for (auto it = readings.rbegin(); it != readings.rend(); ++it) {
-        if (last.epoch - it->epoch > (6 * 60 + 30)) {
-            break;
-        }
-        foundReadings.push_back(*it);
-    }
-
-    // If we have a lot of readings, we are probably on Libre, so we just compare 2 last readings
-    if (foundReadings.size() > 5) {
-#ifdef DEBUG_DISPLAY
-        DEBUG_PRINTLN("Too many readings found, using only last 2");
-#endif
-        // truncate the list to keep only the last 2 readings
-        foundReadings.resize(2);
-    }
-
-    // cucle through found readings, get min and max SGVs
-    int minSGV = 9999;
-    int maxSGV = 0;
-    for (const auto& reading : foundReadings) {
-        if (reading.sgv < minSGV) {
-            minSGV = reading.sgv;
-        }
-        if (reading.sgv > maxSGV) {
-            maxSGV = reading.sgv;
-        }
-    }
-    int base = last.sgv;
-    if (minSGV != base && maxSGV != base) {
-#ifdef DEBUG_DISPLAY
-        DEBUG_PRINTLN("Too many changes in last 6.5 minutes");
-#endif
-        return "?";
-    }
-
-    int diff = minSGV == base ? base - maxSGV : base - minSGV;
-
-    if (std::abs(diff) > 99) {
-#ifdef DEBUG_DISPLAY
-        DEBUG_PRINTLN("Diff is too big: " + String(diff));
-#endif
-        return "?";
-    }
-
-    String diffString = "";
-    if (diff >= 0) {
-        diffString += "+";
-    }
-
-    diffString += getPrintableReading(diff);
+    const std::string diff = formatDiff(readings, SettingsManager.settings.bg_units != BG_UNIT::MGDL);
 
 #ifdef DEBUG_DISPLAY
-    DEBUG_PRINTF("SGV Diff: %s (%d readings)", diffString.c_str(), foundReadings.size());
+    DEBUG_PRINTF("SGV Diff: %s", diff.c_str());
 #endif
 
-    return diffString;
+    return String(diff.c_str());
 }

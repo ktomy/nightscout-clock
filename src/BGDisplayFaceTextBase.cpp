@@ -3,6 +3,7 @@
 #include <map>
 
 #include "BGDisplayManager.h"
+#include "BGDisplayValueText.h"
 #include "globals.h"
 
 void BGDisplayFaceTextBase::showReading(
@@ -27,15 +28,7 @@ uint16_t BGDisplayFaceTextBase::getColorByBGValue(const GlucoseReading& reading)
 }
 
 String BGDisplayFaceTextBase::getPrintableReading(const int sgv) const {
-    String readingToDisplay = "";
-    if (SettingsManager.settings.bg_units == BG_UNIT::MGDL) {
-        readingToDisplay += String(sgv);
-    } else {
-        char buffer[10];
-        sprintf(buffer, "%.1f", round((float)sgv / 1.8) / 10);
-        readingToDisplay += String(buffer);
-    }
-    return readingToDisplay;
+    return String(formatReading(sgv, SettingsManager.settings.bg_units != BG_UNIT::MGDL).c_str());
 }
 
 #pragma region Show arrow
