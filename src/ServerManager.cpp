@@ -8,6 +8,7 @@
 #include <esp_system.h>
 #include <esp_wifi.h>
 
+#include "BGDisplayManager.h"
 #include "BGSourceManager.h"
 #include "DisplayManager.h"
 #include "PeripheryManager.h"
@@ -489,7 +490,15 @@ void ServerManager_::setupWebServer(IPAddress ip) {
         } else {
             jsonResponse += "0";
         }
-        jsonResponse += "}";
+        jsonResponse += ", \"hasRecentData\": ";
+        jsonResponse +=
+            !glucoseData.empty() && glucoseData.back().getSecondsAgo() <=
+                                        60 * SettingsManager.settings.bg_data_too_old_threshold_minutes
+                ? "true"
+                : "false";
+        jsonResponse += ", \"faceId\": \"";
+        jsonResponse += bgDisplayManager.getCurrentFaceId();
+        jsonResponse += "\"}";
         request->send(200, "application/json", jsonResponse);
     });
 
@@ -505,6 +514,30 @@ void ServerManager_::setupWebServer(IPAddress ip) {
         request->send(200, "text/plain", "Nightscout clock " VERSION "\n" + LogBuffer::get());
     });
 #endif
+
+    // Switch the currently displayed face immediately, like the side buttons.
+    // Temporary: it does not change the default face, schedule, or cycling.
+    ws->addHandler(new AsyncCallbackJsonWebHandler(
+        "/api/face", [this](AsyncWebServerRequest* request, JsonVariant& json) {
+            if (!enforceAuthentication(request)) {
+                return;
+            }
+            if (!json.is<JsonObject>() || !json.as<JsonObject>()["face"].is<String>()) {
+                request->send(400, "application/json",
+                              "{\"status\": \"error\", \"error\": \"face must be a face id\"}");
+                return;
+            }
+            String id = json.as<JsonObject>()["face"].as<String>();
+            if (!bgDisplayManager.requestFace(id)) {
+                request->send(400, "application/json",
+                              "{\"status\": \"error\", \"error\": \"unknown face id\"}");
+                return;
+            }
+            String body = "{\"status\": \"ok\", \"face\": \"";
+            body += id;
+            body += "\"}";
+            request->send(200, "application/json", body);
+        }));
 
     ws->on("/config.json", HTTP_GET, [this](AsyncWebServerRequest* request) {
         if (!enforceAuthentication(request)) {

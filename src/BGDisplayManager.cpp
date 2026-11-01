@@ -123,6 +123,16 @@ const GlucoseIntervals& BGDisplayManager_::getGlucoseIntervals() const { return 
 
 void BGDisplayManager_::setFace(const String& id) { setFaceByIndex(findFaceIndex(id)); }
 
+// Safe to call from the web server task: it only records the face, and tick() switches to it.
+bool BGDisplayManager_::requestFace(const String& id) {
+    const int index = findFaceIndex(id);
+    if (index < 0) {
+        return false;
+    }
+    pendingFaceIndex = index;
+    return true;
+}
+
 void BGDisplayManager_::setFaceByIndex(int index) {
     if (index < 0 || static_cast<size_t>(index) >= faces.size()) {
         return;
@@ -222,6 +232,10 @@ void BGDisplayManager_::tick() {
     updateFaceSchedule();
     updateFaceCycle();
     updateSurpriseMode();
+    const int requestedFace = pendingFaceIndex.exchange(-1);
+    if (requestedFace >= 0) {
+        setFaceByIndex(requestedFace);
+    }
     if (!MATRIX_OFF && currentFace->needsFrequentRefresh()) {
         unsigned long now = millis();
         if (now - lastFrequentRefreshMillis >= currentFace->getFrequentRefreshIntervalMs()) {

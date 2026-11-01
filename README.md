@@ -103,9 +103,9 @@ The screenshots below show the 1.1 settings interface with sample data, captured
 
 #### Display
 
-Choose active clock faces, face-specific colors and animations, automatic cycling or a daily schedule, brightness, old-data behavior, and time settings.
+Choose active clock faces, face-specific colors and animations, automatic cycling or a daily schedule, brightness, old-data behavior, and time settings. While the clock has recent data, you can also switch to any face immediately.
 
-<img alt="Display tab: clock faces, daily schedule, brightness, old-data and time settings" src="docs/images/web-ui.png" />
+<img alt="Display tab: clock faces, switch face now, daily schedule, brightness, old-data and time settings" src="docs/images/web-ui.png" />
 
 #### Glucose
 

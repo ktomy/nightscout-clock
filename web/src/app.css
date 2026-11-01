@@ -68,6 +68,7 @@ fieldset.off input, fieldset.off select, fieldset.off .windows { opacity: .55; }
 .field { display: grid; gap: 6px; min-width: 0; grid-template-columns: minmax(0, 1fr); }
 .field > label, .label { font-weight: 500; }
 .help { color: var(--muted); }
+.live-value { color: var(--cyan); font-weight: 500; }
 .err { color: #fca5a5; }
 .field.invalid input, .field.invalid select, .band.invalid > select { border-color: #f87171; }
 input[type=text], input[type=password], input[type=email], input[type=time], select {
