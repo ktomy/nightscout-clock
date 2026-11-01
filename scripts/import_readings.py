@@ -11,6 +11,8 @@ from datetime import datetime, timedelta
 from requests_toolbelt.utils import dump
 import argparse
 
+from clock_address import resolve_clock_url
+
 # Define constants
 NSCLOCK_URL = "http://nsclock.lan/"
 API_ENDPOINT = "api/v1/entries"
@@ -109,12 +111,15 @@ def send_readings(entries):
 
 def main():
     """Main function"""
+    global NSCLOCK_URL
     parser = argparse.ArgumentParser(description='Import glucose readings from CSV to NSClock API')
     parser.add_argument('file_path', nargs='?', help='Path to the CSV file with readings')
     parser.add_argument('--clear', '-c', action='store_true', help='Clear existing readings before import')
     parser.add_argument('--delete-only', '-d', action='store_true', help='Only delete existing readings, do not import')
+    parser.add_argument('--url', help=f"The clock's address (default: .local_clock_ip, then {NSCLOCK_URL})")
     
     args = parser.parse_args()
+    NSCLOCK_URL = resolve_clock_url(args.url) or NSCLOCK_URL
     
     # If --delete-only is specified, just clear the readings and exit
     if args.delete_only:

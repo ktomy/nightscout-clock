@@ -9,14 +9,17 @@ Prerequisites
    /api/v1/entries is only available with this data source.
 2. Turn off web interface authentication, otherwise requests get a 401 response.
 3. Install the dependencies: pip install requests requests_toolbelt
+4. Put the clock's IP address in the git-ignored .local_clock_ip file in the
+   repository root, or pass --url on each run.
 
 Usage
 -----
+    python scripts/ns_emulator.py --one-value 110
+    python scripts/ns_emulator.py --sin
+    python scripts/ns_emulator.py --one-value 110 --no-delete
     python scripts/ns_emulator.py --url http://<clock-ip>/ --one-value 110
-    python scripts/ns_emulator.py --url http://<clock-ip>/ --sin
-    python scripts/ns_emulator.py --url http://<clock-ip>/ --one-value 110 --no-delete
 
---url         the clock's address (required)
+--url         the clock's address; overrides .local_clock_ip
 --one-value   send a single reading with this value
 --sin         send a sinusoid history of readings
 --no-delete   keep the existing readings; by default they are deleted first
@@ -40,16 +43,25 @@ from requests_toolbelt.utils import dump
 import math
 import sys
 
+from clock_address import resolve_clock_url
+
 # read command arguments:
-# --url [url]: the clock's address
+# --url [url]: the clock's address, instead of the one in .local_clock_ip
 # --no-delete: do not delete the existing data
 # --sin: to have sinusoid data
 # --one-value [value]: to send one value
 
-if "--url" not in sys.argv or sys.argv.index("--url") + 1 >= len(sys.argv):
+url_argument = None
+if "--url" in sys.argv:
+    if sys.argv.index("--url") + 1 >= len(sys.argv):
+        print(__doc__)
+        exit(2)
+    url_argument = sys.argv[sys.argv.index("--url") + 1]
+nightscout_url = resolve_clock_url(url_argument)
+if nightscout_url is None:
     print(__doc__)
+    print("ERROR: No clock address: create .local_clock_ip or pass --url.")
     exit(2)
-nightscout_url = sys.argv[sys.argv.index("--url") + 1].rstrip("/") + "/"
 
 if "--no-delete" not in sys.argv:
     response = requests.delete(nightscout_url + "api/v1/entries", timeout=2)
