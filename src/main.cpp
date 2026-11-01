@@ -19,6 +19,7 @@ void setup() {
     delay(2000);
     Serial.begin(115200);
     // Serial.setDebugOutput(true);
+    DEBUG_PRINTF("Nightscout clock %s", VERSION);
 
     DisplayManager.setup();
     SettingsManager.setup();
