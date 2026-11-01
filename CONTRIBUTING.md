@@ -26,6 +26,7 @@ My computer is running linux, but you can use Windows or MacOS as well, there ar
   - Optionally set `upload_speed` if you want a machine-specific speed override
   - Find available ports with `pio device list`; prefer a stable `/dev/serial/by-id/` path on Linux
   - `platformio.local.ini` is ignored by Git and overrides the shared settings in `platformio.ini`
+- Optionally, put your clock's IP address or hostname in a `.local_clock_ip` file in the repository root. This file is ignored by Git, and the scripts that call the clock's API use it when no `--url` is given
 - You should be able to see PlatformIO tab in the sidebar
   - Select `ulanzi_debug` -> `General` -> `Build`
   - `ulanzi_debug` -> `Platform` -> `Build Filesystem image`

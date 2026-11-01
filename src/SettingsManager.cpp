@@ -249,6 +249,8 @@ bool SettingsManager_::loadSettingsFromFile() {
     settings.custom_hostname_enable = (*doc)["custom_hostname_enable"].as<bool>();
     settings.custom_hostname = (*doc)["custom_hostname"].as<String>();
 
+    settings.low_battery_alert_enable = (*doc)["low_battery_alert_enable"].as<bool>();
+
     // Custom No Data Timer
     settings.custom_nodatatimer_enable = (*doc)["custom_nodatatimer_enable"].as<bool>();
     settings.custom_nodatatimer = (*doc)["custom_nodatatimer"].as<int>();
@@ -459,6 +461,8 @@ bool SettingsManager_::saveSettingsToFile() {
     // Custom hostname
     (*doc)["custom_hostname_enable"] = settings.custom_hostname_enable;
     (*doc)["custom_hostname"] = settings.custom_hostname;
+
+    (*doc)["low_battery_alert_enable"] = settings.low_battery_alert_enable;
 
     // Custom No Data Timer
     (*doc)["custom_nodatatimer_enable"] = settings.custom_nodatatimer_enable;

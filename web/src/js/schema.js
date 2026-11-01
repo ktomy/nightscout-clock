@@ -828,7 +828,7 @@ function normalizeLoaded(c) {
  */
 function tabOfKey(key) {
   if (
-    /^(ssid|password|additional_|custom_hostname|custom_mac|web_auth)/.test(key)
+    /^(ssid|password|additional_|custom_hostname|custom_mac|web_auth|low_battery_)/.test(key)
   )
     return "system";
   if (/^alarm_/.test(key)) return "alarms";

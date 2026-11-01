@@ -1005,6 +1005,14 @@ function hostnameCard() {
 }
 
 /**
+ * Build the switch for the optional low-battery beep.
+ * @returns {HTMLElement}
+ */
+function lowBatteryCard() {
+    return card("Low battery alert", null, toggleRow("low_battery_alert_enable", "Beep when the battery is low", "When on, the clock beeps every two minutes while the battery reads 5% or less."), { id: "card_low_battery" })
+}
+
+/**
  * Build web password protection controls and show the password field only when protection is enabled.
  * @returns {HTMLElement}
  */

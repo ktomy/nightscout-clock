@@ -80,30 +80,7 @@ static bool isInsideAlertWindow(const std::vector<AlertWindow>& alertWindows) {
         return true;
     }
 
-    const int nowMinutes = now.tm_hour * 60 + now.tm_min;
-    const int today = now.tm_wday;  // 0 is Sunday, matching AlertWindow::days
-    const int yesterday = (today + 6) % 7;
-
-    for (const AlertWindow& window : alertWindows) {
-        if (window.startMinutes < window.endMinutes) {
-            // Contained in one day, for example Monday to Friday 09:00 - 17:00.
-            if (window.days[today] && nowMinutes >= window.startMinutes &&
-                nowMinutes < window.endMinutes) {
-                return true;
-            }
-        } else {
-            // Runs past midnight, for example every day 18:00 - 08:00. The evening half belongs
-            // to today's window and the morning half to the one that opened yesterday.
-            if (window.days[today] && nowMinutes >= window.startMinutes) {
-                return true;
-            }
-            if (window.days[yesterday] && nowMinutes < window.endMinutes) {
-                return true;
-            }
-        }
-    }
-
-    return false;
+    return isInsideAlertWindow(alertWindows, now.tm_hour * 60 + now.tm_min, now.tm_wday);
 }
 
 #ifdef DEBUG_ALARMS

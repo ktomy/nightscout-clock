@@ -1,39 +1,39 @@
-"""Nightscout emulator for the clock's built-in "API" data source.
+r"""Nightscout emulator for the clock's "API" data source.
 
-The clock can act as its own tiny Nightscout server: when its data source is set
-to "API" it exposes POST/DELETE /api/v1/entries, so you can push fake glucose
-readings to it for testing (e.g. to exercise the different clock faces / moods)
-without a real CGM.
+Pushes sample glucose readings to the clock so that data processing and display
+behavior can be tested without a real CGM.
 
 Prerequisites
 -------------
-1. In the clock's Web UI (http://<clock-ip>/), set Data source -> "API" and let
-   it reboot. Any other source (Nightscout, Dexcom, LibreLinkUp, ...) does NOT
-   register the /api/v1/entries route and requests will 404.
-2. Point `nightscout_url` below at your clock's IP (keep the trailing slash).
-3. Install deps:  pip install requests requests_toolbelt
+1. In the clock's Web UI, set the data source to "API" and let the clock restart.
+   /api/v1/entries is only available with this data source.
+2. Turn off web interface authentication, otherwise requests get a 401 response.
+3. Install the dependencies: pip install requests requests_toolbelt
+4. Put the clock's IP address in the git-ignored .local_clock_ip file in the
+   repository root, or pass --url on each run.
 
 Usage
 -----
-    python ns_emulator.py --one-value 110      # send a single reading (sgv=110)
-    python ns_emulator.py --sin                # send a sinusoid history of readings
-    python ns_emulator.py --one-value 110 --no-delete   # keep existing readings
+    python scripts/ns_emulator.py --one-value 110
+    python scripts/ns_emulator.py --sin
+    python scripts/ns_emulator.py --one-value 110 --no-delete
+    python scripts/ns_emulator.py --url http://<clock_ip>/ --one-value 110
 
-By default the script first DELETEs all existing entries, then sends new ones.
-Pass --no-delete to append instead of replacing.
+--url         the clock's address; overrides .local_clock_ip
+--one-value   send a single reading with this value
+--sin         send a sinusoid history of readings
+--no-delete   keep the existing readings; by default they are deleted first
 
-Handy values (mg/dL, assuming default limits) to exercise the Smiley face moods:
-    50  -> urgent low  -> sad / blue
-    110 -> in range    -> happy / green
-    300 -> urgent high -> angry / red
+Values to exercise each glucose range with the default limits (mg/dL):
+    50  -> urgent low
+    110 -> in range
+    300 -> urgent high
 
-curl equivalent (no Python needed) -- replace the IP and epoch-millis date:
-    # wipe existing readings
-    curl -X DELETE http://192.168.86.24/api/v1/entries
-    # send one reading of 110
-    curl -X POST http://192.168.86.24/api/v1/entries \\
-         -H "Content-Type: application/json" \\
-         -d '[{"sgv":110,"date":1690000000000,"dateString":"2023-07-22T00:00:00","trend":4}]'
+curl equivalent:
+    curl -X DELETE http://<clock_ip>/api/v1/entries
+    curl -X POST http://<clock_ip>/api/v1/entries \
+         -H "Content-Type: application/json" \
+         -d "[{\"sgv\":110,\"date\":$(date +%s)000,\"dateString\":\"$(date +%Y-%m-%dT%H:%M:%S)\",\"trend\":4}]"
 """
 import json
 import random
@@ -43,13 +43,25 @@ from requests_toolbelt.utils import dump
 import math
 import sys
 
-# The clock's IP address (with trailing slash). Find it in your router or on the
-# clock's Web UI; it must be running with Data source set to "API".
-nightscout_url = "http://192.168.86.24/"
+from clock_address import resolve_clock_url
+
 # read command arguments:
+# --url [url]: the clock's address, instead of the one in .local_clock_ip
 # --no-delete: do not delete the existing data
 # --sin: to have sinusoid data
-# --one-value=[value]: to send one value
+# --one-value [value]: to send one value
+
+url_argument = None
+if "--url" in sys.argv:
+    if sys.argv.index("--url") + 1 >= len(sys.argv):
+        print(__doc__)
+        exit(2)
+    url_argument = sys.argv[sys.argv.index("--url") + 1]
+nightscout_url = resolve_clock_url(url_argument)
+if nightscout_url is None:
+    print(__doc__)
+    print("ERROR: No clock address: create .local_clock_ip or pass --url.")
+    exit(2)
 
 if "--no-delete" not in sys.argv:
     response = requests.delete(nightscout_url + "api/v1/entries", timeout=2)

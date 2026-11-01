@@ -63,6 +63,7 @@ void onErrorCallback(improv::Error err) {
 }
 
 void getAvailableWifiNetworks() {
+    // Scanning needs the station interface; keep the setup access point up if it is running.
     wifi_mode_t previousMode = WiFi.getMode();
     WiFi.mode(previousMode == WIFI_AP || previousMode == WIFI_AP_STA ? WIFI_AP_STA : WIFI_STA);
     WiFi.disconnect();

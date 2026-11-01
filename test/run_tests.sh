@@ -1,37 +1,32 @@
 #!/usr/bin/env bash
-# Compile and run all standalone unit tests in the test/ directory.
-# No external dependencies: each test is a self-contained C++ program with main().
+
+# Runs the host-side tests. They need only g++ and Node.js, and no clock.
 
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-FAILURES=0
+TEST_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
+PROJECT_DIR=$(dirname -- "$TEST_DIR")
+BUILD_DIR=$(mktemp -d)
+trap 'rm -rf "$BUILD_DIR"' EXIT
+failures=0
 
-for test_file in "$SCRIPT_DIR"/test_*.cpp; do
-    [ -f "$test_file" ] || continue
-    name="$(basename "$test_file" .cpp)"
-    binary="$SCRIPT_DIR/$name"
-
-    if g++ -std=c++17 -Wall -Wextra -o "$binary" "$test_file" 2>/tmp/build_err; then
-        if "$binary"; then
-            echo "PASS: $name"
-        else
-            echo "FAIL: $name (test returned non-zero)"
-            FAILURES=$((FAILURES + 1))
-        fi
+for test_file in "$TEST_DIR"/test_*.cpp; do
+    name=$(basename "$test_file" .cpp)
+    if g++ -std=c++17 -Wall -Wextra -Werror -I "$PROJECT_DIR/src" -o "$BUILD_DIR/$name" "$test_file" &&
+        "$BUILD_DIR/$name"; then
+        echo "PASS: $name"
     else
-        echo "FAIL: $name (compilation error)"
-        cat /tmp/build_err
-        FAILURES=$((FAILURES + 1))
+        echo "FAIL: $name"
+        failures=$((failures + 1))
     fi
-    rm -f "$binary"
 done
 
-echo ""
-if [ "$FAILURES" -eq 0 ]; then
-    echo "All tests passed."
-    exit 0
-else
-    echo "$FAILURES test(s) failed."
+if ! node --test "$TEST_DIR"/test_*.mjs; then
+    failures=$((failures + 1))
+fi
+
+if ((failures)); then
+    echo "$failures test group(s) failed." >&2
     exit 1
 fi
+echo "All tests passed."

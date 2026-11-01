@@ -497,11 +497,12 @@ void ServerManager_::setupWebServer(IPAddress ip) {
     // Download the in-memory debug log buffer (see LogBuffer). Requires
     // authentication, same as /api/save, since logs may contain network
     // details. Release builds keep no log, so the route answers 404 there.
+    // The buffer wraps and loses the boot lines, so the version heads every download.
     ws->on("/api/logs", HTTP_GET, [this](AsyncWebServerRequest* request) {
         if (!enforceAuthentication(request)) {
             return;
         }
-        request->send(200, "text/plain", LogBuffer::get());
+        request->send(200, "text/plain", "Nightscout clock " VERSION "\n" + LogBuffer::get());
     });
 #endif
 

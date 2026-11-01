@@ -8,6 +8,7 @@
 
 #include "Adafruit_SHT31.h"
 #include "DisplayManager.h"
+#include "LowBatteryAlert.h"
 #include "SettingsManager.h"
 #include "globals.h"
 
@@ -48,8 +49,7 @@ float sampleSum = 0.0;
 float sampleAverage = 0.0;
 float brightnessPercent = 0.0;
 int lastBrightness = 0;
-unsigned long lastLowBatteryAlertMillis = 0;
-const unsigned long LOW_BATTERY_ALERT_INTERVAL_MS = 2UL * 60UL * 1000UL;
+LowBatteryAlert lowBatteryAlert;
 const char* LOW_BATTERY_BEEP = "bat:d=32,o=6,b=220:c";
 
 // The getter for the instantiated singleton instance
@@ -152,30 +152,16 @@ void PeripheryManager_::tick() {
         uint16_t ADCVALUE = analogRead(BATTERY_PIN);
         BATTERY_PERCENT = max(min((int)map(ADCVALUE, 475, 665, 0, 100), 100), 0);
         BATTERY_RAW = ADCVALUE;
+        if (lowBatteryAlert.shouldBeep(
+                BATTERY_PERCENT, SettingsManager.settings.low_battery_alert_enable, player.isPlaying(),
+                currentMillis_BatTempHum)) {
+            Melody melody = MelodyFactory.loadRtttlString(LOW_BATTERY_BEEP);
+            player.playAsync(melody);
+        }
         if (SENSOR_READING) {
             sht31.readBoth(&CURRENT_TEMP, &CURRENT_HUM);
             CURRENT_TEMP += TEMP_OFFSET;
             CURRENT_HUM += HUM_OFFSET;
-        }
-        if (BATTERY_PERCENT <= 5) {
-            if (!SettingsManager.settings.low_battery_alert_enable) {
-                // Alert disabled by user: don't beep and reset the timer so
-                // re-enabling later doesn't trigger an immediate beep.
-                lastLowBatteryAlertMillis = 0;
-            } else {
-                bool alertDue = lastLowBatteryAlertMillis == 0 ||
-                                currentMillis_BatTempHum - lastLowBatteryAlertMillis >= LOW_BATTERY_ALERT_INTERVAL_MS;
-                // Don't interrupt a melody that is already sounding (e.g. a glucose
-                // alarm) - the single shared player would cut it off. Leave
-                // lastLowBatteryAlertMillis untouched so we retry on the next poll.
-                if (alertDue && !player.isPlaying()) {
-                    Melody melody = MelodyFactory.loadRtttlString(LOW_BATTERY_BEEP);
-                    player.playAsync(melody);
-                    lastLowBatteryAlertMillis = currentMillis_BatTempHum;
-                }
-            }
-        } else {
-            lastLowBatteryAlertMillis = 0;
         }
     }
 
