@@ -72,7 +72,8 @@ if [[ $UPLOAD == true ]]; then
     if [[ $MONITOR == true ]]; then
         upload_arguments+=(--monitor)
     fi
-    if ! bash "$SCRIPT_DIR/upload.sh" "${upload_arguments[@]}"; then
+    # macOS ships bash 3.2, where expanding an empty array under "set -u" is an error.
+    if ! bash "$SCRIPT_DIR/upload.sh" ${upload_arguments[@]+"${upload_arguments[@]}"}; then
         echo "ERROR: Upload workflow failed." >&2
         exit 1
     fi
