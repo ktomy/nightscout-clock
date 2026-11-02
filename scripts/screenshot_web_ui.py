@@ -128,6 +128,11 @@ def main():
                 "document.querySelector('#fw_status').textContent === 'You are using the latest version.'"
             )
             page.evaluate("document.fonts.ready")
+            # The face pictures are drawn one per frame after load; wait until every visible one has pixels.
+            page.wait_for_function("""() => [...document.querySelectorAll('#card_faces canvas')]
+                .filter(c => !c.hidden && c.offsetParent)
+                .every(c => c.getContext('2d').getImageData(0, 0, c.width, c.height).data.some(v => v))""",
+                timeout=15000)
             if errors:
                 raise RuntimeError("UI failed to render cleanly:\n" + "\n".join(errors))
             args.output.parent.mkdir(parents=True, exist_ok=True)
