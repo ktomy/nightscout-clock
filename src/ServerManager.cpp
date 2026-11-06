@@ -308,6 +308,59 @@ bool cachedCanReachInternet() {
     return cachedInternetReachable;
 }
 
+void ServerManager_::handleFacesGet(AsyncWebServerRequest* request) {
+    if (!enforceAuthentication(request)) {
+        return;
+    }
+
+    JsonDocument doc;
+    JsonArray faces = doc.to<JsonArray>();
+    for (const RegisteredClockFace& face : bgDisplayManager.getActiveFaces()) {
+        JsonObject item = faces.add<JsonObject>();
+        item["id"] = face.id;
+        item["name"] = face.name;
+    }
+    String body;
+    serializeJson(doc, body);
+    request->send(200, "application/json", body);
+}
+
+void ServerManager_::handleFacePost(AsyncWebServerRequest* request, JsonVariant& json) {
+    if (!enforceAuthentication(request)) {
+        return;
+    }
+    if (!json.is<JsonObject>() || !json.as<JsonObject>()["face"].is<String>()) {
+        request->send(
+            400, "application/json", "{\"status\": \"error\", \"error\": \"face must be a face id\"}");
+        return;
+    }
+
+    String id = json.as<JsonObject>()["face"].as<String>();
+    if (!bgDisplayManager.requestFace(id)) {
+        request->send(
+            400, "application/json", "{\"status\": \"error\", \"error\": \"unknown face id\"}");
+        return;
+    }
+    String body = "{\"status\": \"ok\", \"face\": \"" + id + "\"}";
+    request->send(200, "application/json", body);
+}
+
+void ServerManager_::handleFaceNextPost(AsyncWebServerRequest* request) {
+    if (!enforceAuthentication(request)) {
+        return;
+    }
+    bgDisplayManager.requestNextFace();
+    request->send(200, "application/json", "{\"status\": \"ok\"}");
+}
+
+void ServerManager_::handleFacePrevPost(AsyncWebServerRequest* request) {
+    if (!enforceAuthentication(request)) {
+        return;
+    }
+    bgDisplayManager.requestPreviousFace();
+    request->send(200, "application/json", "{\"status\": \"ok\"}");
+}
+
 void ServerManager_::setupWebServer(IPAddress ip) {
 #ifdef DEBUG_BG_SOURCE
     DEBUG_PRINTLN("ServerManager::setupWebServer");
@@ -461,71 +514,17 @@ void ServerManager_::setupWebServer(IPAddress ip) {
             }
         }));
 
-    // Shortcut GET endpoints to simulate a button press without a JSON payload:
-    //   GET /api/button/left/press   GET /api/button/left/long
-    //   GET /api/button/right/press  GET /api/button/right/long
-    //   GET /api/button/middle/press GET /api/button/middle/long
-    ws->on("/api/button/left/press", HTTP_GET, [this](AsyncWebServerRequest* request) {
-        if (!enforceAuthentication(request)) {
-            return;
-        }
-        DEBUG_PRINTLN("Button invoked: left press");
-        DisplayManager.leftButton();
-        DEBUG_PRINTF("Button response: ok\n");
-        request->send(200, "application/json", "{\"status\": \"ok\"}");
+    // API endpoints for face management.
+    ws->on("/api/faces", HTTP_GET, [this](AsyncWebServerRequest* request) { handleFacesGet(request); });
+    ws->addHandler(new AsyncCallbackJsonWebHandler(
+        "/api/face",
+        [this](AsyncWebServerRequest* request, JsonVariant& json) { handleFacePost(request, json); }));
+    ws->on("/api/face/next", HTTP_POST, [this](AsyncWebServerRequest* request) {
+        handleFaceNextPost(request);
     });
-
-    ws->on("/api/button/left/long", HTTP_GET, [this](AsyncWebServerRequest* request) {
-        if (!enforceAuthentication(request)) {
-            return;
-        }
-        DEBUG_PRINTLN("Button invoked: left long");
-        DisplayManager.leftButtonLong();
-        DEBUG_PRINTF("Button response: ok\n");
-        request->send(200, "application/json", "{\"status\": \"ok\"}");
+    ws->on("/api/face/prev", HTTP_POST, [this](AsyncWebServerRequest* request) {
+        handleFacePrevPost(request);
     });
-
-    ws->on("/api/button/right/press", HTTP_GET, [this](AsyncWebServerRequest* request) {
-        if (!enforceAuthentication(request)) {
-            return;
-        }
-        DEBUG_PRINTLN("Button invoked: right press");
-        DisplayManager.rightButton();
-        DEBUG_PRINTF("Button response: ok\n");
-        request->send(200, "application/json", "{\"status\": \"ok\"}");
-    });
-
-    ws->on("/api/button/right/long", HTTP_GET, [this](AsyncWebServerRequest* request) {
-        if (!enforceAuthentication(request)) {
-            return;
-        }
-        DEBUG_PRINTLN("Button invoked: right long");
-        DisplayManager.rightButtonLong();
-        DEBUG_PRINTF("Button response: ok\n");
-        request->send(200, "application/json", "{\"status\": \"ok\"}");
-    });
-
-    ws->on("/api/button/middle/press", HTTP_GET, [this](AsyncWebServerRequest* request) {
-        if (!enforceAuthentication(request)) {
-            return;
-        }
-        DEBUG_PRINTLN("Button invoked: middle press");
-        DisplayManager.selectButton();
-        DEBUG_PRINTF("Button response: ok\n");
-        request->send(200, "application/json", "{\"status\": \"ok\"}");
-    });
-
-    ws->on("/api/button/middle/long", HTTP_GET, [this](AsyncWebServerRequest* request) {
-        if (!enforceAuthentication(request)) {
-            return;
-        }
-        DEBUG_PRINTLN("Button invoked: middle long");
-        DisplayManager.selectButtonLong();
-        DEBUG_PRINTF("Button response: ok\n");
-        request->send(200, "application/json", "{\"status\": \"ok\"}");
-    });
-
-
     ws->on("/api/factory-reset", HTTP_POST, [this](AsyncWebServerRequest* request) {
         if (!enforceAuthentication(request)) {
             return;
@@ -580,30 +579,6 @@ void ServerManager_::setupWebServer(IPAddress ip) {
     });
 #endif
 
-    // Switch the currently displayed face immediately, like the side buttons.
-    // Temporary: it does not change the default face, schedule, or cycling.
-    ws->addHandler(new AsyncCallbackJsonWebHandler(
-        "/api/face", [this](AsyncWebServerRequest* request, JsonVariant& json) {
-            if (!enforceAuthentication(request)) {
-                return;
-            }
-            if (!json.is<JsonObject>() || !json.as<JsonObject>()["face"].is<String>()) {
-                request->send(400, "application/json",
-                              "{\"status\": \"error\", \"error\": \"face must be a face id\"}");
-                return;
-            }
-            String id = json.as<JsonObject>()["face"].as<String>();
-            if (!bgDisplayManager.requestFace(id)) {
-                request->send(400, "application/json",
-                              "{\"status\": \"error\", \"error\": \"unknown face id\"}");
-                return;
-            }
-            String body = "{\"status\": \"ok\", \"face\": \"";
-            body += id;
-            body += "\"}";
-            request->send(200, "application/json", body);
-        }));
-
     ws->on("/config.json", HTTP_GET, [this](AsyncWebServerRequest* request) {
         if (!enforceAuthentication(request)) {
             return;
@@ -615,13 +590,9 @@ void ServerManager_::setupWebServer(IPAddress ip) {
 
     // Captive portal detection endpoints
     // Android: responds with HTTP 204 so the device opens the portal
-    ws->on("/generate_204", HTTP_GET, [](AsyncWebServerRequest* request) {
-        request->redirect("/");
-    });
+    ws->on("/generate_204", HTTP_GET, [](AsyncWebServerRequest* request) { request->redirect("/"); });
     // Windows: redirect NCSI probe to the settings page
-    ws->on("/connecttest.txt", HTTP_GET, [](AsyncWebServerRequest* request) {
-        request->redirect("/");
-    });
+    ws->on("/connecttest.txt", HTTP_GET, [](AsyncWebServerRequest* request) { request->redirect("/"); });
 
     ws->onNotFound([](AsyncWebServerRequest* request) {
         if (request->method() == HTTP_OPTIONS) {
@@ -705,7 +676,8 @@ tm ServerManager_::getTimezonedTime() {
 }
 
 // Like getTimezonedTime(), but reports whether the clock actually knows the time. Reads the
-// clock directly: getLocalTime() waits up to 5 s when it is unset, and can skip the read on a zero timeout.
+// clock directly: getLocalTime() waits up to 5 s when it is unset, and can skip the read on a zero
+// timeout.
 bool ServerManager_::tryGetTimezonedTime(tm& timeinfo) {
     time_t now;
     time(&now);

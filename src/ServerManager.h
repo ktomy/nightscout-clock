@@ -28,6 +28,11 @@ private:
     String webAuthToken;
     unsigned long webAuthTokenIssuedMs = 0;
 
+    void handleFacesGet(AsyncWebServerRequest* request);
+    void handleFacePost(AsyncWebServerRequest* request, JsonVariant& json);
+    void handleFaceNextPost(AsyncWebServerRequest* request);
+    void handleFacePrevPost(AsyncWebServerRequest* request);
+
 public:
     static ServerManager_& getInstance();
     void setup();
