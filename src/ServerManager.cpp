@@ -361,6 +361,41 @@ void ServerManager_::handleFacePrevPost(AsyncWebServerRequest* request) {
     request->send(200, "application/json", "{\"status\": \"ok\"}");
 }
 
+void ServerManager_::handleBrightnessNextPost(AsyncWebServerRequest* request) {
+    if (!enforceAuthentication(request)) {
+        return;
+    }
+    DisplayManager.requestBrightnessStep();
+    request->send(200, "application/json", "{\"status\": \"ok\"}");
+}
+
+void ServerManager_::handleBrightnessPrevPost(AsyncWebServerRequest* request) {
+    if (!enforceAuthentication(request)) {
+        return;
+    }
+    DisplayManager.requestPreviousBrightnessStep();
+    request->send(200, "application/json", "{\"status\": \"ok\"}");
+}
+
+void ServerManager_::handleBrightnessPost(AsyncWebServerRequest* request, JsonVariant& json) {
+    if (!enforceAuthentication(request)) {
+        return;
+    }
+    if (!json.is<JsonObject>() || !json.as<JsonObject>()["value"].is<int>()) {
+        request->send(
+            400, "application/json", "{\"status\": \"error\", \"error\": \"value must be an integer\"}");
+        return;
+    }
+
+    const int value = json.as<JsonObject>()["value"].as<int>();
+    if (!DisplayManager.requestBrightnessValue(value)) {
+        request->send(
+            400, "application/json", "{\"status\": \"error\", \"error\": \"invalid brightness value\"}");
+        return;
+    }
+    request->send(200, "application/json", "{\"status\": \"ok\"}");
+}
+
 void ServerManager_::setupWebServer(IPAddress ip) {
 #ifdef DEBUG_BG_SOURCE
     DEBUG_PRINTLN("ServerManager::setupWebServer");
@@ -525,6 +560,16 @@ void ServerManager_::setupWebServer(IPAddress ip) {
     ws->on("/api/face/prev", HTTP_POST, [this](AsyncWebServerRequest* request) {
         handleFacePrevPost(request);
     });
+    ws->on("/api/brightness/next", HTTP_POST, [this](AsyncWebServerRequest* request) {
+        handleBrightnessNextPost(request);
+    });
+    ws->on("/api/brightness/prev", HTTP_POST, [this](AsyncWebServerRequest* request) {
+        handleBrightnessPrevPost(request);
+    });
+    ws->addHandler(new AsyncCallbackJsonWebHandler(
+        "/api/brightness", [this](AsyncWebServerRequest* request, JsonVariant& json) {
+            handleBrightnessPost(request, json);
+        }));
     ws->on("/api/factory-reset", HTTP_POST, [this](AsyncWebServerRequest* request) {
         if (!enforceAuthentication(request)) {
             return;

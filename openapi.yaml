@@ -352,6 +352,69 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
 
+  /api/brightness/next:
+    post:
+      tags: [Device control]
+      summary: Advance the brightness setting
+      description: Apply one temporary step in the same brightness cycle as a short middle-button press. Does not change persisted settings.
+      responses:
+        '200':
+          description: Brightness change queued
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ActionStatus' }
+              example: { status: ok }
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/brightness/prev:
+    post:
+      tags: [Device control]
+      summary: Go back one brightness setting
+      description: Apply one temporary step backward in the brightness cycle. Does not change persisted settings.
+      responses:
+        '200':
+          description: Brightness change queued
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ActionStatus' }
+              example: { status: ok }
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/brightness:
+    post:
+      tags: [Device control]
+      summary: Set a specific brightness value
+      description: Set the temporary brightness mode or manual level without changing persisted settings.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [value]
+              additionalProperties: false
+              properties:
+                value:
+                  type: integer
+                  enum: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 100, 101]
+                  description: Manual level 1-10, 100 for auto-balanced, or 101 for auto-dimmed.
+      responses:
+        '200':
+          description: Brightness change queued
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ActionStatus' }
+              example: { status: ok }
+        '400':
+          description: Missing, non-integer, or unsupported brightness value
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorStatus' }
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
   /api/llu/patients:
     get:
       tags: [LibreLinkUp]

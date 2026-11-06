@@ -49,3 +49,16 @@ test("openapi.yaml defines POST /api/face/prev", () => {
   assert.ok(spec.includes("  /api/face/prev:"));
   assert.ok(spec.includes("    post:"));
 });
+
+test("openapi.yaml defines POST /api/brightness/next", () => {
+  assert.match(spec, /  \/api\/brightness\/next:\n    post:/);
+});
+
+test("openapi.yaml defines POST /api/brightness/prev", () => {
+  assert.match(spec, /  \/api\/brightness\/prev:\n    post:/);
+});
+
+test("openapi.yaml defines POST /api/brightness with the supported values", () => {
+  assert.match(spec, /  \/api\/brightness:\n    post:/);
+  assert.match(spec, /enum: \[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 100, 101\]/);
+});
