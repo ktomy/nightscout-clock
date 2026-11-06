@@ -50,6 +50,12 @@ test("openapi.yaml defines POST /api/face/prev", () => {
   assert.ok(spec.includes("    post:"));
 });
 
+test("display mutation routes document setup-mode unavailability", () => {
+  const unavailableResponses =
+    spec.match(/'503':\n\s+\$ref: '#\/components\/responses\/DisplayControlUnavailable'/g) || [];
+  assert.equal(unavailableResponses.length, 6);
+});
+
 test("openapi.yaml defines POST /api/brightness/next", () => {
   assert.match(spec, /  \/api\/brightness\/next:\n    post:/);
 });

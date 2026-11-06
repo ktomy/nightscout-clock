@@ -321,6 +321,8 @@ paths:
               schema: { $ref: '#/components/schemas/ErrorStatus' }
         '401':
           $ref: '#/components/responses/Unauthorized'
+        '503':
+          $ref: '#/components/responses/DisplayControlUnavailable'
 
   /api/face/next:
     post:
@@ -336,6 +338,8 @@ paths:
               example: { status: ok }
         '401':
           $ref: '#/components/responses/Unauthorized'
+        '503':
+          $ref: '#/components/responses/DisplayControlUnavailable'
 
   /api/face/prev:
     post:
@@ -351,6 +355,8 @@ paths:
               example: { status: ok }
         '401':
           $ref: '#/components/responses/Unauthorized'
+        '503':
+          $ref: '#/components/responses/DisplayControlUnavailable'
 
   /api/brightness/next:
     post:
@@ -366,6 +372,8 @@ paths:
               example: { status: ok }
         '401':
           $ref: '#/components/responses/Unauthorized'
+        '503':
+          $ref: '#/components/responses/DisplayControlUnavailable'
 
   /api/brightness/prev:
     post:
@@ -381,6 +389,8 @@ paths:
               example: { status: ok }
         '401':
           $ref: '#/components/responses/Unauthorized'
+        '503':
+          $ref: '#/components/responses/DisplayControlUnavailable'
 
   /api/brightness:
     post:
@@ -414,6 +424,8 @@ paths:
               schema: { $ref: '#/components/schemas/ErrorStatus' }
         '401':
           $ref: '#/components/responses/Unauthorized'
+        '503':
+          $ref: '#/components/responses/DisplayControlUnavailable'
 
   /api/llu/patients:
     get:
@@ -477,6 +489,12 @@ components:
       schema:
         type: string
   responses:
+    DisplayControlUnavailable:
+      description: Face and brightness changes are unavailable while the clock is in setup access-point mode.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorStatus' }
+          example: { status: error, error: display control unavailable in AP mode }
     Unauthorized:
       description: Authentication is enabled and the request has no valid session cookie.
       content:

@@ -325,8 +325,22 @@ void ServerManager_::handleFacesGet(AsyncWebServerRequest* request) {
     request->send(200, "application/json", body);
 }
 
+bool ServerManager_::ensureDisplayControlAvailable(AsyncWebServerRequest* request) {
+    if (!isInAPMode) {
+        return true;
+    }
+
+    request->send(
+        503, "application/json",
+        "{\"status\": \"error\", \"error\": \"display control unavailable in AP mode\"}");
+    return false;
+}
+
 void ServerManager_::handleFacePost(AsyncWebServerRequest* request, JsonVariant& json) {
     if (!enforceAuthentication(request)) {
+        return;
+    }
+    if (!ensureDisplayControlAvailable(request)) {
         return;
     }
     if (!json.is<JsonObject>() || !json.as<JsonObject>()["face"].is<String>()) {
@@ -349,12 +363,18 @@ void ServerManager_::handleFaceNextPost(AsyncWebServerRequest* request) {
     if (!enforceAuthentication(request)) {
         return;
     }
+    if (!ensureDisplayControlAvailable(request)) {
+        return;
+    }
     bgDisplayManager.requestNextFace();
     request->send(200, "application/json", "{\"status\": \"ok\"}");
 }
 
 void ServerManager_::handleFacePrevPost(AsyncWebServerRequest* request) {
     if (!enforceAuthentication(request)) {
+        return;
+    }
+    if (!ensureDisplayControlAvailable(request)) {
         return;
     }
     bgDisplayManager.requestPreviousFace();
@@ -365,6 +385,9 @@ void ServerManager_::handleBrightnessNextPost(AsyncWebServerRequest* request) {
     if (!enforceAuthentication(request)) {
         return;
     }
+    if (!ensureDisplayControlAvailable(request)) {
+        return;
+    }
     DisplayManager.requestBrightnessStep();
     request->send(200, "application/json", "{\"status\": \"ok\"}");
 }
@@ -373,12 +396,18 @@ void ServerManager_::handleBrightnessPrevPost(AsyncWebServerRequest* request) {
     if (!enforceAuthentication(request)) {
         return;
     }
+    if (!ensureDisplayControlAvailable(request)) {
+        return;
+    }
     DisplayManager.requestPreviousBrightnessStep();
     request->send(200, "application/json", "{\"status\": \"ok\"}");
 }
 
 void ServerManager_::handleBrightnessPost(AsyncWebServerRequest* request, JsonVariant& json) {
     if (!enforceAuthentication(request)) {
+        return;
+    }
+    if (!ensureDisplayControlAvailable(request)) {
         return;
     }
     if (!json.is<JsonObject>() || !json.as<JsonObject>()["value"].is<int>()) {

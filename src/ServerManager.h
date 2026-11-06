@@ -29,6 +29,7 @@ private:
     unsigned long webAuthTokenIssuedMs = 0;
 
     void handleFacesGet(AsyncWebServerRequest* request);
+    bool ensureDisplayControlAvailable(AsyncWebServerRequest* request);
     void handleFacePost(AsyncWebServerRequest* request, JsonVariant& json);
     void handleFaceNextPost(AsyncWebServerRequest* request);
     void handleFacePrevPost(AsyncWebServerRequest* request);
