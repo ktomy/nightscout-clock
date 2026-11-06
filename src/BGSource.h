@@ -44,6 +44,11 @@ protected:
     WiFiClientSecure* wifiSecureClient;
     unsigned long long lastCallAttemptEpoch = 0;
     bool firstConnectionSuccess = false;
+    // Set to false by updateReadings() when any fetch in the update cycle
+    // fails, so tick() can retry soon instead of waiting the full 60s.
+    bool lastFetchSucceeded = true;
+    // Counts consecutive failed fetch cycles; drives the retry backoff in tick().
+    int consecutiveFetchFailures = 0;
     std::list<GlucoseReading> glucoseReadings;
     std::list<GlucoseReading> deleteOldReadings(
         std::list<GlucoseReading> readings, unsigned long long epochToCompare);
