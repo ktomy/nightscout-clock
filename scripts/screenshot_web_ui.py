@@ -87,6 +87,7 @@ def main():
             route.fulfill(json={
                 "isInAPMode": False, "isConnected": True, "hasInternet": True,
                 "bgSourceStatus": "connected", "sgv": 110,
+                "hasRecentData": True, "faceId": "simple",
             })
         else:
             asset = (ROOT / "data" / (path.lstrip("/") or "index.html")).resolve()

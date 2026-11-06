@@ -78,7 +78,7 @@ For the web UI, keep JavaScript style consistent with the existing files in `web
 
 `test/run_tests.sh` runs the host-side tests, which need only `g++` and Node.js and also run on every pull request. They cover logic that compiles without Arduino, such as `src/SettingsAlertWindow.h`, and the web UI's `web/src/js/schema.js`. Tests must exercise the real source rather than a copy of it; to test firmware logic, move it into an Arduino-free header in `src/`.
 
-Host-side tests do not replace hardware testing: every change should still be validated by building and testing on a real device. The normal workflow is `scripts/build.sh --upload --monitor`, or `scripts/build.sh --fs --upload --monitor` when files in `data/` changed.
+Host-side tests do not replace hardware testing: firmware changes must be validated by building and testing on a real device before a pull request is created, as described in "Pull request rules" in `CONTRIBUTING.md`. The normal workflow is `scripts/build.sh --upload --monitor`, or `scripts/build.sh --fs --upload --monitor` when files in `data/` changed.
 
 Prefer testing against the real data source affected by your change. For display logic, parsing, and update flow, `scripts/ns_emulator.py` can push sample glucose entries into the device API so you can exercise behavior without waiting for live data.
 
@@ -86,16 +86,10 @@ Watch the serial monitor for boot issues, configuration errors, Wi-Fi problems, 
 
 ## Commit & Pull Request Guidelines
 
-- Every commit must have a short, specific title and a body.
-- Use an imperative title that summarizes the change.
-- Explain what changed and why in the body.
-- Describe the final result, without recounting the conversation, implementation attempts, or sequence of events.
-- Do not include testing or validation details in commit messages.
-
-Before opening a pull request, start a discussion or issue for non-trivial changes so the approach can be aligned early. Pull requests should clearly state what changed, why it was needed, and how it was tested on hardware. Include screenshots when the change affects the web UI or display behavior.
+Before committing or opening a pull request, read and follow the introduction, "Pull request rules", "Commit messages", and "Pull request branch permissions" in [`CONTRIBUTING.md`](CONTRIBUTING.md), the canonical source for these rules.
 
 ## Configuration Tips
 
 Per-machine upload settings live in the git-ignored `platformio.local.ini` (copy it from `platformio.local.ini.example`), not in the tracked `platformio.ini`. The upload, reset, and monitor scripts resolve the same `upload_port` through `scripts/get_port.sh`. If flashing or monitoring fails on a different machine or after reconnecting the clock, update that port before troubleshooting deeper firmware issues.
 
-Treat `web/src/` as the web UI source and `data/` as the runtime payload built from it. If you change the device-served UI, verify both the browser behavior and the rebuilt filesystem image on hardware.
+Treat `web/src/` as the web UI source and `data/` as the runtime payload built from it. If you change the device-served UI, verify the browser behavior; also verify the rebuilt filesystem image on hardware when the same change touches firmware.

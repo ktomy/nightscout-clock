@@ -203,7 +203,7 @@ void BGAlarmManager_::tick() {
     activeAlarm = NULL;
 }
 
-void BGAlarmManager_::snoozeAlarm() {
+bool BGAlarmManager_::snoozeAlarm() {
     if (activeAlarm != NULL && !activeAlarm->isSnoozed) {
         DEBUG_PRINTLN("Snoozing alarm");
         DisplayManager.clearMatrix();
@@ -213,5 +213,7 @@ void BGAlarmManager_::snoozeAlarm() {
         delay(2000);
         bgDisplayManager.maybeRrefreshScreen(true);
         activeAlarm->isSnoozed = true;
+        return true;
     }
+    return false;
 }

@@ -87,8 +87,8 @@ void right_button_pressed_long(Button2& /*btn*/) {
 
 void select_button_pressed(Button2& /*btn*/) {
     DEBUG_PRINTLN(F("Select button clicked"));
-    bgAlarmManager.snoozeAlarm();
-    if (!BLOCK_NAVIGATION) {
+    // A press that snoozes an alarm must not also step the brightness, which could turn the display off.
+    if (!bgAlarmManager.snoozeAlarm() && !BLOCK_NAVIGATION) {
         DisplayManager.selectButton();
     }
 }
@@ -97,17 +97,6 @@ void select_button_pressed_long(Button2& /*btn*/) {
     DEBUG_PRINTLN(F("Select button pressed long"));
     if (!BLOCK_NAVIGATION) {
         DisplayManager.selectButtonLong();
-    }
-}
-
-void select_button_double(Button2& /*btn*/) {
-    DEBUG_PRINTLN(F("Select button double pressed"));
-    if (!BLOCK_NAVIGATION) {
-        if (MATRIX_OFF) {
-            DisplayManager.setPower(true);
-        } else {
-            DisplayManager.setPower(false);
-        }
     }
 }
 
@@ -133,8 +122,9 @@ void PeripheryManager_::setup() {
     button_select.setClickHandler(select_button_pressed);
     button_select.setLongClickTime(1000);
     button_select.setLongClickHandler(select_button_pressed_long);
-    button_select.setDoubleClickTime(500);
-    button_select.setDoubleClickHandler(select_button_double);
+    // No multi-click window: otherwise quick presses merge into a double click and are lost, instead
+    // of each one stepping the brightness.
+    button_select.setDoubleClickTime(0);
 
     Wire.begin(I2C_SDA_PIN, I2C_SCL_PIN);
     sht31.begin(0x44);

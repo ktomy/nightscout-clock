@@ -2,6 +2,22 @@
 
 Contributions are welcomed. I will look into all the pull requests and will most probably merge yours if it brings additional value to the project. Before creating a pull request, please create a discussion topic or an issue so that we can talk about what you intend to improve and come up with the best way to do it.
 
+### Pull request rules
+
+- Fork `ktomy/nightscout-clock` directly and open your pull request from that fork. Pull requests from a fork of another fork will not be accepted.
+- Keep each pull request to a single feature or fix. Pull requests that bundle several features will not be accepted, because a pull request that adds or changes multiple things is hard to review. Split the work into separate pull requests instead.
+- Test on a real clock before creating any pull request that changes the firmware, including everything else in that pull request, such as web UI changes. Pull requests with firmware changes that were not tested on hardware will not be accepted. A pull request that changes only the web UI does not need hardware testing.
+- State what changed, why it was needed, and how it was tested.
+- Include screenshots when the change affects the web UI or display behavior.
+
+### Commit messages
+
+- Every commit must have a short, specific title and a body.
+- Use an imperative title that summarizes the change.
+- Explain what changed and why in the body.
+- Describe the final result, without recounting the conversation, implementation attempts, or sequence of events.
+- Do not include testing or validation details in commit messages.
+
 ### Pull request branch permissions
 
 Every pull request must allow the project maintainer to rebase its branch onto the latest base branch and push commits directly to it, including fixes and rebased history. Base-branch updates use rebase rather than merge commits.
@@ -26,7 +42,10 @@ My computer is running linux, but you can use Windows or MacOS as well, there ar
   - Optionally set `upload_speed` if you want a machine-specific speed override
   - Find available ports with `pio device list`; prefer a stable `/dev/serial/by-id/` path on Linux
   - `platformio.local.ini` is ignored by Git and overrides the shared settings in `platformio.ini`
-- Optionally, put your clock's IP address or hostname in a `.local_clock_ip` file in the repository root. This file is ignored by Git, and the scripts that call the clock's API use it when no `--url` is given
+- Configure your clock's address for the scripts that call its API, such as `scripts/ns_emulator.py` and `scripts/import_readings.py`:
+  - Create a `.local_clock_ip` file in the repository root holding the clock's IP address or hostname: `echo 192.168.1.50 > .local_clock_ip`
+  - The clock shows its address when it starts
+  - `.local_clock_ip` is ignored by Git. Without it, these scripts stop with an error unless you pass `--url`
 - You should be able to see PlatformIO tab in the sidebar
   - Select `ulanzi_debug` -> `General` -> `Build`
   - `ulanzi_debug` -> `Platform` -> `Build Filesystem image`

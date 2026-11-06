@@ -27,7 +27,8 @@ public:
     static BGAlarmManager_& getInstance();
     void setup();
     void tick();
-    void snoozeAlarm();
+    // Returns whether an alarm was snoozed by this call.
+    bool snoozeAlarm();
 };
 
 extern BGAlarmManager_& bgAlarmManager;
