@@ -82,6 +82,30 @@ const FACES = [
   { id: "smiley", name: "Smiley" },
 ];
 
+// Clocks set up on 1.0.0 or earlier stored each face as its number, the face's index in this order.
+// Must match NUMBERED_FACE_IDS in SettingsSchedule.cpp.
+const NUMBERED_FACE_IDS = FACES.slice(0, 12).map((f) => f.id);
+// Any other number is left as it is, so it is refused like any unknown face.
+const readFaceId = (id) =>
+  typeof id === "number" ? NUMBERED_FACE_IDS[id] ?? id : id;
+
+/**
+ * Copy settings with every face named by its string ID, so a clock or settings file from 1.0.0 keeps its faces.
+ * @param {ClockConfig} c - Settings from the clock or a settings file.
+ * @returns {ClockConfig}
+ */
+function readFaceIds(c) {
+  const out = { ...c };
+  if ("default_face" in out) out.default_face = readFaceId(out.default_face);
+  if (Array.isArray(out.inactive_faces))
+    out.inactive_faces = out.inactive_faces.map(readFaceId);
+  if (Array.isArray(out.face_schedule))
+    out.face_schedule = out.face_schedule.map((row) =>
+      isBlock(row) ? { ...row, face: readFaceId(row.face) } : row,
+    );
+  return out;
+}
+
 // The config stores the faces switched off, so a face added later starts active.
 const activeFaceIds = (inactive) =>
   FACES.map((f) => f.id).filter((id) => !(inactive || []).includes(id));
@@ -779,7 +803,7 @@ function buildSaveJson(c) {
  * @returns {ClockConfig}
  */
 function normalizeLoaded(c) {
-  const out = clone(c);
+  const out = readFaceIds(clone(c));
   out.face_schedule ??= [];
   /**
    * Convert one integer-string setting to a number in the copied configuration, leaving other values alone.
@@ -818,6 +842,7 @@ function normalizeLoaded(c) {
   out.face_schedule = out.face_schedule.filter((row) =>
     KEY_ITEMS.face_schedule(row),
   );
+  out.surprise_mode = !!out.surprise_mode;
   return out;
 }
 
@@ -954,6 +979,7 @@ function fitsSetting(key, value, clockValue) {
 // The clock's settings with a file's values applied. A value that doesn't fit, or that the checks run before a save
 // reject, keeps the clock's value and is listed in `kept`. Keys the clock doesn't have are ignored.
 function mergeSettingsFile(file, clock, { network, tzNames }) {
+  file = readFaceIds(file);
   const config = clone(clock);
   const taken = [],
     kept = [];
