@@ -461,6 +461,71 @@ void ServerManager_::setupWebServer(IPAddress ip) {
             }
         }));
 
+    // Shortcut GET endpoints to simulate a button press without a JSON payload:
+    //   GET /api/button/left/press   GET /api/button/left/long
+    //   GET /api/button/right/press  GET /api/button/right/long
+    //   GET /api/button/middle/press GET /api/button/middle/long
+    ws->on("/api/button/left/press", HTTP_GET, [this](AsyncWebServerRequest* request) {
+        if (!enforceAuthentication(request)) {
+            return;
+        }
+        DEBUG_PRINTLN("Button invoked: left press");
+        DisplayManager.leftButton();
+        DEBUG_PRINTF("Button response: ok\n");
+        request->send(200, "application/json", "{\"status\": \"ok\"}");
+    });
+
+    ws->on("/api/button/left/long", HTTP_GET, [this](AsyncWebServerRequest* request) {
+        if (!enforceAuthentication(request)) {
+            return;
+        }
+        DEBUG_PRINTLN("Button invoked: left long");
+        DisplayManager.leftButtonLong();
+        DEBUG_PRINTF("Button response: ok\n");
+        request->send(200, "application/json", "{\"status\": \"ok\"}");
+    });
+
+    ws->on("/api/button/right/press", HTTP_GET, [this](AsyncWebServerRequest* request) {
+        if (!enforceAuthentication(request)) {
+            return;
+        }
+        DEBUG_PRINTLN("Button invoked: right press");
+        DisplayManager.rightButton();
+        DEBUG_PRINTF("Button response: ok\n");
+        request->send(200, "application/json", "{\"status\": \"ok\"}");
+    });
+
+    ws->on("/api/button/right/long", HTTP_GET, [this](AsyncWebServerRequest* request) {
+        if (!enforceAuthentication(request)) {
+            return;
+        }
+        DEBUG_PRINTLN("Button invoked: right long");
+        DisplayManager.rightButtonLong();
+        DEBUG_PRINTF("Button response: ok\n");
+        request->send(200, "application/json", "{\"status\": \"ok\"}");
+    });
+
+    ws->on("/api/button/middle/press", HTTP_GET, [this](AsyncWebServerRequest* request) {
+        if (!enforceAuthentication(request)) {
+            return;
+        }
+        DEBUG_PRINTLN("Button invoked: middle press");
+        DisplayManager.selectButton();
+        DEBUG_PRINTF("Button response: ok\n");
+        request->send(200, "application/json", "{\"status\": \"ok\"}");
+    });
+
+    ws->on("/api/button/middle/long", HTTP_GET, [this](AsyncWebServerRequest* request) {
+        if (!enforceAuthentication(request)) {
+            return;
+        }
+        DEBUG_PRINTLN("Button invoked: middle long");
+        DisplayManager.selectButtonLong();
+        DEBUG_PRINTF("Button response: ok\n");
+        request->send(200, "application/json", "{\"status\": \"ok\"}");
+    });
+
+
     ws->on("/api/factory-reset", HTTP_POST, [this](AsyncWebServerRequest* request) {
         if (!enforceAuthentication(request)) {
             return;
