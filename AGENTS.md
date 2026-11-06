@@ -74,6 +74,43 @@ For the web UI, keep JavaScript style consistent with the existing files in `web
 - Configuration is managed through the provided Web UI. Hand-edited configurations and hostile configuration submissions to `/api/save` are outside the supported workflow. Validate user-editable fields in the UI; avoid duplicating those checks throughout the firmware without a concrete need.
 - Keep checks required for normal operational failures, such as failed network requests, unavailable time, missing files, and malformed responses from external services. Keep bounds checks needed for memory safety and existing authentication controls.
 
+## OpenAPI Specification Maintenance
+
+The OpenAPI spec (`openapi.yaml`) documents the HTTP API exposed by the clock firmware. Keeping this spec in sync with the actual firmware implementation is important for:
+
+- **Code reviewers** to understand the API surface without running the firmware
+- **Automated test generation** that validates endpoint signatures
+- **Client developers** building integrations against the clock's API
+- **Future refactoring** where the spec can be used as a contract
+
+### Adding a New API Endpoint
+
+1. **Firmware**: Add the handler in `src/ServerManager.cpp` (following the existing patterns for authentication, JSON parsing, error responses)
+2. **OpenAPI spec**: Add the new path under the appropriate tag in `openapi.yaml`
+3. **Tests**: Add verification tests in `test/test_openapi.mjs` that check:
+   - The path exists with the correct method (GET/POST)
+   - The response schemas are correct
+   - The spec no longer contains removed endpoints
+4. **Build validation**: Run `platformio run --environment ulanzi_debug` to confirm the firmware compiles
+5. **Functional testing**: Once flashed, test the endpoint with `curl` or the web UI
+
+**Important**: After adding a new endpoint, run the full test suite (`./test/run_tests.sh`) to ensure nothing is broken. The OpenAPI spec tests (`test_openapi.mjs`) verify that the spec document matches the code.
+
+### Removing an API Endpoint
+
+1. **Firmware**: Remove the handler from `src/ServerManager.cpp`
+2. **OpenAPI spec**: Remove the path entry from `openapi.yaml`
+3. **Tests**: Add a test verifying the endpoint no longer exists in the spec (using `assert.ok(!spec.match(...))`)
+4. **Build validation**: Run `platformio run` to confirm the firmware compiles without the removed handler
+
+### Keeping the Spec Current
+
+- **Before committing**: Run `./test/run_tests.sh` to ensure all tests pass
+- **After firmware changes**: Re-run `python3 -c "import yaml; yaml.safe_load(open('openapi.yaml'))"` to verify the spec is valid
+- **When in doubt**: Compare the spec's `paths` count and contents against the firmware's registered routes in `src/ServerManager.cpp`
+
+Note: Automatic sync between firmware and spec would require build-time generation, which is outside the current workflow scope. Manual verification through the test suite is the recommended approach.
+
 ## Testing Guidelines
 
 `test/run_tests.sh` runs the host-side tests, which need only `g++` and Node.js and also run on every pull request. They cover logic that compiles without Arduino, such as `src/SettingsAlertWindow.h`, and the web UI's `web/src/js/schema.js`. Tests must exercise the real source rather than a copy of it; to test firmware logic, move it into an Arduino-free header in `src/`.
