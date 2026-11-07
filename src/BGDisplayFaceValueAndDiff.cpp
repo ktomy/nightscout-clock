@@ -10,7 +10,8 @@ void BGDisplayFaceValueAndDiff::showReadings(
     // treating special casse where the value representation is too wide, so we move it one pixel to the
     // right
 
-    if (SettingsManager.settings.bg_units == BG_UNIT::MMOLL && lastReading.sgv >= 180) {
+    if (SettingsManager.settings.bg_units == BG_UNIT::MMOLL &&
+        toDisplayTenths(lastReading.sgv, true) >= 100) {
         showReading(lastReading, 14, 6, TEXT_ALIGNMENT::RIGHT, FONT_TYPE::MEDIUM, dataIsOld);
     } else {
         showReading(lastReading, 13, 6, TEXT_ALIGNMENT::RIGHT, FONT_TYPE::MEDIUM, dataIsOld);
@@ -36,7 +37,8 @@ void BGDisplayFaceValueAndDiff::showReadings(
 }
 
 String BGDisplayFaceValueAndDiff::getDiff(const std::list<GlucoseReading>& readings) const {
-    const std::string diff = formatDiff(readings, SettingsManager.settings.bg_units != BG_UNIT::MGDL);
+    const std::string diff = formatDiff(
+        readings, SettingsManager.settings.bg_units != BG_UNIT::MGDL, ServerManager.getUtcEpoch());
 
 #ifdef DEBUG_DISPLAY
     DEBUG_PRINTF("SGV Diff: %s", diff.c_str());
