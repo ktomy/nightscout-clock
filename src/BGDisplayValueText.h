@@ -4,7 +4,6 @@
 #include <cmath>
 #include <cstdint>
 #include <cstdio>
-#include <cstring>
 #include <string>
 
 #include "GlucoseUnits.h"
@@ -131,15 +130,10 @@ DeltaResult calculateDelta(const Readings& readings, int64_t nowEpoch) {
     };
 }
 
-// A rounded delta with its sign, without a trailing ".0": +0.2, -5. A zero mmol/L delta keeps it, +0.0,
-// so it still reads as mmol/L. Zero is never -0.
+// A rounded delta with its sign: +5 and -12 in mg/dL, +0.2 and -1.0 in mmol/L. Zero is never -0.
 inline std::string formatDelta(double delta, bool mmol) {
     char value[16];
     snprintf(value, sizeof(value), mmol ? "%.1f" : "%.0f", std::fabs(delta));
-    const size_t length = strlen(value);
-    if (strcmp(value, "0.0") != 0 && length > 2 && strcmp(value + length - 2, ".0") == 0) {
-        value[length - 2] = '\0';
-    }
     return std::string(delta < 0 ? "-" : "+") + value;
 }
 

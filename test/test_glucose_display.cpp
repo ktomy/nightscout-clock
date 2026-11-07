@@ -93,7 +93,7 @@ static void matchesNightscoutTestCases() {
     assert(mgdl({{-5, 100}, {0, 101}}) == "+1" && mmol({{-5, 100}, {0, 101}}) == "+0.0");
     assert(mgdl({{-5, 108}, {0, 109}}) == "+1" && mmol({{-5, 108}, {0, 109}}) == "+0.1");
     // Large drop.
-    assert(mgdl({{-5, 200}, {0, 110}}) == "-90" && mmol({{-5, 200}, {0, 110}}) == "-5");
+    assert(mgdl({{-5, 200}, {0, 110}}) == "-90" && mmol({{-5, 200}, {0, 110}}) == "-5.0");
     // Gaps of 9 minutes or less are not scaled.
     assert(mgdl({{-8, 100}, {0, 108}}) == "+8" && mmol({{-8, 100}, {0, 108}}) == "+0.4");
     assert(mgdl({{-9, 100}, {0, 109}}) == "+9" && mmol({{-9, 100}, {0, 109}}) == "+0.5");
@@ -183,7 +183,7 @@ static void mmolDeltaMatchesTheScreenForEveryPairOfReadings() {
             }
             assert(shownTenths(diff) == shownGap);
             assert((diff[0] == '-') == (shownGap < 0));
-            assert(diff == "+0.0" || diff.substr(diff.size() - 2) != ".0");
+            assert(diff[diff.size() - 2] == '.');
             checked++;
         }
     }
@@ -221,16 +221,16 @@ static void deltaTooWideForTheScreenShowsAQuestionMark() {
     assert(mmol({{-5, 100}, {0, 200}}) == "+5.5");
 }
 
-static void formatDeltaDropsTrailingZeroAndNegativeZero() {
+static void formatDeltaShowsSignAndNeverNegativeZero() {
     assert(formatDelta(-0.0, true) == "+0.0");
     assert(formatDelta(-0.0, false) == "+0");
     assert(formatDelta(0.0, true) == "+0.0");
     assert(formatDelta(0.0, false) == "+0");
-    assert(formatDelta(1.0, true) == "+1");
-    assert(formatDelta(-5.0, true) == "-5");
+    assert(formatDelta(1.0, true) == "+1.0");
+    assert(formatDelta(-5.0, true) == "-5.0");
     assert(formatDelta(0.2, true) == "+0.2");
     assert(formatDelta(-9.9, true) == "-9.9");
-    assert(formatDelta(10.0, true) == "+10");
+    assert(formatDelta(10.0, true) == "+10.0");
     assert(formatDelta(-12, false) == "-12");
 }
 
@@ -253,7 +253,7 @@ int main() {
     mmolDeltaMatchesTheScreenForEveryPairOfReadings();
     mgdlDeltaIsTheRawDifference();
     deltaTooWideForTheScreenShowsAQuestionMark();
-    formatDeltaDropsTrailingZeroAndNegativeZero();
+    formatDeltaShowsSignAndNeverNegativeZero();
     calculateDeltaReportsInterpolation();
     printf("test_glucose_display: all passed\n");
     return 0;
