@@ -1,0 +1,11 @@
+{
+    "ssid": "Wokwi-GUEST",
+    "password": "",
+    "data_source": "api",
+    "units": "mgdl",
+    "brightness_mode": "manual",
+    "brightness_level": 100,
+    "tz_libc": "UTC0",
+    "tz": "Etc/UTC",
+    "web_auth_enable": false
+}

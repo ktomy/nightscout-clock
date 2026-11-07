@@ -11,6 +11,10 @@
 #include "globals.h"
 #include "improv_consume.h"
 
+#ifdef WOKWI
+#include "WokwiConsole.h"
+#endif
+
 // The loop runs the data sources' TLS handshakes, and LibreLinkUp's connections request starts one
 // deep in its call chain. The ECDSA check in that handshake overflowed the default 8 KB stack.
 SET_LOOP_TASK_STACK_SIZE(16 * 1024);
@@ -54,8 +58,10 @@ void setup() {
 
     DEBUG_PRINTLN("Setup done");
     if (ServerManager.isConnected) {
+#ifndef WOKWI  // Scrolling takes minutes in the slower-than-real-time simulation
         String welcomeMessage = "Nightscout clock | To configure go to http://" + ServerManager.myIP.toString() + "/";
         DisplayManager.scrollColorfulText(welcomeMessage);
+#endif
 
         DisplayManager.clearMatrix();
         DisplayManager.setTextColor(COLOR_WHITE);
@@ -104,7 +110,11 @@ void loop() {
         showJoinAP();
     }
 
+#ifdef WOKWI
+    wokwiConsoleTick();  // Takes the serial input that Improv uses on real hardware
+#else
     checckForImprovWifiConnection();
+#endif
 
     DisplayManager.tick();
     PeripheryManager.tick();
