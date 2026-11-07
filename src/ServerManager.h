@@ -35,6 +35,7 @@ private:
     void handleFacePrevPost(AsyncWebServerRequest* request);
     void handleBrightnessNextPost(AsyncWebServerRequest* request);
     void handleBrightnessPrevPost(AsyncWebServerRequest* request);
+    void handleBrightnessGet(AsyncWebServerRequest* request);
     void handleBrightnessPost(AsyncWebServerRequest* request, JsonVariant& json);
 
 public:

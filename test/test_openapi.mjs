@@ -65,6 +65,11 @@ test("openapi.yaml defines POST /api/brightness/prev", () => {
 });
 
 test("openapi.yaml defines POST /api/brightness with the supported values", () => {
-  assert.match(spec, /  \/api\/brightness:\n    post:/);
+  assert.match(spec, /  \/api\/brightness:[\s\S]*?\n    post:/);
   assert.match(spec, /enum: \[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 100, 101\]/);
+});
+
+test("openapi.yaml defines GET /api/brightness with the supported values", () => {
+  assert.match(spec, /  \/api\/brightness:\n    get:/);
+  assert.match(spec, /summary: Get the configured brightness value/);
 });

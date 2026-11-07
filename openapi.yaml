@@ -393,6 +393,25 @@ paths:
           $ref: '#/components/responses/DisplayControlUnavailable'
 
   /api/brightness:
+    get:
+      tags: [Device control]
+      summary: Get the configured brightness value
+      description: "Returns the configured value in the same format accepted by POST: manual level 1-10, 100 for auto-balanced, or 101 for auto-dimmed."
+      responses:
+        '200':
+          description: Current configured brightness value
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [value]
+                properties:
+                  value:
+                    type: integer
+                    enum: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 100, 101]
+              example: { value: 5 }
+        '401':
+          $ref: '#/components/responses/Unauthorized'
     post:
       tags: [Device control]
       summary: Set a specific brightness value

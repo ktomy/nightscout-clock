@@ -403,6 +403,21 @@ void ServerManager_::handleBrightnessPrevPost(AsyncWebServerRequest* request) {
     request->send(200, "application/json", "{\"status\": \"ok\"}");
 }
 
+void ServerManager_::handleBrightnessGet(AsyncWebServerRequest* request) {
+    if (!enforceAuthentication(request)) {
+        return;
+    }
+
+    int value = SettingsManager.settings.brightness_level + 1;
+    if (SettingsManager.settings.brightness_mode == BRIGHTNES_MODE::AUTO_LINEAR) {
+        value = 100;
+    } else if (SettingsManager.settings.brightness_mode == BRIGHTNES_MODE::AUTO_DIMMED) {
+        value = 101;
+    }
+
+    request->send(200, "application/json", "{\"value\": " + String(value) + "}");
+}
+
 void ServerManager_::handleBrightnessPost(AsyncWebServerRequest* request, JsonVariant& json) {
     if (!enforceAuthentication(request)) {
         return;
@@ -594,6 +609,9 @@ void ServerManager_::setupWebServer(IPAddress ip) {
     });
     ws->on("/api/brightness/prev", HTTP_POST, [this](AsyncWebServerRequest* request) {
         handleBrightnessPrevPost(request);
+    });
+    ws->on("/api/brightness", HTTP_GET, [this](AsyncWebServerRequest* request) {
+        handleBrightnessGet(request);
     });
     ws->addHandler(new AsyncCallbackJsonWebHandler(
         "/api/brightness", [this](AsyncWebServerRequest* request, JsonVariant& json) {
