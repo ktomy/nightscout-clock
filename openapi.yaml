@@ -1,0 +1,715 @@
+openapi: 3.0.3
+info:
+  title: Nightscout Clock Device API
+  version: 1.0.0
+  description: |
+    OpenAPI description of the HTTP API exposed by the clock firmware and consumed by
+    the bundled web UI. The device serves this API over HTTP on port 80. Some routes
+    are installed only when the corresponding glucose source is active: `/api/v1/entries`
+    is available for the API source and `/api/llu/patients` for LibreLinkUp.
+servers:
+  - url: /
+    description: The clock's current HTTP origin
+security:
+  - authCookie: []
+tags:
+  - name: Authentication
+  - name: Status
+  - name: Configuration
+  - name: Device control
+  - name: Glucose API source
+  - name: LibreLinkUp
+paths:
+  /api/auth/status:
+    get:
+      tags: [Authentication]
+      summary: Get authentication and session status
+      security: []
+      responses:
+        '200':
+          description: Authentication state
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthStatus'
+  /api/auth/login:
+    post:
+      tags: [Authentication]
+      summary: Start an authenticated web session
+      description: Sets the `auth_token` HttpOnly cookie for ten minutes when the password is valid.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [password]
+              properties:
+                password:
+                  type: string
+                  format: password
+      responses:
+        '200':
+          description: Login succeeded or web authentication is disabled
+          headers:
+            Set-Cookie:
+              $ref: '#/components/headers/AuthCookie'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActionStatus'
+              examples:
+                success: { value: { status: ok } }
+                disabled: { value: { status: disabled } }
+        '400':
+          $ref: '#/components/responses/JsonParsingError'
+        '401':
+          description: Password did not match
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActionStatus'
+              example: { status: invalid }
+  /api/auth/logout:
+    post:
+      tags: [Authentication]
+      summary: End the current authenticated session
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+      responses:
+        '200':
+          description: Session ended or authentication is disabled
+          headers:
+            Set-Cookie:
+              $ref: '#/components/headers/AuthCookie'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ActionStatus' }
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /api/status:
+    get:
+      tags: [Status]
+      summary: Get clock connectivity and glucose status
+      security: []
+      responses:
+        '200':
+          description: Current device status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClockStatus'
+  /api/logs:
+    get:
+      tags: [Status]
+      summary: Download the in-memory debug log
+      description: This route is available only in DEBUG firmware builds and requires authentication when web authentication is enabled.
+      responses:
+        '200':
+          description: Plain-text debug log
+          content:
+            text/plain:
+              schema:
+                type: string
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Release firmware does not expose the debug log route.
+  /config.json:
+    get:
+      tags: [Configuration]
+      summary: Read the persisted clock configuration
+      responses:
+        '200':
+          description: Persisted configuration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClockConfig'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /version.txt:
+    get:
+      tags: [Status]
+      summary: Read the installed firmware version
+      security: []
+      responses:
+        '200':
+          description: Plain-text firmware version
+          content:
+            text/plain:
+              schema:
+                type: string
+  /tzdata.json:
+    get:
+      tags: [Configuration]
+      summary: Read the bundled timezone choices
+      security: []
+      responses:
+        '200':
+          description: Timezone names and POSIX rules used by the configuration UI
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Timezone'
+  /api/save:
+    post:
+      tags: [Configuration]
+      summary: Validate and persist clock configuration
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClockConfig'
+      responses:
+        '200':
+          description: Request was processed; validation failures from settings persistence are reported in the status body.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActionStatus'
+              examples:
+                success: { value: { status: ok } }
+                saveError: { value: { status: Settings save error } }
+                parseError: { value: { status: json parsing error } }
+        '400':
+          description: A settings validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorStatus'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /api/alarm:
+    post:
+      tags: [Device control]
+      summary: Play an RTTTL melody immediately
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [rtttl]
+              properties:
+                rtttl:
+                  type: string
+                  description: RTTTL melody containing a name, defaults, and note sequence.
+                  example: high:d=4,o=5,b=125:4e7,p,4e7
+      responses:
+        '200':
+          description: Melody accepted
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ActionStatus' }
+        '400':
+          description: Malformed JSON, missing RTTTL, or invalid melody
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorStatus' }
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /api/reset:
+    post:
+      tags: [Device control]
+      summary: Restart the clock
+      responses:
+        '200':
+          description: Restart requested; the connection may close immediately afterward
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ActionStatus' }
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /api/displaypower:
+    post:
+      tags: [Device control]
+      summary: Turn the display on or off
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [power]
+              properties:
+                power:
+                  type: string
+                  enum: [on, off]
+      responses:
+        '200':
+          description: Display power changed
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ActionStatus' }
+        '400':
+          description: Missing or invalid power value
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorStatus' }
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /api/factory-reset:
+    post:
+      tags: [Device control]
+      summary: Restore factory settings and restart configuration
+      responses:
+        '200':
+          description: Factory reset requested
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ActionStatus' }
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /api/faces:
+    get:
+      tags: [Device control]
+      summary: List active clock faces
+      description: Returns faces in the same order used by next and previous navigation.
+      responses:
+        '200':
+          description: Active faces, in navigation order
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  required: [id, name]
+                  properties:
+                    id: { type: string }
+                    name: { type: string }
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/face:
+    post:
+      tags: [Device control]
+      summary: Switch the displayed clock face immediately
+      description: Temporarily switch to a specific clock face. Does not change the default face, schedule, or cycling.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [face]
+              properties:
+                face:
+                  type: string
+                  description: Face id to show
+      responses:
+        '200':
+          description: Face switched
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ActionStatus' }
+              example: { status: ok, face: big_text }
+        '400':
+          description: Invalid face id
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorStatus' }
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '503':
+          $ref: '#/components/responses/DisplayControlUnavailable'
+
+  /api/face/next:
+    post:
+      tags: [Device control]
+      summary: Switch to the next clock face
+      description: Queue a switch to the next active face. Does not change the default face, schedule, or cycling.
+      responses:
+        '200':
+          description: Face switch queued
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ActionStatus' }
+              example: { status: ok }
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '503':
+          $ref: '#/components/responses/DisplayControlUnavailable'
+
+  /api/face/prev:
+    post:
+      tags: [Device control]
+      summary: Switch to the previous clock face
+      description: Queue a switch to the previous active face. Does not change the default face, schedule, or cycling.
+      responses:
+        '200':
+          description: Face switch queued
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ActionStatus' }
+              example: { status: ok }
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '503':
+          $ref: '#/components/responses/DisplayControlUnavailable'
+
+  /api/brightness/next:
+    post:
+      tags: [Device control]
+      summary: Advance the brightness setting
+      description: Apply one temporary step in the same brightness cycle as a short middle-button press. Does not change persisted settings.
+      responses:
+        '200':
+          description: Brightness change queued
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ActionStatus' }
+              example: { status: ok }
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '503':
+          $ref: '#/components/responses/DisplayControlUnavailable'
+
+  /api/brightness/prev:
+    post:
+      tags: [Device control]
+      summary: Go back one brightness setting
+      description: Apply one temporary step backward in the brightness cycle. Does not change persisted settings.
+      responses:
+        '200':
+          description: Brightness change queued
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ActionStatus' }
+              example: { status: ok }
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '503':
+          $ref: '#/components/responses/DisplayControlUnavailable'
+
+  /api/brightness:
+    post:
+      tags: [Device control]
+      summary: Set a specific brightness value
+      description: Set the temporary brightness mode or manual level without changing persisted settings.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [value]
+              additionalProperties: false
+              properties:
+                value:
+                  type: integer
+                  enum: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 100, 101]
+                  description: Manual level 1-10, 100 for auto-balanced, or 101 for auto-dimmed.
+      responses:
+        '200':
+          description: Brightness change queued
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ActionStatus' }
+              example: { status: ok }
+        '400':
+          description: Missing, non-integer, or unsupported brightness value
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorStatus' }
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '503':
+          $ref: '#/components/responses/DisplayControlUnavailable'
+
+  /api/llu/patients:
+    get:
+      tags: [LibreLinkUp]
+      summary: List LibreLinkUp patients discovered by the active source
+      description: This route is registered when LibreLinkUp is the selected source. The firmware does not inspect the request object; call with no body.
+      responses:
+        '200':
+          description: Patient choices; may be an empty array
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Patient' }
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /api/v1/entries:
+    post:
+      tags: [Glucose API source]
+      summary: Append glucose readings to the clock
+      description: This route is registered when the API glucose source is selected. Timestamps are Unix milliseconds and are stored as Unix seconds.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items: { $ref: '#/components/schemas/GlucoseEntry' }
+      responses:
+        '200':
+          description: Entries accepted and sorted by timestamp
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ActionStatus' }
+        '400':
+          $ref: '#/components/responses/JsonParsingError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    delete:
+      tags: [Glucose API source]
+      summary: Delete all API-source glucose readings
+      description: This route is registered when the API glucose source is selected.
+      responses:
+        '200':
+          description: All readings cleared
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ActionStatus' }
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+components:
+  securitySchemes:
+    authCookie:
+      type: apiKey
+      in: cookie
+      name: auth_token
+      description: HttpOnly session cookie set by the login endpoint. Required only when web authentication is enabled.
+  headers:
+    AuthCookie:
+      description: Session cookie; login sets a ten-minute cookie and logout expires it.
+      schema:
+        type: string
+  responses:
+    DisplayControlUnavailable:
+      description: Face and brightness changes are unavailable while the clock is in setup access-point mode.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorStatus' }
+          example: { status: error, error: display control unavailable in AP mode }
+    Unauthorized:
+      description: Authentication is enabled and the request has no valid session cookie.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ActionStatus' }
+          example: { status: unauthorized }
+    JsonParsingError:
+      description: Request body was not the expected JSON shape.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorStatus' }
+          example: { status: json parsing error }
+  schemas:
+    AuthStatus:
+      type: object
+      required: [enabled, authenticated, hasPassword]
+      properties:
+        enabled: { type: boolean }
+        authenticated: { type: boolean }
+        hasPassword: { type: boolean }
+    ClockStatus:
+      type: object
+      required: [isConnected, hasInternet, isInAPMode, bgSource, bgSourceStatus, sgv]
+      properties:
+        isConnected: { type: boolean }
+        hasInternet: { type: boolean }
+        isInAPMode: { type: boolean }
+        bgSource:
+          type: string
+          description: Firmware source identifier.
+          enum: [NO_SOURCE, NIGHTSCOUT, DEXCOM, API, LIBRELINKUP, MEDTRONIC, MEDTRUM]
+        bgSourceStatus: { type: string }
+        sgv:
+          type: integer
+          description: Latest blood glucose value in mg/dL, or 0 when no reading exists.
+        hasRecentData:
+          type: boolean
+          description: True when the latest glucose reading is within the configured staleness threshold.
+        faceId:
+          type: string
+          description: Id of the currently displayed clock face.
+    ActionStatus:
+      type: object
+      required: [status]
+      properties:
+        status: { type: string }
+        error: { type: string }
+    ErrorStatus:
+      allOf:
+        - $ref: '#/components/schemas/ActionStatus'
+        - type: object
+          required: [error]
+    Patient:
+      type: object
+      required: [patientId, firstName, lastName]
+      properties:
+        patientId: { type: string }
+        firstName: { type: string }
+        lastName: { type: string }
+    Timezone:
+      type: object
+      required: [name, value]
+      properties:
+        name: { type: string }
+        value: { type: string }
+    GlucoseEntry:
+      type: object
+      required: [dateString, sgv]
+      properties:
+        dateString:
+          type: string
+          description: Required by the firmware as a presence check; its contents are not parsed.
+          example: '2026-10-05T12:00:00.000Z'
+        sgv:
+          type: integer
+          description: Blood glucose value in mg/dL.
+          example: 110
+        direction:
+          type: string
+          description: Optional Nightscout trend direction; used before numeric trend.
+          example: Flat
+        trend:
+          type: integer
+          description: Optional numeric fallback trend enum used when direction is unknown.
+        date:
+          type: integer
+          format: int64
+          description: Unix timestamp in milliseconds. Defaults to zero if omitted by the firmware parser.
+          example: 1791201600000
+    AlertWindow:
+      type: object
+      required: [days, from, to]
+      properties:
+        days: { type: string, pattern: '^[0-6]+$' }
+        from: { type: string, pattern: '^([01][0-9]|2[0-3]):[0-5][0-9]$' }
+        to: { type: string, pattern: '^([01][0-9]|2[0-3]):[0-5][0-9]$' }
+    FaceScheduleEntry:
+      type: object
+      required: [time, face, brightness]
+      properties:
+        time: { type: string, pattern: '^([01][0-9]|2[0-3]):[0-5][0-9]$' }
+        face: { type: string }
+        brightness: { type: integer, minimum: 1, maximum: 101 }
+    ClockConfig:
+      type: object
+      description: Persisted settings object. The firmware accepts the complete JSON settings object and preserves source-specific fields.
+      additionalProperties: true
+      properties:
+        ssid: { type: string, maxLength: 32 }
+        custom_mac: { type: string }
+        password: { type: string, writeOnly: true }
+        dhcp: { type: boolean }
+        ip: { type: string }
+        netmask: { type: string }
+        gateway: { type: string }
+        dns1: { type: string }
+        dns2: { type: string }
+        data_source:
+          type: string
+          enum: [no_source, nightscout, dexcom, medtronic, librelinkup, medtrum, api]
+        dexcom_username: { type: string, writeOnly: true }
+        dexcom_password: { type: string, writeOnly: true }
+        dexcom_server: { type: string, enum: [us, ous, jp, ''] }
+        medtrum_email: { type: string, format: email, writeOnly: true }
+        medtrum_password: { type: string, writeOnly: true }
+        nightscout_url: { type: string, format: uri }
+        nightscout_simplified_api: { type: boolean }
+        api_secret: { type: string, writeOnly: true }
+        units: { type: string, enum: [mgdl, mmol, ''] }
+        low_mgdl: { type: integer, minimum: 30, maximum: 399 }
+        low_urgent_mgdl: { type: integer, minimum: 30, maximum: 399 }
+        high_mgdl: { type: integer, minimum: 30, maximum: 399 }
+        high_urgent_mgdl: { type: integer, minimum: 30, maximum: 399 }
+        bg_color_urgent_low: { type: string }
+        bg_color_low: { type: string }
+        bg_color_normal: { type: string }
+        bg_color_high: { type: string }
+        bg_color_urgent_high: { type: string }
+        brightness_mode: { type: string, enum: [auto_linear, auto_dimmed, manual] }
+        brightness_level: { type: integer, minimum: 1, maximum: 101 }
+        default_face: { type: string }
+        face_cycle_enabled: { type: boolean }
+        inactive_faces: { type: array, items: { type: string } }
+        face_cycle_interval_seconds: { type: integer, enum: [10, 30, 60, 120, 180, 300] }
+        face_schedule_enabled: { type: boolean }
+        face_schedule: { type: array, maxItems: 8, items: { $ref: '#/components/schemas/FaceScheduleEntry' } }
+        tz_libc: { type: string }
+        tz: { type: string }
+        time_format: { type: string, enum: ['12', '24'] }
+        alarm_high_enabled: { type: boolean }
+        alarm_low_enabled: { type: boolean }
+        alarm_urgent_low_enabled: { type: boolean }
+        alarm_high_value: { type: integer }
+        alarm_low_value: { type: integer }
+        alarm_urgent_low_value: { type: integer }
+        alarm_high_snooze_interval: { type: integer }
+        alarm_low_snooze_interval: { type: integer }
+        alarm_urgent_low_snooze_interval: { type: integer }
+        alarm_high_alert_windows: { type: array, items: { $ref: '#/components/schemas/AlertWindow' } }
+        alarm_low_alert_windows: { type: array, items: { $ref: '#/components/schemas/AlertWindow' } }
+        alarm_urgent_low_alert_windows: { type: array, items: { $ref: '#/components/schemas/AlertWindow' } }
+        alarm_high_melody: { type: string }
+        alarm_low_melody: { type: string }
+        alarm_urgent_low_melody: { type: string }
+        alarm_intensive_mode: { type: boolean }
+        alarm_repeat_interval_seconds: { type: integer, enum: [60, 120, 300] }
+        librelinkup_email: { type: string, format: email, writeOnly: true }
+        librelinkup_password: { type: string, writeOnly: true }
+        librelinkup_region: { type: string }
+        librelinkup_patient_id: { type: string }
+        additional_wifi_enable: { type: boolean }
+        additional_wifi_type: { type: string, enum: [wpa_psk, wpa_eap, ''] }
+        additional_ssid: { type: string }
+        additional_wifi_username: { type: string, writeOnly: true }
+        additional_wifi_password: { type: string, writeOnly: true }
+        custom_hostname_enable: { type: boolean }
+        custom_hostname: { type: string }
+        clock_name: { type: string, maxLength: 32 }
+        custom_nodatatimer_enable: { type: boolean }
+        custom_nodatatimer: { type: integer, minimum: 6, maximum: 60 }
+        low_battery_alert_enable: { type: boolean }
+        data_old_color: { type: string }
+        face_big_text:
+          type: object
+          properties:
+            early_stale_color: { type: string, enum: [off, gray, blue, green, cyan, red, magenta, yellow, white] }
+            early_stale_minutes: { type: integer, minimum: 6, maximum: 60 }
+            age_dots: { type: string, enum: [on, off] }
+          additionalProperties: false
+        face_unicorn:
+          type: object
+          properties:
+            mane: { type: string, enum: [still, moving] }
+            speed: { type: string, enum: [calm, normal, lively] }
+            flow: { type: string, enum: [down, back, run] }
+          additionalProperties: false
+        face_race_car:
+          type: object
+          properties:
+            speed: { type: string, enum: [calm, normal, lively] }
+          additionalProperties: false
+        face_simple_dark:
+          type: object
+          properties:
+            value_color: { type: string, enum: [white, cyan, blue, magenta, gray, green, yellow, red] }
+          additionalProperties: false
+        face_big_text_dark:
+          type: object
+          properties:
+            age_dots: { type: string, enum: [on, off] }
+          additionalProperties: false
+        face_dragon:
+          type: object
+          properties:
+            speed: { type: string, enum: [calm, normal, lively] }
+          additionalProperties: false
+        web_auth_enable: { type: boolean }
+        web_auth_password: { type: string, format: password, writeOnly: true }

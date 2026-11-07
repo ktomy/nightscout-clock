@@ -55,22 +55,22 @@ void setMatrixLayout(int layout) {
     delete matrix;  // Free memory from the current matrix object
     DEBUG_PRINTF("Set matrix layout to %i", layout);
     switch (layout) {
-        case 0: // Ulanzi
+        case 0:  // Ulanzi
             matrix = new FastLED_NeoMatrix(
                 leds, MATRIX_WIDTH, 8,
                 NEO_MATRIX_TOP + NEO_MATRIX_LEFT + NEO_MATRIX_ROWS + NEO_MATRIX_ZIGZAG);
             break;
-        case 1: // Custom board
+        case 1:  // Custom board
             matrix = new FastLED_NeoMatrix(
                 leds, 8, 8, 4, 1,
                 NEO_MATRIX_TOP + NEO_MATRIX_LEFT + NEO_MATRIX_ROWS + NEO_MATRIX_PROGRESSIVE);
             break;
-        case 2: // Custom board
+        case 2:  // Custom board
             matrix = new FastLED_NeoMatrix(
                 leds, MATRIX_WIDTH, 8,
                 NEO_MATRIX_TOP + NEO_MATRIX_LEFT + NEO_MATRIX_COLUMNS + NEO_MATRIX_ZIGZAG);
             break;
-        case 3: // Wokwi simulator layout
+        case 3:  // Wokwi simulator layout
             matrix = new FastLED_NeoMatrix(
                 leds, MATRIX_WIDTH, 8,
                 NEO_MATRIX_TOP + NEO_MATRIX_LEFT + NEO_MATRIX_ROWS + NEO_MATRIX_PROGRESSIVE);
@@ -198,7 +198,53 @@ void DisplayManager_::showBrightnessOverlay() {
     update();
 }
 
+void DisplayManager_::requestBrightnessStep() { pendingBrightnessSteps.fetch_add(1); }
+
+void DisplayManager_::requestPreviousBrightnessStep() { pendingBrightnessSteps.fetch_sub(1); }
+
+bool DisplayManager_::requestBrightnessValue(int value) {
+    if ((value < 1 || value > 10) && value != 100 && value != 101) {
+        return false;
+    }
+    pendingBrightnessValue = value;
+    return true;
+}
+
+void DisplayManager_::applyBrightnessValue(int value) {
+    Settings& settings = SettingsManager.settings;
+    if (MATRIX_OFF || powerOffAfterBrightnessOverlay) {
+        setPower(true);
+    }
+
+    if (value == 100) {
+        settings.brightness_mode = BRIGHTNES_MODE::AUTO_LINEAR;
+    } else if (value == 101) {
+        settings.brightness_mode = BRIGHTNES_MODE::AUTO_DIMMED;
+    } else {
+        settings.brightness_mode = BRIGHTNES_MODE::MANUAL;
+        settings.brightness_level = value - 1;
+    }
+
+    applySettings();
+    startBrightnessOverlay();
+}
+
 void DisplayManager_::tick() {
+    const int brightnessValue = pendingBrightnessValue.exchange(-1);
+    if (brightnessValue >= 0) {
+        applyBrightnessValue(brightnessValue);
+    }
+
+    int pendingSteps = pendingBrightnessSteps.exchange(0);
+    while (pendingSteps > 0) {
+        selectButton();
+        pendingSteps--;
+    }
+    while (pendingSteps < 0) {
+        selectButtonPrevious();
+        pendingSteps++;
+    }
+
     if (brightnessOverlayActive) {
         showBrightnessOverlay();
     }
@@ -242,8 +288,7 @@ void DisplayManager_::clearMatrix(bool updateMatrix) {
 // }
 
 void DisplayManager_::printText(
-    int16_t x, int16_t y, const char* text, TEXT_ALIGNMENT alignment, byte textCase,
-    bool updateMatrix) {
+    int16_t x, int16_t y, const char* text, TEXT_ALIGNMENT alignment, byte textCase, bool updateMatrix) {
     if (alignment == TEXT_ALIGNMENT::LEFT) {
         matrix->setCursor(x, y);
     } else if (alignment == TEXT_ALIGNMENT::RIGHT) {
@@ -450,6 +495,40 @@ void DisplayManager_::selectButton() {
                 // Show "OFF" at the lowest brightness, then go dark when the overlay ends.
                 powerOffAfterBrightnessOverlay = true;
                 setBrightness(MIN_BRIGHTNESS);
+                break;
+        }
+    }
+
+    applySettings();
+    startBrightnessOverlay();
+}
+
+void DisplayManager_::selectButtonPrevious() {
+    Settings& settings = SettingsManager.settings;
+
+    if (MATRIX_OFF || powerOffAfterBrightnessOverlay) {
+        settings.brightness_mode = BRIGHTNES_MODE::AUTO_DIMMED;
+        if (MATRIX_OFF) {
+            setPower(true);
+        } else {
+            powerOffAfterBrightnessOverlay = false;
+        }
+    } else {
+        switch (settings.brightness_mode) {
+            case BRIGHTNES_MODE::MANUAL:
+                if (settings.brightness_level > 0) {
+                    settings.brightness_level--;
+                } else {
+                    powerOffAfterBrightnessOverlay = true;
+                    setBrightness(MIN_BRIGHTNESS);
+                }
+                break;
+            case BRIGHTNES_MODE::AUTO_LINEAR:
+                settings.brightness_mode = BRIGHTNES_MODE::MANUAL;
+                settings.brightness_level = 10;
+                break;
+            case BRIGHTNES_MODE::AUTO_DIMMED:
+                settings.brightness_mode = BRIGHTNES_MODE::AUTO_LINEAR;
                 break;
         }
     }
