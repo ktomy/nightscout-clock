@@ -107,6 +107,7 @@ function emitter() {
 // 24px stroke icons, inlined so the page needs no icon font.
 const ICON_PATHS = {
     save: "M5 12l5 5L20 7",
+    check: "M5 12l5 5L20 7",
     speaker: "M11 5L6 9H3v6h3l5 4V5zM15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13",
     lock: "M6 11h12v9H6zM8 11V8a4 4 0 0 1 8 0v3",
     pencil: "M4 20h4L19 9l-4-4L4 16v4zM13.5 6.5l4 4",
