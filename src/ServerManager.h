@@ -27,6 +27,7 @@ private:
     String generateAuthToken();
     String webAuthToken;
     unsigned long webAuthTokenIssuedMs = 0;
+    unsigned long wifiScanStartedMs = 0;
 
 public:
     static ServerManager_& getInstance();

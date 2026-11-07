@@ -27,6 +27,9 @@ static constexpr unsigned long WEB_AUTH_TOKEN_TTL_MS = 10UL * 60UL * 1000UL;
 static constexpr int WEB_AUTH_COOKIE_MAX_AGE_SEC = 10 * 60;
 static const char* WEB_AUTH_COOKIE_NAME = "auth_token";
 
+// Scan results older than this are discarded instead of being returned to the page
+static constexpr unsigned long WIFI_SCAN_RESULTS_TTL_MS = 30UL * 1000UL;
+
 static String getCookieValue(const String& cookieHeader, const String& name) {
     int pos = 0;
     while (pos < cookieHeader.length()) {
@@ -538,6 +541,53 @@ void ServerManager_::setupWebServer(IPAddress ip) {
             body += "\"}";
             request->send(200, "application/json", body);
         }));
+
+    // Nearby WiFi networks for the settings page. A blocking scan would stall the web server for
+    // seconds, so the first call starts a background scan and answers 202, and the page polls until
+    // the list arrives with 200. Results are dropped once sent, so every scan starts fresh.
+    ws->on("/api/wifi/scan", HTTP_GET, [this](AsyncWebServerRequest* request) {
+        if (!enforceAuthentication(request)) {
+            return;
+        }
+        int16_t count = WiFi.scanComplete();
+        if (count == WIFI_SCAN_RUNNING) {
+            request->send(202, "application/json", "{\"status\": \"scanning\"}");
+            return;
+        }
+        // Old results belong to a scan whose page never collected them.
+        if (count < 0 || millis() - wifiScanStartedMs > WIFI_SCAN_RESULTS_TTL_MS) {
+            // In setup mode the station keeps retrying the saved network, and the radio refuses to
+            // scan while it is connecting. The station is not needed until the restart after saving.
+            if (isInAPMode) {
+                WiFi.disconnect();
+            }
+            if (WiFi.scanNetworks(true) != WIFI_SCAN_RUNNING) {
+                request->send(
+                    503, "application/json", "{\"status\": \"error\", \"error\": \"scan failed\"}");
+                return;
+            }
+            wifiScanStartedMs = millis();
+            request->send(202, "application/json", "{\"status\": \"scanning\"}");
+            return;
+        }
+
+        JsonDocument doc;
+        JsonArray networks = doc.to<JsonArray>();
+        for (int i = 0; i < count; i++) {
+            String ssid = WiFi.SSID(i);
+            if (ssid.isEmpty()) {
+                continue;  // hidden network
+            }
+            JsonObject network = networks.add<JsonObject>();
+            network["ssid"] = ssid;
+            network["rssi"] = WiFi.RSSI(i);
+            network["open"] = WiFi.encryptionType(i) == WIFI_AUTH_OPEN;
+        }
+        WiFi.scanDelete();
+        String body;
+        serializeJson(doc, body);
+        request->send(200, "application/json", body);
+    });
 
     ws->on("/config.json", HTTP_GET, [this](AsyncWebServerRequest* request) {
         if (!enforceAuthentication(request)) {
