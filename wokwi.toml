@@ -1,10 +1,11 @@
+# Wokwi simulator project. Build the images with scripts/wokwi.sh, which also runs the simulation.
 [wokwi]
 version = 1
-elf = ".pio/build/ulanzi_debug/firmware.elf"
-firmware = ".pio/build/ulanzi_debug/merged_firmware.bin"
+elf = ".pio/build/wokwi/firmware.elf"
+firmware = ".pio/build/wokwi/merged_firmware.bin"
 
-
-# Forward http://localhost:8180 to port 80 on the simulated ESP32:
+# Forward http://localhost:8180 to port 80 on the simulated ESP32. Only the VS Code extension
+# supports this; wokwi-cli ignores it, so automated tests use serial commands instead.
 [[net.forward]]
 from = "localhost:8180"
 to = "target:80"

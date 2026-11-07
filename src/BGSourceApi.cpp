@@ -39,8 +39,7 @@ AsyncCallbackWebHandler* BGSourceApi::createDeleteEntriesHandler() {
 #ifdef DEBUG_BG_SOURCE
         DEBUG_PRINTLN("BGSourceApi::HandleEntriesDelete");
 #endif
-        glucoseReadings.clear();
-        hasNewDataFlag = true;
+        clearReadings();
         request->send(200, "application/json", "{\"status\": \"ok\"}");
     });
     return handler;
@@ -59,6 +58,7 @@ void BGSourceApi::HandleEntriesPost(AsyncWebServerRequest* request, JsonVariant&
         return;
     }
     auto&& data = json.as<JsonArray>();
+    std::list<GlucoseReading> readings;
     for (auto&& entry : data) {
         if (not entry.is<JsonObject>()) {
             request->send(400, "application/json", "{\"status\": \"json parsing error\"}");
@@ -81,16 +81,25 @@ void BGSourceApi::HandleEntriesPost(AsyncWebServerRequest* request, JsonVariant&
         }
 
         glucoseReading.epoch = date / 1000;
-        glucoseReadings.push_back(glucoseReading);
+        readings.push_back(glucoseReading);
     }
 
-    hasNewDataFlag = true;
+    addReadings(readings);
 
     request->send(200, "application/json", "{\"status\": \"ok\"}");
+}
 
+void BGSourceApi::addReadings(const std::list<GlucoseReading>& readings) {
+    glucoseReadings.insert(glucoseReadings.end(), readings.begin(), readings.end());
     // Sort readings by epoch
     glucoseReadings.sort(
         [](const GlucoseReading& a, const GlucoseReading& b) { return a.epoch < b.epoch; });
+    hasNewDataFlag = true;
+}
+
+void BGSourceApi::clearReadings() {
+    glucoseReadings.clear();
+    hasNewDataFlag = true;
 }
 
 std::list<GlucoseReading> BGSourceApi::updateReadings(std::list<GlucoseReading> existingReadings) {

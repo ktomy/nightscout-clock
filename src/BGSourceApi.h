@@ -10,6 +10,8 @@
 class BGSourceApi : public BGSource {
 public:
     bool hasNewData(unsigned long long epoch) override;
+    void addReadings(const std::list<GlucoseReading>& readings);
+    void clearReadings();
 
 private:
     void setup() override;

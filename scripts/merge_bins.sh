@@ -7,13 +7,17 @@ else
     PROJECTDIR=$PWD
 fi
 
+# PlatformIO environment whose build outputs are merged (default: ulanzi_debug)
+ENVIRONMENT=${1:-ulanzi_debug}
+BUILD_DIR="$PROJECTDIR/.pio/build/$ENVIRONMENT"
+
 # Paths to binaries
-BOOTLOADER="$PROJECTDIR/.pio/build/ulanzi_debug/bootloader.bin"
-PARTITIONS="$PROJECTDIR/.pio/build/ulanzi_debug/partitions.bin"
-FIRMWARE="$PROJECTDIR/.pio/build/ulanzi_debug/firmware.bin"
-LITTLEFS="$PROJECTDIR/.pio/build/ulanzi_debug/littlefs.bin"
+BOOTLOADER="$BUILD_DIR/bootloader.bin"
+PARTITIONS="$BUILD_DIR/partitions.bin"
+FIRMWARE="$BUILD_DIR/firmware.bin"
+LITTLEFS="$BUILD_DIR/littlefs.bin"
 BOOT_APP0="$HOME/.platformio/packages/framework-arduinoespressif32/tools/partitions/boot_app0.bin"
-MERGED_BIN="$PROJECTDIR/.pio/build/ulanzi_debug/merged_firmware.bin"
+MERGED_BIN="$BUILD_DIR/merged_firmware.bin"
 
 # Check if the necessary binaries exist
 if [ ! -f "$BOOTLOADER" ]; then
@@ -39,7 +43,7 @@ fi
 # Merge binaries using esptool.py
 echo "Merging binaries into a single file..."
 
-python ~/.platformio/packages/tool-esptoolpy/esptool.py \
+"$HOME/.platformio/penv/bin/python" ~/.platformio/packages/tool-esptoolpy/esptool.py \
     --chip esp32 merge_bin \
     --output "$MERGED_BIN" \
     0x1000 "$BOOTLOADER" \

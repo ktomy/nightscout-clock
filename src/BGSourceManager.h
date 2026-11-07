@@ -24,6 +24,7 @@ public:
     bool hasNewData(unsigned long long epochToCompare);
     std::list<GlucoseReading> getGlucoseData();
     BG_SOURCE getCurrentSourceType() const { return currentSourceType; }
+    BGSource* getSource() const { return bgSource; }
     String getSourceStatus() const { return (bgSource) ? bgSource->getStatus() : "unknown"; }
 
 private:
