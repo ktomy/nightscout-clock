@@ -10,11 +10,11 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")
 const read = file => fs.readFileSync(path.join(ROOT, file), "utf8")
 
 // The page's scripts are classic scripts sharing one scope, so load them the same way.
-const { isValidRtttl, mergeSettingsFile, normalizeLoaded, parseNightscoutUrl, tabOfKey, textToMgdl, validateConfig } =
+const { isValidRtttl, mergeSettingsFile, mgdlToText, normalizeLoaded, parseNightscoutUrl, tabOfKey, textToMgdl, validateConfig } =
     vm.runInThisContext(`(function () {
         ${read("web/src/js/util.js")}
         ${read("web/src/js/schema.js")}
-        return { isValidRtttl, mergeSettingsFile, normalizeLoaded, parseNightscoutUrl, tabOfKey, textToMgdl, validateConfig }
+        return { isValidRtttl, mergeSettingsFile, mgdlToText, normalizeLoaded, parseNightscoutUrl, tabOfKey, textToMgdl, validateConfig }
     })()`)
 
 const TZ_NAMES = new Set(["Europe/Berlin"])
@@ -60,6 +60,23 @@ test("textToMgdl converts both units and rejects other input", () => {
     assert.equal(textToMgdl("5.5", "mmol"), 99)
     assert.ok(Number.isNaN(textToMgdl("5.5", "mgdl")))
     assert.ok(Number.isNaN(textToMgdl("abc", "mmol")))
+})
+
+test("mgdlToText converts mmol/l the way Nightscout and the clock show it", () => {
+    assert.equal(mgdlToText(54, "mmol"), "3.0")
+    assert.equal(mgdlToText(55, "mmol"), "3.1")
+    assert.equal(mgdlToText(99, "mmol"), "5.5")
+    assert.equal(mgdlToText(109, "mmol"), "6.1")
+    assert.equal(mgdlToText(181, "mmol"), "10.0")
+    assert.equal(mgdlToText(250, "mmol"), "13.9")
+    assert.equal(mgdlToText(110, "mgdl"), "110")
+})
+
+test("every mmol/l input from 2.0 to 29.9 reads back unchanged", () => {
+    for (let tenths = 20; tenths <= 299; tenths++) {
+        const text = (tenths / 10).toFixed(1)
+        assert.equal(mgdlToText(textToMgdl(text, "mmol"), "mmol"), text)
+    }
 })
 
 test("parseNightscoutUrl splits an address and falls back to empty HTTPS", () => {

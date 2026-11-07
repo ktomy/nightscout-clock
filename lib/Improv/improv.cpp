@@ -127,7 +127,7 @@ std::vector<uint8_t> build_rpc_response(
     out.push_back(command);
     for (const auto& str : datum) {
         uint8_t len = str.length();
-        length += len;
+        length += len + 1;
         out.push_back(len);
         out.insert(out.end(), str.begin(), str.end());
     }

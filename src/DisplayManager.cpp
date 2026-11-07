@@ -83,7 +83,11 @@ void setMatrixLayout(int layout) {
 void DisplayManager_::setup() {
     random16_set_seed(millis());
     FastLED.addLeds<NEOPIXEL, MATRIX_PIN>(leds, MATRIX_WIDTH * MATRIX_HEIGHT);
+#ifdef WOKWI
+    setMatrixLayout(3);  // The simulator's NeoPixel canvas is wired row by row, not zigzag
+#else
     setMatrixLayout(0);
+#endif
     matrix->setRotation(0);
     matrix->begin();
     matrix->setTextWrap(false);

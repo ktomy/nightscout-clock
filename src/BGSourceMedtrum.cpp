@@ -7,6 +7,10 @@
 #include <ServerManager.h>
 #include <SettingsManager.h>
 
+#include <cmath>
+
+#include "GlucoseUnits.h"
+
 #define MEDTRUM_LOGIN_URL "https://easyview.medtrum.eu/mobile/ajax/login"
 #define MEDTRUM_MONITOR_URL "https://easyview.medtrum.eu/mobile/ajax/monitor?flag=monitor_list"
 #define MEDTRUM_HISTORY_URL "https://easyview.medtrum.eu/mobile/ajax/download?flag=sg"
@@ -147,7 +151,7 @@ GlucoseReading BGSourceMedtrum::getCurrentGlucose(String& username, bool& ok) {
         doc["monitorlist"][0]["sensor_status"]["updateTime"].as<unsigned long long>();
     int glucosemgdl;
     if (glucose < 30.0) {
-        glucosemgdl = int(glucose * 18.0);
+        glucosemgdl = (int)std::floor(glucose * MGDL_PER_MMOL + 0.5);
     } else {
         glucosemgdl = int(glucose);
     }
@@ -201,7 +205,7 @@ std::list<GlucoseReading> BGSourceMedtrum::getHistory(
         double g = entry[3].as<double>();
         int mgdl;
         if (g < 30.0)
-            mgdl = int(g * 18.0);
+            mgdl = (int)std::floor(g * MGDL_PER_MMOL + 0.5);
         else
             mgdl = int(g);
         GlucoseReading r;

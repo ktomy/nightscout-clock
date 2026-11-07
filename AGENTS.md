@@ -22,7 +22,7 @@ When adding firmware behavior, prefer extending the existing module family inste
 
 `test/` contains the host-side tests; see Testing Guidelines.
 
-`www/` is the GitHub Pages site, including the browser installer and debug pages; it is not part of the firmware filesystem image. `scripts/` contains contributor tooling for local build, upload, monitoring, release, and emulator/test-data tasks. Core firmware build configuration lives in `platformio.ini` and `partitions.csv`; `wokwi.toml` is only for experimental emulator setup and is not part of the regular test workflow.
+`www/` is the GitHub Pages site, including the browser installer and debug pages; it is not part of the firmware filesystem image. `scripts/` contains contributor tooling for local build, upload, monitoring, release, and emulator/test-data tasks. Core firmware build configuration lives in `platformio.ini` and `partitions.csv`; `wokwi.toml` and `diagram.json` describe the Wokwi simulator project (see "Testing in the Wokwi simulator").
 
 ## Build, Test, and Development Commands
 
@@ -121,7 +121,19 @@ Host-side tests do not replace hardware testing: firmware changes must be valida
 
 Prefer testing against the real data source affected by your change. For display logic, parsing, and update flow, `scripts/ns_emulator.py` can push sample glucose entries into the device API so you can exercise behavior without waiting for live data.
 
-Watch the serial monitor for boot issues, configuration errors, Wi-Fi problems, and source-specific failures. If the device does not restart cleanly after flashing, use `scripts/reset.sh` and retest. A Wokwi emulator setup exists, but it is experimental and should not replace hardware verification.
+Watch the serial monitor for boot issues, configuration errors, Wi-Fi problems, and source-specific failures. If the device does not restart cleanly after flashing, use `scripts/reset.sh` and retest.
+
+### Testing in the Wokwi simulator
+
+The Wokwi simulator runs the firmware on a simulated ESP32 with the 32x8 matrix, the three buttons, the light sensor, and the buzzer. It does not replace hardware testing.
+
+Coding agents run Wokwi simulations only when the user explicitly asks for them. They are not part of the standard verification sequence: do not run them automatically after a change, before a commit, or before a pull request. Each run is slow and uses the user's Wokwi CI minutes.
+
+- `scripts/wokwi.sh [--no-build] [wokwi-cli options]` builds the `wokwi` PlatformIO environment (`-DWOKWI`) and a LittleFS image, then runs `wokwi-cli` in Wokwi's cloud. It needs `wokwi-cli` and a CI token in `WOKWI_CLI_TOKEN` or the git-ignored `.wokwi_token` file. The `wokwi` environment builds its LittleFS image with `scripts/wokwi_data.py`: `data/config_initial.json` plus `scripts/wokwi_config.json` (Wokwi-GUEST Wi-Fi, "API" data source), never your `data/config.json`. In VS Code, select the `wokwi` environment and run Build, Build Filesystem Image, and the custom "Merge Wokwi image" task (or `scripts/merge_bins.sh wokwi`) to make the `merged_firmware.bin` that `wokwi.toml` loads.
+- `wokwi-cli` cannot reach the clock over HTTP. The `wokwi` build replaces Improv's serial input with the commands in `src/WokwiConsole.h`: `bg <sgv> [trend] [minutes_ago]`, `clear`, and `screen`, which prints the LED colors.
+- Scenarios in `scripts/wokwi_scenarios/` drive a run: `wait-serial`, `write-serial` for those commands, and `set-control` for buttons (`btn_left`, `btn_select`, `btn_right`) and the light sensor (`ldr`). Start from `smoke.yaml`.
+- `python3 scripts/wokwi_screen.py <serial log> --ascii` turns the `screen` dumps into PNG files and text, because Wokwi cannot take screenshots of its NeoPixel canvas.
+- `--timeout` counts simulated time, and the simulation runs at about half of real-time speed. Run long simulations in the background, and keep timeouts close to what the scenario needs.
 
 ## Commit & Pull Request Guidelines
 
