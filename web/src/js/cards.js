@@ -1026,7 +1026,7 @@ function wifiCard() {
     open.addEventListener("change", applyOpen)
     sync()
     const ssid = textInput("ssid", { maxlength: 32 })
-    const networks = el("div.networks", { hidden: true })
+    const networks = el("div.networks", { hidden: true, "aria-live": "polite" })
     const scan = el("button.btn", { type: "button" }, icon("wifi"), "Scan")
     onChangeWhileAttached(networks, k => { if (k === "ssid") markNetwork(networks) })
     // Fill the name from the chosen network and match the open-network switch to it.
@@ -1037,11 +1037,11 @@ function wifiCard() {
         if (open.checked !== n.open) { open.checked = n.open; applyOpen() }
         if (!n.open) $("input", pw).focus()
     }))
+    // The list sits under the name, so on a phone it comes before the password: scan, choose, type.
+    const ssidField = field("ssid", "WiFi network name (SSID)", el("div.input-group", ssid, scan))
+    ssidField.append(networks)
     return card("Wireless network", null, el("div.stack",
-        el("div.grid",
-            field("ssid", "WiFi network name (SSID)", el("div.input-group", ssid, scan)),
-            field("password", "WiFi password", pw)),
-        networks,
+        el("div.grid.align-start", ssidField, field("password", "WiFi password", pw)),
         el("label.check", open, "Open WiFi network (no password)"),
         warn,
         field("custom_mac", "Custom MAC address",
@@ -1056,8 +1056,27 @@ function wifiCard() {
  * @returns {void}
  */
 function markNetwork(list) {
-    $$("button", list).forEach(b => b.setAttribute("aria-pressed", String(b.dataset.ssid === form.get("ssid"))))
+    $$("button.network", list).forEach(b => b.setAttribute("aria-pressed", String(b.dataset.ssid === form.get("ssid"))))
 }
+
+/**
+ * Draw three signal bars with the first `level` lit; the word beside them carries the meaning.
+ * @param {number} level - Lit bars, 1 to 3.
+ * @returns {SVGSVGElement}
+ */
+function signalBars(level) {
+    const svg = icon("")
+    svg.replaceChildren(...["M6 20v-4", "M12 20v-9", "M18 20v-14"].map((d, i) => {
+        const path = document.createElementNS("http://www.w3.org/2000/svg", "path")
+        path.setAttribute("d", d)
+        if (i >= level) path.setAttribute("opacity", ".25")
+        return path
+    }))
+    return svg
+}
+
+/** Scanned networks listed before the "Show all" button. */
+const SHOWN_NETWORKS = 6
 
 /**
  * Ask the clock for nearby networks and list them, strongest first, as buttons that call pick.
@@ -1075,15 +1094,27 @@ async function scanNetworks(btn, list, pick) {
         const best = new Map()
         for (const n of await api.scanWifi()) if (!best.has(n.ssid) || best.get(n.ssid).rssi < n.rssi) best.set(n.ssid, n)
         const found = [...best.values()].sort((a, b) => b.rssi - a.rssi)
-        list.replaceChildren(
-            ...found.map(n => el("button.network", { type: "button", dataset: { ssid: n.ssid }, onclick: () => pick(n) },
-                el("span.network-name", n.ssid),
-                el("span.network-info", n.open ? "Open · " : "", n.rssi >= -60 ? "Strong" : n.rssi >= -70 ? "Good" : "Weak"))),
+        const rows = found.map(n => {
+            const level = n.rssi >= -60 ? 3 : n.rssi >= -70 ? 2 : 1
+            const check = icon("check")
+            check.classList.add("network-check")
+            return el("button.network", { type: "button", dataset: { ssid: n.ssid }, onclick: () => pick(n) },
+                check,
+                el("span.network-name", { title: n.ssid }, n.ssid),
+                el("span.network-info", n.open ? [el("span.network-open", "Open"), "·"] : null,
+                    el("span", ["Weak", "Good", "Strong"][level - 1]), signalBars(level)))
+        })
+        // A crowded building can list dozens; show the strongest few and keep the rest one tap away.
+        const more = rows.length > SHOWN_NETWORKS ? el("button.btn.ghost.sm", {
+            type: "button",
+            onclick: () => { more.replaceWith(...rows.slice(SHOWN_NETWORKS)); markNetwork(list); rows[SHOWN_NETWORKS].focus() },
+        }, `Show all ${rows.length} networks`) : null
+        list.replaceChildren(...rows.slice(0, SHOWN_NETWORKS), more,
             el("p.help", found.length ? "Choose a network, or type its name above. The clock only sees 2.4 GHz networks."
                 : "No networks found. The clock only sees 2.4 GHz networks; type the name above or scan again."))
         markNetwork(list)
     } catch (e) {
-        list.replaceChildren(el("p.err", e.message))
+        list.replaceChildren(el("p.err", { role: "alert" }, e.message))
     } finally {
         btn.disabled = false
     }
