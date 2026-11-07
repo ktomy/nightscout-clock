@@ -1014,23 +1014,79 @@ function wifiCard() {
      * @returns {void}
      */
     const sync = () => { $("input", pw).disabled = open.checked; $("button", pw).disabled = open.checked; warn.hidden = !open.checked }
-    // Clear the password when selecting an open network and update validation context and controls.
-    open.addEventListener("change", () => {
+    /**
+     * Clear the password when selecting an open network and update validation context and controls.
+     * @returns {void}
+     */
+    const applyOpen = () => {
         if (open.checked) { $("input", pw).value = ""; form.set("password", "") }
         form.setCtx("openNetwork", open.checked)
         sync()
-    })
+    }
+    open.addEventListener("change", applyOpen)
     sync()
+    const ssid = textInput("ssid", { maxlength: 32 })
+    const networks = el("div.networks", { hidden: true })
+    const scan = el("button.btn", { type: "button" }, icon("wifi"), "Scan")
+    onChangeWhileAttached(networks, k => { if (k === "ssid") markNetwork(networks) })
+    // Fill the name from the chosen network and match the open-network switch to it.
+    scan.addEventListener("click", () => scanNetworks(scan, networks, n => {
+        ssid.value = n.ssid
+        form.set("ssid", n.ssid)
+        form.touch("ssid")
+        if (open.checked !== n.open) { open.checked = n.open; applyOpen() }
+        if (!n.open) $("input", pw).focus()
+    }))
     return card("Wireless network", null, el("div.stack",
         el("div.grid",
-            field("ssid", "WiFi network name (SSID)", textInput("ssid", { maxlength: 32 })),
+            field("ssid", "WiFi network name (SSID)", el("div.input-group", ssid, scan)),
             field("password", "WiFi password", pw)),
+        networks,
         el("label.check", open, "Open WiFi network (no password)"),
         warn,
         field("custom_mac", "Custom MAC address",
             textInput("custom_mac", { placeholder: "A4:83:E7:2B:10:9C", maxlength: 17, trim: true }),
             "If this network uses a captive portal that only lets known devices through, enter another device's MAC address here. Leave blank to use the clock's factory hardware MAC.")),
         { id: "card_wifi" })
+}
+
+/**
+ * Mark the listed network whose name is in the SSID field.
+ * @param {HTMLElement} list - Container of scanned-network buttons.
+ * @returns {void}
+ */
+function markNetwork(list) {
+    $$("button", list).forEach(b => b.setAttribute("aria-pressed", String(b.dataset.ssid === form.get("ssid"))))
+}
+
+/**
+ * Ask the clock for nearby networks and list them, strongest first, as buttons that call pick.
+ * The same name from several access points is listed once, with its strongest signal.
+ * @param {HTMLButtonElement} btn - Scan button, disabled while the scan runs.
+ * @param {HTMLElement} list - Container for the results.
+ * @param {(network: WifiNetwork) => void} pick - Called with the chosen network.
+ * @returns {Promise<void>}
+ */
+async function scanNetworks(btn, list, pick) {
+    btn.disabled = true
+    list.hidden = false
+    list.replaceChildren(el("p.help", "Scanning for networks…"))
+    try {
+        const best = new Map()
+        for (const n of await api.scanWifi()) if (!best.has(n.ssid) || best.get(n.ssid).rssi < n.rssi) best.set(n.ssid, n)
+        const found = [...best.values()].sort((a, b) => b.rssi - a.rssi)
+        list.replaceChildren(
+            ...found.map(n => el("button.network", { type: "button", dataset: { ssid: n.ssid }, onclick: () => pick(n) },
+                el("span.network-name", n.ssid),
+                el("span.network-info", n.open ? "Open · " : "", n.rssi >= -60 ? "Strong" : n.rssi >= -70 ? "Good" : "Weak"))),
+            el("p.help", found.length ? "Choose a network, or type its name above. The clock only sees 2.4 GHz networks."
+                : "No networks found. The clock only sees 2.4 GHz networks; type the name above or scan again."))
+        markNetwork(list)
+    } catch (e) {
+        list.replaceChildren(el("p.err", e.message))
+    } finally {
+        btn.disabled = false
+    }
 }
 
 /**
