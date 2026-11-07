@@ -134,6 +134,39 @@ paths:
                 $ref: '#/components/schemas/ClockConfig'
         '401':
           $ref: '#/components/responses/Unauthorized'
+  /api/wifi/scan:
+    get:
+      tags: [Configuration]
+      summary: Scan for nearby WiFi networks
+      description: Starts a background scan when no current results are available. Poll while the response is 202; completed results are returned once and then discarded.
+      responses:
+        '200':
+          description: Visible WiFi networks found by the scan
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  required: [ssid, rssi, open]
+                  properties:
+                    ssid: { type: string }
+                    rssi: { type: integer, description: Received signal strength in dBm. }
+                    open: { type: boolean, description: True when the network is open and requires no password. }
+        '202':
+          description: The background scan is still running
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ActionStatus' }
+              example: { status: scanning }
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '503':
+          description: The WiFi scan could not be started
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorStatus' }
+              example: { status: error, error: scan failed }
   /version.txt:
     get:
       tags: [Status]

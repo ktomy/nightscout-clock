@@ -15,6 +15,16 @@ test("openapi.yaml excludes simulated button routes", () => {
   assert.doesNotMatch(spec, /^  \/api\/button\//m);
 });
 
+test("openapi.yaml documents GET /api/wifi/scan", () => {
+  const wifiScan = spec.split("  /api/wifi/scan:\n")[1]?.split(/\n  \//, 1)[0];
+  assert.ok(wifiScan, "GET /api/wifi/scan should be defined");
+  assert.match(wifiScan, /^    get:/);
+  assert.match(wifiScan, /'200':[\s\S]*?ssid:[\s\S]*?rssi:[\s\S]*?open:/);
+  assert.match(wifiScan, /'202':[\s\S]*?status: scanning/);
+  assert.match(wifiScan, /'401':[\s\S]*?components\/responses\/Unauthorized/);
+  assert.match(wifiScan, /'503':[\s\S]*?error: scan failed/);
+});
+
 test("openapi.yaml defines POST /api/face", () => {
   assert.ok(spec.includes("  /api/face:"));
   assert.ok(spec.includes("    post:"));
