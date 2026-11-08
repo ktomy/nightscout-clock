@@ -29,6 +29,13 @@
  * @property {string} faceId Currently displayed clock-face id.
  */
 /**
+ * A WiFi network found by the clock's scan. The same name can appear once per access point.
+ * @typedef {Object} WifiNetwork
+ * @property {string} ssid Network name.
+ * @property {number} rssi Signal strength in dBm; higher is stronger.
+ * @property {boolean} open Whether the network has no password.
+ */
+/**
  * Password protection and session state reported by the clock.
  * @typedef {Object} AuthStatus
  * @property {boolean} enabled Whether web password protection is enabled.
@@ -272,6 +279,22 @@ const api = (() => {
      */
     const patients = () => request("GET", "/api/llu/patients")
     /**
+     * Ask the clock to scan for nearby WiFi networks and wait for the list. The clock scans in the
+     * background and answers 202 until the results are ready; status polling pauses meanwhile.
+     * @returns {Promise<WifiNetwork[]>}
+     */
+    const scanWifi = () => exclusive(async () => {
+        const start = Date.now()
+        while (Date.now() - start < 20000) {
+            const r = await request("GET", "/api/wifi/scan")
+            if (r.status === 200 && Array.isArray(r.data)) return r.data
+            if (r.status === 401) throw new Error("Unlock settings to scan for networks.")
+            if (r.status !== 202) throw new Error("The clock could not scan for networks. Try again.")
+            await sleep(1000)
+        }
+        throw new Error("The scan took too long. Try again.")
+    })
+    /**
      * Request a clock restart; the connection may close before a response arrives.
      * @returns {Promise<ApiReply<ActionStatus>>}
      */
@@ -307,5 +330,5 @@ const api = (() => {
         })
     }
 
-    return { on: events.on, startStatus, saveSettings, authStatus, login, logout, loadConfig, version, downloadLogs, timezones, tryAlarm, switchFace, patients }
+    return { on: events.on, startStatus, saveSettings, authStatus, login, logout, loadConfig, version, downloadLogs, timezones, tryAlarm, switchFace, patients, scanWifi }
 })()

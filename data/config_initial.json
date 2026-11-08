@@ -76,7 +76,7 @@
         "age_dots": "on"
     },
     "face_unicorn": {
-        "mane": "still",
+        "mane": "moving",
         "speed": "normal",
         "flow": "down"
     },

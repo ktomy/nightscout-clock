@@ -1,0 +1,43 @@
+# Boot, connect to Wi-Fi, show readings in each glucose range, and switch faces with a button.
+# Run: scripts/wokwi.sh --timeout 120000 --scenario scripts/wokwi_scenarios/smoke.yaml \
+#          --serial-log-file logs/wokwi.log
+# Then: python3 scripts/wokwi_screen.py logs/wokwi.log --ascii
+name: Smoke test
+version: 1
+author: NSClock
+
+steps:
+  - wait-serial: 'Setup done'
+  - wait-serial: 'Local time is'
+
+  - write-serial: "bg 110 4\n"
+  - wait-serial: 'WOKWI_OK bg'
+  - delay: 3000ms
+  - write-serial: "screen\n"
+  - wait-serial: 'WOKWI_OK screen'
+
+  - write-serial: "bg 50 7\n"
+  - wait-serial: 'WOKWI_OK bg'
+  - delay: 3000ms
+  - write-serial: "screen\n"
+  - wait-serial: 'WOKWI_OK screen'
+
+  - write-serial: "bg 300 1\n"
+  - wait-serial: 'WOKWI_OK bg'
+  - delay: 3000ms
+  - write-serial: "screen\n"
+  - wait-serial: 'WOKWI_OK screen'
+
+  # Right button: next face
+  - set-control:
+      part-id: btn_right
+      control: pressed
+      value: 1
+  - delay: 200ms
+  - set-control:
+      part-id: btn_right
+      control: pressed
+      value: 0
+  - delay: 3000ms
+  - write-serial: "screen\n"
+  - wait-serial: 'WOKWI_OK screen'

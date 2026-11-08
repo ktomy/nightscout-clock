@@ -7,8 +7,9 @@
 #include "SettingsManager.h"
 #include "globals.h"
 
-uint8_t x_buffer[16];
-uint8_t x_position = 0;
+// "IMPROV" + version + type + length + up to 255 data bytes + checksum
+uint8_t x_buffer[9 + 255 + 1];
+size_t x_position = 0;
 
 void set_state(improv::State state) {
     std::vector<uint8_t> data = {'I', 'M', 'P', 'R', 'O', 'V'};
@@ -167,10 +168,17 @@ bool onCommandCallback(improv::ImprovCommand cmd) {
 }
 
 void checckForImprovWifiConnection() {
-    if (Serial.available() > 0) {
+    // Take everything that has arrived: the main loop can be slow, and the installer only waits 1.5 s
+    while (Serial.available() > 0) {
         uint8_t b = Serial.read();
 
-        if (parse_improv_serial_byte(x_position, b, x_buffer, onCommandCallback, onErrorCallback)) {
+        bool accepted =
+            x_position < sizeof(x_buffer) &&
+            parse_improv_serial_byte(x_position, b, x_buffer, onCommandCallback, onErrorCallback);
+        // The checksum byte completes the packet; start over so the next packet's first byte is kept
+        bool packetComplete = x_position > 8 && x_position == 9u + x_buffer[8];
+
+        if (accepted && !packetComplete) {
             x_buffer[x_position++] = b;
         } else {
             x_position = 0;

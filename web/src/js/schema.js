@@ -183,6 +183,8 @@ const SOURCE_STATUS_TEXT = {
     deserialization_error: "Unreadable data",
 }
 
+/** mg/dl per mmol/l, the factor Nightscout uses. Keep it equal to MGDL_PER_MMOL in src/GlucoseUnits.h. */
+const MGDL_PER_MMOL = 18.01559
 /**
  * ---------- units ----------
  * Format stored mg/dl values in the selected units, rounding mmol/l to one decimal place.
@@ -193,7 +195,7 @@ const SOURCE_STATUS_TEXT = {
  */
 const mgdlToText = (mgdl, units) => {
     if (mgdl === "" || mgdl == null || !isFinite(Number(mgdl))) return mgdl == null ? "" : String(mgdl)
-    return units === "mmol" ? (Math.round(Number(mgdl) / 1.8) / 10).toFixed(1) : String(Math.round(Number(mgdl)))
+    return units === "mmol" ? (Math.round(Number(mgdl) / MGDL_PER_MMOL * 10) / 10).toFixed(1) : String(Math.round(Number(mgdl)))
 }
 /**
  * Parse input in the selected glucose units into integer mg/dl; return NaN for unsupported formats.
@@ -203,7 +205,7 @@ const mgdlToText = (mgdl, units) => {
  */
 function textToMgdl(text, units) {
     const s = String(text).trim()
-    if (units === "mmol") return /^\d{1,2}(\.\d)?$/.test(s) ? Math.round(parseFloat(s) * 18) : NaN
+    if (units === "mmol") return /^\d{1,2}(\.\d)?$/.test(s) ? Math.round(parseFloat(s) * MGDL_PER_MMOL) : NaN
     return /^\d{1,3}$/.test(s) ? parseInt(s, 10) : NaN
 }
 /**
