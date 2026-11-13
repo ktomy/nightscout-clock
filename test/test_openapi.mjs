@@ -83,3 +83,12 @@ test("openapi.yaml defines GET /api/brightness with the supported values", () =>
   assert.match(spec, /  \/api\/brightness:\n    get:/);
   assert.match(spec, /summary: Get the configured brightness value/);
 });
+
+test("openapi.yaml documents the plain-text firmware revision endpoint", () => {
+  assert.match(spec, /  \/revision\.txt:\n    get:/);
+  const revision = spec.split("  /revision.txt:\n")[1]?.split(/\n  \//, 1)[0];
+  assert.ok(revision, "GET /revision.txt should be defined");
+  assert.match(revision, /summary: Read the firmware source revision/);
+  assert.match(revision, /security: \[\]/);
+  assert.match(revision, /text\/plain/);
+});

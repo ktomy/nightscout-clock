@@ -179,6 +179,19 @@ paths:
             text/plain:
               schema:
                 type: string
+  /revision.txt:
+    get:
+      tags: [Status]
+      summary: Read the firmware source revision
+      description: Returns the full Git commit hash recorded when the LittleFS image was built.
+      security: []
+      responses:
+        '200':
+          description: Plain-text Git commit hash
+          content:
+            text/plain:
+              schema:
+                type: string
   /tzdata.json:
     get:
       tags: [Configuration]
@@ -205,7 +218,10 @@ paths:
               $ref: '#/components/schemas/ClockConfig'
       responses:
         '200':
-          description: Request was processed; validation failures from settings persistence are reported in the status body.
+          description: |
+            Request was processed. A non-object JSON body returns `status: json parsing error`
+            with HTTP 200. Settings persistence failures return `status: Settings save error`
+            with HTTP 200.
           content:
             application/json:
               schema:
@@ -214,12 +230,6 @@ paths:
                 success: { value: { status: ok } }
                 saveError: { value: { status: Settings save error } }
                 parseError: { value: { status: json parsing error } }
-        '400':
-          description: A settings validation error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorStatus'
         '401':
           $ref: '#/components/responses/Unauthorized'
   /api/alarm:
@@ -691,6 +701,7 @@ components:
         face_cycle_enabled: { type: boolean }
         inactive_faces: { type: array, items: { type: string } }
         face_cycle_interval_seconds: { type: integer, enum: [10, 30, 60, 120, 180, 300] }
+        surprise_mode: { type: boolean }
         face_schedule_enabled: { type: boolean }
         face_schedule: { type: array, maxItems: 8, items: { $ref: '#/components/schemas/FaceScheduleEntry' } }
         tz_libc: { type: string }
