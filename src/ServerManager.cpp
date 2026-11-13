@@ -311,6 +311,138 @@ bool cachedCanReachInternet() {
     return cachedInternetReachable;
 }
 
+void ServerManager_::handleFacesGet(AsyncWebServerRequest* request) {
+    if (!enforceAuthentication(request)) {
+        return;
+    }
+
+    JsonDocument doc;
+    JsonArray faces = doc.to<JsonArray>();
+    for (const RegisteredClockFace& face : bgDisplayManager.getActiveFaces()) {
+        JsonObject item = faces.add<JsonObject>();
+        item["id"] = face.id;
+        item["name"] = face.name;
+    }
+    String body;
+    serializeJson(doc, body);
+    request->send(200, "application/json", body);
+}
+
+bool ServerManager_::ensureDisplayControlAvailable(AsyncWebServerRequest* request) {
+    if (!isInAPMode) {
+        return true;
+    }
+
+    request->send(
+        503, "application/json",
+        "{\"status\": \"error\", \"error\": \"display control unavailable in AP mode\"}");
+    return false;
+}
+
+void ServerManager_::handleFacePost(AsyncWebServerRequest* request, JsonVariant& json) {
+    if (!enforceAuthentication(request)) {
+        return;
+    }
+    if (!ensureDisplayControlAvailable(request)) {
+        return;
+    }
+    if (!json.is<JsonObject>() || !json.as<JsonObject>()["face"].is<String>()) {
+        request->send(
+            400, "application/json", "{\"status\": \"error\", \"error\": \"face must be a face id\"}");
+        return;
+    }
+
+    String id = json.as<JsonObject>()["face"].as<String>();
+    if (!bgDisplayManager.requestFace(id)) {
+        request->send(
+            400, "application/json", "{\"status\": \"error\", \"error\": \"unknown face id\"}");
+        return;
+    }
+    String body = "{\"status\": \"ok\", \"face\": \"" + id + "\"}";
+    request->send(200, "application/json", body);
+}
+
+void ServerManager_::handleFaceNextPost(AsyncWebServerRequest* request) {
+    if (!enforceAuthentication(request)) {
+        return;
+    }
+    if (!ensureDisplayControlAvailable(request)) {
+        return;
+    }
+    bgDisplayManager.requestNextFace();
+    request->send(200, "application/json", "{\"status\": \"ok\"}");
+}
+
+void ServerManager_::handleFacePrevPost(AsyncWebServerRequest* request) {
+    if (!enforceAuthentication(request)) {
+        return;
+    }
+    if (!ensureDisplayControlAvailable(request)) {
+        return;
+    }
+    bgDisplayManager.requestPreviousFace();
+    request->send(200, "application/json", "{\"status\": \"ok\"}");
+}
+
+void ServerManager_::handleBrightnessNextPost(AsyncWebServerRequest* request) {
+    if (!enforceAuthentication(request)) {
+        return;
+    }
+    if (!ensureDisplayControlAvailable(request)) {
+        return;
+    }
+    DisplayManager.requestBrightnessStep();
+    request->send(200, "application/json", "{\"status\": \"ok\"}");
+}
+
+void ServerManager_::handleBrightnessPrevPost(AsyncWebServerRequest* request) {
+    if (!enforceAuthentication(request)) {
+        return;
+    }
+    if (!ensureDisplayControlAvailable(request)) {
+        return;
+    }
+    DisplayManager.requestPreviousBrightnessStep();
+    request->send(200, "application/json", "{\"status\": \"ok\"}");
+}
+
+void ServerManager_::handleBrightnessGet(AsyncWebServerRequest* request) {
+    if (!enforceAuthentication(request)) {
+        return;
+    }
+
+    int value = SettingsManager.settings.brightness_level + 1;
+    if (SettingsManager.settings.brightness_mode == BRIGHTNES_MODE::AUTO_LINEAR) {
+        value = 100;
+    } else if (SettingsManager.settings.brightness_mode == BRIGHTNES_MODE::AUTO_DIMMED) {
+        value = 101;
+    }
+
+    request->send(200, "application/json", "{\"value\": " + String(value) + "}");
+}
+
+void ServerManager_::handleBrightnessPost(AsyncWebServerRequest* request, JsonVariant& json) {
+    if (!enforceAuthentication(request)) {
+        return;
+    }
+    if (!ensureDisplayControlAvailable(request)) {
+        return;
+    }
+    if (!json.is<JsonObject>() || !json.as<JsonObject>()["value"].is<int>()) {
+        request->send(
+            400, "application/json", "{\"status\": \"error\", \"error\": \"value must be an integer\"}");
+        return;
+    }
+
+    const int value = json.as<JsonObject>()["value"].as<int>();
+    if (!DisplayManager.requestBrightnessValue(value)) {
+        request->send(
+            400, "application/json", "{\"status\": \"error\", \"error\": \"invalid brightness value\"}");
+        return;
+    }
+    request->send(200, "application/json", "{\"status\": \"ok\"}");
+}
+
 void ServerManager_::setupWebServer(IPAddress ip) {
 #ifdef DEBUG_BG_SOURCE
     DEBUG_PRINTLN("ServerManager::setupWebServer");
@@ -464,6 +596,30 @@ void ServerManager_::setupWebServer(IPAddress ip) {
             }
         }));
 
+    // API endpoints for face management.
+    ws->on("/api/faces", HTTP_GET, [this](AsyncWebServerRequest* request) { handleFacesGet(request); });
+    ws->addHandler(new AsyncCallbackJsonWebHandler(
+        "/api/face",
+        [this](AsyncWebServerRequest* request, JsonVariant& json) { handleFacePost(request, json); }));
+    ws->on("/api/face/next", HTTP_POST, [this](AsyncWebServerRequest* request) {
+        handleFaceNextPost(request);
+    });
+    ws->on("/api/face/prev", HTTP_POST, [this](AsyncWebServerRequest* request) {
+        handleFacePrevPost(request);
+    });
+    ws->on("/api/brightness/next", HTTP_POST, [this](AsyncWebServerRequest* request) {
+        handleBrightnessNextPost(request);
+    });
+    ws->on("/api/brightness/prev", HTTP_POST, [this](AsyncWebServerRequest* request) {
+        handleBrightnessPrevPost(request);
+    });
+    ws->on("/api/brightness", HTTP_GET, [this](AsyncWebServerRequest* request) {
+        handleBrightnessGet(request);
+    });
+    ws->addHandler(new AsyncCallbackJsonWebHandler(
+        "/api/brightness", [this](AsyncWebServerRequest* request, JsonVariant& json) {
+            handleBrightnessPost(request, json);
+        }));
     ws->on("/api/factory-reset", HTTP_POST, [this](AsyncWebServerRequest* request) {
         if (!enforceAuthentication(request)) {
             return;
@@ -517,30 +673,6 @@ void ServerManager_::setupWebServer(IPAddress ip) {
         request->send(200, "text/plain", "Nightscout clock " VERSION "\n" + LogBuffer::get());
     });
 #endif
-
-    // Switch the currently displayed face immediately, like the side buttons.
-    // Temporary: it does not change the default face, schedule, or cycling.
-    ws->addHandler(new AsyncCallbackJsonWebHandler(
-        "/api/face", [this](AsyncWebServerRequest* request, JsonVariant& json) {
-            if (!enforceAuthentication(request)) {
-                return;
-            }
-            if (!json.is<JsonObject>() || !json.as<JsonObject>()["face"].is<String>()) {
-                request->send(400, "application/json",
-                              "{\"status\": \"error\", \"error\": \"face must be a face id\"}");
-                return;
-            }
-            String id = json.as<JsonObject>()["face"].as<String>();
-            if (!bgDisplayManager.requestFace(id)) {
-                request->send(400, "application/json",
-                              "{\"status\": \"error\", \"error\": \"unknown face id\"}");
-                return;
-            }
-            String body = "{\"status\": \"ok\", \"face\": \"";
-            body += id;
-            body += "\"}";
-            request->send(200, "application/json", body);
-        }));
 
     // Nearby WiFi networks for the settings page. A blocking scan would stall the web server for
     // seconds, so the first call starts a background scan and answers 202, and the page polls until
@@ -600,13 +732,9 @@ void ServerManager_::setupWebServer(IPAddress ip) {
 
     // Captive portal detection endpoints
     // Android: responds with HTTP 204 so the device opens the portal
-    ws->on("/generate_204", HTTP_GET, [](AsyncWebServerRequest* request) {
-        request->redirect("/");
-    });
+    ws->on("/generate_204", HTTP_GET, [](AsyncWebServerRequest* request) { request->redirect("/"); });
     // Windows: redirect NCSI probe to the settings page
-    ws->on("/connecttest.txt", HTTP_GET, [](AsyncWebServerRequest* request) {
-        request->redirect("/");
-    });
+    ws->on("/connecttest.txt", HTTP_GET, [](AsyncWebServerRequest* request) { request->redirect("/"); });
 
     ws->onNotFound([](AsyncWebServerRequest* request) {
         if (request->method() == HTTP_OPTIONS) {
@@ -690,7 +818,8 @@ tm ServerManager_::getTimezonedTime() {
 }
 
 // Like getTimezonedTime(), but reports whether the clock actually knows the time. Reads the
-// clock directly: getLocalTime() waits up to 5 s when it is unset, and can skip the read on a zero timeout.
+// clock directly: getLocalTime() waits up to 5 s when it is unset, and can skip the read on a zero
+// timeout.
 bool ServerManager_::tryGetTimezonedTime(tm& timeinfo) {
     time_t now;
     time(&now);

@@ -7,6 +7,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import zlib from "node:zlib";
+import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -52,9 +53,11 @@ if (page.length > BUDGET_BYTES) {
 const timezoneData = read(path.join(SRC, "assets", "tzdata.json"));
 JSON.parse(timezoneData);
 const favicon = fs.readFileSync(path.join(SRC, "assets", "favicon.ico"));
+const revision = execFileSync("git", ["rev-parse", "HEAD"], { cwd: ROOT, encoding: "utf8" }).trim();
 fs.writeFileSync(path.join(DATA, "index.html.gz"), page);
 fs.writeFileSync(path.join(DATA, "tzdata.json.gz"), gzip(Buffer.from(timezoneData)));
 fs.writeFileSync(path.join(DATA, "favicon.ico.gz"), gzip(favicon));
+fs.writeFileSync(path.join(DATA, "revision.txt"), `${revision}\n`);
 
 const total = fs.readdirSync(DATA, { recursive: true })
     .map(f => path.join(DATA, f)).filter(f => fs.statSync(f).isFile())

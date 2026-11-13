@@ -29,6 +29,16 @@ private:
     unsigned long webAuthTokenIssuedMs = 0;
     unsigned long wifiScanStartedMs = 0;
 
+    void handleFacesGet(AsyncWebServerRequest* request);
+    bool ensureDisplayControlAvailable(AsyncWebServerRequest* request);
+    void handleFacePost(AsyncWebServerRequest* request, JsonVariant& json);
+    void handleFaceNextPost(AsyncWebServerRequest* request);
+    void handleFacePrevPost(AsyncWebServerRequest* request);
+    void handleBrightnessNextPost(AsyncWebServerRequest* request);
+    void handleBrightnessPrevPost(AsyncWebServerRequest* request);
+    void handleBrightnessGet(AsyncWebServerRequest* request);
+    void handleBrightnessPost(AsyncWebServerRequest* request, JsonVariant& json);
+
 public:
     static ServerManager_& getInstance();
     void setup();

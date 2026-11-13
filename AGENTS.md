@@ -74,6 +74,45 @@ For the web UI, keep JavaScript style consistent with the existing files in `web
 - Configuration is managed through the provided Web UI. Hand-edited configurations and hostile configuration submissions to `/api/save` are outside the supported workflow. Validate user-editable fields in the UI; avoid duplicating those checks throughout the firmware without a concrete need.
 - Keep checks required for normal operational failures, such as failed network requests, unavailable time, missing files, and malformed responses from external services. Keep bounds checks needed for memory safety and existing authentication controls.
 
+## OpenAPI Specification Maintenance
+
+The OpenAPI spec (`openapi.yaml`) documents the supported HTTP API exposed by the clock firmware, including the face and brightness controls. Keep it aligned with route registrations in `src/ServerManager.cpp` and the source-specific handlers in `src/BGSourceApi.cpp` and `src/BGSourceLibreLinkUp.cpp`. Some routes are conditional: `/api/logs` exists only in DEBUG builds, `/api/v1/entries` only when the API glucose source is active, and `/api/llu/patients` only when LibreLinkUp is active. Simulated button routes are not part of the public API.
+
+Keeping this spec in sync with the implementation is important for:
+
+- **Code reviewers** to understand the API surface without running the firmware
+- **Automated test generation** that validates endpoint signatures
+- **Client developers** building integrations against the clock's API
+- **Future refactoring** where the spec can be used as a contract
+
+### Adding a New API Endpoint
+
+1. **Firmware**: Add the handler in `src/ServerManager.cpp` (following the existing patterns for authentication, JSON parsing, error responses)
+2. **OpenAPI spec**: Add the new path under the appropriate tag in `openapi.yaml`
+3. **Tests**: Add verification tests in `test/test_openapi.mjs` that check:
+   - The path and method are documented
+   - Request and response details match the handler, including authentication and error behavior
+   - Removed or intentionally excluded routes are absent from the spec
+4. **Build validation**: Run `scripts/build.sh` to confirm the firmware compiles
+5. **Functional testing**: Once flashed, test the endpoint with `curl` or the web UI
+
+**Important**: After adding or removing an endpoint, run the full test suite (`./test/run_tests.sh`). The OpenAPI tests in `test/test_openapi.mjs` make selective assertions about the spec text, including face and brightness routes and exclusion of simulated button routes. They do not automatically compare every firmware route with the spec or fully validate the OpenAPI document, so review the relevant registrations and schemas directly.
+
+### Removing an API Endpoint
+
+1. **Firmware**: Remove the handler from `src/ServerManager.cpp`
+2. **OpenAPI spec**: Remove the path entry from `openapi.yaml`
+3. **Tests**: Add or update a test in `test/test_openapi.mjs` asserting that the removed path is absent from the spec
+4. **Build validation**: Run `scripts/build.sh` to confirm the firmware compiles without the removed handler
+
+### Keeping the Spec Current
+
+- **Before committing**: Run `./test/run_tests.sh` to ensure all tests pass
+- **After firmware changes**: Run `./test/run_tests.sh` and inspect the spec alongside the relevant route registrations. Use an OpenAPI parser/validator when available; the host test suite does not parse or fully validate the YAML.
+- **When in doubt**: Compare the documented paths and methods against `src/ServerManager.cpp` and the conditional source-specific registrations in `src/BGSourceApi.cpp` and `src/BGSourceLibreLinkUp.cpp`; account for build- and source-dependent routes.
+
+Note: Automatic sync between firmware and spec would require build-time generation, which is outside the current workflow scope. Manual review plus the focused tests is the current approach.
+
 ## Testing Guidelines
 
 `test/run_tests.sh` runs the host-side tests, which need only `g++` and Node.js and also run on every pull request. They cover logic that compiles without Arduino, such as `src/SettingsAlertWindow.h`, and the web UI's `web/src/js/schema.js`. Tests must exercise the real source rather than a copy of it; to test firmware logic, move it into an Arduino-free header in `src/`.

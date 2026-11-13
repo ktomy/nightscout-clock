@@ -111,6 +111,7 @@ private:
     unsigned long surpriseStartMs = 0;
     // Face asked for by the web server task, applied by tick() on the main loop; -1 means none.
     std::atomic<int> pendingFaceIndex{-1};
+    std::atomic<int> pendingFaceSteps{0};
 
     bool drawAnimationFrame(bool dataIsOld, bool redraw);
     int findFaceIndex(const String& id) const;
@@ -135,11 +136,14 @@ public:
     const GlucoseIntervals& getGlucoseIntervals() const;
 
     const std::vector<RegisteredClockFace>& getFaces() const;
+    std::vector<RegisteredClockFace> getActiveFaces() const;
     String getCurrentFaceId() const;
     bool suppressesNewAlarms() const;
 
     void setFace(const String& id);
     bool requestFace(const String& id);
+    void requestNextFace();
+    void requestPreviousFace();
     void showNextFace();
     void showPreviousFace();
 
