@@ -19,11 +19,15 @@ ARROWS = {
     'NONE':         [0,0,0,0,0],
     'OLD':          [0b10001000,0b01010000,0b00100000,0b01010000,0b10001000],
 }
-SPARK = {
-    'A': [0b00111100,0b01000010,0b10100101,0b10000001,0b10100101,0b10011001,0b01000010,0b00111100],
-    'B': [0b00111100,0b01000010,0b10100101,0b10000001,0b10000001,0b10111101,0b01000010,0b00111100],
-    'S': [0b00111100,0b01000010,0b10100101,0b10100101,0b10000001,0b10011001,0b10011001,0b00111100],
-    'D': [0b00111100,0b01000010,0b10011001,0b00100100,0b10000001,0b01011010,0b01000010,0b00111100],
+# Rainbow mood smiley frames, transcribed from BGDisplayFaceRainbowMood.cpp.
+# Each expression swaps between its two frames; rows are 8-bit bitmaps.
+MOOD = {
+    'HAPPY_A': [0b00111100,0b01000010,0b10100101,0b10000001,0b10100101,0b10011001,0b01000010,0b00111100],
+    'HAPPY_B': [0b00111100,0b01000010,0b10100101,0b10000001,0b10000001,0b10111101,0b01000010,0b00111100],
+    'SHOCKED_A': [0b00111100,0b01000010,0b10100101,0b10100101,0b10000001,0b10011001,0b01011010,0b00111100],
+    'SHOCKED_B': [0b00111100,0b01000010,0b10100101,0b10100101,0b10000001,0b10011001,0b01000010,0b00111100],
+    'DIZZY_A': [0b00111100,0b01000010,0b10011001,0b10100101,0b10000001,0b01011010,0b01000010,0b00111100],
+    'DIZZY_B': [0b00111100,0b01000010,0b10100101,0b10011001,0b10000001,0b01011010,0b01000010,0b00111100],
 }
 # Upstream unicorn sprite (12x8, palette indices), palettes in RGB565
 UNICORN_SPRITE = [
@@ -37,11 +41,11 @@ UNICORN_SPRITE = [
     0,0,0,2,2,2,2,2,4,5,6,7,
 ]
 PAL_N = [0xFE87,0xF79D,0x18C3,0x4D5F,0x5EAD,0xFCC7,0xFA78,0x9AFE]
-JS_DATA = "const AW=%s;\nconst MU=%s;\nconst ARROWS=%s;\nconst SPARK=%s;\nconst USPRITE=%s;\nconst UPALN=%s;\n" % (
+JS_DATA = "const AW=%s;\nconst MU=%s;\nconst ARROWS=%s;\nconst MOOD=%s;\nconst USPRITE=%s;\nconst UPALN=%s;\n" % (
     json.dumps(AW, separators=(',',':')),
     json.dumps(MU, separators=(',',':')),
     json.dumps(ARROWS, separators=(',',':')),
-    json.dumps(SPARK, separators=(',',':')),
+    json.dumps(MOOD, separators=(',',':')),
     json.dumps(UNICORN_SPRITE, separators=(',',':')),
     json.dumps(PAL_N, separators=(',',':')),
 )
@@ -83,7 +87,27 @@ function drawText(b,F,s,x,y,align,color){ // align: 0 LEFT, 1 RIGHT, 2 CENTER
 }
 // ---- glucose model ----
 function level(sgv){if(sgv<55)return 'UL';if(sgv<70)return 'WL';if(sgv<=180)return 'N';if(sgv<250)return 'WH';return 'UH';}
-function levelColor(sgv){const l=level(sgv);return l==='N'?C.GREEN:((l==='WL'||l==='WH')?C.YELLOW:C.RED);}
+function levelColor(sgv){return bandColor(level(sgv));}
+function bandColor(lvl){return lvl==='N'?C.GREEN:((lvl==='WL'||lvl==='WH')?C.YELLOW:((lvl==='UL'||lvl==='UH')?C.RED:C.GRAY));}
+function dim80(c){return ((((c>>11)&31)*0.8|0)<<11)|((((c>>5)&63)*0.8|0)<<5)|(((c&31)*0.8|0));}
+function warnQuarter(sgv,lvl){
+  const low=lvl==='WL';
+  const dist=low?70-sgv:sgv-180, width=low?15:70;
+  return width>0?Math.min(3,Math.max(0,Math.trunc(4*dist/width))):1;
+}
+function motionColor(lvl,quarter,index,frame){
+  const pos=index+frame, third=pos%3===0;
+  let shown=lvl, light=false;
+  if(lvl==='UL'||lvl==='UH'){if(third)return 0;}
+  else if(lvl==='WL'||lvl==='WH'){
+    const urg=lvl==='WL'?'UL':'UH';
+    if(quarter<=1)light=third;
+    else if(quarter===2)shown=third?urg:lvl;
+    else shown=pos%2===0?urg:lvl;
+  }
+  const col=bandColor(shown);
+  return light?dim80(col):col;
+}
 function printable(sgv){return S.mmol?(sgv/18).toFixed(1):String(sgv);}
 let READINGS=[];
 function buildReadings(){
@@ -143,6 +167,61 @@ function noDataText(){return S.mmol?"--.-":"---";}
 
 JS_FACES = r"""
 // ================= faces =================
+// ---- animation-face helpers (transcribed from BGDisplayFaceRaceCar/Dragon) ----
+const CAR_ART=["....HH...","BBBBBBB..","BBBBBBBBB"];
+const CAR_OFF=[0,4,2,5];
+function raceCar(b,sgv,old,frame){
+  const lvl=old?'N':level(sgv);
+  const q=old?0:warnQuarter(sgv,lvl);
+  const put=(x,y,c)=>{if(!old)px(b,x,y,c);else if((x+y)%2===0)px(b,x,y,S.stale);};
+  for(let line=0;line<4;line++)for(let x=0;x<7;x++){
+    if((x+frame+CAR_OFF[line])%7>=3)continue;
+    put(x,2+line,motionColor(lvl,q,6-x+line,frame));
+  }
+  for(let x=0;x<16;x++)if((x+frame)%4<2)put(x,7,C.BLUE);
+  for(let row=0;row<3;row++)for(let col=0;col<9;col++){
+    const cell=CAR_ART[row][col];
+    if(cell!=='.')put(7+col,2+row,cell==='H'?C.MAGENTA:C.WHITE);
+  }
+  const spin=frame%2===1;
+  for(const w of [8,13]){put(w,5,spin?C.CYAN:C.BLUE);put(w+1,5,spin?C.BLUE:C.CYAN);}
+}
+const DRAGON_ART=[
+".WW...H.........",
+"WWWW.SSH......t.",
+".WWWSSESS...22.t",
+"..SSSSSST.22112.",
+"S.SSSSS.00011122",
+"SSDDSSST.11122.t",
+".S.S.S.....22.t.",
+"....S..........."];
+const IN_RANGE=[0xF81F,0xE01F,0xB19F,0x781F,0x401F,0x1C9F];
+function dragonColor(cell){return cell==='S'?0x023F:cell==='D'?0xA79F:cell==='W'?0x073F:C.WHITE;}
+function dragon(b,last,old,frame){
+  const sgv=last.sgv, lvl=level(sgv), q=warnQuarter(sgv,lvl);
+  const inRange=lvl==='N';
+  const roll=Math.floor(frame/2)%3, phase=(frame%12)*(2*Math.PI/12);
+  for(let row=0;row<8;row++)for(let col=0;col<16;col++){
+    const cell=DRAGON_ART[row][col];
+    if(cell==='.'||cell==='t'||(cell>='0'&&cell<='2'))continue;
+    if(!old)px(b,col,row,dragonColor(cell));
+    else if((row+col)%2===0)px(b,col,row,cell==='E'?0x18C3:S.stale);
+  }
+  if(old)return;
+  for(let row=0;row<8;row++)for(let col=0;col<16;col++){
+    const cell=DRAGON_ART[row][col];
+    if(cell!=='t'&&(cell<'0'||cell>'2'))continue;
+    let layer=cell==='t'?3:(((cell.charCodeAt(0)-48-roll)%3)+3)%3;
+    const flick=Math.sin(phase-col*0.9+row*1.3);
+    if(flick>0.7)layer=Math.max(0,layer-1);
+    else if(flick<-0.7)layer++;
+    if(layer>3)continue;
+    let dr=row;
+    if(layer===3){const bob=Math.sin(phase-col*0.8-row);
+      dr=Math.min(7,Math.max(0,row+(bob>0.5?-1:bob<-0.5?1:0)));}
+    px(b,col,dr,inRange?IN_RANGE[layer]:motionColor(lvl,q,15-col,frame));
+  }
+}
 const FACES=[
 {name:"Simple",draw(b,t){
   const last=READINGS[READINGS.length-1],old=isOld();
@@ -190,12 +269,6 @@ const FACES=[
     trendVLine(b,31,last.trend,old);
   }else drawText(b,AW,noDataText(),33,6,1,S.stale);
 }},
-{name:"Time only",draw(b,t){
-  const now=new Date();let h=now.getHours();const m=now.getMinutes(),s=now.getSeconds();let txt;
-  if(S.h12){const ap=h<12?"AM":"PM";h=h%12===0?12:h%12;txt=`${h}:${String(m).padStart(2,'0')} ${ap}`;}
-  else txt=`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-  drawText(b,AW,txt,0,6,2,C.WHITE);
-}},
 {name:"Unicorn",draw(b,t){
   const last=READINGS[READINGS.length-1],old=isOld();
   const l=last?level(last.sgv):'N';
@@ -205,6 +278,103 @@ const FACES=[
   for(let yy=0;yy<8;yy++)for(let xx=0;xx<12;xx++){const idx=USPRITE[yy*12+xx];if(idx)px(b,xx,yy,pal[idx-1]);}
   drawText(b,AW,last?printable(last.sgv):noDataText(),31,6,1,!last||old?S.stale:levelColor(last.sgv));
   if(last)timerBlocks(b,last,16,16,7);
+}},
+{name:"Time only",draw(b,t){
+  const now=new Date();let h=now.getHours();const m=now.getMinutes(),s=now.getSeconds();let txt;
+  if(S.h12){const ap=h<12?"AM":"PM";h=h%12===0?12:h%12;txt=`${h}:${String(m).padStart(2,'0')} ${ap}`;}
+  else txt=`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  drawText(b,AW,txt,0,6,2,C.WHITE);
+}},
+{name:"Simple (dark)",draw(b,t){
+  const last=READINGS[READINGS.length-1],old=isOld();
+  if(!last){drawText(b,AW,noDataText(),0,6,2,S.stale);return;}
+  const lvl=level(last.sgv), urg=lvl==='UL'||lvl==='UH';
+  drawText(b,AW,printable(last.sgv),0,6,2,old?S.stale:(urg?bandColor(lvl):C.WHITE));
+  trendArrow(b,last,27,1,old,true);
+}},
+{name:"Race car",draw(b,t){
+  const last=READINGS[READINGS.length-1],old=isOld();
+  if(!last){drawText(b,AW,noDataText(),0,6,2,S.stale);return;}
+  raceCar(b,last.sgv,old,old?0:Math.floor(t/110));
+  drawText(b,AW,printable(last.sgv),31,6,1,old?S.stale:levelColor(last.sgv));
+  timerBlocks(b,last,16,16,7);
+}},
+{name:"Dragon",draw(b,t){
+  const last=READINGS[READINGS.length-1],old=isOld();
+  if(!last){drawText(b,AW,noDataText(),0,6,2,S.stale);return;}
+  dragon(b,last,old,old?0:Math.floor(t/110));
+  drawText(b,AW,printable(last.sgv),31,6,1,old?S.stale:levelColor(last.sgv));
+  timerBlocks(b,last,16,16,7);
+}},
+{name:"Big text (dark)",draw(b,t){
+  const last=READINGS[READINGS.length-1],old=isOld();
+  const s=last?printable(last.sgv):noDataText();
+  const lvl=last?level(last.sgv):'N', urg=lvl==='UL'||lvl==='UH';
+  drawText(b,MU,s,0,7,0,!last||old?S.stale:(urg?bandColor(lvl):C.WHITE));
+  if(last)trendArrow(b,last,27,1,old,true);
+}},
+{name:"Rainbow clock",draw(b,t){
+  const now=new Date();let txt;
+  if(S.h12){let h=now.getHours();const ap=h<12?"AM":"PM";h=h%12===0?12:h%12;
+    txt=`${h}:${String(now.getMinutes()).padStart(2,'0')} ${ap}`;}
+  else txt=`${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
+  const hueOff=Math.trunc(t/20)%256, len=txt.length;
+  let x=Math.trunc((32-textW(AW,txt))/2);
+  for(let i=0;i<len;i++){
+    const ch=txt[i], hue=(Math.trunc(i*255/Math.max(len,1))+hueOff)&255;
+    drawText(b,AW,ch,x,6,0,hsv(hue));
+    x+=textW(AW,ch);
+  }
+}},
+{name:"Rainbow big text",draw(b,t){
+  const last=READINGS[READINGS.length-1],old=isOld();
+  if(!last){drawText(b,MU,noDataText(),0,7,0,S.stale);return;}
+  if(old){
+    drawText(b,MU,printable(last.sgv),0,7,0,S.stale);
+    trendArrow(b,last,27,1,true);
+    return;
+  }
+  const s=printable(last.sgv), hueOff=Math.trunc(t/20)%256, len=s.length;
+  let x=0;
+  for(let i=0;i<len;i++){
+    const ch=s[i], hue=(Math.trunc(i*255/Math.max(len,1))+hueOff)&255;
+    drawText(b,MU,ch,x,7,0,hsv(hue));
+    x+=textW(MU,ch);
+  }
+  trendArrow(b,last,27,1,false,true);
+}},
+{name:"Rainbow mood",draw(b,t){
+  const last=READINGS[READINGS.length-1],old=isOld();
+  if(!last){drawText(b,AW,noDataText(),0,6,2,S.stale);return;}
+  const lvl=level(last.sgv);
+  const falling=last.trend==='DOUBLE_DOWN'||last.trend==='SINGLE_DOWN';
+  const first=Math.floor(t/300)%2===0;
+  let bmp=first?MOOD.HAPPY_A:MOOD.HAPPY_B;
+  if(lvl==='UL'||lvl==='WL'||falling)bmp=first?MOOD.SHOCKED_A:MOOD.SHOCKED_B;
+  if(lvl==='UH'||lvl==='WH')bmp=first?MOOD.DIZZY_A:MOOD.DIZZY_B;
+  bitmap(b,0,0,bmp,8,8,old?S.stale:bandColor(lvl));
+  const s=printable(last.sgv), hueOff=Math.trunc(t/25)%256;
+  const tw=textW(AW,s)-1;
+  let x=8+Math.trunc((27-8-tw)/2);
+  for(let i=0;i<s.length;i++){
+    const ch=s[i];
+    drawText(b,AW,ch,x,6,0,old?S.stale:hsv((hueOff+i*35)&255));
+    x+=textW(AW,ch);
+  }
+  trendArrow(b,last,27,1,old);
+}},
+{name:"Battery and uptime",draw(b,t){
+  const pct=S.battery;
+  const col=pct<10?C.RED:pct<30?C.YELLOW:C.GREEN;
+  const filled=pct===100?10:Math.trunc(pct/10);
+  for(let i=0;i<10;i++)px(b,11+i,0,i<filled?col:C.GRAY);
+  drawText(b,AW,pct+"%",0,7,0,col);
+  const mins=Math.trunc(t/60000);
+  let up;
+  if(mins<100)up=mins+"M";
+  else if(Math.trunc(mins/60)<100)up=Math.trunc(mins/60)+"H";
+  else up=Math.trunc(mins/1440)+"D";
+  drawText(b,AW,up,31,7,1,C.WHITE);
 }},
 ];
 """
