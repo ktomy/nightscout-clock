@@ -65,6 +65,7 @@ fieldset.off input, fieldset.off select, fieldset.off .windows { opacity: .55; }
 
 /* ---------- fields ---------- */
 .grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+.grid.align-start { align-items: start; }
 .field { display: grid; gap: 6px; min-width: 0; grid-template-columns: minmax(0, 1fr); }
 .field > label, .label { font-weight: 500; }
 .help { color: var(--muted); }
@@ -134,11 +135,16 @@ input[type=range] { width: 100%; height: 44px; accent-color: var(--cyan); margin
 .face[aria-pressed="true"] { border-color: var(--cyan); box-shadow: 0 0 0 1px var(--cyan) inset; }
 .face-status { font-size: 14px; color: var(--cyan); white-space: nowrap; }
 .face[aria-pressed="false"] .face-status { color: var(--muted); }
-.networks { display: grid; gap: 6px; }
+.networks { display: grid; gap: 6px; grid-template-columns: minmax(0, 1fr); }
 .network { display: flex; justify-content: space-between; align-items: center; gap: 8px; min-height: 44px; text-align: left; appearance: none; border: 1px solid var(--line); background: var(--surface-low); color: var(--text); border-radius: var(--radius); padding: 8px 12px; cursor: pointer; font: 500 15px/20px var(--sans); }
 .network[aria-pressed="true"] { border-color: var(--cyan); box-shadow: 0 0 0 1px var(--cyan) inset; }
-.network-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.network-info { flex: none; font-size: 14px; color: var(--muted); }
+.network-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.network-check { display: none; color: var(--cyan); }
+.network-info .icon-svg { color: var(--text); }
+.network[aria-pressed="true"] .network-check { display: block; }
+.network-info { flex: none; display: inline-flex; align-items: center; gap: 6px; font-size: 14px; color: var(--muted); }
+.network-open { color: var(--amber); }
+.networks > .btn { justify-self: start; }
 .drawer { display: grid; gap: 12px; border: 1px solid var(--line); background: var(--surface-low); border-radius: var(--radius); padding: 12px; }
 
 /* ---------- glucose ranges ---------- */
