@@ -1,6 +1,6 @@
 # Face Simulator
 
-A pixel-exact, in-browser preview of all 8 clock faces — open `index.html`
+A pixel-exact, in-browser preview of all 16 clock faces — open `index.html`
 in any browser. Animations run live, and the controls let you sweep glucose
 value, trend, data age (stale at 20 min), units, 12/24 h clock, and the stale
 color.
