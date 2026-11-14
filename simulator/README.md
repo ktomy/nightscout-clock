@@ -7,9 +7,8 @@ color.
 
 `index.html` is **self-contained** (fonts and bitmaps are embedded) and is
 published to GitHub Pages at
-`https://ktomy.github.io/nightscout-clock/simulator/` — it deploys
-automatically whenever `simulator/` changes on `main`
-(see `.github/workflows/deploy-site.yml`).
+`https://ktomy.github.io/nightscout-clock/simulator/` together with each
+release (see `.github/workflows/build_release.yml`).
 
 ## Regenerating
 
