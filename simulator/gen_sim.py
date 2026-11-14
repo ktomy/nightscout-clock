@@ -29,25 +29,11 @@ MOOD = {
     'DIZZY_A': [0b00111100,0b01000010,0b10011001,0b10100101,0b10000001,0b01011010,0b01000010,0b00111100],
     'DIZZY_B': [0b00111100,0b01000010,0b10100101,0b10011001,0b10000001,0b01011010,0b01000010,0b00111100],
 }
-# Upstream unicorn sprite (12x8, palette indices), palettes in RGB565
-UNICORN_SPRITE = [
-    1,1,0,0,0,0,0,0,0,0,0,0,
-    0,1,1,0,0,4,5,6,7,0,0,0,
-    0,0,1,1,4,4,4,5,6,7,0,0,
-    0,0,0,2,2,2,2,4,5,6,7,0,
-    2,2,2,2,3,2,2,4,5,6,7,0,
-    2,2,2,2,2,2,2,4,5,6,7,0,
-    0,2,2,2,2,2,2,4,5,6,7,0,
-    0,0,0,2,2,2,2,2,4,5,6,7,
-]
-PAL_N = [0xFE87,0xF79D,0x18C3,0x4D5F,0x5EAD,0xFCC7,0xFA78,0x9AFE]
-JS_DATA = "const AW=%s;\nconst MU=%s;\nconst ARROWS=%s;\nconst MOOD=%s;\nconst USPRITE=%s;\nconst UPALN=%s;\n" % (
+JS_DATA = "const AW=%s;\nconst MU=%s;\nconst ARROWS=%s;\nconst MOOD=%s;\n" % (
     json.dumps(AW, separators=(',',':')),
     json.dumps(MU, separators=(',',':')),
     json.dumps(ARROWS, separators=(',',':')),
     json.dumps(MOOD, separators=(',',':')),
-    json.dumps(UNICORN_SPRITE, separators=(',',':')),
-    json.dumps(PAL_N, separators=(',',':')),
 )
 
 JS_ENGINE = r"""
@@ -59,9 +45,12 @@ function css(c){c|=0;let s=cssCache[c];if(s)return s;
   const r=(c>>11)&31,g=(c>>5)&63,b=c&31;
   s=`rgb(${(r*255/31)|0},${(g*255/63)|0},${(b*255/31)|0})`;cssCache[c]=s;return s;}
 function rgb565(r,g,b){return (((r&0xF8)<<8)|((g&0xFC)<<3)|(b>>3))|0;}
-function hsv(h){h&=255;const region=(h/43)|0,rem=(h-region*43)*6,q=255-rem,t=rem;
-  switch(region){case 0:return rgb565(255,t,0);case 1:return rgb565(q,255,0);case 2:return rgb565(0,255,t);
-  case 3:return rgb565(0,q,255);case 4:return rgb565(t,0,255);default:return rgb565(255,0,q);}}
+// DisplayManager::hsvToRgb(h,255,255): FastLED hsv2rgb_spectrum, then RGB565.
+function hsv(h){h&=255;const hh=(h*192)>>8,sec=hh>>6,off=hh&63;
+  const up=((off*255)/64)|0,down=(((63-off)*255)/64)|0;
+  return sec===0?rgb565(down,up,0):sec===1?rgb565(0,down,up):rgb565(up,0,down);}
+// A darker shade at full brightness (BGDisplayFaceUnicorn shade()).
+function shade(c,f){return ((((c>>11)&31)*f|0)<<11)|((((c>>5)&63)*f|0)<<5)|((c&31)*f|0);}
 function fade(c){let r=(c>>11)&31,g=(c>>5)&63,b=c&31;
   r=(r*4/5)|0;g=(g*4/5)|0;b=(b*4/5)|0;return (r<<11)|(g<<5)|b;}
 function px(b,x,y,c){if(x>=0&&x<32&&y>=0&&y<8)b[y*32+x]=c|0;}
@@ -86,13 +75,16 @@ function drawText(b,F,s,x,y,align,color){ // align: 0 LEFT, 1 RIGHT, 2 CENTER
   }
 }
 // ---- glucose model ----
-function level(sgv){if(sgv<55)return 'UL';if(sgv<70)return 'WL';if(sgv<=180)return 'N';if(sgv<250)return 'WH';return 'UH';}
+// Default limits, and the intervals BGDisplayManager builds from them; 'I' is outside all of them.
+const LOW_URGENT=55,LOW=70,HIGH=180,HIGH_URGENT=250,OLD_MINUTES=20;
+function level(sgv){if(sgv<1||sgv>401)return 'I';if(sgv<=LOW_URGENT)return 'UL';if(sgv<LOW)return 'WL';
+  if(sgv<=HIGH)return 'N';if(sgv<HIGH_URGENT)return 'WH';return 'UH';}
 function levelColor(sgv){return bandColor(level(sgv));}
 function bandColor(lvl){return lvl==='N'?C.GREEN:((lvl==='WL'||lvl==='WH')?C.YELLOW:((lvl==='UL'||lvl==='UH')?C.RED:C.GRAY));}
 function dim80(c){return ((((c>>11)&31)*0.8|0)<<11)|((((c>>5)&63)*0.8|0)<<5)|(((c&31)*0.8|0));}
 function warnQuarter(sgv,lvl){
   const low=lvl==='WL';
-  const dist=low?70-sgv:sgv-180, width=low?15:70;
+  const dist=low?LOW-sgv:sgv-HIGH, width=low?LOW-LOW_URGENT:HIGH_URGENT-HIGH;
   return width>0?Math.min(3,Math.max(0,Math.trunc(4*dist/width))):1;
 }
 function motionColor(lvl,quarter,index,frame){
@@ -108,7 +100,31 @@ function motionColor(lvl,quarter,index,frame){
   const col=bandColor(shown);
   return light?dim80(col):col;
 }
-function printable(sgv){return S.mmol?(sgv/18).toFixed(1):String(sgv);}
+// BGDisplayValueText.h: mmol/L the way Nightscout rounds it.
+const MGDL_PER_MMOL=18.01559;
+function toMmol(mgdl){return Math.floor(mgdl/MGDL_PER_MMOL*10+0.5)/10;}
+function tenths(sgv){return S.mmol?Math.floor(sgv/MGDL_PER_MMOL*10+0.5):sgv;}
+function printable(sgv){const t=tenths(sgv);return S.mmol?`${Math.trunc(t/10)}.${t%10}`:String(t);}
+// formatDiff(): Nightscout's delta over 5-minute buckets centred on the newest reading.
+function formatDiff(){
+  if(!READINGS.length)return "?";
+  const anchor=-Math.min(...READINGS.map(r=>r.ageSec));
+  const sums=[0,0,0,0],counts=[0,0,0,0],times=[0,0,0,0];
+  for(const r of READINGS){
+    const epoch=-r.ageSec;if(r.sgv<=39)continue;
+    for(let i=0;i<4;i++){const c=anchor-i*300;
+      if(epoch>=c-150&&epoch<=c+150){if(counts[i]===0||epoch>times[i])times[i]=epoch;sums[i]+=r.sgv;counts[i]++;break;}}
+  }
+  if(counts[0]===0)return "?";
+  let prev=1;while(prev<4&&counts[prev]===0)prev++;
+  if(prev===4)return "?";
+  const recent=sums[0]/counts[0],previous=sums[prev]/counts[prev],abs=recent-previous;
+  const mins=(times[0]-times[prev])/60;
+  const mean5=mins>9?recent-abs/mins*5:recent-abs;
+  const v=S.mmol?Math.floor((toMmol(recent)-toMmol(mean5))*10+0.5)/10:Math.floor(recent-mean5+0.5);
+  if(Math.abs(v)>=(S.mmol?10:100))return "?";
+  return (v<0?"-":"+")+Math.abs(v).toFixed(S.mmol?1:0);
+}
 let READINGS=[];
 function buildReadings(){
   if(S.noData){READINGS=[];return;}
@@ -120,7 +136,7 @@ function buildReadings(){
   }
   READINGS=arr;
 }
-function isOld(){const l=READINGS[READINGS.length-1];return l?l.ageSec>=20*60:false;}
+function isOld(){const l=READINGS[READINGS.length-1];return l?l.ageSec>OLD_MINUTES*60:false;}
 function trendArrow(b,rd,x,y,old,cbr){
   if(old){bitmap(b,x,y,ARROWS.OLD,5,5,S.stale);return;}
   bitmap(b,x,y,ARROWS[rd.trend]||ARROWS.NONE,5,5,cbr?levelColor(rd.sgv):C.WHITE);
@@ -146,23 +162,27 @@ function timerBlocks(b,last,width,xPos,yPos){
   const bs=((width-4)/MAX)|0;if(bs<1)return;
   xPos+=Math.trunc((width-(bs*MAX+(MAX-1)))/2);
   let col=C.GREEN;
-  if(last.ageSec>=60*20)col=S.stale;else if(last.ageSec>=(MAX+1)*60)col=C.YELLOW;
+  if(last.ageSec>=60*OLD_MINUTES)col=S.stale;else if(last.ageSec>=(MAX+1)*60)col=C.YELLOW;
   for(let i=0;i<n;i++)for(let j=0;j<bs;j++)px(b,xPos+i*(bs+1)+j,yPos,col);
 }
 function graph(b,x0,len,forMin){
-  const ps=(forMin*60)/len;
+  const ps=Math.trunc((forMin*60)/len);
   for(let i=0;i<len;i++){
     let sum=0,n=0;
-    for(const r of READINGS){if(r.ageSec>=i*ps&&r.ageSec<(i+1)*ps){sum+=r.sgv;n++;}}
+    for(const r of READINGS){if(r.ageSec>i*ps&&r.ageSec<=(i+1)*ps){sum+=r.sgv;n++;}}
     if(!n)continue;
-    const avg=sum/n,l=level(avg);let yy,col;
-    if(l==='UH'){yy=0;col=C.RED;}else if(l==='WH'){yy=1;col=C.YELLOW;}
-    else if(l==='N'){yy=5-Math.trunc((avg-70)*4/(180-70));col=C.GREEN;}
-    else if(l==='WL'){yy=6;col=C.YELLOW;}else{yy=7;col=C.RED;}
+    const avg=Math.trunc(sum/n),l=level(avg);let yy,col;
+    if(l==='UH'){yy=0;col=bandColor(l);}else if(l==='WH'){yy=1;col=bandColor(l);}
+    else if(l==='N'){yy=5-Math.trunc((avg-LOW)*4/(HIGH-LOW));col=bandColor(l);}
+    else if(l==='WL'){yy=6;col=bandColor(l);}else if(l==='UL'){yy=7;col=bandColor(l);}else{yy=7;col=C.GRAY;}
     px(b,x0+len-1-i,yy,col);
   }
 }
 function noDataText(){return S.mmol?"--.-":"---";}
+// BGDisplayFace::showNoData(), for every face that does not draw its own.
+function noData(b){drawText(b,AW,"NO DATA",0,6,2,S.stale);}
+// Renders of animated faces happen once per animation step.
+function stepTime(t,ms){return Math.floor(t/ms)*ms;}
 """
 
 JS_FACES = r"""
@@ -199,7 +219,7 @@ const IN_RANGE=[0xF81F,0xE01F,0xB19F,0x781F,0x401F,0x1C9F];
 function dragonColor(cell){return cell==='S'?0x023F:cell==='D'?0xA79F:cell==='W'?0x073F:C.WHITE;}
 function dragon(b,last,old,frame){
   const sgv=last.sgv, lvl=level(sgv), q=warnQuarter(sgv,lvl);
-  const inRange=lvl==='N';
+  const inRange=lvl==='N'||lvl==='I';
   const roll=Math.floor(frame/2)%3, phase=(frame%12)*(2*Math.PI/12);
   for(let row=0;row<8;row++)for(let col=0;col<16;col++){
     const cell=DRAGON_ART[row][col];
@@ -222,40 +242,91 @@ function dragon(b,last,old,frame){
     px(b,col,dr,inRange?IN_RANGE[layer]:motionColor(lvl,q,15-col,frame));
   }
 }
+// ---- Unicorn (BGDisplayFaceUnicorn), with the default moving mane flowing down ----
+const UNICORN_ART=[
+"HH...r0000r......",
+".HH.00111000r...r",
+"..HH011WW11100rro",
+"...WWWWW22221111y",
+"WWWWWEWW33322222g",
+"WWWWWWWW44443333b",
+".WWWWWWW.554444bb",
+"...WWWWWW...555m."];
+const MANE_TIPS="roygbm";
+function maneBand(cell){if(cell>='0'&&cell<='5')return cell.charCodeAt(0)-48;return MANE_TIPS.indexOf(cell);}
+function scramble(a,b){
+  let h=(Math.imul(a,0x9E3779B1)+Math.imul(b,0x85EBCA77)+0x27D4EB2F)>>>0;
+  h=(h^(h>>>15))>>>0;h=Math.imul(h,0x2C1B3C6D)>>>0;return (h^(h>>>12))>>>0;}
+function maneNeighbour(sgv,lvl){
+  let lo,hi,below,above;
+  if(lvl==='WL'){lo=LOW_URGENT;hi=LOW;below='UL';above='N';}
+  else if(lvl==='WH'){lo=HIGH;hi=HIGH_URGENT;below='N';above='UH';}
+  else if(lvl==='N'){lo=LOW;hi=HIGH;below='WL';above='WH';}
+  else return null;
+  const w=hi-lo;if(w<=0)return null;
+  const q=4*(sgv-lo);
+  return q<w?bandColor(below):q>3*w?bandColor(above):null;
+}
+function drawMane(b,sgv,old,moving,frame){
+  const lvl=level(sgv),inRange=lvl==='N'||lvl==='I',wisps=moving&&!old;
+  const nb=moving&&!old?maneNeighbour(sgv,lvl):null,mixes=nb!==null;
+  if(wisps)for(let row=0;row<8;row++)for(let col=0;col<17;col++){
+    if(UNICORN_ART[row][col]<'a')continue;
+    for(let n=Math.max(0,row-1);n<=Math.min(7,row+1);n++)if(UNICORN_ART[n][col]==='.')px(b,col,n,0);
+  }
+  for(let row=0;row<8;row++)for(let col=0;col<17;col++){
+    const cell=UNICORN_ART[row][col],band=maneBand(cell);
+    if(band<0)continue;
+    const index=5-band;let color;
+    if(old)color=S.stale;
+    else if(moving)color=mixes&&(index+frame)%3===0?nb:inRange?IN_RANGE[(index+frame)%6]:motionColor(lvl,1,index,frame);
+    else if(inRange)color=IN_RANGE[Math.min(4,band)];
+    else color=band%2===1?shade(bandColor(lvl),0.62):bandColor(lvl);
+    let drawRow=row;
+    if(wisps&&cell>='a'){
+      const tip=scramble(col*8+row,0),pick=scramble(tip,Math.floor(((frame+tip%4)%240)/4));
+      const n=row+(pick%4===0?-1:pick%4===1?1:0);
+      if(n>=0&&n<8&&UNICORN_ART[n][col]==='.'){drawRow=n;px(b,col,row,0);}
+    }
+    px(b,col,drawRow,cell>='a'?shade(color,0.5):color);
+  }
+}
 const FACES=[
 {name:"Simple",draw(b,t){
   const last=READINGS[READINGS.length-1],old=isOld();
-  if(!last){drawText(b,AW,noDataText(),0,6,2,S.stale);return;}
+  if(!last){noData(b);return;}
   drawText(b,AW,printable(last.sgv),0,6,2,old?S.stale:levelColor(last.sgv));
   trendArrow(b,last,27,1,old);
   timerBlocks(b,last,32,0,7);
 }},
-{name:"Full graph",draw(b,t){graph(b,0,32,180);}},
+{name:"Full graph",draw(b,t){
+  if(!READINGS.length){noData(b);return;}
+  graph(b,0,32,180);
+}},
 {name:"Graph and BG",draw(b,t){
   const last=READINGS[READINGS.length-1],old=isOld();
-  if(!last){drawText(b,AW,noDataText(),30,6,1,S.stale);return;}
+  if(!last){noData(b);return;}
   const p=printable(last.sgv),tw=textW(AW,p),gw=32-tw-2;
   graph(b,0,gw,gw*5);
-  drawText(b,AW,p,30,6,1,old?S.stale:levelColor(last.sgv));
+  drawText(b,AW,p,31,6,1,old?S.stale:levelColor(last.sgv));
   trendVLine(b,31,last.trend,old);
   timerBlocks(b,last,tw+2,gw,7);
 }},
 {name:"Big text",draw(b,t){
+  // Defaults: no early-stale color, age dots on.
   const last=READINGS[READINGS.length-1],old=isOld();
-  const s=last?printable(last.sgv):noDataText();
-  drawText(b,MU,s,0,7,0,!last||old?S.stale:levelColor(last.sgv));
-  if(last)trendArrow(b,last,27,1,old);
+  if(!last){noData(b);return;}
+  drawText(b,MU,printable(last.sgv),0,7,0,old?S.stale:levelColor(last.sgv));
+  trendArrow(b,last,27,1,old);
+  timerBlocks(b,last,9,23,7);
 }},
 {name:"Value and diff",draw(b,t){
   const last=READINGS[READINGS.length-1],old=isOld();
-  if(!last){drawText(b,AW,noDataText(),13,6,1,S.stale);return;}
-  const x=(S.mmol&&last.sgv>=180)?14:13;
+  if(!last){noData(b);return;}
+  const x=(S.mmol&&tenths(last.sgv)>=100)?14:13;
   drawText(b,AW,printable(last.sgv),x,6,1,old?S.stale:levelColor(last.sgv));
   trendArrow(b,last,13,1,old);
-  let diff="?";
-  if(READINGS.length>=2){const d=last.sgv-READINGS[READINGS.length-2].sgv;
-    diff=Math.abs(d)>99?"?":((d>=0?"+":"")+printable(d));}
-  drawText(b,AW,diff,33,6,1,old?S.stale:C.WHITE);
+  drawText(b,AW,formatDiff(),33,6,1,old?S.stale:C.WHITE);
   timerBlocks(b,last,32,0,7);
 }},
 {name:"Clock and value",draw(b,t){
@@ -271,13 +342,17 @@ const FACES=[
 }},
 {name:"Unicorn",draw(b,t){
   const last=READINGS[READINGS.length-1],old=isOld();
-  const l=last?level(last.sgv):'N';
-  const pal=(!last||old)?[S.stale,S.stale,0x18C3,S.stale,S.stale,S.stale,S.stale,S.stale]
-    :(l==='N'?UPALN:(l==='WL'||l==='WH')?[0xFE87,0xF79D,0x18C3,C.YELLOW,C.YELLOW,C.YELLOW,C.YELLOW,C.YELLOW]
-    :[0xFE87,0xF79D,0x18C3,C.RED,C.RED,C.RED,C.RED,C.RED]);
-  for(let yy=0;yy<8;yy++)for(let xx=0;xx<12;xx++){const idx=USPRITE[yy*12+xx];if(idx)px(b,xx,yy,pal[idx-1]);}
-  drawText(b,AW,last?printable(last.sgv):noDataText(),31,6,1,!last||old?S.stale:levelColor(last.sgv));
-  if(last)timerBlocks(b,last,16,16,7);
+  if(!last){noData(b);return;}
+  for(let row=0;row<8;row++)for(let col=0;col<17;col++){
+    const cell=UNICORN_ART[row][col];
+    if(cell==='.'||maneBand(cell)>=0)continue;
+    px(b,col,row,cell==='E'?0x18C3:old?S.stale:cell==='H'?0xFF58:0xF79D);
+  }
+  drawMane(b,last.sgv,old,false,0);
+  const p=printable(last.sgv),fits=31-textW(AW,p)>=19;
+  drawText(b,AW,p,fits?31:33,6,1,old?S.stale:levelColor(last.sgv));
+  timerBlocks(b,last,16,17,7);
+  if(!old)drawMane(b,last.sgv,false,true,Math.floor(t/110));
 }},
 {name:"Time only",draw(b,t){
   const now=new Date();let h=now.getHours();const m=now.getMinutes(),s=now.getSeconds();let txt;
@@ -287,33 +362,35 @@ const FACES=[
 }},
 {name:"Simple (dark)",draw(b,t){
   const last=READINGS[READINGS.length-1],old=isOld();
-  if(!last){drawText(b,AW,noDataText(),0,6,2,S.stale);return;}
+  if(!last){noData(b);return;}
   const lvl=level(last.sgv), urg=lvl==='UL'||lvl==='UH';
   drawText(b,AW,printable(last.sgv),0,6,2,old?S.stale:(urg?bandColor(lvl):C.WHITE));
   trendArrow(b,last,27,1,old,true);
 }},
 {name:"Race car",draw(b,t){
   const last=READINGS[READINGS.length-1],old=isOld();
-  if(!last){drawText(b,AW,noDataText(),0,6,2,S.stale);return;}
+  if(!last){noData(b);return;}
   raceCar(b,last.sgv,old,old?0:Math.floor(t/110));
   drawText(b,AW,printable(last.sgv),31,6,1,old?S.stale:levelColor(last.sgv));
   timerBlocks(b,last,16,16,7);
 }},
 {name:"Dragon",draw(b,t){
   const last=READINGS[READINGS.length-1],old=isOld();
-  if(!last){drawText(b,AW,noDataText(),0,6,2,S.stale);return;}
+  if(!last){noData(b);return;}
   dragon(b,last,old,old?0:Math.floor(t/110));
   drawText(b,AW,printable(last.sgv),31,6,1,old?S.stale:levelColor(last.sgv));
   timerBlocks(b,last,16,16,7);
 }},
 {name:"Big text (dark)",draw(b,t){
+  // Default: no age dots.
   const last=READINGS[READINGS.length-1],old=isOld();
-  const s=last?printable(last.sgv):noDataText();
-  const lvl=last?level(last.sgv):'N', urg=lvl==='UL'||lvl==='UH';
-  drawText(b,MU,s,0,7,0,!last||old?S.stale:(urg?bandColor(lvl):C.WHITE));
-  if(last)trendArrow(b,last,27,1,old,true);
+  if(!last){noData(b);return;}
+  const lvl=level(last.sgv), urg=lvl==='UL'||lvl==='UH';
+  drawText(b,MU,printable(last.sgv),0,7,0,old?S.stale:(urg?bandColor(lvl):C.WHITE));
+  trendArrow(b,last,27,1,old,true);
 }},
 {name:"Rainbow clock",draw(b,t){
+  t=stepTime(t,80);
   const now=new Date();let txt;
   if(S.h12){let h=now.getHours();const ap=h<12?"AM":"PM";h=h%12===0?12:h%12;
     txt=`${h}:${String(now.getMinutes()).padStart(2,'0')} ${ap}`;}
@@ -328,12 +405,13 @@ const FACES=[
 }},
 {name:"Rainbow big text",draw(b,t){
   const last=READINGS[READINGS.length-1],old=isOld();
-  if(!last){drawText(b,MU,noDataText(),0,7,0,S.stale);return;}
+  if(!last){noData(b);return;}
   if(old){
     drawText(b,MU,printable(last.sgv),0,7,0,S.stale);
     trendArrow(b,last,27,1,true);
     return;
   }
+  t=stepTime(t,80);
   const s=printable(last.sgv), hueOff=Math.trunc(t/20)%256, len=s.length;
   let x=0;
   for(let i=0;i<len;i++){
@@ -345,7 +423,9 @@ const FACES=[
 }},
 {name:"Rainbow mood",draw(b,t){
   const last=READINGS[READINGS.length-1],old=isOld();
-  if(!last){drawText(b,AW,noDataText(),0,6,2,S.stale);return;}
+  if(!last){noData(b);return;}
+  // Old data is drawn once and stays still; fresh data redraws every 60 ms.
+  t=old?0:stepTime(t,60);
   const lvl=level(last.sgv);
   const falling=last.trend==='DOUBLE_DOWN'||last.trend==='SINGLE_DOWN';
   const first=Math.floor(t/300)%2===0;
@@ -423,10 +503,10 @@ HTML_HEAD = """<!DOCTYPE html>
   <div class="ctl"><label><input id="nodata" type="checkbox"> No data</label></div>
   <div class="ctl"><label>Units</label><div class="seg" id="units"><button data-v="0" class="on">mg/dL</button><button data-v="1">mmol/L</button></div></div>
   <div class="ctl"><label>Clock</label><div class="seg" id="clock"><button data-v="0" class="on">24h</button><button data-v="1">12h</button></div></div>
-  <div class="ctl"><label>Stale color</label><input id="stale" type="color" value="#a451a4"></div>
+  <div class="ctl"><label>Stale color</label><input id="stale" type="color" value="#a5a2a5"></div>
 </div>
 <div class="grid" id="grid"></div>
-<div class="note">Stale threshold: 20 min (matches firmware default). Timer blocks: one per minute of data age, up to 5. Sample history is synthesized: 3 h of 5-minute readings ending at the chosen value and trend.</div>
+<div class="note">Firmware defaults: limits 55/70/180/250 mg/dL, data old after 20 min, face settings at their defaults, full brightness. Timer blocks: one per minute of data age, up to 5. Sample history is synthesized: 3 h of 5-minute readings ending at the chosen value and trend.</div>
 <script>
 """
 
@@ -467,8 +547,8 @@ function refresh(){
   S.value=+$('glucose').value;S.trend=$('trend').value;
   S.ageMin=+$('age').value;S.noData=$('nodata').checked;
   S.stale=hexTo565($('stale').value);
-  $('glucoseOut').textContent=S.value+(S.mmol?" ("+(S.value/18).toFixed(1)+")":"");
-  $('ageOut').textContent=S.ageMin+" min"+(S.ageMin>=20?" (stale)":"");
+  $('glucoseOut').textContent=S.value+(S.mmol?" ("+printable(S.value)+")":"");
+  $('ageOut').textContent=S.ageMin+" min"+(S.ageMin>OLD_MINUTES?" (stale)":"");
   buildReadings();
 }
 document.querySelectorAll('#units button').forEach(btn=>btn.onclick=()=>{
