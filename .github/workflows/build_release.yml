@@ -109,8 +109,9 @@ jobs:
           cp artifacts/debug/*.bin www/debug/artifacts/
       - name: Copy debug manifest
         run: cp www/debug/manifest-debug.json www/debug/manifest.json
-      - name: Copy face simulator
+      - name: Generate face simulator
         run: |
+          python3 simulator/gen_sim.py
           mkdir -p www/simulator
           cp simulator/index.html www/simulator/index.html
       - name: Upload artifact
