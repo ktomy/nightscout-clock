@@ -5,8 +5,9 @@ in any browser. Animations run live, and the controls let you sweep glucose
 value, trend, data age (stale at 20 min), units, 12/24 h clock, and the stale
 color.
 
-`index.html` is **self-contained** (fonts and bitmaps are embedded) and is
-published to GitHub Pages at
+`index.html` is **self-contained** (fonts and bitmaps are embedded). It is a
+generated file and is not committed; the release workflow generates it and
+publishes it to GitHub Pages at
 `https://ktomy.github.io/nightscout-clock/simulator/` together with each
 release (see `.github/workflows/build_release.yml`).
 
@@ -16,19 +17,19 @@ release (see `.github/workflows/build_release.yml`).
 
 - `fonts/font_awtrix.json`, `fonts/font_mu.json` — the firmware's own font
   bitmaps (Awtrix + Mu Heavy), so text metrics match the device exactly.
-- Static data (trend arrows, sparkles, mini smileys, unicorn sprite) is
+- Static data (trend arrows, mood smileys, unicorn sprite) is
   transcribed from the firmware sources at the top of `gen_sim.py`.
 
 After changing any face logic in `src/BGDisplayFace*.cpp`, mirror the change
 in the matching `draw()` function inside `gen_sim.py`'s `JS_FACES` block,
-then regenerate:
+then regenerate and open `simulator/index.html` to check the result:
 
-```powershell
-python simulator/gen_sim.py
+```sh
+python3 simulator/gen_sim.py
 ```
 
-The script writes `simulator/index.html` in place. Commit both the generator
-change and the regenerated `index.html`.
+The script writes `simulator/index.html`, which Git ignores. Commit only the
+generator and font changes.
 
 ## Fidelity notes
 
