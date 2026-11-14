@@ -24,8 +24,9 @@ matching simulator change, and pull requests are not held back for one.
 
 - `fonts/font_awtrix.json`, `fonts/font_mu.json` — the firmware's own font
   bitmaps (Awtrix + Mu Heavy), so text metrics match the device exactly.
-- Static data (trend arrows, mood smileys, unicorn sprite) is
-  transcribed from the firmware sources at the top of `gen_sim.py`.
+- Static data (trend arrows, mood smileys) is transcribed from the firmware
+  sources at the top of `gen_sim.py`; sprites drawn from character art (unicorn,
+  dragon, race car) are copied next to their faces in `JS_FACES`.
 
 To add or update a face, write or change its `draw()` function inside
 `gen_sim.py`'s `JS_FACES` block to match `src/BGDisplayFace*.cpp`, then
@@ -46,6 +47,12 @@ generator and font changes.
   chosen value/trend.
 - Faces driven by wall-clock time (Clock and value, Time only, Rainbow
   clock) use the browser's local time.
+- Settings other than the controls on the page use their defaults: glucose
+  limits 55/70/180/250 mg/dL, data old after 20 minutes, default range colors,
+  and each face's default settings (Big text age dots on, Unicorn mane moving
+  down, normal animation speed).
+- Faces are drawn at full brightness; the firmware's low-brightness color
+  substitutions are not simulated.
 - Hardware-only behavior is not simulated: button handling (including the
   middle-button brightness cycle/overlay), the LDR light sensor, Wi-Fi,
-  and OTA.
+  and OTA. Surprise mode and alarms are not simulated either.
