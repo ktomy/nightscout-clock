@@ -64,6 +64,8 @@ both lists in the intended navigation/display order. IDs do not depend on that
 order; no numeric ID allocation or face-count update is needed. Configuration
 stores these IDs in `default_face`, `inactive_faces`, and schedule rows.
 
+Adding the face to the browser face simulator in `simulator/` is optional; see `simulator/README.md`.
+
 ### Updating the web UI screenshots
 
 The web UI source is in `web/src/`, including the original icon and timezone JSON in

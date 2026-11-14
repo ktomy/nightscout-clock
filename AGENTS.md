@@ -22,7 +22,7 @@ When adding firmware behavior, prefer extending the existing module family inste
 
 `test/` contains the host-side tests; see Testing Guidelines.
 
-`www/` is the GitHub Pages site, including the browser installer and debug pages; it is not part of the firmware filesystem image. `scripts/` contains contributor tooling for local build, upload, monitoring, release, and emulator/test-data tasks. Core firmware build configuration lives in `platformio.ini` and `partitions.csv`; `wokwi.toml` and `diagram.json` describe the Wokwi simulator project (see "Testing in the Wokwi simulator").
+`www/` is the GitHub Pages site, including the browser installer and debug pages; it is not part of the firmware filesystem image. `simulator/` holds the optional browser face simulator: `gen_sim.py` generates a page with JavaScript copies of the faces, and the release workflow publishes it under `www/simulator/`. Face changes do not require simulator changes. `scripts/` contains contributor tooling for local build, upload, monitoring, release, and emulator/test-data tasks. Core firmware build configuration lives in `platformio.ini` and `partitions.csv`; `wokwi.toml` and `diagram.json` describe the Wokwi simulator project (see "Testing in the Wokwi simulator").
 
 ## Build, Test, and Development Commands
 
