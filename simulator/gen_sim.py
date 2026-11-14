@@ -410,7 +410,7 @@ HTML_HEAD = """<!DOCTYPE html>
 </head>
 <body>
 <h1>Nightscout Clock &mdash; Face Simulator</h1>
-<div class="sub">Pixel-exact preview of all {FACECOUNT} clock faces, rendered with the firmware&rsquo;s own font bitmaps and drawing logic. Animations run live.</div>
+<div class="sub">Preview of {FACECOUNT} clock faces, using the firmware&rsquo;s own fonts. Each face is a JavaScript copy of the firmware drawing code, kept up to date voluntarily, so it may be missing from here or look different on the clock. Animations run live.</div>
 <div class="controls">
   <div class="ctl"><label>Glucose</label><input id="glucose" type="range" min="40" max="400" value="142"><output id="glucoseOut">142</output></div>
   <div class="ctl"><label>Trend</label><select id="trend">
