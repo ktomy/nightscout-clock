@@ -4,7 +4,7 @@
 
 This is an active and developing project, new versions land every few weeks
 
-### Current version: 1.3.0
+### Current version: 1.3.1
 
 ![Build and Release](https://github.com/ktomy/nightscout-clock/actions/workflows/build_release.yml/badge.svg)
 
@@ -205,6 +205,11 @@ High, low, and urgent-low alarms each have their own threshold, snooze duration,
   - ...more... (if you are the author of a CGM data collecting app/service and you want your data to be displayed on the Nightscout Clock, please contact me)
 
 ## Changes
+
+### 1.3.1
+
+- Changed how faces are chosen in the settings page: the active faces are listed at the top, each with its picture and a Remove button, and the other faces wait in a "More faces" gallery, closed by default, where you can preview and add them; the card's count shows how many faces are active, thanks [@nishanm](https://github.com/nishanm)
+- Changed new configurations to activate four faces: Big text (the default), Value and delta, Current time and BG value, and Unicorn; the side buttons and face cycling move only between active faces, so after a fresh install they show these four until you add others from the "More faces" gallery
 
 ### 1.3.0
 
