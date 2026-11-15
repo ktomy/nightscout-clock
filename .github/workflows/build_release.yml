@@ -109,11 +109,11 @@ jobs:
           cp artifacts/debug/*.bin www/debug/artifacts/
       - name: Copy debug manifest
         run: cp www/debug/manifest-debug.json www/debug/manifest.json
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: '.node-version'
       - name: Generate face simulator
-        run: |
-          python3 simulator/gen_sim.py
-          mkdir -p www/simulator
-          cp simulator/index.html www/simulator/index.html
+        run: node web/build.mjs --simulator www/simulator
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v5
         with:

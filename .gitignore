@@ -10,4 +10,4 @@ __pycache__/
 /log/*
 /logs/*
 /.agents/*
-/simulator/index.html
+/www/simulator/

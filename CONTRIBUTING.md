@@ -64,7 +64,8 @@ both lists in the intended navigation/display order. IDs do not depend on that
 order; no numeric ID allocation or face-count update is needed. Configuration
 stores these IDs in `default_face`, `inactive_faces`, and schedule rows.
 
-Adding the face to the browser face simulator in `simulator/` is optional; see `simulator/README.md`.
+The browser face simulator and the settings page's preview both come from `data/clockemu.js.gz`;
+see below for rebuilding it.
 
 ### Updating the web UI screenshots
 
