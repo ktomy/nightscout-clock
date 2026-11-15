@@ -24,6 +24,7 @@ _Nightscout Clock (or NSClock) is an open-source product aimed at helping caregi
 - Marks stale readings with a configurable color and a cross instead of the trend arrow
 - Daily face and brightness schedules, or automatic cycling through your chosen faces
 - Offline configuration page with settings backup and restore
+- Live preview of the display on the settings page, so you see changes before saving them. Try the faces without a clock in the [face simulator](https://ktomy.github.io/nightscout-clock/simulator/)
 - ...and more
 
 ### YouTube review
@@ -128,12 +129,6 @@ Set up WiFi, an optional secondary network, a custom MAC address or hostname, an
 The **Backup and restore** card downloads the clock's settings as a file and loads a file into the page for review before saving. WiFi settings are loaded only when requested; the web login is never imported. The file contains WiFi and data source passwords, so keep it private.
 
 The **Low battery alert** switch, off by default, makes the clock beep every two minutes while the battery reads 5% or less.
-
-#### Clock preview
-
-The Display and Glucose tabs show a preview of the clock's display with the settings on the page, before they are saved. Use its left, select and right buttons like the clock's, and try a glucose value, trend and reading age. The preview runs the firmware's own display code, compiled to WebAssembly (`data/clockemu.js.gz`), in the browser, so it needs no internet and no work from the clock. It shows the colors the firmware sends to the LEDs, which look different on the real display. The same preview is published as the [face simulator](https://ktomy.github.io/nightscout-clock/simulator/).
-
-The preview is built from `src/` by `web/emulator/build.sh`, which needs [Emscripten](https://emscripten.org/docs/getting_started/downloads.html) 6.0.9 and one PlatformIO build of the `ulanzi` environment. Each release rebuilds it from that release's source; run it locally to see a display change in the preview.
 
 ### Alarm settings
 
