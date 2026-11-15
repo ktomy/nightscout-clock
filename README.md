@@ -4,7 +4,7 @@
 
 This is an active and developing project, new versions land every few weeks
 
-### Current version: 1.2.0
+### Current version: 1.3.0
 
 ![Build and Release](https://github.com/ktomy/nightscout-clock/actions/workflows/build_release.yml/badge.svg)
 
@@ -205,6 +205,16 @@ High, low, and urgent-low alarms each have their own threshold, snooze duration,
   - ...more... (if you are the author of a CGM data collecting app/service and you want your data to be displayed on the Nightscout Clock, please contact me)
 
 ## Changes
+
+### 1.3.0
+
+- Added a live preview of the clock to the settings page: it draws the selected face with your unsaved settings, its Left, Select and Right buttons work like the clock's, and a test reading lets you try values, trends, data age, clock time and room light; it warns when LEDs go dark at the chosen brightness and can play alarm melodies in the browser, thanks [@nishanm](https://github.com/nishanm) ([#206](https://github.com/ktomy/nightscout-clock/pull/206))
+- Added the [face simulator](https://ktomy.github.io/nightscout-clock/simulator/), linked from the installer page, which previews every clock face in the browser using the same code as the clock, thanks [@adamecker](https://github.com/adamecker) ([#218](https://github.com/ktomy/nightscout-clock/pull/218)) and [@nishanm](https://github.com/nishanm) ([#206](https://github.com/ktomy/nightscout-clock/pull/206))
+- Added a WiFi network scan to the settings page: the Scan button lists nearby 2.4 GHz networks by signal strength, and choosing one fills in the name and the open-network switch, thanks [@nishanm](https://github.com/nishanm) for the list layout ([#279](https://github.com/ktomy/nightscout-clock/pull/279), [#280](https://github.com/ktomy/nightscout-clock/pull/280))
+- Changed mmol/L values and the Value and diff delta to match Nightscout's main view: mmol/L uses Nightscout's conversion factor (for example, 55 mg/dl now shows as 3.1 instead of 3.0), the delta is calculated the way Nightscout does, and mmol/L deltas always show one decimal place, such as +1.0; glucose limits entered in mmol/L in the settings page use the same conversion ([#276](https://github.com/ktomy/nightscout-clock/pull/276))
+- Changed the Unicorn face to start with a moving mane in new configurations
+- Fixed WiFi setup from the web installer hanging after the credentials were sent: the clock crashed after saving them and never reported the result; the installer now also shows an error instead of waiting forever if a reply is lost ([#278](https://github.com/ktomy/nightscout-clock/pull/278))
+- Improved the contributor tooling: the firmware can run in the Wokwi simulator with scripted scenarios, and text files now use LF line endings throughout the repository
 
 ### 1.2.0
 
