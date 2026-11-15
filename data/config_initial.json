@@ -29,7 +29,10 @@
     "brightness_level": 100,
     "default_face": "big_text",
     "face_cycle_enabled": false,
-    "inactive_faces": ["battery_uptime"],
+    "inactive_faces": [
+        "simple", "graph", "graph_and_bg", "time_only", "simple_dark", "race_car", "dragon", "big_text_dark",
+        "rainbow_clock", "big_text_rainbow", "rainbow_mood", "battery_uptime"
+    ],
     "face_cycle_interval_seconds": 60,
     "face_schedule_enabled": false,
     "face_schedule": [],
