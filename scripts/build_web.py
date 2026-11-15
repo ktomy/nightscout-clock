@@ -1,4 +1,4 @@
-"""Generate web assets before PlatformIO collects files for a filesystem image."""
+"""Generate web assets and the clock preview before PlatformIO collects files for a filesystem image."""
 
 import os
 from pathlib import Path
@@ -21,6 +21,15 @@ if set(COMMAND_LINE_TARGETS) & {"buildfs", "uploadfs", "uploadfsota"} and "nobui
     if not node:
         print("ERROR: Node.js was not found on PATH or in NVM for the version in .node-version.")
         print("Install that version and restart VS Code from a terminal where node --version works.")
+        env.Exit(1)
+    # The clock preview: the display code compiled to WebAssembly, rebuilt when it changed.
+    libs = Path(env.subst("$PROJECT_LIBDEPS_DIR")) / env["PIOENV"]
+    core = Path(env.PioPlatform().get_package_dir("framework-arduinoespressif32")) / "cores" / "esp32"
+    try:
+        subprocess.run([node, str(project / "web/emulator/build.mjs"), "--libs", str(libs), "--core", str(core)],
+                       cwd=project, check=True)
+    except subprocess.CalledProcessError:
+        print("ERROR: The clock preview could not be built; filesystem build stopped.")
         env.Exit(1)
     print("Generating web assets...")
     try:

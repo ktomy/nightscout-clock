@@ -27,7 +27,7 @@ const SIM_JS = ["util.js", "schema.js", "preview.js", "preview-panel.js", path.j
 
 // Gzipped page budget. The whole LittleFS partition is 1 MB.
 const BUDGET_BYTES = 200000;
-// The clock preview emulator, built by web/emulator/build.sh.
+// The clock preview emulator, built by web/emulator/build.mjs.
 const EMULATOR_BUDGET_BYTES = 70000;
 
 /**
@@ -78,6 +78,10 @@ function buildSimulator(outDir) {
     fs.writeFileSync(path.join(outDir, "index.html"), html);
     fs.writeFileSync(path.join(outDir, "clockemu.js"), zlib.gunzipSync(fs.readFileSync(path.join(DATA, "clockemu.js.gz"))));
     console.log(`simulator written to ${outDir}`);
+}
+
+if (!fs.existsSync(path.join(DATA, "clockemu.js.gz"))) {
+    throw new Error("data/clockemu.js.gz is missing: run node web/emulator/build.mjs, or a filesystem build");
 }
 
 const simulatorAt = process.argv.indexOf("--simulator");

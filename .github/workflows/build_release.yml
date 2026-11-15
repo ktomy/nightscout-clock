@@ -36,19 +36,23 @@ jobs:
           python-version: "3.12"
       - name: Install PlatformIO Core
         run: pip install --upgrade platformio
+      # Filesystem builds compile the clock preview (web/emulator/build.mjs) with Emscripten.
+      - name: Read the Emscripten version
+        id: emsdk
+        run: echo "version=$(node web/emulator/build.mjs --emsdk-version)" >> "$GITHUB_OUTPUT"
+      - uses: actions/cache@v6
+        with:
+          path: ~/emsdk
+          key: ${{ runner.os }}-emsdk-${{ steps.emsdk.outputs.version }}
+      - name: Install Emscripten
+        run: |
+          [ -d ~/emsdk ] || git clone --depth 1 https://github.com/emscripten-core/emsdk.git ~/emsdk
+          ~/emsdk/emsdk install ${{ steps.emsdk.outputs.version }}
+          ~/emsdk/emsdk activate ${{ steps.emsdk.outputs.version }}
 
       # Build Release
       - name: Build Release Project
         run: pio run --environment ulanzi
-      # The settings page's clock preview and the face simulator, built from this source
-      - name: Install Emscripten
-        run: |
-          version=$(sed -n 's/^EMSDK_VERSION=//p' web/emulator/build.sh)
-          git clone --depth 1 https://github.com/emscripten-core/emsdk.git ~/emsdk
-          ~/emsdk/emsdk install "$version"
-          ~/emsdk/emsdk activate "$version"
-      - name: Build the clock preview
-        run: EMSDK=~/emsdk web/emulator/build.sh
       - name: Build Release Filesystem Image
         run: pio run --target buildfs --environment ulanzi
       - name: Collect Release artifacts

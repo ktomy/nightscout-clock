@@ -1,4 +1,4 @@
-// The clock preview: the firmware's display code, compiled to WebAssembly by web/emulator/build.sh, runs in
+// The clock preview: the firmware's display code, compiled to WebAssembly by web/emulator/build.mjs, runs in
 // this browser with the settings on the page, unsaved changes included. The clock only serves the file, so
 // the preview works in setup mode and costs the clock nothing after the one download.
 

@@ -34,6 +34,10 @@ My computer is running linux, but you can use Windows or MacOS as well, there ar
 - clone the project using Visual Studio Code
 - Install Node.js using the version in `.node-version` for filesystem builds and screenshots. No npm packages are required.
 - Filesystem builds also find that version under NVM (`NVM_DIR` or `~/.nvm`) when VS Code does not inherit your shell's Node.js path. For other installations, start VS Code from a terminal where `node --version` works.
+- Install [Emscripten](https://emscripten.org/docs/getting_started/downloads.html) for filesystem builds, which compile the web UI's clock preview from the display code. Use the version that `node web/emulator/build.mjs --emsdk-version` prints:
+  - `git clone https://github.com/emscripten-core/emsdk.git ~/emsdk`
+  - `cd ~/emsdk && ./emsdk install <version> && ./emsdk activate <version>` (on Windows, `emsdk.bat`)
+  - Filesystem builds find it in `~/emsdk`, in the folder set in `EMSDK`, or as `emcc` on `PATH`
 - PlatformIO should detect the project
 - Configure the serial port for your machine:
   - Copy `platformio.local.ini.example` to `platformio.local.ini`
@@ -64,8 +68,8 @@ both lists in the intended navigation/display order. IDs do not depend on that
 order; no numeric ID allocation or face-count update is needed. Configuration
 stores these IDs in `default_face`, `inactive_faces`, and schedule rows.
 
-The browser face simulator and the settings page's preview both come from `data/clockemu.js.gz`;
-see below for rebuilding it.
+The browser face simulator and the settings page's preview both come from `data/clockemu.js.gz`,
+which every filesystem build compiles from the faces; see below.
 
 ### Updating the web UI screenshots
 
@@ -77,12 +81,10 @@ GitHub Actions build workflows. Firmware-only builds do not require Node.js.
 The generated `.gz` files are ignored by Git. Commit changes to their sources, not the
 compressed outputs. Run `node web/build.mjs` to generate assets without building LittleFS.
 
-The web UI's clock preview runs the display code as `data/clockemu.js.gz`. The release workflow
-rebuilds it from the tagged source, so a pull request does not need to commit a rebuilt copy. To see a
-display change in the preview, build the `ulanzi` environment once, install
-[emsdk](https://emscripten.org/docs/getting_started/downloads.html) 6.0.9
-(`./emsdk install 6.0.9 && ./emsdk activate 6.0.9`), and run `EMSDK=<emsdk folder> web/emulator/build.sh`
-and `node web/build.mjs`.
+The web UI's clock preview runs the display code as `data/clockemu.js.gz`, which is also ignored
+by Git. Filesystem builds compile it with Emscripten from `src/` and `lib/` before the web assets,
+and skip the compile when nothing it uses has changed. To build it without building LittleFS, run
+`node web/emulator/build.mjs`; it uses the libraries PlatformIO installed for `ulanzi_debug` or `ulanzi`.
 
 `scripts/screenshot_web_ui.py` renders the current `data/` web UI in headless Chromium
 and saves a full-page PNG of the Display tab to `docs/images/web-ui.png`.

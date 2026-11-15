@@ -49,6 +49,7 @@ def main():
                     "Then install Chromium: python -m playwright install chromium\n")
 
     try:
+        subprocess.run(["node", str(ROOT / "web/emulator/build.mjs")], cwd=ROOT, check=True)
         subprocess.run(["node", str(ROOT / "web/build.mjs")], cwd=ROOT, check=True)
     except FileNotFoundError:
         parser.exit(1, "Install Node.js using the version in .node-version.\n")

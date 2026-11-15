@@ -1,5 +1,5 @@
 // Stand-in for the ESP32 Arduino core header. String, Print and Stream are the core's own sources,
-// copied in by build.sh; only the hardware-facing parts are replaced.
+// copied in by build.mjs; only the hardware-facing parts are replaced.
 #ifndef EMU_ARDUINO_H
 #define EMU_ARDUINO_H
 
