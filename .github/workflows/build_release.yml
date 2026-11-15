@@ -36,6 +36,19 @@ jobs:
           python-version: "3.12"
       - name: Install PlatformIO Core
         run: pip install --upgrade platformio
+      # Filesystem builds compile the clock preview (web/emulator/build.mjs) with Emscripten.
+      - name: Read the Emscripten version
+        id: emsdk
+        run: echo "version=$(node web/emulator/build.mjs --emsdk-version)" >> "$GITHUB_OUTPUT"
+      - uses: actions/cache@v6
+        with:
+          path: ~/emsdk
+          key: ${{ runner.os }}-emsdk-${{ steps.emsdk.outputs.version }}
+      - name: Install Emscripten
+        run: |
+          [ -d ~/emsdk ] || git clone --depth 1 https://github.com/emscripten-core/emsdk.git ~/emsdk
+          ~/emsdk/emsdk install ${{ steps.emsdk.outputs.version }}
+          ~/emsdk/emsdk activate ${{ steps.emsdk.outputs.version }}
 
       # Build Release
       - name: Build Release Project
@@ -78,6 +91,7 @@ jobs:
           mkdir -p combined-artifacts/release combined-artifacts/debug
           cp artifacts/*.bin combined-artifacts/release/
           cp artifacts-debug/*.bin combined-artifacts/debug/
+          cp data/clockemu.js.gz combined-artifacts/
       - name: Archive artifacts
         uses: actions/upload-artifact@v7
         with:
@@ -109,11 +123,13 @@ jobs:
           cp artifacts/debug/*.bin www/debug/artifacts/
       - name: Copy debug manifest
         run: cp www/debug/manifest-debug.json www/debug/manifest.json
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: '.node-version'
       - name: Generate face simulator
         run: |
-          python3 simulator/gen_sim.py
-          mkdir -p www/simulator
-          cp simulator/index.html www/simulator/index.html
+          cp artifacts/clockemu.js.gz data/clockemu.js.gz
+          node web/build.mjs --simulator www/simulator
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v5
         with:

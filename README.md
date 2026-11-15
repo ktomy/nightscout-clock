@@ -24,6 +24,7 @@ _Nightscout Clock (or NSClock) is an open-source product aimed at helping caregi
 - Marks stale readings with a configurable color and a cross instead of the trend arrow
 - Daily face and brightness schedules, or automatic cycling through your chosen faces
 - Offline configuration page with settings backup and restore
+- Live preview of the display on the settings page, so you see changes before saving them. Try the faces without a clock in the [face simulator](https://ktomy.github.io/nightscout-clock/simulator/)
 - ...and more
 
 ### YouTube review
