@@ -339,7 +339,9 @@ function facesCard() {
         const inactive = form.get("inactive_faces") || []
         const active = activeFaceIds(inactive)
         const thumbs = []
-        const setInactive = next => {
+        const more = FACES.filter(x => !active.includes(x.id))
+        // focusId names the control to focus once the lists are rebuilt, since the tapped button is replaced.
+        const setInactive = (next, focusId) => {
             // Kept in the order of FACES, so the saved list does not depend on the order of taps.
             next = FACES.map(f => f.id).filter(id => next.includes(id))
             const nowActive = activeFaceIds(next)
@@ -347,6 +349,19 @@ function facesCard() {
             if (nowActive.length && !nowActive.includes(form.get("default_face"))) form.set("default_face", nowActive[0])
             form.set("inactive_faces", next)
             form.touch("inactive_faces")
+            const target = document.getElementById(focusId)
+            if (target) target.focus()
+        }
+        // After a Remove, focus moves to the face now in its place in the list, or the one before it.
+        const removeFocus = i => {
+            const rest = active.filter((_, j) => j !== i)
+            const id = rest[Math.min(i, rest.length - 1)]
+            return rest.length > 1 ? "face_remove_" + id : "face_show_" + id
+        }
+        // After an Add, focus moves to the next face in the gallery, or to the added face once the gallery is empty.
+        const addFocus = (i, added) => {
+            const rest = more.filter((_, j) => j !== i)
+            return rest.length ? "face_add_" + rest[Math.min(i, rest.length - 1)].id : "face_remove_" + added
         }
         // A face the clock's firmware doesn't draw keeps its place, without a picture.
         const thumb = id => {
@@ -356,30 +371,29 @@ function facesCard() {
         }
 
         const activeList = el("ul.face-list", { "aria-label": "Active clock faces" })
-        for (const f of FACES.filter(x => active.includes(x.id))) {
+        FACES.filter(x => active.includes(x.id)).forEach((f, i) => {
             const isDefault = !cycling && form.get("default_face") === f.id
             activeList.append(el("li.face-row", { dataset: { face: f.id } },
-                el("button.face-show", { type: "button", "aria-label": `Show ${f.name} in the preview`, onclick: () => preview.showFace(f.id) },
+                el("button.face-show", { id: "face_show_" + f.id, type: "button", "aria-label": `Show ${f.name} in the preview`, onclick: () => preview.showFace(f.id) },
                     thumb(f.id),
                     el("span.face-text", el("span.face-title", f.name, isDefault ? el("span.tag", "Default") : null), el("span.help", f.about))),
                 el("button.btn.sm", {
-                    type: "button", "aria-label": `Remove ${f.name}`, disabled: active.length <= 1,
+                    id: "face_remove_" + f.id, type: "button", "aria-label": `Remove ${f.name}`, disabled: active.length <= 1,
                     title: active.length <= 1 ? "At least one face stays active" : null,
-                    onclick: () => setInactive([...inactive, f.id]),
+                    onclick: () => setInactive([...inactive, f.id], removeFocus(i)),
                 }, "Remove")))
-        }
+        })
 
-        const more = FACES.filter(x => !active.includes(x.id))
         const gallery = el("div.faces", { role: "group", "aria-label": "More clock faces" })
-        for (const f of more) {
+        more.forEach((f, i) => {
             gallery.append(el("div.face", { dataset: { face: f.id } },
-                el("button.face-show", { type: "button", "aria-label": `Show ${f.name} in the preview`, onclick: () => preview.showFace(f.id) },
+                el("button.face-show", { id: "face_show_" + f.id, type: "button", "aria-label": `Show ${f.name} in the preview`, onclick: () => preview.showFace(f.id) },
                     thumb(f.id), el("span.face-title", f.name), el("span.help", f.about)),
                 el("button.btn.sm", {
-                    type: "button", "aria-label": `Add ${f.name}`,
-                    onclick: () => { preview.showFace(f.id); setInactive(inactive.filter(x => x !== f.id)) },
+                    id: "face_add_" + f.id, type: "button", "aria-label": `Add ${f.name}`,
+                    onclick: () => { preview.showFace(f.id); setInactive(inactive.filter(x => x !== f.id), addFocus(i, f.id)) },
                 }, "Add")))
-        }
+        })
         preview.setThumbs(thumbs)
         return el("div.field.stack", { dataset: { field: "inactive_faces" } },
             el("p.help", "The faces you use. The left and right buttons move only between these, and cycling runs through them in this order. Tap a face to see it in the preview."),
@@ -403,8 +417,12 @@ function facesCard() {
         $("input", row).disabled = !!form.get("face_schedule_enabled")
         return row
     })
+    // How many of the faces are active, kept current as faces are added and removed.
+    const activeCount = () => `${activeFaceIds(form.get("inactive_faces")).length} of ${FACES.length} active`
+    const countTag = el("span.tag", activeCount())
+    onChangeWhileAttached(countTag, key => { if (key === "inactive_faces") countTag.textContent = activeCount() })
     return card("Clock faces", "Pictures are drawn by the clock's own firmware code, with the settings on this page.", el("div.stack", faces, defaultFace, faceDrawers(), el("hr.divider"),
-        cyclingToggle, interval), { aside: el("span.tag", `${FACES.length} faces`), id: "card_faces" })
+        cyclingToggle, interval), { aside: countTag, id: "card_faces" })
 }
 
 // Settings that belong to a face, by face id, shown in a drawer while that face is active. Faces sharing
