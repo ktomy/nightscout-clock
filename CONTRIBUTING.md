@@ -77,12 +77,12 @@ GitHub Actions build workflows. Firmware-only builds do not require Node.js.
 The generated `.gz` files are ignored by Git. Commit changes to their sources, not the
 compressed outputs. Run `node web/build.mjs` to generate assets without building LittleFS.
 
-The web UI's clock preview runs the display code as `data/clockemu.js.gz`. After changing a face or
-other display code, build the `ulanzi` environment once, install
+The web UI's clock preview runs the display code as `data/clockemu.js.gz`. The release workflow
+rebuilds it from the tagged source, so a pull request does not need to commit a rebuilt copy. To see a
+display change in the preview, build the `ulanzi` environment once, install
 [emsdk](https://emscripten.org/docs/getting_started/downloads.html) 6.0.9
-(`./emsdk install 6.0.9 && ./emsdk activate 6.0.9`), run `EMSDK=<emsdk folder> web/emulator/build.sh`
-and `node web/build.mjs`, and commit `data/clockemu.js.gz`. An unchanged checkout rebuilt with the same
-PlatformIO libraries gives the same file, so `git status` shows whether the committed one matches.
+(`./emsdk install 6.0.9 && ./emsdk activate 6.0.9`), and run `EMSDK=<emsdk folder> web/emulator/build.sh`
+and `node web/build.mjs`.
 
 `scripts/screenshot_web_ui.py` renders the current `data/` web UI in headless Chromium
 and saves a full-page PNG of the Display tab to `docs/images/web-ui.png`.

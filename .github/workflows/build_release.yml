@@ -40,6 +40,15 @@ jobs:
       # Build Release
       - name: Build Release Project
         run: pio run --environment ulanzi
+      # The settings page's clock preview and the face simulator, built from this source
+      - name: Install Emscripten
+        run: |
+          version=$(sed -n 's/^EMSDK_VERSION=//p' web/emulator/build.sh)
+          git clone --depth 1 https://github.com/emscripten-core/emsdk.git ~/emsdk
+          ~/emsdk/emsdk install "$version"
+          ~/emsdk/emsdk activate "$version"
+      - name: Build the clock preview
+        run: EMSDK=~/emsdk web/emulator/build.sh
       - name: Build Release Filesystem Image
         run: pio run --target buildfs --environment ulanzi
       - name: Collect Release artifacts
@@ -78,6 +87,7 @@ jobs:
           mkdir -p combined-artifacts/release combined-artifacts/debug
           cp artifacts/*.bin combined-artifacts/release/
           cp artifacts-debug/*.bin combined-artifacts/debug/
+          cp data/clockemu.js.gz combined-artifacts/
       - name: Archive artifacts
         uses: actions/upload-artifact@v7
         with:
@@ -113,7 +123,9 @@ jobs:
         with:
           node-version-file: '.node-version'
       - name: Generate face simulator
-        run: node web/build.mjs --simulator www/simulator
+        run: |
+          cp artifacts/clockemu.js.gz data/clockemu.js.gz
+          node web/build.mjs --simulator www/simulator
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v5
         with:
