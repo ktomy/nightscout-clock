@@ -1,6 +1,5 @@
 // Page start-up, the header, login, and Save.
 
-let factoryText = ""
 // Start the settings page and connect API responses, form changes, and DOM updates.
 // Own the header, authentication screens, save/restart flow, and firmware update check.
 
@@ -39,13 +38,6 @@ function wireName() {
     const done = () => (form.errors.clock_name ? input.focus() : editName(false))
     $("#rename_done").addEventListener("click", done)
     input.addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); done() } })
-}
-
-// A setting missing from the clock's file takes the factory value, as the firmware does when it loads the file.
-function withFactoryDefaults(config) {
-    let factory = {}
-    try { factory = JSON.parse(factoryText) } catch (e) { /* no factory file */ }
-    return { ...factory, ...config }
 }
 
 // ---------- header ----------
@@ -182,7 +174,7 @@ async function reloadAfterSave() {
     }
     const r = await api.loadConfig().catch(() => null)
     if (!(r && r.ok)) return toast("Saved and restarted, but the settings couldn't be read back. Reload the page.", "warn", 8000)
-    form.load(withFactoryDefaults(r.data))
+    form.load(r.data)
     ui.patients = null
     renderAll()
     preview.setConfig(form.saveJson())
@@ -271,8 +263,7 @@ async function loadSettings() {
         $("#loading_retry").hidden = false
         return setState("error")
     }
-    factoryText = await api.factoryConfig().catch(() => "")
-    form.load(withFactoryDefaults(r.data))
+    form.load(r.data)
     renderAll()
     renderDirty()
     // First setup (no WiFi yet) starts where the WiFi settings are.
