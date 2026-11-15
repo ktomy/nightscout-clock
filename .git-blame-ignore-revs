@@ -1,0 +1,5 @@
+# Commits that `git blame` should skip. GitHub's blame view reads this file automatically;
+# locally, run `git config blame.ignoreRevsFile .git-blame-ignore-revs` once.
+
+# Store all text files with LF line endings
+9461f0f9a83711b193a83931f11c3d6515aaf21f
