@@ -5,7 +5,7 @@
 const preview = (() => {
     const W = 32, H = 8
     // PeripheryManager's buttons, as web/emulator/emu.cpp numbers them.
-    const BUTTON = { LEFT: 0, SELECT: 1, RIGHT: 2, LEFT_HOLD: 3, RIGHT_HOLD: 4, SELECT_DOUBLE: 5 }
+    const BUTTON = { LEFT: 0, SELECT: 1, RIGHT: 2 }
     const events = emitter()
     let loading = null
     let config = null

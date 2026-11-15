@@ -40,7 +40,7 @@ function wirePreview(settings) {
     age.addEventListener("change", push)
     lux.addEventListener("input", () => { luxOut.textContent = `${luxValue()} lx`; preview.setLux(luxValue()) })
     luxOut.textContent = `${luxValue()} lx`
-    const buttons = { sim_left: "LEFT", sim_select: "SELECT", sim_right: "RIGHT", sim_left_hold: "LEFT_HOLD", sim_right_hold: "RIGHT_HOLD", sim_select_double: "SELECT_DOUBLE" }
+    const buttons = { sim_left: "LEFT", sim_select: "SELECT", sim_right: "RIGHT" }
     for (const [id, button] of Object.entries(buttons)) $(`#${id}`).addEventListener("click", () => preview.press(button))
 
     // A strip in the range colors under the glucose slider, so you can see where the limits fall.

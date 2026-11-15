@@ -89,8 +89,7 @@ EMSCRIPTEN_KEEPALIVE void emu_loop(double elapsedMs) {
     Ticker::runDue();
 }
 
-// Through PeripheryManager's handlers: 0 left, 1 select, 2 right (clicks), 3 left held, 4 right held,
-// 5 select double click.
+// A click through PeripheryManager's handlers: 0 left, 1 select, 2 right.
 EMSCRIPTEN_KEEPALIVE void emu_button(int id) {
     switch (id) {
         case 0:
@@ -101,15 +100,6 @@ EMSCRIPTEN_KEEPALIVE void emu_button(int id) {
             break;
         case 2:
             button_right.emuClick();
-            break;
-        case 3:
-            button_left.emuLongPress();
-            break;
-        case 4:
-            button_right.emuLongPress();
-            break;
-        case 5:
-            button_select.emuDoubleClick();
             break;
     }
 }
