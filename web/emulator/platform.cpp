@@ -24,6 +24,9 @@ double nowMillis = 0;
 double lightFraction = 0.5;
 uint8_t adcBits = 12;
 const uint8_t LDR_PIN = 35;
+const uint8_t BATTERY_PIN = 34;
+// A battery reading PeripheryManager maps to 90%, so the battery face shows a charged clock, not an empty one.
+const uint16_t BATTERY_READING = 646;
 }  // namespace
 
 void emuSetClock(double epoch, int offsetSeconds, bool synced) {
@@ -76,8 +79,10 @@ extern "C" void pinMode(uint8_t, uint8_t) {}
 extern "C" void digitalWrite(uint8_t, uint8_t) {}
 extern "C" int digitalRead(uint8_t) { return 0; }
 extern "C" void analogReadResolution(uint8_t bits) { adcBits = bits; }
-// The light sensor's divider voltage, at the ADC resolution the firmware selected.
+// The battery at 90%, and the light sensor's divider voltage at the ADC resolution the firmware selected.
 extern "C" uint16_t analogRead(uint8_t pin) {
+    if (pin == BATTERY_PIN)
+        return BATTERY_READING;
     if (pin != LDR_PIN)
         return 0;
     return static_cast<uint16_t>(lround(lightFraction * ((1 << adcBits) - 1)));
