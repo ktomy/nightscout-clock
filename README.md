@@ -10,6 +10,8 @@ This is an active and developing project, new versions land every few weeks
 
 _Nightscout Clock (or NSClock) is an open-source product aimed at helping caregivers of people with type 1 diabetes have peace of mind by being able to better monitor their loved ones' blood glucose values._
 
+**Website: [nsclock.app](https://nsclock.app/)**, where you can install the firmware from your browser and try every clock face in the simulator.
+
 <img width="500" alt="Photo of the Nightscout Clock" src="https://github.com/user-attachments/assets/f8005f49-6e32-43f1-bd84-0bb4e4691d7f" />
 
 ## Here is what it can do
