@@ -24,7 +24,7 @@ _Nightscout Clock (or NSClock) is an open-source product aimed at helping caregi
 - Marks stale readings with a configurable color and a cross instead of the trend arrow
 - Daily face and brightness schedules, or automatic cycling through your chosen faces
 - Offline configuration page with settings backup and restore
-- Live preview of the display on the settings page, so you see changes before saving them. Try the faces without a clock in the [face simulator](https://ktomy.github.io/nightscout-clock/simulator/)
+- Live preview of the display on the settings page, so you see changes before saving them. Try the faces without a clock in the [face simulator](https://nsclock.app/simulator/)
 - ...and more
 
 ### YouTube review
@@ -39,7 +39,7 @@ Thanks [@CallumMcK](https://github.com/CallumMcK)
 2. Wait a few days for the delivery
 3. Unpack, turn on (press on `<` and `>` buttons for a few seconds)
 4. Connect the USB-C cable (comes with the clock) to your computer
-5. Go to the [installation page](https://ktomy.github.io/nightscout-clock/)
+5. Go to the [installation page](https://nsclock.app/#install)
 6. Follow the instructions. If installation fails, see the [troubleshooting guide](TROUBLESHOOTING.md#installation) and the [installation troubleshooting discussion](https://github.com/ktomy/nightscout-clock/discussions/57).
 7. Once the clock is installed, take out your phone and join `nsclock` wi-fi network. Then go to `http://192.168.4.1/`
 8. Set up your device, provide the Wi-Fi network details, your Dexcom, Nightscout, LibreLink Up or Medtrum EasyFollow credentials, glucose warning limits and other parameters
