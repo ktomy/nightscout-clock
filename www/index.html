@@ -1,124 +1,588 @@
-<!DOCTYPE html>
-<html>
-
+<!doctype html>
+<html lang="en">
 <head>
-    <meta charset="utf-8" />
-    <title>Nightscout clock web flasher</title>
-    <meta name="description" content="Easily allow users to install Nightscout clock firmware on the web." />
-    <meta name="viewport" content="width=device-width" />
-    <meta name="color-scheme" content="dark light" />
-    <style>
-        body {
-            font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI",
-                Roboto, Ubuntu, sans-serif;
-            padding: 0;
-            margin: 0;
-            line-height: 1.4;
-        }
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Nightscout Clock: glucose on a pixel clock</title>
+<meta name="description" content="Free, open-source firmware that turns the Ulanzi TC001 pixel clock into a glucose display with alarms. Works with Dexcom Share, Nightscout, LibreLinkUp and Medtrum EasyFollow.">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#051424">
+<link rel="canonical" href="https://nsclock.app/">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Nightscout Clock">
+<meta property="og:title" content="Nightscout Clock: glucose on a pixel clock">
+<meta property="og:description" content="Free, open-source firmware that turns the Ulanzi TC001 pixel clock into a glucose display with alarms.">
+<meta property="og:url" content="https://nsclock.app/">
+<meta property="og:image" content="https://nsclock.app/images/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="A white Ulanzi pixel clock showing a glucose value of 6.4 and a downward trend arrow">
+<meta name="twitter:card" content="summary_large_image">
+<style>
+:root {
+  --bg: #051424; --bg-raised: #08192b; --card: #0d1c2d; --card-hover: #122336;
+  --line: #1c2d40; --line-2: #2a3c51;
+  --text: #e3ecfa; --text-2: #b9c5d8; --muted: #8592a6;
+  --cyan: #4cd7f6; --blue: #2563eb; --green: #4edea3; --amber: #fbbf24;
+  --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --mono: ui-monospace, "Cascadia Mono", Consolas, "SF Mono", monospace;
+  --radius: 14px;
+  --gutter: 24px;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.6 var(--sans); }
+h1, h2, h3, p { margin: 0; }
+a { color: var(--cyan); text-underline-offset: 3px; }
+a:hover { text-decoration-thickness: 2px; }
+code { font-family: var(--mono); font-size: .92em; color: var(--text); background: var(--card); border: 1px solid var(--line); border-radius: 6px; padding: 1px 6px; }
+img { max-width: 100%; height: auto; display: block; }
+:focus-visible { outline: 2px solid var(--cyan); outline-offset: 3px; border-radius: 4px; }
+.wrap { max-width: 1120px; margin: 0 auto; padding: 0 var(--gutter); }
+/* .wrap raises it above the paragraph rules of the sections it heads. */
+.wrap .eyebrow { margin: 0; font: 600 12px/16px var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--cyan); }
+.muted { color: var(--muted); }
 
-        .content {
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 12px;
-        }
+/* ---------- header ---------- */
+.site-head { border-bottom: 1px solid var(--line); }
+.site-head .wrap { display: flex; align-items: center; gap: 16px; min-height: 64px; flex-wrap: wrap; }
+.brand { display: flex; align-items: center; gap: 10px; color: var(--text); text-decoration: none; font-weight: 650; letter-spacing: -.01em; }
+.brand-mark { width: 32px; height: 32px; border-radius: 9px; display: grid; place-items: center; background: linear-gradient(135deg, #03b5d3, #2563eb); color: #fff; font: 700 13px/1 var(--sans); flex: none; }
+.site-nav { margin-left: auto; display: flex; gap: 4px 20px; flex-wrap: wrap; }
+.site-nav a { color: var(--text-2); text-decoration: none; font-size: 15px; }
+.site-nav a:hover { color: var(--text); }
 
-        h2 {
-            margin-top: 2em;
-        }
+/* ---------- buttons ---------- */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 46px; padding: 0 20px; border-radius: 10px; border: 1px solid var(--line-2); background: var(--card); color: var(--text); font: 600 15px/1 var(--sans); text-decoration: none; cursor: pointer; }
+.btn:hover { background: var(--card-hover); text-decoration: none; }
+.btn-primary { background: var(--blue); border-color: transparent; color: #fff; }
+.btn-primary:hover { background: #1d4fd8; }
+.btn-row { display: flex; flex-wrap: wrap; gap: 12px; }
 
-        h3 {
-            margin-top: 1.5em;
-        }
+/* ---------- hero ---------- */
+.hero { padding: 72px 0 88px; overflow: hidden; }
+.hero .wrap { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); gap: 56px; align-items: center; }
+.hero h1 { margin-top: 14px; font-size: clamp(36px, 5.2vw, 58px); line-height: 1.04; letter-spacing: -.03em; font-weight: 750; text-wrap: balance; }
+.hero .lead { margin-top: 20px; font-size: 18px; line-height: 1.6; color: var(--text-2); max-width: 34em; }
+.hero .btn-row { margin-top: 32px; }
+.sources { margin-top: 28px; font-size: 14px; color: var(--muted); }
+.sources b { color: var(--text-2); font-weight: 600; }
 
-        a {
-            color: #03a9f4;
-        }
+.hero-visual { position: relative; margin: 0; }
+.hero-visual::before { content: ""; position: absolute; inset: -12% -10%; background: radial-gradient(closest-side, rgba(78, 222, 163, .14), transparent 70%); pointer-events: none; }
+.device { position: relative; background: linear-gradient(180deg, #fafaf8, #d7d7d2); border-radius: 22px; padding: 11px; box-shadow: 0 40px 80px -36px rgba(0, 0, 0, .9), inset 0 1px 0 #fff, inset 0 -3px 0 rgba(0, 0, 0, .1); }
+.screen { position: relative; background: #040404; border-radius: 12px; padding: 5% 3.5%; box-shadow: inset 0 0 0 1px #000, inset 0 3px 14px rgba(0, 0, 0, .9); overflow: hidden; }
+.screen::after { content: ""; position: absolute; inset: 0; background: linear-gradient(160deg, rgba(255, 255, 255, .07), transparent 38%); pointer-events: none; }
+.screen canvas { display: block; width: 100%; aspect-ratio: 4 / 1; }
+.live-bar { position: relative; margin-top: 18px; display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; }
+.face-name { font: 500 14px/20px var(--mono); color: var(--text-2); min-width: 0; }
+.face-name span { color: var(--muted); }
+.live-controls { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+.icon-btn { width: 36px; height: 36px; display: grid; place-items: center; border-radius: 9px; border: 1px solid var(--line-2); background: var(--card); color: var(--text); cursor: pointer; font-size: 18px; line-height: 1; }
+.icon-btn:hover { background: var(--card-hover); }
+.seg { display: inline-flex; border: 1px solid var(--line-2); border-radius: 9px; overflow: hidden; }
+.seg button { border: 0; background: var(--card); color: var(--text-2); font: 500 13px/1 var(--sans); padding: 0 12px; height: 34px; cursor: pointer; }
+.seg button + button { border-left: 1px solid var(--line-2); }
+.seg button[aria-pressed="true"] { background: var(--card-hover); color: var(--text); box-shadow: inset 0 -2px 0 var(--cyan); }
+.live-note { position: relative; margin-top: 10px; font-size: 13px; color: var(--muted); }
+.hero-photo { display: none; border-radius: var(--radius); }
+.hero-visual.photo .device, .hero-visual.photo .live-bar, .hero-visual.photo .live-note { display: none; }
+.hero-visual.photo .hero-photo { display: block; }
 
-        .invisible {
-            visibility: hidden;
-        }
+/* ---------- sections ---------- */
+section { padding: 88px 0; border-top: 1px solid var(--line); }
+.section-head { max-width: 40em; margin-bottom: 40px; }
+.section-head h2, .split h2 { margin-top: 10px; font-size: clamp(28px, 3.4vw, 38px); line-height: 1.15; letter-spacing: -.02em; font-weight: 700; text-wrap: balance; }
+.section-head p { margin-top: 14px; color: var(--text-2); font-size: 17px; }
 
-        .hidden {
-            display: none;
-        }
+.features { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.feature { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 24px; }
+.feature svg { width: 26px; height: 26px; color: var(--cyan); fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.feature h3 { margin-top: 16px; font-size: 17px; line-height: 1.35; font-weight: 650; }
+.feature p { margin-top: 8px; color: var(--text-2); font-size: 15px; line-height: 1.6; }
 
-        esp-web-install-button[install-unsupported] {
-            visibility: inherit;
-        }
+.split { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 56px; align-items: center; }
+.split figure { margin: 0; }
+.split figure img { border-radius: var(--radius); border: 1px solid var(--line); }
+.split figcaption { margin-top: 10px; font-size: 13px; color: var(--muted); }
+.split p { margin-top: 16px; color: var(--text-2); font-size: 17px; }
+.split .btn-row { margin-top: 28px; }
+.split .fine { font-size: 13px; color: var(--muted); margin-top: 14px; }
 
-        .content pre {
-            max-width: 100%;
-            overflow-y: scroll;
-        }
+.steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; counter-reset: step; list-style: none; margin: 0; padding: 0; }
+.step { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 24px; counter-increment: step; }
+.step::before { content: counter(step); display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: rgba(76, 215, 246, .12); color: var(--cyan); font: 700 15px/1 var(--mono); }
+.step h3 { margin-top: 16px; font-size: 17px; font-weight: 650; }
+.step p { margin-top: 8px; color: var(--text-2); font-size: 15px; }
 
-        .footer {
-            margin-top: 24px;
-            border-top: 1px solid #ccc;
-            padding-top: 24px;
-            text-align: center;
-        }
+.installer { margin-top: 16px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 32px; background: linear-gradient(135deg, rgba(37, 99, 235, .16), rgba(3, 181, 211, .08)); border: 1px solid #22406a; border-radius: var(--radius); padding: 32px; }
+.installer h3 { font-size: 22px; letter-spacing: -.01em; font-weight: 700; }
+.installer .version { margin-top: 6px; font: 500 13px/20px var(--mono); color: var(--muted); }
+.installer esp-web-install-button { display: block; margin-top: 24px; }
+.installer .btn-primary { min-height: 52px; padding: 0 28px; font-size: 16px; }
+esp-web-install-button:not(:defined) [slot="unsupported"], esp-web-install-button:not(:defined) [slot="not-allowed"] { display: none; }
+.unsupported { display: block; padding: 14px 16px; border-radius: 10px; background: rgba(251, 191, 36, .1); border: 1px solid rgba(251, 191, 36, .35); color: var(--text); font-size: 15px; }
+.needs { margin: 0; padding: 0; list-style: none; display: grid; gap: 12px; align-content: start; }
+.needs li { position: relative; padding-left: 26px; color: var(--text-2); font-size: 15px; }
+.needs li::before { content: ""; position: absolute; left: 4px; top: .55em; width: 8px; height: 8px; border-radius: 2px; background: var(--green); box-shadow: 0 0 8px rgba(78, 222, 163, .6); }
+.needs-title { font: 600 12px/16px var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: 14px; }
+.callout { margin-top: 16px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; }
+.note { background: var(--card); border: 1px solid var(--line); border-left: 3px solid var(--amber); border-radius: 10px; padding: 18px 20px; font-size: 15px; color: var(--text-2); }
+.note.info { border-left-color: var(--cyan); }
+.note strong { color: var(--text); }
 
-        .footer .initiative {
-            font-style: italic;
-            margin-top: 16px;
-        }
+.links { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.link-card { display: block; background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 22px 24px; text-decoration: none; color: var(--text); }
+.link-card:hover { background: var(--card-hover); border-color: var(--line-2); }
+.link-card h3 { font-size: 16px; font-weight: 650; }
+.link-card h3::after { content: " \2192"; color: var(--cyan); }
+.link-card p { margin-top: 6px; color: var(--text-2); font-size: 14px; line-height: 1.55; }
 
-        table {
-            border-spacing: 0;
-        }
+/* ---------- footer ---------- */
+.site-foot { border-top: 1px solid var(--line); background: var(--bg-raised); padding: 48px 0 56px; font-size: 14px; color: var(--muted); }
+.site-foot .warning { color: var(--text-2); background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 18px 20px; }
+.site-foot .warning strong { color: var(--text); }
+.site-foot .fine-print { margin-top: 24px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
+.site-foot h2 { font: 600 12px/16px var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--text-2); margin-bottom: 8px; }
+.site-foot .bottom { margin-top: 32px; padding-top: 20px; border-top: 1px solid var(--line); display: flex; flex-wrap: wrap; gap: 8px 24px; }
 
-        td {
-            padding: 8px;
-            border-bottom: 1px solid #ccc;
-        }
-
-        .radios li {
-            list-style: none;
-            line-height: 2em;
-        }
-
-        @media (prefers-color-scheme: dark) {
-            body {
-                background-color: #333;
-                color: #fff;
-            }
-
-            a {
-                color: #58a6ff;
-            }
-        }
-    </style>
-    <script type="module" src="https://unpkg.com/esp-web-tools@10.4.0/dist/web/install-button.js?module"></script>
+/* ---------- small screens ---------- */
+@media (max-width: 900px) {
+  .hero { padding: 48px 0 64px; }
+  .hero .wrap, .split, .installer, .callout { grid-template-columns: minmax(0, 1fr); gap: 40px; }
+  .callout { gap: 12px; }
+  .features, .steps, .links, .site-foot .fine-print { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  section { padding: 64px 0; }
+}
+@media (max-width: 600px) {
+  :root { --gutter: 16px; }
+  .features, .steps, .links, .site-foot .fine-print { grid-template-columns: minmax(0, 1fr); }
+  .site-nav { gap: 4px 16px; }
+  .site-nav a { font-size: 14px; }
+  .installer { padding: 24px 20px; }
+  .device { border-radius: 16px; padding: 8px; }
+  .screen { border-radius: 9px; }
+  .btn-row .btn { flex: 1 1 auto; }
+}
+</style>
 </head>
-
 <body>
-    <div class="content">
-        <h1>Nightscout clock installer</h1>
-        <p>
-            This page is part of the <a href="https://github.com/ktomy/nightscout-clock/">Nightscout Clock</a> project.
-            It allows you to transform an Ulanzi TC001 programmable clock into a device showing blood sugar values
-            through <a href="https://github.com/nightscout/cgm-remote-monitor">Nightscout</a>.
-            Curious what the faces look like? Try the <a href="./simulator/">face simulator</a> in your browser first.
-        </p>
-        <p>
-            Here are the steps to install the firmware
-        </p>
-        <ul>
-            <li>Buy Ulanzi TC001 from <a
-                    href="https://www.ulanzi.com/products/ulanzi-pixel-smart-clock-2882?aff=1191">here</a>)</li>
-            <li>Turn on the device by pressing &lt; and &gt; buttons for 3 seconds</li>
-            <li>Connect the device to your computer using USB cable</li>
-            <li>Click the <b>CONNECT</b> button below</li>
-            <li>Follow the instructions</li>
-        </ul>
-        <p>
-            If the installation fails or the clock does not work as expected, see the
-            <a href="https://github.com/ktomy/nightscout-clock/blob/main/TROUBLESHOOTING.md">troubleshooting guide</a>.
-        </p>
-        <p class="button-row" align="center">
-            <esp-web-install-button manifest="./manifest.json"></esp-web-install-button>
-        </p>
 
+<header class="site-head">
+  <div class="wrap">
+    <a class="brand" href="./"><span class="brand-mark" aria-hidden="true">NS</span>Nightscout Clock</a>
+    <nav class="site-nav" aria-label="Site">
+      <a href="simulator/">Faces</a>
+      <a href="#install">Install</a>
+      <a href="#help">Help</a>
+      <a href="https://github.com/ktomy/nightscout-clock">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="hero">
+    <div class="wrap">
+      <div>
+        <p class="eyebrow">Free, open-source firmware</p>
+        <h1>Glucose you can read from across the room</h1>
+        <p class="lead">Nightscout Clock turns the Ulanzi TC001, a pixel clock that costs about $50, into a glucose
+          display with alarms. It gets every new reading from your CGM's cloud service over Wi-Fi, so you can see it
+          without picking up your phone, and there is no subscription.</p>
+        <div class="btn-row">
+          <a class="btn btn-primary" href="#install">Install the firmware</a>
+          <a class="btn" href="simulator/">Try all 16 faces</a>
+        </div>
+        <p class="sources">Works with <b>Dexcom Share</b>, <b>Nightscout</b>, <b>LibreLinkUp</b> and
+          <b>Medtrum EasyFollow</b>, in mg/dL or mmol/L.</p>
+      </div>
+
+      <figure class="hero-visual" id="live">
+        <div class="device">
+          <div class="screen">
+            <canvas width="640" height="160" role="img" aria-label="A Nightscout clock showing a sample glucose reading"></canvas>
+          </div>
+        </div>
+        <div class="live-bar">
+          <p class="face-name" aria-live="off"><span>Face:</span> <b data-face>Big text</b></p>
+          <div class="live-controls">
+            <button class="icon-btn" type="button" data-step="-1" aria-label="Previous face">&lsaquo;</button>
+            <button class="icon-btn" type="button" data-step="1" aria-label="Next face">&rsaquo;</button>
+            <div class="seg" role="group" aria-label="Units">
+              <button type="button" data-units="mgdl" aria-pressed="true">mg/dL</button>
+              <button type="button" data-units="mmol" aria-pressed="false">mmol/L</button>
+            </div>
+          </div>
+        </div>
+        <p class="live-note">Live: the clock's own display code, running in your browser with a sample reading.</p>
+        <img class="hero-photo" src="images/clock.jpg" width="1200" height="900"
+          alt="A white Ulanzi pixel clock on a desk showing 6.4 in green and a white downward trend arrow">
+      </figure>
+    </div>
+  </div>
+
+  <section id="features">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow">What it does</p>
+        <h2>Made for the people who keep watch</h2>
+        <p>Nightscout Clock was made for families and caregivers of people with type 1 diabetes, so they can
+          see the current glucose at a glance, day and night, without unlocking a phone.</p>
+      </div>
+      <div class="features">
+        <div class="feature">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="7" width="19" height="10" rx="2"/><path d="M6.5 10.5v3M9.5 10.5v3M13 12h4.5"/></svg>
+          <h3>Big, bright and clear</h3>
+          <p>The value, its trend arrow and how old it is, on a bright LED display. Sixteen faces, from large digits
+            and a three-hour graph to a unicorn, a dragon and a race car.</p>
+        </div>
+        <div class="feature">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16v-5a6 6 0 1 1 12 0v5l1.5 2h-15z"/><path d="M10 20.5a2 2 0 0 0 4 0"/></svg>
+          <h3>Alarms you can hear</h3>
+          <p>Low, high and urgent-low alarms with their own limits, sounds and snooze times, and alert windows
+            for the hours and weekdays they should sound.</p>
+        </div>
+        <div class="feature">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 9a14 14 0 0 1 19 0M5.5 12.5a9.5 9.5 0 0 1 13 0M8.6 15.8a5 5 0 0 1 6.8 0"/><circle cx="12" cy="19" r="1"/></svg>
+          <h3>Straight from the source</h3>
+          <p>The clock signs in to Dexcom Share, Nightscout, LibreLinkUp or Medtrum EasyFollow itself.
+            There is no server in between: your readings and passwords go only to your data source.</p>
+        </div>
+        <div class="feature">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>
+          <h3>Old data never looks new</h3>
+          <p>Age bars show how many minutes old the reading is. When the data gets too old, the value takes
+            a color you choose and the trend arrow becomes a cross.</p>
+        </div>
+        <div class="feature">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a7 7 0 0 0 10.5 10.5z"/></svg>
+          <h3>Fits the bedroom</h3>
+          <p>Brightness follows the room's light, dark-room faces stay readable without lighting up the room,
+            and a daily schedule changes the face and brightness for the night.</p>
+        </div>
+        <div class="feature">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M11 18.5h2"/></svg>
+          <h3>Set up from your phone</h3>
+          <p>The clock opens its own Wi-Fi network for setup. Its settings page works offline, previews every
+            change live, and backs up your settings to a file.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="hardware">
+    <div class="wrap split">
+      <figure>
+        <img src="images/clock.jpg" width="1200" height="900" loading="lazy"
+          alt="A white Ulanzi pixel clock on a desk showing 6.4 in green and a white downward trend arrow">
+        <figcaption>The Ulanzi TC001 running Nightscout Clock, showing mmol/L.</figcaption>
+      </figure>
+      <div>
+        <p class="eyebrow">The hardware</p>
+        <h2>An inexpensive pixel clock, put to better use</h2>
+        <p>The Ulanzi TC001 is a smart pixel clock with a 32&nbsp;&times;&nbsp;8 LED display, three buttons,
+          a light sensor and a buzzer. Nightscout Clock replaces its firmware. You don't need a hub, an app
+          or an account with this project.</p>
+        <p>It costs about $50 and is sold by Ulanzi in the US and Europe, and on AliExpress.</p>
+        <div class="btn-row">
+          <a class="btn" href="https://www.ulanzi.com/products/ulanzi-pixel-smart-clock-2882?aff=1191">Buy the Ulanzi TC001</a>
+        </div>
+        <p class="fine">The Ulanzi link is an affiliate link.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="install">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow">Get started</p>
+        <h2>Install it in about ten minutes</h2>
+        <p>You install the firmware from this page over USB, then finish the setup on your phone.</p>
+      </div>
+      <ol class="steps">
+        <li class="step">
+          <h3>Turn on the clock</h3>
+          <p>Hold its <code>&lt;</code> and <code>&gt;</code> buttons for three seconds, then connect it to your
+            computer with the USB-C cable that came with it.</p>
+        </li>
+        <li class="step">
+          <h3>Install the firmware</h3>
+          <p>Press <b>Connect and install</b> below, choose the clock's port and follow the instructions.
+            It takes a minute or two.</p>
+        </li>
+        <li class="step">
+          <h3>Set it up</h3>
+          <p>On your phone, join the <code>nsclock</code> Wi-Fi network and open
+            <code>http://192.168.4.1</code>. Enter your Wi-Fi details, your data source and your glucose limits.</p>
+        </li>
+      </ol>
+
+      <div class="installer">
+        <div>
+          <h3>Connect the clock, then install</h3>
+          <p class="version">Nightscout Clock <span id="fw_version">firmware</span></p>
+          <esp-web-install-button manifest="manifest.json">
+            <button slot="activate" class="btn btn-primary" type="button">Connect and install</button>
+            <span slot="unsupported" class="unsupported">This browser can't connect to the clock over USB. Open this
+              page in <b>Chrome</b> or <b>Edge</b> on a computer; Firefox, Safari and phone browsers don't support it.</span>
+            <span slot="not-allowed" class="unsupported">The installer only works on a secure (https) page.</span>
+          </esp-web-install-button>
+        </div>
+        <div>
+          <p class="needs-title">You will need</p>
+          <ul class="needs">
+            <li>Chrome or Edge on a Windows, macOS, Linux or ChromeOS computer</li>
+            <li>The clock's USB-C cable, or another cable that carries data</li>
+            <li>Your Wi-Fi name and password, and the sign-in for your data source</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="callout">
+        <p class="note"><strong>Updating?</strong> Installing replaces everything on the clock, including its
+          settings. Before you update, download a settings backup on the <b>WiFi &amp; system</b> tab of the
+          clock's settings page. After the update, load it on the same tab, check the settings and select
+          <b>Save and restart</b>.</p>
+        <p class="note info"><strong>Something not working?</strong> The
+          <a href="https://github.com/ktomy/nightscout-clock/blob/main/TROUBLESHOOTING.md">troubleshooting guide</a>
+          covers installation, Wi-Fi and data problems. To send logs with a bug report, install the
+          <a href="debug/">debug firmware</a>.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="help">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow">Help and community</p>
+        <h2>Questions, ideas and updates</h2>
+        <p>Nightscout Clock is a community project. New versions come out every few weeks.</p>
+      </div>
+      <div class="links">
+        <a class="link-card" href="https://github.com/ktomy/nightscout-clock/blob/main/TROUBLESHOOTING.md">
+          <h3>Troubleshooting guide</h3>
+          <p>Installation, Wi-Fi, data sources and restarts, step by step.</p>
+        </a>
+        <a class="link-card" href="https://github.com/ktomy/nightscout-clock/discussions">
+          <h3>Discussions</h3>
+          <p>Ask a question, share your setup or suggest a feature.</p>
+        </a>
+        <a class="link-card" href="https://github.com/ktomy/nightscout-clock/issues">
+          <h3>Report a problem</h3>
+          <p>Open an issue with what happened and, if you can, the clock's logs.</p>
+        </a>
+        <a class="link-card" href="https://github.com/ktomy/nightscout-clock#changes">
+          <h3>What's new</h3>
+          <p>The changes in every version, from the latest release back.</p>
+        </a>
+        <a class="link-card" href="https://www.youtube.com/watch?v=7GmDflLxqLs">
+          <h3>Video review</h3>
+          <p>A video review of the clock by CallumMcK, on YouTube.</p>
+        </a>
+        <a class="link-card" href="https://github.com/ktomy/nightscout-clock">
+          <h3>Source code</h3>
+          <p>The firmware, the settings page and this site, on GitHub. Contributions are welcome.</p>
+        </a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <p class="warning"><strong>Nightscout Clock is not a medical device.</strong> Do not use it to make treatment
+      decisions. It can show delayed, old or wrong values, and its alarms stop working if Wi-Fi, power or the
+      data source fails. Always check readings and alerts on your CGM app, receiver or meter.</p>
+    <div class="fine-print">
+      <div>
+        <h2>Privacy</h2>
+        <p>The clock connects to your data source directly; no glucose data or passwords pass through this site.
+          This site sets no cookies and has no analytics. It is hosted on GitHub Pages, and the installer
+          loads its code from unpkg.com.</p>
+      </div>
+      <div>
+        <h2>Trademarks</h2>
+        <p>Dexcom, LibreLinkUp, Medtrum and Ulanzi are trademarks of their owners. This project is not
+          affiliated with or endorsed by them. Ulanzi links on this site are affiliate links.</p>
+      </div>
+      <div>
+        <h2>License</h2>
+        <p>Nightscout Clock is free software under the
+          <a href="https://github.com/ktomy/nightscout-clock/blob/main/LICENSE">GNU LGPL 2.1</a>.</p>
+      </div>
+    </div>
+    <div class="bottom">
+      <span>Nightscout Clock</span>
+      <a href="https://github.com/ktomy/nightscout-clock">GitHub</a>
+      <a href="simulator/">Face simulator</a>
+      <a href="debug/">Debug firmware</a>
+    </div>
+  </div>
+</footer>
+
+<noscript><style>.hero-visual .device, .hero-visual .live-bar, .hero-visual .live-note { display: none; } .hero-visual .hero-photo { display: block; }</style></noscript>
+<script type="module" src="https://unpkg.com/esp-web-tools@10.4.0/dist/web/install-button.js?module"></script>
+<script>
+(function () {
+"use strict"
+
+fetch("manifest.json").then(r => r.json()).then(m => {
+    if (m.version) document.getElementById("fw_version").textContent = m.version
+}).catch(() => {})
+
+// The live clock: the released firmware's display code (the face simulator's simulator/clockemu.js) starts
+// from the release's factory settings and shows a few faces in turn. If it can't run, the photo shows instead.
+const W = 32, H = 8
+const FACES = [
+    ["big_text", "Big text"],
+    ["graph_and_bg", "Glucose graph and value"],
+    ["unicorn", "Unicorn"],
+    ["simple", "Simple"],
+    ["race_car", "Race car"],
+    ["value_and_diff", "Value and delta"],
+    ["dragon", "Dragon"],
+    ["clock", "Current time and BG value"],
+]
+const SHOW_MS = 6000
+const TICK_MS = 250
+const FORTY_FIVE_DOWN = 5
+const box = document.getElementById("live")
+const canvas = box.querySelector("canvas")
+const faceName = box.querySelector("[data-face]")
+const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches
+let M = null, factory = null, faces = [], index = 0, units = "mgdl", rotate = !still, rotateTimer = null, lastMinute = -1
+
+const showPhoto = () => { box.classList.add("photo"); clearInterval(rotateTimer) }
+const tzOffset = epoch => -new Date(epoch * 1000).getTimezoneOffset() * 60
+
+// Three hours of readings five minutes apart, easing down to 116 mg/dL; the newest is a minute old.
+function readings(now) {
+    const rows = []
+    for (let k = 35; k >= 0; k--) {
+        const t = (35 - k) / 35
+        rows.push([Math.round(125 + 35 * Math.sin(-1 + 4.4 * t)), FORTY_FIVE_DOWN, now - 60 - k * 300])
+    }
+    return rows
+}
+
+function showReadings(now) {
+    M._emu_set_clock(now, tzOffset(now))
+    M.ccall("emu_show_readings", null, ["string"], [JSON.stringify(readings(now))])
+}
+
+// A dim LED is still plainly visible, so low values are lifted to show on a screen; 0 stays dark.
+const lift = c => (c ? Math.round(255 * (0.22 + 0.78 * Math.sqrt(c / 255))) : 0)
+
+function draw() {
+    const ptr = M._emu_frame()
+    const bytes = M.HEAPU8.subarray(ptr, ptr + W * H * 3)
+    const ctx = canvas.getContext("2d")
+    const cell = canvas.width / W, gap = cell * 0.12, size = cell - gap * 2
+    ctx.fillStyle = "#040404"
+    ctx.fillRect(0, 0, canvas.width, canvas.height)
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+        const i = M._emu_xy(x, y) * 3
+        const [r, g, b] = [bytes[i], bytes[i + 1], bytes[i + 2]]
+        const lit = r || g || b
+        ctx.fillStyle = lit ? `rgb(${lift(r)},${lift(g)},${lift(b)})` : "#121212"
+        ctx.shadowColor = ctx.fillStyle
+        ctx.shadowBlur = lit ? cell * 0.7 : 0
+        ctx.beginPath()
+        if (ctx.roundRect) ctx.roundRect(x * cell + gap, y * cell + gap, size, size, size * 0.18)
+        else ctx.rect(x * cell + gap, y * cell + gap, size, size)
+        ctx.fill()
+    }
+    ctx.shadowBlur = 0
+}
+
+function fitCanvas() {
+    const width = Math.round(canvas.clientWidth * (window.devicePixelRatio || 1) / W) * W
+    if (width > 0 && width !== canvas.width) {
+        canvas.width = width
+        canvas.height = width / 4
+        if (M) draw()
+    }
+}
+
+function showFace() {
+    const [id, name] = faces[index]
+    M.ccall("emu_set_face", null, ["string"], [id])
+    showReadings(Math.floor(Date.now() / 1000))
+    draw()
+    faceName.textContent = name
+}
+
+function step(by) {
+    index = (index + by + faces.length) % faces.length
+    showFace()
+}
+
+// A fresh emulated clock with these units, as the clock starts after a save.
+async function boot() {
+    const next = await window.createClockEmu({ print() {}, printErr() {} })
+    const now = Math.floor(Date.now() / 1000)
+    next._emu_set_clock(now, tzOffset(now))
+    const config = { ...factory, units, inactive_faces: [], face_cycle_enabled: false, face_schedule_enabled: false }
+    if (!next.ccall("emu_boot", "number", ["string", "number"], [JSON.stringify(config), 40])) throw new Error("boot")
+    M = next
+    const known = JSON.parse(M.ccall("emu_face_ids", "string", [], []))
+    faces = FACES.filter(([id]) => known.includes(id))
+    if (!faces.length) throw new Error("no faces")
+    index = Math.min(index, faces.length - 1)
+    showFace()
+}
+
+function loadEmulator() {
+    return new Promise((resolve, reject) => {
+        const script = document.createElement("script")
+        script.src = "simulator/clockemu.js"
+        script.onload = resolve
+        script.onerror = reject
+        document.head.append(script)
+    })
+}
+
+async function start() {
+    fitCanvas()
+    const [config] = await Promise.all([
+        fetch("simulator/factory-config.json").then(r => { if (!r.ok) throw new Error(r.status); return r.json() }),
+        loadEmulator(),
+    ])
+    factory = config
+    await boot()
+    new ResizeObserver(fitCanvas).observe(canvas)
+    // The firmware's loop at the real time, with readings that stay a minute old.
+    setInterval(() => {
+        if (!M || document.hidden) return
+        const now = Math.floor(Date.now() / 1000)
+        if (Math.floor(now / 60) !== lastMinute) {
+            lastMinute = Math.floor(now / 60)
+            showReadings(now)
+        }
+        M._emu_set_clock(now, tzOffset(now))
+        M._emu_loop(TICK_MS)
+        draw()
+    }, TICK_MS)
+    if (rotate) rotateTimer = setInterval(() => { if (!document.hidden) step(1) }, SHOW_MS)
+}
+
+box.querySelectorAll("[data-step]").forEach(b => b.addEventListener("click", () => {
+    if (!M) return
+    clearInterval(rotateTimer)
+    step(Number(b.dataset.step))
+}))
+box.querySelectorAll("[data-units]").forEach(b => b.addEventListener("click", () => {
+    if (!M || b.dataset.units === units) return
+    units = b.dataset.units
+    box.querySelectorAll("[data-units]").forEach(o => o.setAttribute("aria-pressed", String(o === b)))
+    boot().catch(showPhoto)
+}))
+
+start().catch(showPhoto)
+})()
+</script>
 </body>
-
 </html>
