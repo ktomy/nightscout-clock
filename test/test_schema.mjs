@@ -55,6 +55,16 @@ test("a custom MAC address must be well formed and unicast", () => {
     assert.ok(macError("A5:83:E7:2B:10:9C"))
 })
 
+test("a LibreLink Up password needs 8 characters and has no upper limit", () => {
+    const passwordError = password =>
+        errorsOf(validConfig({ data_source: "librelinkup", librelinkup_email: "me@example.com", librelinkup_password: password }))
+            .librelinkup_password
+    assert.ok(passwordError("1234567"))
+    assert.equal(passwordError("12345678"), undefined)
+    assert.equal(passwordError("x".repeat(22)), undefined)
+    assert.equal(passwordError("x".repeat(64)), undefined)
+})
+
 test("textToMgdl converts both units and rejects other input", () => {
     assert.equal(textToMgdl("110", "mgdl"), 110)
     assert.equal(textToMgdl("5.5", "mmol"), 99)
