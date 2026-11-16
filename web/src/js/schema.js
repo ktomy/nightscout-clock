@@ -239,6 +239,7 @@ const RX = {
     macAddress: /^[0-9A-Fa-f]{2}([:-])(?:[0-9A-Fa-f]{2}\1){4}[0-9A-Fa-f]{2}$/,
     dexcomUsername: /^.{6,}$/,
     password: /^.{8,20}$/,
+    libreLinkUpPassword: /^.{8,}$/,
     nsHostname: /(^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$)|(^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9][a-z0-9-]{0,61}[a-z0-9]$)/,
     nsPort: /(^$)|(.{3,5})/,
     apiSecret: /(^$)|(.{12,})/,
@@ -350,7 +351,7 @@ function validateConfig(c, ctx) {
     }
     if (src === "librelinkup") {
         need("librelinkup_email", RX.email.test(text(c.librelinkup_email)), "LibreLink Up email is required.")
-        need("librelinkup_password", RX.password.test(text(c.librelinkup_password)), "LibreLink Up password is required (8 to 20 characters).")
+        need("librelinkup_password", RX.libreLinkUpPassword.test(text(c.librelinkup_password)), "LibreLink Up password is required (at least 8 characters).")
         need("librelinkup_region", !!c.librelinkup_region, "Please select LibreLink Up server.")
     }
     if (src === "medtrum") {
