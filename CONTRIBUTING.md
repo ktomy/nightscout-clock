@@ -86,6 +86,12 @@ by Git. Filesystem builds compile it with Emscripten from `src/` and `lib/` befo
 and skip the compile when nothing it uses has changed. To build it without building LittleFS, run
 `node web/emulator/build.mjs`; it uses the libraries PlatformIO installed for `ulanzi_debug` or `ulanzi`.
 
+The README's clock face pictures are rendered by that preview, not photographed. After adding or
+changing a face, build the preview and run `node scripts/render_faces.mjs`: it saves every face as
+`docs/images/faces/<face id>.png`, each showing the same sample reading and time, and stops if the
+firmware's faces and `FACES` in `web/src/js/schema.js` differ. `--face <id>` renders one face only.
+A new face also needs a section, with its picture, under "Clockfaces" in the README.
+
 `scripts/screenshot_web_ui.py` renders the current `data/` web UI in headless Chromium
 and saves a full-page PNG of the Display tab to `docs/images/web-ui.png`.
 With `--all-tabs`, it also saves `web-ui-glucose.png`, `web-ui-alarms.png`, and
