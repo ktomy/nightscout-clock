@@ -14,7 +14,7 @@ If you are reading this page, something did not go as expected. Don't worry: mos
 
 ### Where is the installation page?
 
-The installation page is [here](https://ktomy.github.io/nightscout-clock/). It uses Web Serial, so open it in **Chrome** or **Edge** on a computer. Firefox, Safari and phone browsers cannot talk to the clock over USB.
+The installation page is [here](https://nsclock.app/#install). It uses Web Serial, so open it in **Chrome** or **Edge** on a computer. Firefox, Safari and phone browsers cannot talk to the clock over USB.
 
 ### The clock does not appear in the list
 
@@ -118,7 +118,7 @@ When readings get old, the value is drawn in the **old-data color**, which is gr
 
 Apart from saving settings, the clock restarts by itself only after an error, which it scrolls on the display first. If it restarts unexpectedly, freezes, loses its settings, or shows `Error loading software, please reinstall` without an obvious reason:
 
-1. Make sure you run the [latest version](https://ktomy.github.io/nightscout-clock/), since many such problems have been fixed over time.
+1. Make sure you run the [latest version](https://nsclock.app/#install), since many such problems have been fixed over time.
 2. Try a different power supply and cable. A weak USB charger can cause random restarts.
 3. If possible, try another WiFi network (for example your phone's hotspot) and another data source. This tells us whether the problem follows the network, the data source or the clock itself. Occasionally the clock's hardware is faulty.
 4. If the problem persists, [collect logs with the debug firmware](#collecting-logs-with-the-debug-firmware) and [report an issue](#reporting-an-issue). Without logs, intermittent problems are very hard to find.
@@ -133,7 +133,7 @@ Installing a different firmware resets the clock's settings. On the **WiFi & sys
 
 ### 2. Install the debug firmware
 
-Open the [debug installation page](https://ktomy.github.io/nightscout-clock/debug/) and install it the same way as the regular firmware. Then set up the clock again, or load your backup on the **WiFi & system** tab (check **Also load the WiFi settings**) and select **Save and restart**. Keep using the clock as usual until the problem happens again.
+Open the [debug installation page](https://nsclock.app/debug/) and install it the same way as the regular firmware. Then set up the clock again, or load your backup on the **WiFi & system** tab (check **Also load the WiFi settings**) and select **Save and restart**. Keep using the clock as usual until the problem happens again.
 
 ### 3. Get the logs
 
@@ -141,7 +141,7 @@ There are two ways to get them. Use the first one for restarts and problems duri
 
 **With a computer connected (recommended).** This records everything, including what happens just before a restart:
 
-1. Connect the clock to the computer and open the [debug installation page](https://ktomy.github.io/nightscout-clock/debug/) in Chrome or Edge.
+1. Connect the clock to the computer and open the [debug installation page](https://nsclock.app/debug/) in Chrome or Edge.
 2. Click **CONNECT**, select the clock, and choose **Logs & Console** instead of **Install**.
 3. Click **Reset Device** to restart the clock, so the log starts from the beginning.
 4. Wait until the problem happens. For intermittent problems, keep the page open for as long as needed, even overnight; make sure the computer doesn't go to sleep.
@@ -155,7 +155,7 @@ Logs can contain your WiFi and data source passwords, API secrets, session token
 
 ### 5. Go back to the regular firmware
 
-When you're done, install the regular firmware again from the [installation page](https://ktomy.github.io/nightscout-clock/) and restore your settings backup.
+When you're done, install the regular firmware again from the [installation page](https://nsclock.app/#install) and restore your settings backup.
 
 ## Reporting an issue
 

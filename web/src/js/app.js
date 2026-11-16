@@ -1,3 +1,5 @@
+// Page start-up, the header, login, and Save.
+
 // Start the settings page and connect API responses, form changes, and DOM updates.
 // Own the header, authentication screens, save/restart flow, and firmware update check.
 
@@ -38,6 +40,7 @@ function wireName() {
     input.addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); done() } })
 }
 
+// ---------- header ----------
 /**
  * ---------- header ----------
  * Update a header status badge by changing its dot class and displayed value.
@@ -61,14 +64,15 @@ function pill(id, dot, value) {
 function renderStatus(s) {
     const wasLlu = ui.status && ui.status.bgSource === "LIBRELINKUP"
     ui.status = s
-    pill("pill_wifi", s.isInAPMode ? "warn" : s.isConnected ? "ok" : "bad", s.isInAPMode ? "Initial mode" : s.isConnected ? "Connected" : "Not connected")
+    pill("pill_wifi", s.isInAPMode ? "warn" : s.isConnected ? "ok" : "bad", s.isInAPMode ? "Setup mode" : s.isConnected ? "Connected" : "Not connected")
     pill("pill_internet", s.hasInternet ? "ok" : "bad", s.hasInternet ? "Yes" : "No")
     const st = s.bgSourceStatus
-    const text = st === "connected" ? "Connected" : st === "initialized" ? (s.isInAPMode ? "Initial mode" : "Connecting") : `Error: ${SOURCE_STATUS_TEXT[st] || st || "unknown"}`
+    const text = st === "connected" ? "Connected" : st === "initialized" ? (s.isInAPMode ? "Setup mode" : "Connecting") : `Error: ${SOURCE_STATUS_TEXT[st] || st || "unknown"}`
     pill("pill_source", st === "connected" ? "ok" : st === "initialized" ? "warn" : "bad", text)
+    $("#pill_source").title = st ? `Clock status: ${st}` : ""
     const units = form.get("units")
     pill("pill_reading", s.sgv ? "info" : "", s.sgv ? `${mgdlToText(s.sgv, units)} ${unitLabel(units)}` : "–")
-    $("#clock_sub").textContent = `${ui.versions.current ? "v" + ui.versions.current + " · " : ""}${location.host}`
+    $("#clock_sub").textContent = `${ui.versions.current ? "v" + ui.versions.current + " · " : ""}${location.host} · online`
     if (s.bgSource === "LIBRELINKUP" && !wasLlu) form.setCtx("status", s.bgSource)
 }
 
@@ -89,7 +93,7 @@ function renderStatusError() {
 function renderDirty() {
     const changes = form.changes()
     const n = changes.length
-    $("#dirty_text").textContent = n ? `${n} unsaved change${n > 1 ? "s" : ""}` : "No unsaved changes"
+    $("#dirty_text").textContent = n ? `${n} unsaved change${n > 1 ? "s" : ""} · the clock will restart` : "No unsaved changes"
     $("#discard").hidden = !n
     $$("[data-tab]").forEach(b => {
         const dirty = changes.some(k => tabOfKey(k) === b.dataset.tab)
@@ -124,9 +128,10 @@ async function save() {
     if (keys.length) {
         const first = keys[0]
         showTab(tabOfKey(first))
+        await nextFrame()
         const box = $(`#tab_${tabOfKey(first)} [data-field="${first}"]`)
         if (box) {
-            box.scrollIntoView({ block: "center" })
+            box.scrollIntoView({ block: "center", behavior: "smooth" })
             const control = $("input,select,button", box)
             if (control) control.focus({ preventScroll: true })
         }
@@ -135,7 +140,7 @@ async function save() {
     }
     const phases = {
         saving: ["Saving", "Sending the settings to the clock…"],
-        restarting: ["Restarting", "The clock is restarting to apply the changes."],
+        restarting: ["Restarting", "The clock is restarting to use the new settings."],
     }
     const result = await api.saveSettings(form.saveJson(), {
         setupMode: !!(ui.status && ui.status.isInAPMode),
@@ -172,6 +177,7 @@ async function reloadAfterSave() {
     form.load(r.data)
     ui.patients = null
     renderAll()
+    preview.setConfig(form.saveJson())
     toast("Saved. The clock restarted with the new settings.")
 }
 
@@ -186,8 +192,9 @@ function showLock(message) {
     for (const id of ["#app", "#savebar", "#loading_screen", "#rename"]) $(id).hidden = true
     editName(false)
     $("#lock_screen").hidden = false
-    $("#lock_message").textContent = message || "Authentication is enabled. Log in to change settings."
+    $("#lock_message").textContent = message || "Settings are locked. Enter the web password to change them."
     $("#lock_password").value = ""
+    $("#lock_password").focus()
 }
 
 /**
@@ -199,7 +206,7 @@ function showLock(message) {
 async function unlock(e) {
     e.preventDefault()
     const pw = $("#lock_password").value
-    if (!pw) { $("#lock_message").textContent = "Password is required to unlock."; return }
+    if (!pw) { $("#lock_message").textContent = "Enter the web password."; return }
     $("#lock_submit").disabled = true
     try {
         const r = await api.login(pw)
@@ -209,7 +216,7 @@ async function unlock(e) {
             if (form.loaded) showApp()
             else await loadSettings()
         } else {
-            $("#lock_message").textContent = "Invalid credentials."
+            $("#lock_message").textContent = r.status === 401 ? "That password isn't right." : "The clock didn't accept the login."
         }
     } catch (err) {
         $("#lock_message").textContent = err.message
@@ -227,6 +234,7 @@ async function lock() {
     location.reload()
 }
 
+// ---------- start ----------
 /**
  * ---------- start ----------
  * Mark the page ready and reveal the settings and save bar while hiding loading and login screens.
@@ -263,8 +271,11 @@ async function loadSettings() {
     try { const t = sessionStorage.getItem("tab"); if (TABS[t]) ui.tab = t } catch (e) { /* private mode */ }
     showTab(ui.tab)
     showApp()
-    // Background loads, after the form is usable.
-    await loadTimezones()
+
+    // Background loads, one at a time behind the status poll.
+    preview.setConfig(form.saveJson())
+    preview.start($("#sim_canvas")).catch(e => { $("#sim_note").textContent = e.message })
+    loadTimezones()
     loadVersions()
 }
 
@@ -352,22 +363,43 @@ async function loadVersions() {
  * @returns {Promise<void>}
  */
 async function start() {
+    // On a phone the preview sits above the settings, so a tab tap scrolls to the tab's settings; on a wide
+    // screen the preview is beside them and the page goes back to the top.
+    const narrow = window.matchMedia("(max-width: 980px)")
     $$("[data-tab]").forEach(b => b.addEventListener("click", () => {
         // Select the clicked tab and bring its first controls into view.
         showTab(b.dataset.tab)
-        window.scrollTo({ top: 0 })
+        if (narrow.matches) $("main").scrollIntoView({ block: "start" })
+        else window.scrollTo({ top: 0 })
     }))
+    // A phone opens with the preview's reading controls folded, so the settings start near the top.
+    if (narrow.matches) $(".sim-controls").open = false
+    // Arrow keys move between the top tabs.
+    $(".tabs").addEventListener("keydown", e => {
+        const tabs = $$(".tabs [role=tab]")
+        const i = tabs.indexOf(document.activeElement)
+        if (i < 0) return
+        const next = { ArrowRight: (i + 1) % tabs.length, ArrowLeft: (i - 1 + tabs.length) % tabs.length, Home: 0, End: tabs.length - 1 }[e.key]
+        if (next == null) return
+        e.preventDefault()
+        tabs[next].focus()
+        showTab(tabs[next].dataset.tab)
+    })
     const lockInput = $("#lock_password")
     lockInput.parentNode.insertBefore(passwordGroup(lockInput), null)
     $$("[data-icon]").forEach(n => n.prepend(icon(n.dataset.icon)))
     wireName()
+    wirePreview(form)
     $("#save").addEventListener("click", save)
-    $("#discard").addEventListener("click", () => { form.discard(); renderAll() })
+    $("#discard").addEventListener("click", () => { form.discard(); renderAll(); preview.setConfig(form.saveJson()) })
     $("#lock_form").addEventListener("submit", unlock)
     $("#lock_btn").addEventListener("click", lock)
     $("#loading_retry").addEventListener("click", () => location.reload())
 
-    form.on("change", renderDirty)
+    form.on("change", key => {
+        renderDirty()
+        if (!key.startsWith("ctx.")) preview.setConfig(form.saveJson())
+    })
     form.on("load", renderDirty)
     form.on("load", () => { ui.fileReport = null })
     form.on("load", () => { renderName(); editName(false) })
@@ -391,5 +423,8 @@ async function start() {
     await loadSettings()
     api.startStatus()
 }
+
+// For the site tests and for poking at the page from the console.
+window.nsclock = { form, api, preview, ui }
 
 start()

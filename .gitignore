@@ -11,3 +11,4 @@ __pycache__/
 /logs/*
 /data/revision.txt
 /.agents/*
+/www/simulator/

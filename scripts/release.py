@@ -148,7 +148,7 @@ def update_manifest_version(path, version, indent):
 
 
 def update_release_files(version):
-    VERSION_FILE.write_text(version)
+    VERSION_FILE.write_text(version + "\n")
     replace_single_line(GLOBALS_FILE, '#define VERSION "', f'#define VERSION "{version}"')
 
     update_manifest_version(MANIFEST_FILE, version, indent=4)

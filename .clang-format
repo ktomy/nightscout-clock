@@ -30,3 +30,4 @@ SpacesInContainerLiterals: true
 SpacesInParentheses: false
 SpacesInSquareBrackets: false
 Standard: Auto
+LineEnding: LF

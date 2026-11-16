@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<meta name="description" content="Try the Nightscout clock's faces in your browser, drawn by the clock firmware's own display code.">
+<link rel="icon" href="data:,">
+<title>Nightscout clock face simulator</title>
+<style>/*__CSS__*/
+/* The simulator page: no tabs or Save bar, so the header scrolls away and the preview sits higher. */
+.top { position: static; }
+.sim-col { top: var(--gap); }
+.wrap { padding-bottom: 48px; }
+.top .brand-text p { margin-top: 2px; }
+.top .actions { margin-left: auto; }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="top-inner">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true">NS</div>
+      <div class="brand-text">
+        <h1>Nightscout clock face simulator</h1>
+        <p class="small muted">It runs the clock firmware's own display code in your browser, so each face looks as it does on the clock.</p>
+      </div>
+    </div>
+    <div class="actions"><a class="btn sm" href="../">Install on a clock</a></div>
+  </div>
+</header>
+
+<div class="wrap">
+  <!--__PREVIEW__: with the factory settings and the choices on this page.-->
+
+  <main class="panel-stack" id="sim_page"></main>
+</div>
+
+<script>/*__JS__*/</script>
+</body>
+</html>

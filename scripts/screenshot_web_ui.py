@@ -49,6 +49,7 @@ def main():
                     "Then install Chromium: python -m playwright install chromium\n")
 
     try:
+        subprocess.run(["node", str(ROOT / "web/emulator/build.mjs")], cwd=ROOT, check=True)
         subprocess.run(["node", str(ROOT / "web/build.mjs")], cwd=ROOT, check=True)
     except FileNotFoundError:
         parser.exit(1, "Install Node.js using the version in .node-version.\n")
@@ -87,7 +88,7 @@ def main():
             route.fulfill(json={
                 "isInAPMode": False, "isConnected": True, "hasInternet": True,
                 "bgSourceStatus": "connected", "sgv": 110,
-                "hasRecentData": True, "faceId": "simple",
+                "hasRecentData": True, "faceId": "big_text",
             })
         else:
             asset = (ROOT / "data" / (path.lstrip("/") or "index.html")).resolve()
@@ -128,6 +129,11 @@ def main():
                 "document.querySelector('#fw_status').textContent === 'You are using the latest version.'"
             )
             page.evaluate("document.fonts.ready")
+            # The face pictures are drawn one per frame after load; wait until every visible one has pixels.
+            page.wait_for_function("""() => [...document.querySelectorAll('#card_faces canvas')]
+                .filter(c => !c.hidden && c.offsetParent)
+                .every(c => c.getContext('2d').getImageData(0, 0, c.width, c.height).data.some(v => v))""",
+                timeout=15000)
             if errors:
                 raise RuntimeError("UI failed to render cleanly:\n" + "\n".join(errors))
             args.output.parent.mkdir(parents=True, exist_ok=True)
