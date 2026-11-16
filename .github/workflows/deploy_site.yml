@@ -1,0 +1,94 @@
+name: Deploy site
+
+# Publishes www/ to GitHub Pages (https://nsclock.app/) with the firmware and face simulator of a GitHub
+# release: after every release (from build_release.yml), and whenever the site changes on main.
+permissions:
+  contents: read
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "www/**"
+      - ".github/workflows/deploy_site.yml"
+  workflow_dispatch:
+  workflow_call:
+    inputs:
+      tag:
+        description: "Release whose files the site serves, for example v-1.3.1"
+        required: true
+        type: string
+
+jobs:
+  build:
+    name: Build the site
+    runs-on: ubuntu-latest
+    outputs:
+      ready: ${{ steps.release.outputs.ready }}
+
+    steps:
+      - uses: actions/checkout@v7
+      # Without a tag, the site serves the version on main, which release.py bumps with the release tag.
+      # Its release does not exist yet while the release workflow builds it, and that workflow deploys the
+      # site when it finishes, so this run has nothing to do.
+      - name: Find the release
+        id: release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          TAG: ${{ inputs.tag }}
+        run: |
+          if [ -z "$TAG" ]; then
+            TAG="v-$(tr -d '[:space:]' < data/version.txt)"
+            if ! out=$(gh release view "$TAG" --json tagName 2>&1); then
+              if ! grep -q "release not found" <<< "$out"; then
+                echo "$out"
+                exit 1
+              fi
+              echo "::notice::Release $TAG is not published yet; its release workflow deploys the site."
+              echo "ready=false" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+          fi
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "ready=true" >> "$GITHUB_OUTPUT"
+      - name: Add the release files
+        if: steps.release.outputs.ready == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          TAG: ${{ steps.release.outputs.tag }}
+        run: |
+          gh release download "$TAG" --dir release --pattern 'nightscout-clock-*.zip'
+          unzip -q release/nightscout-clock-firmware.zip -d www/artifacts
+          unzip -q release/nightscout-clock-debug-firmware.zip -d www/debug/artifacts
+          unzip -q release/nightscout-clock-simulator.zip -d www/simulator
+          cp www/debug/manifest-debug.json www/debug/manifest.json
+      - name: Upload artifact
+        if: steps.release.outputs.ready == 'true'
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: "www"
+
+  deploy:
+    name: Deploy on Github Pages
+    needs: build
+    # Only main and release tags reach the site; a run started by hand on another branch stops after the build.
+    if: >-
+      needs.build.outputs.ready == 'true'
+      && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v-'))
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    concurrency:
+      group: "pages"
+      cancel-in-progress: false
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5

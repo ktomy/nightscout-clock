@@ -22,7 +22,7 @@ When adding firmware behavior, prefer extending the existing module family inste
 
 `test/` contains the host-side tests; see Testing Guidelines.
 
-`www/` is the GitHub Pages site, including the browser installer and debug pages; it is not part of the firmware filesystem image. The release workflow adds the face simulator under `www/simulator/`: the same clock preview, `data/clockemu.js.gz`, as a standalone page built from `web/simulator/` by `node web/build.mjs --simulator www/simulator`. `scripts/` contains contributor tooling for local build, upload, monitoring, release, and emulator/test-data tasks. Core firmware build configuration lives in `platformio.ini` and `partitions.csv`; `wokwi.toml` and `diagram.json` describe the Wokwi simulator project (see "Testing in the Wokwi simulator").
+`www/` is the project site at https://nsclock.app/, served by GitHub Pages: the home page with the browser installer, and the debug installer under `www/debug/`; it is not part of the firmware filesystem image. The release workflow (`.github/workflows/build_release.yml`) publishes each release tag as a GitHub release with three assets: the release firmware, the debug firmware, and the face simulator, which is the same clock preview, `data/clockemu.js.gz`, as a standalone page built from `web/simulator/` by `node web/build.mjs --simulator`, plus the factory settings that the home page's live clock starts from. `.github/workflows/deploy_site.yml` deploys `www/` with those assets unpacked into `www/artifacts/`, `www/debug/artifacts/` and `www/simulator/`: after every release, and whenever `www/` changes on `main`, using the release named by `data/version.txt`. `scripts/` contains contributor tooling for local build, upload, monitoring, release, and emulator/test-data tasks. Core firmware build configuration lives in `platformio.ini` and `partitions.csv`; `wokwi.toml` and `diagram.json` describe the Wokwi simulator project (see "Testing in the Wokwi simulator").
 
 ## Build, Test, and Development Commands
 
@@ -50,7 +50,7 @@ For releases, follow the canonical procedure in `CONTRIBUTING.md`.
 - Use `scripts/release.py [patch|minor|major]`.
 - Treat `data/version.txt` as the version source of truth.
 - If needed, prepare the upcoming version changelog in `README.md`, but do not manually bump the `Current version` line before running the script.
-- After the release tag is pushed, monitor the GitHub Actions workflow `Build and deploy on Github Pages` and require it to succeed.
+- After the release tag is pushed, monitor the GitHub Actions workflow `Build and release` and require it to succeed. It publishes the GitHub release and deploys the site.
 
 `platformio.ini` defines the `ulanzi_debug` environment and loads the git-ignored `platformio.local.ini` for machine-specific settings. Copy `platformio.local.ini.example` and define `upload_port` there before using the upload, reset, or monitor scripts.
 

@@ -129,4 +129,5 @@ Use `scripts/release.py` for `patch`, `minor`, and `major` releases.
 - Run `scripts/release.py patch`, `scripts/release.py minor`, or `scripts/release.py major`.
 - The script requires `main` to track `origin/main`, permits only pending `README.md` changelog edits, and fast-forward pulls before changing release metadata.
 - The script exits on any failed Git operation and atomically pushes the release commit with only its release tag, so neither remote ref is updated if the push is rejected.
-- After the tag is pushed, monitor the tag-triggered GitHub Actions workflow `Build and deploy on Github Pages`. The release is not complete until that workflow succeeds.
+- After the tag is pushed, monitor the tag-triggered GitHub Actions workflow `Build and release`. It publishes the GitHub release with the firmware and deploys https://nsclock.app/ with it. The release is not complete until that workflow succeeds.
+- To rebuild and republish an existing release, run `Build and release` from **Actions** with its tag, for example `v-1.3.1`. Site changes on `main` deploy by themselves through `Deploy site`, with the firmware of the current release.
