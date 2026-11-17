@@ -471,6 +471,12 @@ std::list<GlucoseReading> BGSourceLibreLinkUp::getReadings(unsigned long long la
 #endif
 
     client->begin(*wifiSecureClient, url);
+    // The graph answer is about 30 KB. getString() needed twice that in free memory, and when
+    // memory ran out or the connection dropped it returned the body cut short, without an error.
+    // The JSON is parsed straight from the connection instead, keeping only the fields in the
+    // filter. HTTP/1.0 keeps the server from sending the body in chunks, whose size lines would
+    // break the JSON.
+    client->useHTTP10(true);
     client->setTimeout(15000);  // Set timeout to 15 seconds (15000 milliseconds)
     for (auto& header : standardHeaders) {
         client->addHeader(header.first, header.second);
@@ -479,26 +485,8 @@ std::list<GlucoseReading> BGSourceLibreLinkUp::getReadings(unsigned long long la
     client->addHeader("Authorization", "Bearer " + authTicket.token);
     client->addHeader("account-id", encodeSHA256(authTicket.accountId));
 
-    // The graph only fills in the history. If it fails, keep the current reading from the
-    // connections request; the next gap of more than five minutes requests the graph again.
-    auto responseCode = client->GET();
-    if (responseCode != HTTP_CODE_OK) {
-        DEBUG_PRINTF(
-            "Error getting graph from LibreLinkUp %d, using the current reading only\n", responseCode);
-        client->end();
-        return std::list<GlucoseReading>{readingFromConnection};
-    }
-    String response = client->getString();
-    client->end();
-
 #ifdef DEBUG_BG_SOURCE
-    DEBUG_PRINTLN("Graph Response: " + response);
-#endif
-
-    JsonDocument doc;
-
-#ifdef DEBUG_BG_SOURCE
-    DEBUG_PRINTF("Free memory: %d\n", ESP.getFreeHeap());
+    DEBUG_PRINTF("Free memory: %d, largest block: %d\n", ESP.getFreeHeap(), ESP.getMaxAllocHeap());
 #endif
 
     JsonDocument filter;
@@ -508,13 +496,33 @@ std::list<GlucoseReading> BGSourceLibreLinkUp::getReadings(unsigned long long la
 
     DeserializationOption::Filter filterOption(filter);
 
-    DeserializationError error = deserializeJson(doc, response, filterOption);
-    // DeserializationError error = deserializeJson(doc, response);
+    JsonDocument doc;
+    DeserializationError error = DeserializationError::Ok;
+
+    auto responseCode = client->GET();
+    int responseSize = client->getSize();  // -1 without a Content-Length header
+    if (responseCode == HTTP_CODE_OK) {
+        error = deserializeJson(doc, client->getStream(), filterOption);
+    }
+    client->end();
+    // Back to HTTP/1.1 for the other requests. useHTTP10(false) also turns connection reuse on,
+    // which must stay off (see setup()).
+    client->useHTTP10(false);
+    client->setReuse(false);
+
+    // The graph only fills in the history. If it fails, keep the current reading from the
+    // connections request; the next gap of more than five minutes requests the graph again.
+    if (responseCode != HTTP_CODE_OK) {
+        DEBUG_PRINTF(
+            "Error getting graph from LibreLinkUp %d, using the current reading only\n", responseCode);
+        return std::list<GlucoseReading>{readingFromConnection};
+    }
+
     if (error) {
         DEBUG_PRINTF(
-            "Error deserializing LibreLinkUp glucose response: %s, using the current reading only\n"
-            "Failed on string: %s\n",
-            error.c_str(), response.c_str());
+            "Error deserializing LibreLinkUp glucose response (Content-Length %d): %s, using the "
+            "current reading only\n",
+            responseSize, error.c_str());
         return std::list<GlucoseReading>{readingFromConnection};
     }
 
