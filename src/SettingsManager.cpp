@@ -90,13 +90,13 @@ bool SettingsManager_::isValidAlarmRepeatInterval(int intervalSeconds) {
 
 bool SettingsManager_::parseCustomMac(const String& macStr, uint8_t* macBytes) {
     int values[6];
-    int parsed = sscanf(macStr.c_str(), "%x:%x:%x:%x:%x:%x",
-                        &values[0], &values[1], &values[2],
-                        &values[3], &values[4], &values[5]);
+    int parsed = sscanf(
+        macStr.c_str(), "%x:%x:%x:%x:%x:%x", &values[0], &values[1], &values[2], &values[3], &values[4],
+        &values[5]);
     if (parsed != 6) {
-        parsed = sscanf(macStr.c_str(), "%x-%x-%x-%x-%x-%x",
-                        &values[0], &values[1], &values[2],
-                        &values[3], &values[4], &values[5]);
+        parsed = sscanf(
+            macStr.c_str(), "%x-%x-%x-%x-%x-%x", &values[0], &values[1], &values[2], &values[3],
+            &values[4], &values[5]);
     }
     if (parsed != 6) {
         return false;
@@ -216,18 +216,15 @@ bool SettingsManager_::loadSettingsFromFile() {
     settings.alarm_urgent_low_enabled = (*doc)["alarm_urgent_low_enabled"].as<bool>();
     settings.alarm_urgent_low_mgdl = (*doc)["alarm_urgent_low_value"].as<int>();
     settings.alarm_urgent_low_snooze_minutes = (*doc)["alarm_urgent_low_snooze_interval"].as<int>();
-    settings.alarm_urgent_low_alert_windows =
-        readAlertWindows((*doc)["alarm_urgent_low_alert_windows"]);
+    settings.alarm_urgent_low_alert_windows = readAlertWindows((*doc)["alarm_urgent_low_alert_windows"]);
     settings.alarm_low_enabled = (*doc)["alarm_low_enabled"].as<bool>();
     settings.alarm_low_mgdl = (*doc)["alarm_low_value"].as<int>();
     settings.alarm_low_snooze_minutes = (*doc)["alarm_low_snooze_interval"].as<int>();
-    settings.alarm_low_alert_windows =
-        readAlertWindows((*doc)["alarm_low_alert_windows"]);
+    settings.alarm_low_alert_windows = readAlertWindows((*doc)["alarm_low_alert_windows"]);
     settings.alarm_high_enabled = (*doc)["alarm_high_enabled"].as<bool>();
     settings.alarm_high_mgdl = (*doc)["alarm_high_value"].as<int>();
     settings.alarm_high_snooze_minutes = (*doc)["alarm_high_snooze_interval"].as<int>();
-    settings.alarm_high_alert_windows =
-        readAlertWindows((*doc)["alarm_high_alert_windows"]);
+    settings.alarm_high_alert_windows = readAlertWindows((*doc)["alarm_high_alert_windows"]);
     settings.alarm_high_melody = (*doc)["alarm_high_melody"].as<String>();
     settings.alarm_low_melody = (*doc)["alarm_low_melody"].as<String>();
     settings.alarm_urgent_low_melody = (*doc)["alarm_urgent_low_melody"].as<String>();
@@ -265,8 +262,8 @@ bool SettingsManager_::loadSettingsFromFile() {
         }
     }
 
-    settings.data_old_color = displayColorFromString(
-        (*doc)["data_old_color"].as<String>(), DISPLAY_COLOR::GRAY);
+    settings.data_old_color =
+        displayColorFromString((*doc)["data_old_color"].as<String>(), DISPLAY_COLOR::GRAY);
 
     // Big text face
     JsonObject bigText = (*doc)["face_big_text"].as<JsonObject>();
@@ -432,18 +429,15 @@ bool SettingsManager_::saveSettingsToFile() {
     (*doc)["alarm_urgent_low_enabled"] = settings.alarm_urgent_low_enabled;
     (*doc)["alarm_urgent_low_value"] = settings.alarm_urgent_low_mgdl;
     (*doc)["alarm_urgent_low_snooze_interval"] = settings.alarm_urgent_low_snooze_minutes;
-    writeAlertWindows(*doc, "alarm_urgent_low_alert_windows",
-                      settings.alarm_urgent_low_alert_windows);
+    writeAlertWindows(*doc, "alarm_urgent_low_alert_windows", settings.alarm_urgent_low_alert_windows);
     (*doc)["alarm_low_enabled"] = settings.alarm_low_enabled;
     (*doc)["alarm_low_value"] = settings.alarm_low_mgdl;
     (*doc)["alarm_low_snooze_interval"] = settings.alarm_low_snooze_minutes;
-    writeAlertWindows(*doc, "alarm_low_alert_windows",
-                      settings.alarm_low_alert_windows);
+    writeAlertWindows(*doc, "alarm_low_alert_windows", settings.alarm_low_alert_windows);
     (*doc)["alarm_high_enabled"] = settings.alarm_high_enabled;
     (*doc)["alarm_high_value"] = settings.alarm_high_mgdl;
     (*doc)["alarm_high_snooze_interval"] = settings.alarm_high_snooze_minutes;
-    writeAlertWindows(*doc, "alarm_high_alert_windows",
-                      settings.alarm_high_alert_windows);
+    writeAlertWindows(*doc, "alarm_high_alert_windows", settings.alarm_high_alert_windows);
     (*doc)["alarm_high_melody"] = settings.alarm_high_melody;
     (*doc)["alarm_low_melody"] = settings.alarm_low_melody;
     (*doc)["alarm_urgent_low_melody"] = settings.alarm_urgent_low_melody;

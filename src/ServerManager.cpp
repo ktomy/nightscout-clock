@@ -526,14 +526,15 @@ void ServerManager_::setupWebServer(IPAddress ip) {
                 return;
             }
             if (!json.is<JsonObject>() || !json.as<JsonObject>()["face"].is<String>()) {
-                request->send(400, "application/json",
-                              "{\"status\": \"error\", \"error\": \"face must be a face id\"}");
+                request->send(
+                    400, "application/json",
+                    "{\"status\": \"error\", \"error\": \"face must be a face id\"}");
                 return;
             }
             String id = json.as<JsonObject>()["face"].as<String>();
             if (!bgDisplayManager.requestFace(id)) {
-                request->send(400, "application/json",
-                              "{\"status\": \"error\", \"error\": \"unknown face id\"}");
+                request->send(
+                    400, "application/json", "{\"status\": \"error\", \"error\": \"unknown face id\"}");
                 return;
             }
             String body = "{\"status\": \"ok\", \"face\": \"";
@@ -600,13 +601,9 @@ void ServerManager_::setupWebServer(IPAddress ip) {
 
     // Captive portal detection endpoints
     // Android: responds with HTTP 204 so the device opens the portal
-    ws->on("/generate_204", HTTP_GET, [](AsyncWebServerRequest* request) {
-        request->redirect("/");
-    });
+    ws->on("/generate_204", HTTP_GET, [](AsyncWebServerRequest* request) { request->redirect("/"); });
     // Windows: redirect NCSI probe to the settings page
-    ws->on("/connecttest.txt", HTTP_GET, [](AsyncWebServerRequest* request) {
-        request->redirect("/");
-    });
+    ws->on("/connecttest.txt", HTTP_GET, [](AsyncWebServerRequest* request) { request->redirect("/"); });
 
     ws->onNotFound([](AsyncWebServerRequest* request) {
         if (request->method() == HTTP_OPTIONS) {
@@ -690,7 +687,8 @@ tm ServerManager_::getTimezonedTime() {
 }
 
 // Like getTimezonedTime(), but reports whether the clock actually knows the time. Reads the
-// clock directly: getLocalTime() waits up to 5 s when it is unset, and can skip the read on a zero timeout.
+// clock directly: getLocalTime() waits up to 5 s when it is unset, and can skip the read on a zero
+// timeout.
 bool ServerManager_::tryGetTimezonedTime(tm& timeinfo) {
     time_t now;
     time(&now);

@@ -23,7 +23,8 @@ struct BigTextDarkFaceSettings {
     bool age_dots = false;
 };
 
-// Unicorn face: a moving mane moves its colors at `speed` in the `flow` style while the reading is fresh.
+// Unicorn face: a moving mane moves its colors at `speed` in the `flow` style while the reading is
+// fresh.
 struct UnicornFaceSettings {
     bool mane_moving = false;
     ANIMATION_SPEED speed = ANIMATION_SPEED::NORMAL;

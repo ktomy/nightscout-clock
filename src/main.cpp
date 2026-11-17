@@ -59,7 +59,8 @@ void setup() {
     DEBUG_PRINTLN("Setup done");
     if (ServerManager.isConnected) {
 #ifndef WOKWI  // Scrolling takes minutes in the slower-than-real-time simulation
-        String welcomeMessage = "Nightscout clock | To configure go to http://" + ServerManager.myIP.toString() + "/";
+        String welcomeMessage =
+            "Nightscout clock | To configure go to http://" + ServerManager.myIP.toString() + "/";
         DisplayManager.scrollColorfulText(welcomeMessage);
 #endif
 

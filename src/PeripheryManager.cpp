@@ -2,9 +2,9 @@
 #include <BGAlarmManager.h>
 #include <LightDependentResistor.h>
 #include <LittleFS.h>
+#include <PeripheryManager.h>
 #include <melody_factory.h>
 #include <melody_player.h>
-#include <PeripheryManager.h>
 
 #include "Adafruit_SHT31.h"
 #include "DisplayManager.h"

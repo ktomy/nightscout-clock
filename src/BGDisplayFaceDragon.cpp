@@ -105,9 +105,8 @@ void BGDisplayFaceDragon::drawFlame(int sgv, unsigned long frame) const {
             // In range the fire is the first four in-range colors, magenta at the core out to violet.
             // Out of range the motion colors are counted back from the end of the flame, so they run out
             // of the mouth.
-            const uint16_t color =
-                inRange ? IN_RANGE_COLORS[layer]
-                        : getMotionColor(level, quarter, FLAME_END - col, frame);
+            const uint16_t color = inRange ? IN_RANGE_COLORS[layer]
+                                           : getMotionColor(level, quarter, FLAME_END - col, frame);
             DisplayManager.drawPixel(col, drawRow, color);
         }
     }

@@ -3,8 +3,8 @@
 #include <algorithm>
 #include <list>
 
-#include "BGSource.h"
 #include "BGDisplayValueText.h"
+#include "BGSource.h"
 #include "BGSourceManager.h"
 #include "DisplayManager.h"
 #include "ServerManager.h"
@@ -83,7 +83,8 @@ void BGDisplayManager_::configureActiveFaces() {
 
     const std::vector<String>& inactiveFaces = SettingsManager.settings.inactive_faces;
     for (int index = 0; static_cast<size_t>(index) < faces.size(); index++) {
-        if (std::find(inactiveFaces.begin(), inactiveFaces.end(), faces[index].id) == inactiveFaces.end()) {
+        if (std::find(inactiveFaces.begin(), inactiveFaces.end(), faces[index].id) ==
+            inactiveFaces.end()) {
             activeFaces.push_back(index);
         }
     }
@@ -115,9 +116,7 @@ int BGDisplayManager_::findFaceIndex(const String& id) const {
     return -1;
 }
 
-bool BGDisplayManager_::suppressesNewAlarms() const {
-    return currentFace->suppressesNewAlarms();
-}
+bool BGDisplayManager_::suppressesNewAlarms() const { return currentFace->suppressesNewAlarms(); }
 
 const GlucoseIntervals& BGDisplayManager_::getGlucoseIntervals() const { return glucoseIntervals; }
 
@@ -210,7 +209,8 @@ void BGDisplayManager_::updateFaceCycle() {
 
 void BGDisplayManager_::updateSurpriseMode() {
     // Let the Nyan run across once plus its pause, then restore the previous face.
-    if (!surpriseModeActive || millis() - surpriseStartMs < 8000) return;
+    if (!surpriseModeActive || millis() - surpriseStartMs < 8000)
+        return;
     surpriseModeActive = false;
     setFaceByIndex(currentFaceIndex);
 }
@@ -320,8 +320,8 @@ void BGDisplayManager_::updateFaceSchedule() {
         }
     }
 
-    const bool reachedRowTime = minuteOfDay == faceSchedule[current].startMinutes &&
-                                minuteOfDay != lastScheduleMinuteOfDay;
+    const bool reachedRowTime =
+        minuteOfDay == faceSchedule[current].startMinutes && minuteOfDay != lastScheduleMinuteOfDay;
     lastScheduleMinuteOfDay = minuteOfDay;
 
     if (current == appliedScheduleEntry && !reachedRowTime) {

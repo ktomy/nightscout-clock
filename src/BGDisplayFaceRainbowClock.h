@@ -6,8 +6,7 @@
 // Time display with per-character rainbow colors.
 class BGDisplayFaceRainbowClock : public BGDisplayFace {
 public:
-    void showReadings(
-        const std::list<GlucoseReading>& readings, bool dataIsOld = false) const override;
+    void showReadings(const std::list<GlucoseReading>& readings, bool dataIsOld = false) const override;
     void showNoData() const override;
     unsigned long getAnimationStepMillis() const override;
     void showAnimationFrame(
