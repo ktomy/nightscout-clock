@@ -4,7 +4,7 @@
 
 This is an active and developing project, new versions land every few weeks
 
-### Current version: 1.3.1
+### Current version: 1.3.2
 
 ![Build and Release](https://github.com/ktomy/nightscout-clock/actions/workflows/build_release.yml/badge.svg)
 
@@ -314,6 +314,14 @@ High, low, and urgent-low alarms each have their own threshold, snooze duration,
   - ...more... (if you are the author of a CGM data collecting app/service and you want your data to be displayed on the Nightscout Clock, please contact me)
 
 ## Changes
+
+### 1.3.2
+
+- Fixed LibreLinkUp readings going missing for long stretches while the LibreLinkUp app showed them: a reading that reached LibreLinkUp after the clock's next poll was skipped for good, thanks [@nishanm](https://github.com/nishanm) for finding the cause ([#273](https://github.com/ktomy/nightscout-clock/issues/273))
+- Fixed LibreLinkUp errors such as "Invalid LibreLinkUp glucose response: IncompleteInput" or "InvalidInput" stopping the clock after a single bad answer: the clock now keeps its readings and tries again, shows an error only after repeated failures, and shows the current reading when the history can't be loaded; the history now loads with much less memory, which was the usual reason for the cut-off answers ([#273](https://github.com/ktomy/nightscout-clock/issues/273))
+- Changed the settings page to accept LibreLink Up passwords longer than 20 characters, thanks [@nishanm](https://github.com/nishanm) ([#284](https://github.com/ktomy/nightscout-clock/pull/284))
+- Added the project website, [nsclock.app](https://nsclock.app/), with the browser installer and the face simulator; firmware releases are published as GitHub releases
+- The README shows every clock face as rendered by the clock's own display code, and the settings page preview shows a charged battery on the Battery and uptime face, thanks [@nishanm](https://github.com/nishanm) ([#285](https://github.com/ktomy/nightscout-clock/pull/285))
 
 ### 1.3.1
 
