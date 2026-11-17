@@ -436,10 +436,11 @@ std::list<GlucoseReading> BGSourceLibreLinkUp::updateReadings(
 std::list<GlucoseReading> BGSourceLibreLinkUp::getReadings(unsigned long long lastReadingEpoch) {
     auto readingFromConnection = getLibreLinkUpConnection();
 
-    if (readingFromConnection.isEmpty() || lastCallAttemptEpoch >= readingFromConnection.epoch) {
+    // Compare with the newest stored reading, not with the time of the last poll: a reading
+    // reaches LibreLinkUp some time after the sensor takes it, often after the clock has polled.
+    if (readingFromConnection.isEmpty() || lastReadingEpoch >= readingFromConnection.epoch) {
 #ifdef DEBUG_BG_SOURCE
-        DEBUG_PRINTF(
-            "No readings needed, last reading epoch %llu is already in\n", lastCallAttemptEpoch);
+        DEBUG_PRINTF("No readings needed, last reading epoch %llu is already in\n", lastReadingEpoch);
 #endif
         return std::list<GlucoseReading>();
     }
