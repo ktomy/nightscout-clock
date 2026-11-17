@@ -252,17 +252,26 @@ GlucoseReading BGSourceLibreLinkUp::getLibreLinkUpConnection() {
 
     auto responseCode = client->GET();
 
-    if (responseCode != HTTP_CODE_OK &&
-        (firstConnectionSuccess == false || retryCount > MAX_RETRY_COUNT)) {
-        DEBUG_PRINTF("Error getting connections from LibreLinkUp %d\n", responseCode);
-        status = "get_connections_failed";
-        DisplayManager.showFatalError(
-            String("Error getting connections from LibreLinkUp: ") + String(responseCode));
-    }
+    // A failed request or an unreadable answer is usually a passing network or server problem.
+    // Keep the readings the clock has and try again on the next poll; show an error only after
+    // MAX_RETRY_COUNT failures in a row, or for an HTTP error before the first connection.
     if (responseCode != HTTP_CODE_OK) {
         retryCount += 1;
-    } else {
-        retryCount = 0;
+#ifdef DEBUG_BG_SOURCE
+        // The body of an HTTP error, such as a 429 or 5xx page, is usually not JSON, so it is
+        // only logged.
+        String errorBody = client->getString();
+        DEBUG_PRINTF(
+            "Error getting connections from LibreLinkUp %d (failure %d): %.200s\n", responseCode,
+            retryCount, errorBody.c_str());
+#endif
+        client->end();
+        if (!firstConnectionSuccess || retryCount > MAX_RETRY_COUNT) {
+            status = "get_connections_failed";
+            DisplayManager.showFatalError(
+                String("Error getting connections from LibreLinkUp: ") + String(responseCode));
+        }
+        return GlucoseReading();  // return empty reading to indicate no data
     }
 
     String response = client->getString();
@@ -275,19 +284,15 @@ GlucoseReading BGSourceLibreLinkUp::getLibreLinkUpConnection() {
     JsonDocument doc;
     DeserializationError error = deserializeJson(doc, response);
     if (error) {
-        if (error == DeserializationError::EmptyInput) {
-            DEBUG_PRINTLN("Empty response from LibreLinkUp, no data to process");
-            // A failed request is already counted above; count it once.
-            if (responseCode == HTTP_CODE_OK) {
-                retryCount += 1;
-            }
-            if (retryCount <= MAX_RETRY_COUNT) {
-                return GlucoseReading();  // return empty reading to indicate no data
-            }
-        }
+        // Empty, cut short or not JSON
+        retryCount += 1;
         DEBUG_PRINTF(
-            "Error deserializing LibreLinkUp connections response: %s\nFailed on string: %s\n",
-            error.c_str(), response.c_str());
+            "Error deserializing LibreLinkUp connections response (failure %d): %s\n"
+            "Failed on string: %s\n",
+            retryCount, error.c_str(), response.c_str());
+        if (retryCount <= MAX_RETRY_COUNT) {
+            return GlucoseReading();  // return empty reading to indicate no data
+        }
         status = "get_connections_failed";
         DisplayManager.showFatalError(
             String("Invalid LibreLinkUp connections response: ") + error.c_str());
@@ -345,6 +350,10 @@ GlucoseReading BGSourceLibreLinkUp::getLibreLinkUpConnection() {
     reading.epoch = libreTimestampToEpoch(dateString);
     reading.trend =
         trendFromLibreTrend(doc["data"][patientIndex]["glucoseMeasurement"]["TrendArrow"].as<int>());
+
+    retryCount = 0;
+    firstConnectionSuccess = true;
+    status = "connected";
 
 #ifdef DEBUG_BG_SOURCE
     DEBUG_PRINTF(
@@ -470,25 +479,14 @@ std::list<GlucoseReading> BGSourceLibreLinkUp::getReadings(unsigned long long la
     client->addHeader("Authorization", "Bearer " + authTicket.token);
     client->addHeader("account-id", encodeSHA256(authTicket.accountId));
 
+    // The graph only fills in the history. If it fails, keep the current reading from the
+    // connections request; the next gap of more than five minutes requests the graph again.
     auto responseCode = client->GET();
-    if (responseCode != HTTP_CODE_OK &&
-        (firstConnectionSuccess == false || retryCount > MAX_RETRY_COUNT)) {
-        DEBUG_PRINTF("Error getting graph from LibreLinkUp %d\n", responseCode);
-        status = "get_glucose_failed";
-        DisplayManager.showFatalError(
-            String("Error getting graph from LibreLinkUp: ") + String(responseCode));
-    }
-#ifdef DEBUG_BG_SOURCE
-    else {
-        if (responseCode != HTTP_CODE_OK) {
-            DEBUG_PRINTF("Error getting graph from LibreLinkUp %d\n", responseCode);
-        }
-    }
-#endif
     if (responseCode != HTTP_CODE_OK) {
-        retryCount += 1;
-    } else {
-        retryCount = 0;
+        DEBUG_PRINTF(
+            "Error getting graph from LibreLinkUp %d, using the current reading only\n", responseCode);
+        client->end();
+        return std::list<GlucoseReading>{readingFromConnection};
     }
     String response = client->getString();
     client->end();
@@ -496,9 +494,6 @@ std::list<GlucoseReading> BGSourceLibreLinkUp::getReadings(unsigned long long la
 #ifdef DEBUG_BG_SOURCE
     DEBUG_PRINTLN("Graph Response: " + response);
 #endif
-
-    firstConnectionSuccess = true;
-    status = "connected";
 
     JsonDocument doc;
 
@@ -516,27 +511,19 @@ std::list<GlucoseReading> BGSourceLibreLinkUp::getReadings(unsigned long long la
     DeserializationError error = deserializeJson(doc, response, filterOption);
     // DeserializationError error = deserializeJson(doc, response);
     if (error) {
-        if (error == DeserializationError::EmptyInput) {
-            DEBUG_PRINTLN("Empty response from LibreLinkUp, no data to process");
-            // A failed request is already counted above; count it once.
-            if (responseCode == HTTP_CODE_OK) {
-                retryCount += 1;
-            }
-            if (retryCount <= MAX_RETRY_COUNT) {
-                return std::list<GlucoseReading>{readingFromConnection};
-            }
-        }
         DEBUG_PRINTF(
-            "Error deserializing LibreLinkUp glucose response: %s\nFailed on string: %s\n",
+            "Error deserializing LibreLinkUp glucose response: %s, using the current reading only\n"
+            "Failed on string: %s\n",
             error.c_str(), response.c_str());
-        status = "get_glucose_failed";
-        DisplayManager.showFatalError(String("Invalid LibreLinkUp glucose response: ") + error.c_str());
+        return std::list<GlucoseReading>{readingFromConnection};
     }
 
     if (doc["status"].as<int>() != 0) {
-        DEBUG_PRINTF("Failed to get glucose from LibreLinkUp, non-zero status %s\n", response.c_str());
-        status = "get_glucose_failed";
-        DisplayManager.showFatalError("Failed to get glucose from LibreLinkUp, please restart");
+        DEBUG_PRINTF(
+            "Failed to get glucose from LibreLinkUp, non-zero status %d, using the current reading "
+            "only\n",
+            doc["status"].as<int>());
+        return std::list<GlucoseReading>{readingFromConnection};
     }
     auto values = doc["data"]["graphData"].as<JsonArray>();
 #ifdef DEBUG_BG_SOURCE
