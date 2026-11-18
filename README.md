@@ -4,7 +4,7 @@
 
 This is an active and developing project, new versions land every few weeks
 
-### Current version: 1.3.2
+### Current version: 1.3.3
 
 ![Build and Release](https://github.com/ktomy/nightscout-clock/actions/workflows/build_release.yml/badge.svg)
 
@@ -314,6 +314,11 @@ High, low, and urgent-low alarms each have their own threshold, snooze duration,
   - ...more... (if you are the author of a CGM data collecting app/service and you want your data to be displayed on the Nightscout Clock, please contact me)
 
 ## Changes
+
+### 1.3.3
+
+- Added the WiFi signal strength to the settings page header: the WiFi status shows three bars with Strong, Good or Weak, and its tooltip gives the value in dBm; the network list in the WiFi settings now draws its bars the same way
+- Improved the Nightscout connection error: a 401 answer now shows "Missing API secret" and a 403 answer "Invalid API secret" instead of the bare status code
 
 ### 1.3.2
 
