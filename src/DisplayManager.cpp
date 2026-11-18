@@ -311,17 +311,17 @@ void DisplayManager_::HSVtext(int16_t x, int16_t y, const char* text, bool clear
         matrix->clear();
     static uint8_t hueOffset = 0;
     uint16_t xpos = 0;
-    for (uint16_t i = 0; i < strlen(text); i++) {
-        uint8_t hue = map(i, 0, strlen(text), 0, 255) + hueOffset;
+    const size_t len = strlen(text);
+    for (size_t i = 0; i < len; i++) {
+        uint8_t hue = map(i, 0, len, 0, 255) + hueOffset;
         uint16_t textColor = hsvToRgb(hue, 255, 255);
         matrix->setTextColor(textColor);
-        const char* myChar = &text[i];
 
         matrix->setCursor(xpos + x, y);
         if ((UPPERCASE_LETTERS && textCase == 0) || textCase == 1) {
             matrix->print((char)toupper(text[i]));
         } else {
-            matrix->print(&text[i]);
+            matrix->print(text[i]);
         }
         char temp_str[2] = {'\0', '\0'};
         temp_str[0] = text[i];
