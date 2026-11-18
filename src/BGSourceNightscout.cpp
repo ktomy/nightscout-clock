@@ -186,7 +186,13 @@ std::list<GlucoseReading> BGSourceNightscout::retrieveReadings(
         DEBUG_PRINTF("Error getting readings %d\n", responseCode);
         if (!firstConnectionSuccess) {
             status = "connection_error";
-            DisplayManager.showFatalError(String("Error connecting to Nightscout: ") + responseCode);
+            String reason = String(responseCode);
+            if (responseCode == HTTP_CODE_UNAUTHORIZED) {
+                reason = "Missing API secret";
+            } else if (responseCode == HTTP_CODE_FORBIDDEN) {
+                reason = "Invalid API secret";
+            }
+            DisplayManager.showFatalError("Error connecting to Nightscout: " + reason);
         }
         if (responseCode == -1) {
             handleFailedAttempt();
