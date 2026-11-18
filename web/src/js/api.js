@@ -22,6 +22,7 @@
  * @property {boolean} isConnected Whether the clock is connected to WiFi.
  * @property {boolean} hasInternet Whether its connectivity probe succeeded.
  * @property {boolean} isInAPMode Whether the clock is providing its setup WiFi network.
+ * @property {number} rssi Signal strength of the connected network in dBm, or zero when not connected.
  * @property {string} bgSource Active firmware source name, such as LIBRELINKUP.
  * @property {string} bgSourceStatus Source state/error code, such as connected or initialized.
  * @property {number} sgv Latest glucose in mg/dl, or zero when no reading is available.

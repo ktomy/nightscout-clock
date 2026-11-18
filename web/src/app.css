@@ -63,6 +63,7 @@ fieldset.off .alarm-body .grid, fieldset.off .alarm-body .windows, fieldset.off 
 /* The pencil keeps its 44px tap target without making the header taller. */
 .brand-name .btn.icon { margin: -8px 0; }
 .pill b { font-weight: 600; color: var(--text); }
+.pill .signal-bars { width: 14px; height: 14px; }
 .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); flex: none; }
 .dot.ok { background: var(--green); } .dot.warn { background: var(--amber); } .dot.bad { background: #f87171; } .dot.info { background: var(--cyan); }
 .actions { display: flex; gap: 8px; }
@@ -225,7 +226,8 @@ button.face { appearance: none; color: var(--text); font: inherit; text-align: l
 .network[aria-pressed="true"] { border-color: var(--cyan); box-shadow: 0 0 0 1px var(--cyan) inset; }
 .network-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .network-check { display: none; color: var(--cyan); }
-.network-info .icon-svg { color: var(--text); }
+.signal-bars .bar-on { stroke: var(--cyan); }
+.signal-bars .bar-off { stroke: var(--line-2); }
 .network[aria-pressed="true"] .network-check { display: block; }
 .network-info { flex: none; display: inline-flex; align-items: center; gap: 6px; font-size: 14px; color: var(--muted); }
 .network-open { color: var(--amber); }

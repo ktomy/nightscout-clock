@@ -482,6 +482,9 @@ void ServerManager_::setupWebServer(IPAddress ip) {
         jsonResponse += cachedCanReachInternet() ? "true" : "false";
         jsonResponse += ", \"isInAPMode\": ";
         jsonResponse += this->isInAPMode ? "true" : "false";
+        // Signal strength of the home network in dBm; 0 when the clock is not connected to one.
+        jsonResponse += ", \"rssi\": ";
+        jsonResponse += this->isConnected && !this->isInAPMode ? String(WiFi.RSSI()) : "0";
         jsonResponse += ", \"bgSource\": \"";
         jsonResponse += toString(bgSourceManager.getCurrentSourceType());
         jsonResponse += "\", \"bgSourceStatus\": \"";

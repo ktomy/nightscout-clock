@@ -86,7 +86,7 @@ def main():
             route.fulfill(json={"enabled": False, "authenticated": False})
         elif path == "/api/status":
             route.fulfill(json={
-                "isInAPMode": False, "isConnected": True, "hasInternet": True,
+                "isInAPMode": False, "isConnected": True, "hasInternet": True, "rssi": -65,
                 "bgSourceStatus": "connected", "sgv": 110,
                 "hasRecentData": True, "faceId": "big_text",
             })
@@ -124,7 +124,7 @@ def main():
             page.on("pageerror", lambda error: errors.append(str(error)))
             page.goto(ORIGIN, wait_until="load")
             page.locator("body[data-state=ready]").wait_for(state="attached")
-            page.wait_for_function("document.querySelector('#pill_wifi b').textContent === 'Connected'")
+            page.wait_for_function("document.querySelector('#pill_wifi b').textContent === 'Good'")
             page.wait_for_function(
                 "document.querySelector('#fw_status').textContent === 'You are using the latest version.'"
             )

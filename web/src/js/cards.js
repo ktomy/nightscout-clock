@@ -1118,16 +1118,30 @@ function markNetwork(list) {
 }
 
 /**
- * Draw three signal bars with the first `level` lit; the word beside them carries the meaning.
+ * Turn a WiFi signal strength into the number of lit signal bars.
+ * @param {number} rssi - Signal strength in dBm.
+ * @returns {number} 1 (weak) to 3 (strong).
+ */
+function signalLevel(rssi) {
+    return rssi >= -60 ? 3 : rssi >= -70 ? 2 : 1
+}
+
+/** Words for signal levels 1 to 3. */
+const SIGNAL_WORDS = ["Weak", "Good", "Strong"]
+
+/**
+ * Draw three signal bars with the first `level` filled in cyan and the rest empty in gray.
  * @param {number} level - Lit bars, 1 to 3.
  * @returns {SVGSVGElement}
  */
 function signalBars(level) {
     const svg = icon("")
+    svg.classList.add("signal-bars")
+    svg.setAttribute("stroke-width", "4")
     svg.replaceChildren(...["M6 20v-4", "M12 20v-9", "M18 20v-14"].map((d, i) => {
         const path = document.createElementNS("http://www.w3.org/2000/svg", "path")
         path.setAttribute("d", d)
-        if (i >= level) path.setAttribute("opacity", ".25")
+        path.setAttribute("class", i < level ? "bar-on" : "bar-off")
         return path
     }))
     return svg
@@ -1153,14 +1167,14 @@ async function scanNetworks(btn, list, pick) {
         for (const n of await api.scanWifi()) if (!best.has(n.ssid) || best.get(n.ssid).rssi < n.rssi) best.set(n.ssid, n)
         const found = [...best.values()].sort((a, b) => b.rssi - a.rssi)
         const rows = found.map(n => {
-            const level = n.rssi >= -60 ? 3 : n.rssi >= -70 ? 2 : 1
+            const level = signalLevel(n.rssi)
             const check = icon("check")
             check.classList.add("network-check")
             return el("button.network", { type: "button", dataset: { ssid: n.ssid }, onclick: () => pick(n) },
                 check,
                 el("span.network-name", { title: n.ssid }, n.ssid),
                 el("span.network-info", n.open ? [el("span.network-open", "Open"), "·"] : null,
-                    el("span", ["Weak", "Good", "Strong"][level - 1]), signalBars(level)))
+                    el("span", SIGNAL_WORDS[level - 1]), signalBars(level)))
         })
         // A crowded building can list dozens; show the strongest few and keep the rest one tap away.
         const more = rows.length > SHOWN_NETWORKS ? el("button.btn.ghost.sm", {

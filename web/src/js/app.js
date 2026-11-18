@@ -56,6 +56,20 @@ function pill(id, dot, value) {
 }
 
 /**
+ * Show the WiFi signal strength as bars in the WiFi badge, or remove them when there is none to show.
+ * @param {?number} rssi - Signal strength in dBm, or null when the clock is not on a network.
+ * @returns {void}
+ */
+function renderSignal(rssi) {
+    const p = $("#pill_wifi")
+    $(".signal-bars", p)?.remove()
+    if (rssi === null) { p.title = ""; return }
+    const level = signalLevel(rssi)
+    p.append(signalBars(level))
+    p.title = `Connected, ${SIGNAL_WORDS[level - 1].toLowerCase()} signal (${rssi} dBm)`
+}
+
+/**
  * Store the latest clock status and refresh connection, source, and glucose badges.
  * Notify dependent controls when the clock first reports LibreLinkUp as its active source.
  * @param {ClockStatus} s - Latest status response from the clock.
@@ -64,7 +78,10 @@ function pill(id, dot, value) {
 function renderStatus(s) {
     const wasLlu = ui.status && ui.status.bgSource === "LIBRELINKUP"
     ui.status = s
-    pill("pill_wifi", s.isInAPMode ? "warn" : s.isConnected ? "ok" : "bad", s.isInAPMode ? "Setup mode" : s.isConnected ? "Connected" : "Not connected")
+    const rssi = s.isConnected && !s.isInAPMode && s.rssi < 0 ? s.rssi : null
+    const wifi = s.isInAPMode ? "Setup mode" : rssi !== null ? SIGNAL_WORDS[signalLevel(rssi) - 1] : s.isConnected ? "Connected" : "Not connected"
+    pill("pill_wifi", s.isInAPMode ? "warn" : s.isConnected ? "ok" : "bad", wifi)
+    renderSignal(rssi)
     pill("pill_internet", s.hasInternet ? "ok" : "bad", s.hasInternet ? "Yes" : "No")
     const st = s.bgSourceStatus
     const text = st === "connected" ? "Connected" : st === "initialized" ? (s.isInAPMode ? "Setup mode" : "Connecting") : `Error: ${SOURCE_STATUS_TEXT[st] || st || "unknown"}`
@@ -82,6 +99,7 @@ function renderStatus(s) {
  */
 function renderStatusError() {
     ["pill_wifi", "pill_internet", "pill_source", "pill_reading"].forEach(id => pill(id, "", "Unknown"))
+    renderSignal(null)
     $("#clock_sub").textContent = `${location.host} · not answering`
 }
 
