@@ -9,7 +9,7 @@ bool BGSourceLibreLinkUp::hasValidAuthentication() {
 #ifdef DEBUG_BG_SOURCE
     DEBUG_PRINTF(
         "Checking if authentication is valid, token: %s, expires: %llu, now: %llu\n",
-        authTicket.token.c_str(), authTicket.expires, time(NULL));
+        authTicket.token.c_str(), authTicket.expires, (unsigned long long)time(NULL));
 #endif
 
     if (authTicket.token == "") {
