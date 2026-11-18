@@ -296,17 +296,35 @@ bool canReachInternet() {
     return false;
 }
 
-// Cache the internet reachability probe: /api/status is polled every 15s by
-// the web UI, and the probe does a blocking TCP connect that can stall the
-// async web server task for up to 4s. Refresh the cache at most every 60s.
-static bool cachedInternetReachable = false;
-static unsigned long lastInternetCheckMs = 0;
+// The internet probe can block for about 19 s on a failing network: up to 15 s for the DNS lookup,
+// then 2 s each to connect and to wait for the answer. It runs in its own task, because the task
+// watchdog aborts the async web server task after 5 s, and the main loop drives the display and
+// the alarms. /api/status only reads the result and asks for a new one when it is more than a
+// minute old, so the clock probes only while the settings page is open, and once after connecting.
+static volatile bool cachedInternetReachable = false;
+static volatile unsigned long lastInternetCheckMs = 0;
+static TaskHandle_t internetProbeTask = nullptr;
+
+static void internetProbeLoop(void*) {
+    for (;;) {
+        ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+        // Stamped before the probe, so status requests during it do not ask for another one.
+        lastInternetCheckMs = millis();
+        cachedInternetReachable = canReachInternet();
+    }
+}
+
+static void startInternetProbe() {
+    // Created once, while memory is not yet fragmented, and woken only when a probe is needed.
+    xTaskCreate(internetProbeLoop, "internet_probe", 4096, nullptr, 1, &internetProbeTask);
+    if (internetProbeTask != nullptr) {
+        xTaskNotifyGive(internetProbeTask);
+    }
+}
 
 bool cachedCanReachInternet() {
-    unsigned long now = millis();
-    if (lastInternetCheckMs == 0 || now - lastInternetCheckMs > 60000) {
-        cachedInternetReachable = canReachInternet();
-        lastInternetCheckMs = now;
+    if (internetProbeTask != nullptr && millis() - lastInternetCheckMs > 60000) {
+        xTaskNotifyGive(internetProbeTask);
     }
     return cachedInternetReachable;
 }
@@ -720,6 +738,9 @@ void ServerManager_::setup() {
     setTimezone();
 
     isConnected = myIP != ipAP;
+    if (isConnected) {
+        startInternetProbe();
+    }
 }
 
 void ServerManager_::tick() {
