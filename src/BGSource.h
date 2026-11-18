@@ -50,6 +50,9 @@ protected:
     virtual std::list<GlucoseReading> updateReadings(std::list<GlucoseReading> existingReadings) = 0;
     BG_TREND parseDirection(String directionInput);
     void handleFailedAttempt();
+    // With DEBUG_MEMORY, logs the WiFi signal and free memory around each request, so a log tells
+    // a weak signal apart from memory too fragmented for the TLS handshake.
+    void logNetworkAndMemoryStats(const char* stage, const char* request) const;
     String status = "not_initialized";
 };
 

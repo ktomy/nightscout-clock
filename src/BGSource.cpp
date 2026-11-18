@@ -18,6 +18,14 @@ void BGSource::handleFailedAttempt() {
     }
 }
 
+void BGSource::logNetworkAndMemoryStats(const char* stage, const char* request) const {
+#ifdef DEBUG_MEMORY
+    DEBUG_PRINTF(
+        "[net] %s %s: RSSI %d dBm, free heap %u, largest block %u, lowest free heap %u", stage, request,
+        WiFi.RSSI(), ESP.getFreeHeap(), ESP.getMaxAllocHeap(), ESP.getMinFreeHeap());
+#endif
+}
+
 void BGSource::tick() {
     unsigned long long currentTime = ServerManager.getUtcEpoch();
     if (lastCallAttemptEpoch == 0 || currentTime > lastCallAttemptEpoch + 60) {

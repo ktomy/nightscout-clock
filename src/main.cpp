@@ -87,15 +87,16 @@ void showJoinAP() {
 
 void loop() {
 #ifdef DEBUG_MEMORY
-
+    // Once a minute, so a long log shows memory running low or fragmenting over hours. The largest
+    // block matters most: a TLS handshake fails when no single block is big enough for it.
     static unsigned long lastMemoryCheck = 0;
-    unsigned long currentMillis = millis();
-
-    if (currentMillis - lastMemoryCheck >= 10000) {  // Check memory every second
-        lastMemoryCheck = currentMillis;
-        auto freeMemory = ESP.getFreeHeap();
-        DEBUG_PRINTLN("Free memory: " + String(freeMemory));
-        DEBUG_PRINTLN("Loop stack never used: " + String(uxTaskGetStackHighWaterMark(NULL)) + " bytes");
+    if (millis() - lastMemoryCheck >= 60000) {
+        lastMemoryCheck = millis();
+        DEBUG_PRINTF(
+            "[mem] free heap %u, largest block %u, lowest free heap %u, loop stack never used %u, "
+            "RSSI %d dBm",
+            ESP.getFreeHeap(), ESP.getMaxAllocHeap(), ESP.getMinFreeHeap(),
+            uxTaskGetStackHighWaterMark(NULL), WiFi.isConnected() ? WiFi.RSSI() : 0);
     }
 #endif
 

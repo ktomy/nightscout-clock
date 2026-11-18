@@ -275,6 +275,8 @@ int BGSourceNightscout::initiateCall(LCBUrl url, bool ssl, String apiKey) {
 #endif
     }
 
+    logNetworkAndMemoryStats("before", "Nightscout");
     auto responseCode = client->GET();
+    logNetworkAndMemoryStats("after", "Nightscout");
     return responseCode;
 }

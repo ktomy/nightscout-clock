@@ -81,7 +81,9 @@ AuthTicket BGSourceLibreLinkUp::login() {
     String body = "{\"email\":\"" + SettingsManager.settings.librelinkup_email + "\",\"password\":\"" +
                   SettingsManager.settings.librelinkup_password + "\"}";
 
+    logNetworkAndMemoryStats("before", "LibreLinkUp login");
     auto responseCode = client->POST(body);
+    logNetworkAndMemoryStats("after", "LibreLinkUp login");
     if (responseCode != HTTP_CODE_OK &&
         (firstConnectionSuccess == false || retryCount > MAX_RETRY_COUNT)) {
         DEBUG_PRINTF("Error logging in to LibreLinkUp %d\n", responseCode);
@@ -134,7 +136,9 @@ AuthTicket BGSourceLibreLinkUp::login() {
         }
         client->addHeader("Authorization", "Bearer " + stepToken);
 
+        logNetworkAndMemoryStats("before", "LibreLinkUp login step");
         auto stepResponseCode = client->POST("{}");
+        logNetworkAndMemoryStats("after", "LibreLinkUp login step");
         DEBUG_PRINTF("Step accept response: %d\n", stepResponseCode);
         client->end();
 
@@ -250,7 +254,9 @@ GlucoseReading BGSourceLibreLinkUp::getLibreLinkUpConnection() {
     client->addHeader("Authorization", "Bearer " + authTicket.token);
     client->addHeader("account-id", encodeSHA256(authTicket.accountId));
 
+    logNetworkAndMemoryStats("before", "LibreLinkUp connection");
     auto responseCode = client->GET();
+    logNetworkAndMemoryStats("after", "LibreLinkUp connection");
 
     // A failed request or an unreadable answer is usually a passing network or server problem.
     // Keep the readings the clock has and try again on the next poll; show an error only after
@@ -485,10 +491,6 @@ std::list<GlucoseReading> BGSourceLibreLinkUp::getReadings(unsigned long long la
     client->addHeader("Authorization", "Bearer " + authTicket.token);
     client->addHeader("account-id", encodeSHA256(authTicket.accountId));
 
-#ifdef DEBUG_BG_SOURCE
-    DEBUG_PRINTF("Free memory: %d, largest block: %d\n", ESP.getFreeHeap(), ESP.getMaxAllocHeap());
-#endif
-
     JsonDocument filter;
     filter["data"]["graphData"][0]["ValueInMgPerDl"] = true;
     filter["data"]["graphData"][0][TIMESTAMP_FIELD] = true;
@@ -499,7 +501,9 @@ std::list<GlucoseReading> BGSourceLibreLinkUp::getReadings(unsigned long long la
     JsonDocument doc;
     DeserializationError error = DeserializationError::Ok;
 
+    logNetworkAndMemoryStats("before", "LibreLinkUp graph");
     auto responseCode = client->GET();
+    logNetworkAndMemoryStats("after", "LibreLinkUp graph");
     int responseSize = client->getSize();  // -1 without a Content-Length header
     if (responseCode == HTTP_CODE_OK) {
         error = deserializeJson(doc, client->getStream(), filterOption);

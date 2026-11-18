@@ -126,7 +126,9 @@ std::list<GlucoseReading> BGSourceDexcom::retrieveReadings(
     client->setFollowRedirects(HTTPC_FORCE_FOLLOW_REDIRECTS);
     client->addHeader("Accept", "application/json");
     client->addHeader("User-Agent", "Nightscout-clock");
+    logNetworkAndMemoryStats("before", "Dexcom readings");
     auto responseCode = client->GET();
+    logNetworkAndMemoryStats("after", "Dexcom readings");
     if (responseCode == HTTP_CODE_OK) {
         JsonDocument doc;
 
@@ -257,7 +259,9 @@ String BGSourceDexcom::getAccountId(
     client->addHeader("Content-Type", "application/json");
     client->addHeader("Accept", "application/json");
     client->addHeader("User-Agent", "Nightscout-clock");
+    logNetworkAndMemoryStats("before", "Dexcom account id");
     auto responseCode = client->POST(body);
+    logNetworkAndMemoryStats("after", "Dexcom account id");
     if (responseCode != HTTP_CODE_OK) {
         DEBUG_PRINTF("Error getting account id %d\n", responseCode);
         if (responseCode == HTTP_CODE_INTERNAL_SERVER_ERROR) {
@@ -334,7 +338,9 @@ String BGSourceDexcom::getSessionId(
     client->addHeader("Content-Type", "application/json");
     client->addHeader("Accept", "application/json");
     client->addHeader("User-Agent", "Nightscout-clock");
+    logNetworkAndMemoryStats("before", "Dexcom session id");
     auto responseCode = client->POST(body);
+    logNetworkAndMemoryStats("after", "Dexcom session id");
     if (responseCode != HTTP_CODE_OK) {
         DEBUG_PRINTF("Error getting session id %d\n", responseCode);
         if (!firstConnectionSuccess) {

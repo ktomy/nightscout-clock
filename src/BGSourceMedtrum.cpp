@@ -44,7 +44,9 @@ bool BGSourceMedtrum::login() {
     const char* headerKeys[] = {"Set-Cookie"};
     client->collectHeaders(headerKeys, 1);
 
+    logNetworkAndMemoryStats("before", "Medtrum login");
     int responseCode = client->POST(body);
+    logNetworkAndMemoryStats("after", "Medtrum login");
     if (responseCode != HTTP_CODE_OK) {
         status = "login_failed";
         if (!firstConnectionSuccess) {
@@ -125,7 +127,9 @@ GlucoseReading BGSourceMedtrum::getCurrentGlucose(String& username, bool& ok) {
 #ifdef DEBUG_BG_SOURCE
     DEBUG_PRINTLN("Cookie: " + sessionCookie);
 #endif
+    logNetworkAndMemoryStats("before", "Medtrum glucose");
     int responseCode = client->GET();
+    logNetworkAndMemoryStats("after", "Medtrum glucose");
     if (responseCode != HTTP_CODE_OK) {
         status = "get_glucose_failed";
         if (!firstConnectionSuccess) {
@@ -181,7 +185,9 @@ std::list<GlucoseReading> BGSourceMedtrum::getHistory(
     client->addHeader("AppTag", "v=1.2.70(112);n=eyfo;p=android");
     client->addHeader("User-Agent", "okhttp/3.5.0");
     client->addHeader("Cookie", sessionCookie);
+    logNetworkAndMemoryStats("before", "Medtrum history");
     int responseCode = client->GET();
+    logNetworkAndMemoryStats("after", "Medtrum history");
     if (responseCode != HTTP_CODE_OK) {
         status = "get_history_failed";
         if (!firstConnectionSuccess) {
