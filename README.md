@@ -4,7 +4,7 @@
 
 This is an active and developing project, new versions land every few weeks
 
-### Current version: 1.3.3
+### Current version: 1.3.4
 
 ![Build and Release](https://github.com/ktomy/nightscout-clock/actions/workflows/build_release.yml/badge.svg)
 
@@ -314,6 +314,11 @@ High, low, and urgent-low alarms each have their own threshold, snooze duration,
   - ...more... (if you are the author of a CGM data collecting app/service and you want your data to be displayed on the Nightscout Clock, please contact me)
 
 ## Changes
+
+### 1.3.4
+
+- Fixed the debug firmware printing the Medtrum session cookie in its log, which can be downloaded from the clock and is often shared in issues; the regular firmware was not affected
+- Added memory and WiFi signal lines to the debug firmware's log: before and after each request to Nightscout, Dexcom, LibreLinkUp and Medtrum, and once a minute, to help find why connections to the glucose source fail after the clock has run for hours
 
 ### 1.3.3
 
