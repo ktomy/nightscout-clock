@@ -122,7 +122,9 @@ GlucoseReading BGSourceMedtrum::getCurrentGlucose(String& username, bool& ok) {
     client->addHeader("AppTag", "v=1.2.70(112);n=eyfo;p=android");
     client->addHeader("User-Agent", "okhttp/3.5.0");
     client->addHeader("Cookie", sessionCookie);
+#ifdef DEBUG_BG_SOURCE
     DEBUG_PRINTLN("Cookie: " + sessionCookie);
+#endif
     int responseCode = client->GET();
     if (responseCode != HTTP_CODE_OK) {
         status = "get_glucose_failed";
