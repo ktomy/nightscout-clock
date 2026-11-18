@@ -8,6 +8,9 @@ void BGSource::setup() {
     client = new HTTPClient();
     wifiSecureClient = new WiFiClientSecure();
     wifiSecureClient->setInsecure();
+    // The default handshake timeout is 120 s. A handshake that stalls blocks the main loop, so the
+    // display, alarms and polling stop for that long; a normal one takes one or two seconds.
+    wifiSecureClient->setHandshakeTimeout(15);
     status = "initialized";
 }
 
