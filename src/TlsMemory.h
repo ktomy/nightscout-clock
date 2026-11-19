@@ -23,7 +23,8 @@ public:
     static void restartIfOutOfMemory();
 
 #ifdef DEBUG_MEMORY
-    // The number of failed mbedTLS allocations, for the memory debug lines.
+    // The bytes mbedTLS holds now, the most it held since the previous call, and the number of
+    // failed allocations, for the memory debug lines.
     static String stats();
 #endif
 };
