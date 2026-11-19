@@ -514,6 +514,10 @@ std::list<GlucoseReading> BGSourceLibreLinkUp::getReadings(unsigned long long la
     std::list<GlucoseReading> glucoseReadings;
     glucoseReadings.push_front(readingFromConnection);
 
+    // The graph covers about 12 hours, but only the last 3 are kept: older readings were added here
+    // and deleted on the next poll, leaving a hole in the heap for each.
+    long long now = time(NULL);
+    unsigned long long oldestKept = now > (BG_BACKFILL_SECONDS) ? now - (BG_BACKFILL_SECONDS) : 0;
     for (JsonVariant v : values) {
         const char* dateString = v[TIMESTAMP_FIELD].as<const char*>();
         GlucoseReading reading;
@@ -521,6 +525,9 @@ std::list<GlucoseReading> BGSourceLibreLinkUp::getReadings(unsigned long long la
         reading.trend = BG_TREND::NONE;
         reading.epoch = LibreLinkUpTimestamp::toEpoch(dateString);
 
+        if (reading.epoch < oldestKept) {
+            continue;
+        }
         if (reading.getSecondsAgo() < 0) {
             DEBUG_PRINTF(
                 "Reading from the future: %s: %s: %lu\n", dateString, reading.toString().c_str(),
@@ -529,15 +536,15 @@ std::list<GlucoseReading> BGSourceLibreLinkUp::getReadings(unsigned long long la
 
         glucoseReadings.push_front(reading);
     }
-    String debug_read_values = "Read values: ";
 
     glucoseReadings.sort(
         [](const GlucoseReading& a, const GlucoseReading& b) { return a.epoch < b.epoch; });
+
+#ifdef DEBUG_BG_SOURCE
+    String debug_read_values = "Read values: ";
     for (auto& reading : glucoseReadings) {
         debug_read_values += String(reading.sgv) + ":(" + String(reading.getSecondsAgo()) + "), ";
     }
-
-#ifdef DEBUG_BG_SOURCE
     DEBUG_PRINTLN(debug_read_values);
 #endif
 
