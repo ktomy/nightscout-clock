@@ -3,6 +3,8 @@
 #include <Arduino.h>
 #include <AsyncJson.h>
 
+#include "LibreLinkUpTimestamp.h"
+
 #define TIMESTAMP_FIELD "FactoryTimestamp"
 
 bool BGSourceLibreLinkUp::hasValidAuthentication() {
@@ -190,38 +192,6 @@ AuthTicket BGSourceLibreLinkUp::login() {
     return authTicket;
 }
 
-unsigned long long BGSourceLibreLinkUp::libreTimestampToEpoch(String dateString) {
-    setenv("TZ", "UTC0", 1);
-    tzset();
-    struct tm tm;
-    strptime(dateString.c_str(), "%m/%d/%Y", &tm);
-    // parse the time part without using strptime to avoid AM/PM bug
-    String timePart = dateString.substring(dateString.indexOf(' ') + 1);
-    int hour = timePart.substring(0, timePart.indexOf(':')).toInt();
-    int minute = timePart.substring(timePart.indexOf(':') + 1, timePart.lastIndexOf(':')).toInt();
-    int second = timePart.substring(timePart.lastIndexOf(':') + 1, timePart.indexOf(' ')).toInt();
-    String amPm = timePart.substring(timePart.indexOf(' ') + 1);
-    // adjust hour for AM/PM
-    if (amPm == "PM" && hour < 12) {
-        hour += 12;  // convert PM hour to 24-hour format
-    } else if (amPm == "AM" && hour == 12) {
-        hour = 0;  // convert 12 AM to 0 hours
-    }
-    // set the time components in the tm structure
-    tm.tm_hour = hour;
-    tm.tm_min = minute;
-    tm.tm_sec = second;
-#ifdef DEBUG_BG_SOURCE
-    DEBUG_PRINTF(
-        "Value to parse: %s, Parsed time: %02d:%02d:%02d, date: %02d/%02d/%04d\n", dateString.c_str(),
-        tm.tm_hour, tm.tm_min, tm.tm_sec, tm.tm_mday, tm.tm_mon + 1, tm.tm_year + 1900);
-#endif
-    time_t t = mktime(&tm);
-    setenv("TZ", SettingsManager.settings.tz_libc_value.c_str(), 1);
-    tzset();
-    return t;
-}
-
 BG_TREND trendFromLibreTrend(int trend) {
     switch (trend) {
         case 5:
@@ -352,8 +322,8 @@ GlucoseReading BGSourceLibreLinkUp::getLibreLinkUpConnection() {
 
     GlucoseReading reading;
     reading.sgv = doc["data"][patientIndex]["glucoseMeasurement"]["ValueInMgPerDl"].as<int>();
-    String dateString = doc["data"][patientIndex]["glucoseMeasurement"][TIMESTAMP_FIELD].as<String>();
-    reading.epoch = libreTimestampToEpoch(dateString);
+    reading.epoch = LibreLinkUpTimestamp::toEpoch(
+        doc["data"][patientIndex]["glucoseMeasurement"][TIMESTAMP_FIELD].as<const char*>());
     reading.trend =
         trendFromLibreTrend(doc["data"][patientIndex]["glucoseMeasurement"]["TrendArrow"].as<int>());
 
@@ -545,18 +515,15 @@ std::list<GlucoseReading> BGSourceLibreLinkUp::getReadings(unsigned long long la
     glucoseReadings.push_front(readingFromConnection);
 
     for (JsonVariant v : values) {
+        const char* dateString = v[TIMESTAMP_FIELD].as<const char*>();
         GlucoseReading reading;
         reading.sgv = v["ValueInMgPerDl"].as<int>();
         reading.trend = BG_TREND::NONE;
-        String dateString = v[TIMESTAMP_FIELD].as<String>();
-        reading.epoch = libreTimestampToEpoch(dateString);
-        // DEBUG_PRINTF(
-        //     "Reading date: %s, epoch: %llu, seconds ago: %d\n", dateString.c_str(), reading.epoch,
-        //     reading.getSecondsAgo());
+        reading.epoch = LibreLinkUpTimestamp::toEpoch(dateString);
 
         if (reading.getSecondsAgo() < 0) {
             DEBUG_PRINTF(
-                "Reading from the future: %s: %s: %lu\n", dateString.c_str(), reading.toString().c_str(),
+                "Reading from the future: %s: %s: %lu\n", dateString, reading.toString().c_str(),
                 time(NULL));
         }
 

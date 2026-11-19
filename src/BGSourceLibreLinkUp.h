@@ -51,7 +51,6 @@ private:
     std::list<GlucoseReading> getReadings(unsigned long long lastReadingEpoch);
     GlucoseReading getLibreLinkUpConnection();
     String encodeSHA256(String toEncode);
-    unsigned long long libreTimestampToEpoch(String dateString);
     std::map<String, String> standardHeaders = {
         {"User-Agent", USER_AGENT},
         // {"Accept", "application/json"},
