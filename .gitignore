@@ -9,5 +9,6 @@ __pycache__/
 .vscode/ipch
 /log/*
 /logs/*
+/data/revision.txt
 /.agents/*
 /www/simulator/
