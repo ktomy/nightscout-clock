@@ -8,7 +8,7 @@
 // trend arrow, and no age bars.
 class BGDisplayFaceSimpleDark : public BGDisplayFaceTextBase {
 public:
-    void showReadings(const std::list<GlucoseReading>& readings, bool dataIsOld = false) const override;
+    void showReadings(const GlucoseReadings& readings, bool dataIsOld = false) const override;
 
 protected:
     // Draws the number at the face's placement and font, and the trend arrow, as every dark face does.

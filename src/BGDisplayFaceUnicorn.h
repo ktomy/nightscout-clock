@@ -13,10 +13,9 @@
 // The glucose value is shown as a smaller readout beside it.
 class BGDisplayFaceUnicorn : public BGDisplayFaceTextBase, public BGDisplayFaceWithAge {
 public:
-    void showReadings(const std::list<GlucoseReading>& readings, bool dataIsOld = false) const override;
+    void showReadings(const GlucoseReadings& readings, bool dataIsOld = false) const override;
     unsigned long getAnimationStepMillis() const override;
-    void showAnimationFrame(
-        const std::list<GlucoseReading>& readings, unsigned long frame) const override;
+    void showAnimationFrame(const GlucoseReadings& readings, unsigned long frame) const override;
 
 private:
     void drawMane(int sgv, bool dataIsOld, bool moving, unsigned long frame) const;

@@ -3,7 +3,7 @@
 #include "ServerManager.h"
 #include "globals.h"
 
-void BGDisplayFaceClock::showReadings(const std::list<GlucoseReading>& readings, bool dataIsOld) const {
+void BGDisplayFaceClock::showReadings(const GlucoseReadings& readings, bool dataIsOld) const {
     showClock();
 
     showReading(readings.back(), 31, 6, TEXT_ALIGNMENT::RIGHT, FONT_TYPE::MEDIUM, dataIsOld);

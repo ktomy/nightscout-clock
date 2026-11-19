@@ -5,7 +5,7 @@
 
 class BGDisplayFaceNyanUnicorn : public BGDisplayFaceTextBase {
 public:
-    void showReadings(const std::list<GlucoseReading>& readings, bool dataIsOld = false) const override;
+    void showReadings(const GlucoseReadings& readings, bool dataIsOld = false) const override;
     bool needsFrequentRefresh() const override;
     unsigned long getFrequentRefreshIntervalMs() const override;
     void onActivate() const override;

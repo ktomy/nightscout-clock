@@ -2,7 +2,7 @@
 
 #include "globals.h"
 
-void BGDisplayFaceSimple::showReadings(const std::list<GlucoseReading>& readings, bool dataIsOld) const {
+void BGDisplayFaceSimple::showReadings(const GlucoseReadings& readings, bool dataIsOld) const {
     auto lastReading = readings.back();
     showReading(lastReading, 0, 6, TEXT_ALIGNMENT::CENTER, FONT_TYPE::MEDIUM, dataIsOld);
 

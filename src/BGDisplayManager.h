@@ -4,7 +4,6 @@
 #include <Arduino.h>
 
 #include <atomic>
-#include <list>
 #include <vector>
 
 #include "BGDisplayFace.h"
@@ -87,7 +86,7 @@ struct RegisteredClockFace {
 
 class BGDisplayManager_ {
 private:
-    std::list<GlucoseReading> displayedReadings;
+    GlucoseReadings displayedReadings;
     std::vector<RegisteredClockFace> faces;
     BGDisplayFace* currentFace;
     int currentFaceIndex;
@@ -130,8 +129,8 @@ public:
     void setup();
     void tick();
     void maybeRrefreshScreen(bool force = false);
-    void showData(const std::list<GlucoseReading>& glucoseReadings);
-    GlucoseReading* getLastDisplayedGlucoseReading();
+    void showData(const GlucoseReadings& glucoseReadings);
+    const GlucoseReading* getLastDisplayedGlucoseReading();
     const GlucoseIntervals& getGlucoseIntervals() const;
 
     const std::vector<RegisteredClockFace>& getFaces() const;

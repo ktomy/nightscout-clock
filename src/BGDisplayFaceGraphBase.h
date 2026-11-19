@@ -6,13 +6,11 @@
 
 class BGDisplayFaceGraphBase : virtual public BGDisplayFace {
 public:
-    virtual void showReadings(
-        const std::list<GlucoseReading>& readings, bool dataIsOld = false) const = 0;
+    virtual void showReadings(const GlucoseReadings& readings, bool dataIsOld = false) const = 0;
 
 protected:
     void showGraph(
-        uint8_t x_position, uint8_t length, uint16_t forMinutes,
-        const std::list<GlucoseReading>& readings) const;
+        uint8_t x_position, uint8_t length, uint16_t forMinutes, const GlucoseReadings& readings) const;
 };
 
 #endif  // BGDISPLAYFACEGRAPHBASE_H

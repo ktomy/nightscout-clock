@@ -74,7 +74,7 @@ EMSCRIPTEN_KEEPALIVE void emu_show_readings(const char* json) {
         reading.sgv = row[0].as<int>();
         reading.trend = static_cast<BG_TREND>(row[1].as<int>());
         reading.epoch = row[2].as<unsigned long long>();
-        bgSourceManager.readings.push_back(reading);
+        bgSourceManager.readings.add(reading);
     }
     bgDisplayManager.showData(bgSourceManager.readings);
 }

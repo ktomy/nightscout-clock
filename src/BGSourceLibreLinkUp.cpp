@@ -354,8 +354,7 @@ String BGSourceLibreLinkUp::encodeSHA256(String toEncode) {
     return encoded;
 }
 
-std::list<GlucoseReading> BGSourceLibreLinkUp::updateReadings(
-    std::list<GlucoseReading> existingReadings) {
+void BGSourceLibreLinkUp::updateReadings(GlucoseReadings& readings) {
     if (!hasValidAuthentication()) {
         deleteAuthTicket();
         auto newAuthTicket = login();
@@ -367,45 +366,25 @@ std::list<GlucoseReading> BGSourceLibreLinkUp::updateReadings(
         authTicket = newAuthTicket;
     }
 
-    unsigned long long lastReadingEpoch =
-        existingReadings.size() > 0 ? existingReadings.back().epoch : 0;
+    unsigned long long lastReadingEpoch = readings.size() > 0 ? readings.back().epoch : 0;
 
-    auto glucoseReadings = getReadings(lastReadingEpoch);
-
-    // sort the readings by epoch
-    glucoseReadings.sort(
-        [](const GlucoseReading& a, const GlucoseReading& b) { return a.epoch < b.epoch; });
-
-    // remove readings from retrievedReadings which are already present in existingReadings
-    // because some servers (Gluroo) don't process from-to in an expected way
-    glucoseReadings.remove_if([&existingReadings](const GlucoseReading& reading) {
-        return std::find_if(
-                   existingReadings.begin(), existingReadings.end(),
-                   [&reading](const GlucoseReading& existingReading) {
-                       return existingReading.epoch == reading.epoch;
-                   }) != existingReadings.end();
-    });
-
-    if (glucoseReadings.size() == 0) {
+    // Readings the clock already has are left out.
+    if (readings.addAll(getReadings(lastReadingEpoch)) == 0) {
         DEBUG_PRINTLN("No new readings");
-        return existingReadings;
+        return;
     }
-
-    // add retrieved reading to existing readings; splice moves them without allocating
-    existingReadings.splice(existingReadings.end(), glucoseReadings);
 
 #ifdef DEBUG_BG_SOURCE
     DEBUG_PRINTLN(
-        "Existing readings: " + String(existingReadings.size()) +
-        ", last reading epoch: " + String(existingReadings.back().epoch) + " Difference to now is: " +
-        String((time(NULL) - existingReadings.back().epoch) / 60) + " minutes");
+        "Existing readings: " + String(readings.size()) +
+        ", last reading epoch: " + String(readings.back().epoch) +
+        " Difference to now is: " + String((time(NULL) - readings.back().epoch) / 60) + " minutes");
 
     // print 5 last readings if they exist in format: "SGV - minutes ago, trend, "
-    if (existingReadings.size() > 0) {
+    if (readings.size() > 0) {
         String debugLog = "Received readings: ";
         int count = 0;
-        for (auto it = existingReadings.rbegin(); it != existingReadings.rend() && count < 5;
-             ++it, ++count) {
+        for (auto it = readings.rbegin(); it != readings.rend() && count < 5; ++it, ++count) {
             debugLog += " " + String(it->sgv) + " -" + String(it->getSecondsAgo() / 60) + "m " +
                         toString(it->trend) + ", ";
         }
@@ -414,8 +393,6 @@ std::list<GlucoseReading> BGSourceLibreLinkUp::updateReadings(
         DEBUG_PRINTLN(debugLog);
     }
 #endif
-
-    return existingReadings;
 }
 
 std::list<GlucoseReading> BGSourceLibreLinkUp::getReadings(unsigned long long lastReadingEpoch) {

@@ -7,23 +7,22 @@
 #include "SettingsManager.h"
 #include "globals.h"
 
-std::list<GlucoseReading> BGSourceNightscout::updateReadings(
-    std::list<GlucoseReading> existingReadings) {
+void BGSourceNightscout::updateReadings(GlucoseReadings& readings) {
     auto baseUrl = SettingsManager.settings.nightscout_url;
     auto apiKey = SettingsManager.settings.nightscout_api_key;
     bool simplifiedApi = SettingsManager.settings.nightscout_simplified_api;
 
-    return updateReadings(baseUrl, apiKey, simplifiedApi, std::move(existingReadings));
+    updateReadings(baseUrl, apiKey, simplifiedApi, readings);
 }
 
-std::list<GlucoseReading> BGSourceNightscout::updateReadings(
-    String baseUrl, String apiKey, bool simplifiedApi, std::list<GlucoseReading> existingReadings) {
+void BGSourceNightscout::updateReadings(
+    String baseUrl, String apiKey, bool simplifiedApi, GlucoseReadings& readings) {
     unsigned long long currentEpoch = ServerManager.getUtcEpoch();
     // set last epoch to now - 3 hours (we don't want to get too many readings)
     unsigned long long lastReadingEpoch = currentEpoch - BG_BACKFILL_SECONDS;
     // get last epoch from existing readings if it is newer than default one
-    if (existingReadings.size() > 0 && existingReadings.back().epoch > lastReadingEpoch) {
-        lastReadingEpoch = existingReadings.back().epoch;
+    if (readings.size() > 0 && readings.back().epoch > lastReadingEpoch) {
+        lastReadingEpoch = readings.back().epoch;
     }
 #ifdef DEBUG_BG_SOURCE
     DEBUG_PRINTLN(
@@ -66,33 +65,22 @@ std::list<GlucoseReading> BGSourceNightscout::updateReadings(
         }
 #endif
 
-        // remove readings from retrievedReadings which are already present in existingReadings
-        // because some servers (Gluroo) don't process from-to in an expected way
-        retrievedReadings.remove_if([&existingReadings](const GlucoseReading& reading) {
-            return std::find_if(
-                       existingReadings.begin(), existingReadings.end(),
-                       [&reading](const GlucoseReading& existingReading) {
-                           return existingReading.epoch == reading.epoch;
-                       }) != existingReadings.end();
-        });
-
-        if (retrievedReadings.size() == 0) {
+        // Readings the clock already has are left out, because some servers (Gluroo) don't process
+        // from-to in an expected way.
+        if (readings.addAll(retrievedReadings) == 0) {
             DEBUG_PRINTLN("No new readings");
             break;
         }
-        // add retrieved reading to existing readings; splice moves them without allocating
-        existingReadings.splice(existingReadings.end(), retrievedReadings);
-        lastReadingEpoch = existingReadings.back().epoch;
+        lastReadingEpoch = readings.back().epoch;
 
 #ifdef DEBUG_BG_SOURCE
         DEBUG_PRINTLN(
-            "Existing readings: " + String(existingReadings.size()) +
+            "Existing readings: " + String(readings.size()) +
             ", last reading epoch: " + String(lastReadingEpoch) +
             " Difference to now is: " + String((currentEpoch - lastReadingEpoch) / 60) + " minutes");
 #endif
 
     } while (lastReadingEpoch < currentEpoch - 5 * 60);
-    return existingReadings;
 }
 
 std::list<GlucoseReading> BGSourceNightscout::retrieveReadings(

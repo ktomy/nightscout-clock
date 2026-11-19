@@ -15,7 +15,7 @@ public:
 
 private:
     void setup() override;
-    std::list<GlucoseReading> updateReadings(std::list<GlucoseReading> existingReadings) override;
+    void updateReadings(GlucoseReadings& readings) override;
     void HandleEntriesPost(AsyncWebServerRequest* request, JsonVariant& json);
     AsyncCallbackWebHandler* createDeleteEntriesHandler();
     bool hasNewDataFlag = false;

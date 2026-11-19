@@ -4,6 +4,6 @@
 #include "BGDisplayManager.h"
 #include "globals.h"
 
-void BGDisplayFaceGraph::showReadings(const std::list<GlucoseReading>& readings, bool dataIsOld) const {
+void BGDisplayFaceGraph::showReadings(const GlucoseReadings& readings, bool dataIsOld) const {
     showGraph(0, MATRIX_WIDTH, 180, readings);
 }

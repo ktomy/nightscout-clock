@@ -6,7 +6,7 @@
 // Always show only the time and suppress new glucose alarms.
 class BGDisplayFaceTimeOnly : public BGDisplayFace {
 public:
-    void showReadings(const std::list<GlucoseReading>& readings, bool dataIsOld = false) const override;
+    void showReadings(const GlucoseReadings& readings, bool dataIsOld = false) const override;
     void showNoData() const override;
     RenderDecision getRenderDecision(const RenderContext& ctx) const override;
     bool ticksEverySecond() const override;

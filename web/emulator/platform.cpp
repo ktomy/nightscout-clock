@@ -269,4 +269,4 @@ bool BGSourceManager_::hasNewData(unsigned long long epochToCompare) {
     return lastReadingEpoch > epochToCompare;
 }
 
-const std::list<GlucoseReading>& BGSourceManager_::getGlucoseData() { return readings; }
+const GlucoseReadings& BGSourceManager_::getGlucoseData() { return readings; }

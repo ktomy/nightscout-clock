@@ -2,6 +2,4 @@
 
 #include <Arduino.h>
 
-std::list<GlucoseReading> BGSourceMedtronic::updateReadings(std::list<GlucoseReading> existingReadings) {
-    return existingReadings;
-}
+void BGSourceMedtronic::updateReadings(GlucoseReadings& /*readings*/) {}

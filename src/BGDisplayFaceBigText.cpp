@@ -3,8 +3,7 @@
 #include "BGDisplayManager.h"
 #include "globals.h"
 
-void BGDisplayFaceBigText::showReadings(
-    const std::list<GlucoseReading>& readings, bool dataIsOld) const {
+void BGDisplayFaceBigText::showReadings(const GlucoseReadings& readings, bool dataIsOld) const {
     if (isEarlyStale(readings.back(), dataIsOld)) {
         DisplayManager.setTextColor(
             static_cast<uint16_t>(SettingsManager.settings.face_big_text.early_stale_color));

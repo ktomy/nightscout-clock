@@ -35,8 +35,7 @@ const uint8_t PROGMEM MOOD_DIZZY_B[] = {
     0b10000001, 0b01011010, 0b01000010, 0b00111100};
 }  // namespace
 
-void BGDisplayFaceRainbowMood::showReadings(
-    const std::list<GlucoseReading>& readings, bool dataIsOld) const {
+void BGDisplayFaceRainbowMood::showReadings(const GlucoseReadings& readings, bool dataIsOld) const {
     auto lastReading = readings.back();
     showAnimatedReading(lastReading, dataIsOld);
     showTrendArrow(lastReading, ARROW_X, 1, dataIsOld);
@@ -45,7 +44,7 @@ void BGDisplayFaceRainbowMood::showReadings(
 unsigned long BGDisplayFaceRainbowMood::getAnimationStepMillis() const { return 60; }
 
 void BGDisplayFaceRainbowMood::showAnimationFrame(
-    const std::list<GlucoseReading>& readings, unsigned long frame) const {
+    const GlucoseReadings& readings, unsigned long frame) const {
     auto lastReading = readings.back();
     DisplayManager.clearMatrix();
     showAnimatedReading(lastReading, false);

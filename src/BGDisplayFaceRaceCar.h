@@ -10,10 +10,9 @@
 // and the wheels spin. When data is old the whole race stops, drawn faded in the old-data color.
 class BGDisplayFaceRaceCar : public BGDisplayFaceTextBase, public BGDisplayFaceWithAge {
 public:
-    void showReadings(const std::list<GlucoseReading>& readings, bool dataIsOld = false) const override;
+    void showReadings(const GlucoseReadings& readings, bool dataIsOld = false) const override;
     unsigned long getAnimationStepMillis() const override;
-    void showAnimationFrame(
-        const std::list<GlucoseReading>& readings, unsigned long frame) const override;
+    void showAnimationFrame(const GlucoseReadings& readings, unsigned long frame) const override;
 
 private:
     void drawRace(int sgv, bool dataIsOld, unsigned long frame) const;

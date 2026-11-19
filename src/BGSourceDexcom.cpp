@@ -6,22 +6,22 @@
 
 #include "SettingsManager.h"
 
-std::list<GlucoseReading> BGSourceDexcom::updateReadings(std::list<GlucoseReading> existingReadings) {
+void BGSourceDexcom::updateReadings(GlucoseReadings& readings) {
     auto dexcomServer = SettingsManager.settings.dexcom_server;
     auto dexcomUsername = SettingsManager.settings.dexcom_username;
     auto dexcomPassword = SettingsManager.settings.dexcom_password;
 
-    return updateReadings(dexcomServer, dexcomUsername, dexcomPassword, std::move(existingReadings));
+    updateReadings(dexcomServer, dexcomUsername, dexcomPassword, readings);
 }
 
-std::list<GlucoseReading> BGSourceDexcom::updateReadings(
+void BGSourceDexcom::updateReadings(
     DEXCOM_SERVER dexcomServer, String dexcomUsername, String dexcomPassword,
-    std::list<GlucoseReading> existingReadings) {
+    GlucoseReadings& readings) {
     // set last epoch to now - 3 hours (we don't want to get too many readings)
     unsigned long long lastReadingEpoch = time(NULL) - BG_BACKFILL_SECONDS;
     // get last epoch from existing readings if it is newer than default one
-    if (existingReadings.size() > 0 && existingReadings.back().epoch > lastReadingEpoch) {
-        lastReadingEpoch = existingReadings.back().epoch;
+    if (readings.size() > 0 && readings.back().epoch > lastReadingEpoch) {
+        lastReadingEpoch = readings.back().epoch;
     }
 
     int forMinutes = (time(NULL) - lastReadingEpoch) / 60;
@@ -42,35 +42,21 @@ std::list<GlucoseReading> BGSourceDexcom::updateReadings(
         String((retrievedReadings.back().epoch - retrievedReadings.front().epoch) / 60));
 #endif
 
-    // remove readings from retrievedReadings which are already present in existingReadings
-    // to eliminate duplicate readins
-    retrievedReadings.remove_if([&existingReadings](const GlucoseReading& reading) {
-        return std::find_if(
-                   existingReadings.begin(), existingReadings.end(),
-                   [&reading](const GlucoseReading& existingReading) {
-                       return existingReading.epoch == reading.epoch;
-                   }) != existingReadings.end();
-    });
-
-    if (retrievedReadings.size() == 0) {
+    // Readings the clock already has are left out.
+    if (readings.addAll(retrievedReadings) == 0) {
         DEBUG_PRINTLN("No new readings");
-        return existingReadings;
+        return;
     }
 
-    // add readings to existing readings; splice moves them without allocating
-    existingReadings.splice(existingReadings.end(), retrievedReadings);
-
     // set lastReadingEpoch to the last reading epoch
-    lastReadingEpoch = existingReadings.back().epoch;
+    lastReadingEpoch = readings.back().epoch;
 
 #ifdef DEBUG_BG_SOURCE
     DEBUG_PRINTLN(
-        "Existing readings: " + String(existingReadings.size()) +
+        "Existing readings: " + String(readings.size()) +
         ", last reading epoch: " + String(lastReadingEpoch) +
         " Difference to now is: " + String((time(NULL) - lastReadingEpoch) / 60) + " minutes");
 #endif
-
-    return existingReadings;
 }
 
 std::list<GlucoseReading> BGSourceDexcom::retrieveReadings(

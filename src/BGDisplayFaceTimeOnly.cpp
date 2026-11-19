@@ -3,8 +3,7 @@
 #include "ServerManager.h"
 #include "globals.h"
 
-void BGDisplayFaceTimeOnly::showReadings(
-    const std::list<GlucoseReading>& readings, bool dataIsOld) const {
+void BGDisplayFaceTimeOnly::showReadings(const GlucoseReadings& readings, bool dataIsOld) const {
     showTime();
 }
 

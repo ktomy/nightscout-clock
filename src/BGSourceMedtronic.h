@@ -5,7 +5,7 @@
 
 class BGSourceMedtronic : public BGSource {
 public:
-    std::list<GlucoseReading> updateReadings(std::list<GlucoseReading> existingReadings) override;
+    void updateReadings(GlucoseReadings& readings) override;
 
 private:
 };

@@ -1,8 +1,6 @@
 #ifndef BGDISPLAYFACE_H
 #define BGDISPLAYFACE_H
 
-#include <list>
-
 #include "BGSource.h"
 #include "DisplayManager.h"
 #include "SettingsManager.h"
@@ -26,13 +24,12 @@ struct RenderContext {
     tm currentTime;
     bool dataIsOld;
     bool wasDataOld;
-    const std::list<GlucoseReading>& readings;
+    const GlucoseReadings& readings;
 };
 
 class BGDisplayFace {
 public:
-    virtual void showReadings(
-        const std::list<GlucoseReading>& readings, bool dataIsOld = false) const = 0;
+    virtual void showReadings(const GlucoseReadings& readings, bool dataIsOld = false) const = 0;
     virtual void showNoData() const;
     virtual bool needsFrequentRefresh() const;
     virtual unsigned long getFrequentRefreshIntervalMs() const;
@@ -45,8 +42,7 @@ public:
     // How often a moving face redraws its moving part; 0 for a still face.
     virtual unsigned long getAnimationStepMillis() const { return 0; }
     // Redraws only the moving part of the face for animation step `frame`.
-    virtual void showAnimationFrame(
-        const std::list<GlucoseReading>& readings, unsigned long frame) const {}
+    virtual void showAnimationFrame(const GlucoseReadings& readings, unsigned long frame) const {}
     // Faces that show no glucose keep animating when the readings are old or missing.
     virtual bool animatesWithoutFreshData() const { return false; }
     // Faces that change every second get a TIME_TICK every second instead of every minute.

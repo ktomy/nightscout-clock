@@ -7,8 +7,7 @@ namespace {
 constexpr unsigned long RAINBOW_STEP_MS = 80;
 }
 
-void BGDisplayFaceRainbowClock::showReadings(
-    const std::list<GlucoseReading>& readings, bool dataIsOld) const {
+void BGDisplayFaceRainbowClock::showReadings(const GlucoseReadings& readings, bool dataIsOld) const {
     showTime();
 }
 
@@ -20,7 +19,7 @@ void BGDisplayFaceRainbowClock::showNoData() const {
 unsigned long BGDisplayFaceRainbowClock::getAnimationStepMillis() const { return RAINBOW_STEP_MS; }
 
 void BGDisplayFaceRainbowClock::showAnimationFrame(
-    const std::list<GlucoseReading>& readings, unsigned long frame) const {
+    const GlucoseReadings& readings, unsigned long frame) const {
     DisplayManager.clearMatrix();
     showTime();
 }

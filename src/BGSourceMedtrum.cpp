@@ -227,11 +227,11 @@ std::list<GlucoseReading> BGSourceMedtrum::getHistory(
     return readings;
 }
 
-std::list<GlucoseReading> BGSourceMedtrum::updateReadings(std::list<GlucoseReading> existingReadings) {
+void BGSourceMedtrum::updateReadings(GlucoseReadings& readings) {
     // Only login if not already logged in
     if (!isLoggedIn()) {
         if (!login()) {
-            return existingReadings;
+            return;
         }
     }
 
@@ -240,13 +240,13 @@ std::list<GlucoseReading> BGSourceMedtrum::updateReadings(std::list<GlucoseReadi
     bool ok = false;
     GlucoseReading currentReading = getCurrentGlucose(username, ok);
     if (!ok) {
-        return existingReadings;
+        return;
     }
 
     // Determine if we need to fetch history
     bool needHistory = false;
-    unsigned long long lastEpoch = existingReadings.size() > 0 ? existingReadings.back().epoch : 0;
-    if (existingReadings.size() == 0 || (currentReading.epoch - lastEpoch) > 5 * 60) {
+    unsigned long long lastEpoch = readings.size() > 0 ? readings.back().epoch : 0;
+    if (readings.size() == 0 || (currentReading.epoch - lastEpoch) > 5 * 60) {
         needHistory = true;
     }
 
@@ -277,24 +277,11 @@ std::list<GlucoseReading> BGSourceMedtrum::updateReadings(std::list<GlucoseReadi
 
     newReadings.push_back(currentReading);
 
-    // Remove duplicates with existingReadings
-    newReadings.remove_if([&existingReadings](const GlucoseReading& reading) {
-        return std::find_if(
-                   existingReadings.begin(), existingReadings.end(),
-                   [&reading](const GlucoseReading& existingReading) {
-                       return existingReading.epoch == reading.epoch;
-                   }) != existingReadings.end();
-    });
-
-    if (newReadings.size() == 0) {
-        return existingReadings;
+    // Readings the clock already has are left out.
+    if (readings.addAll(newReadings) == 0) {
+        return;
     }
 
-    // Add new readings to existing; splice moves them without allocating
-    existingReadings.splice(existingReadings.end(), newReadings);
-    existingReadings.sort(
-        [](const GlucoseReading& a, const GlucoseReading& b) { return a.epoch < b.epoch; });
     status = "connected";
     firstConnectionSuccess = true;
-    return existingReadings;
 }

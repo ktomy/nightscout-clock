@@ -123,8 +123,7 @@ const uint16_t LOWEST_MANE[3] = {0xF81F, 0x001F, 0x07FF};
 
 }  // namespace
 
-void BGDisplayFaceUnicorn::showReadings(
-    const std::list<GlucoseReading>& readings, bool dataIsOld) const {
+void BGDisplayFaceUnicorn::showReadings(const GlucoseReadings& readings, bool dataIsOld) const {
     auto lastReading = readings.back();
 
     const uint16_t staleColor = getDataOldColor();
@@ -161,7 +160,7 @@ unsigned long BGDisplayFaceUnicorn::getAnimationStepMillis() const {
 }
 
 void BGDisplayFaceUnicorn::showAnimationFrame(
-    const std::list<GlucoseReading>& readings, unsigned long frame) const {
+    const GlucoseReadings& readings, unsigned long frame) const {
     drawMane(readings.back().sgv, false, true, frame);
 }
 

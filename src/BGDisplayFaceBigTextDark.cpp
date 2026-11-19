@@ -1,7 +1,6 @@
 #include "BGDisplayFaceBigTextDark.h"
 
-void BGDisplayFaceBigTextDark::showReadings(
-    const std::list<GlucoseReading>& readings, bool dataIsOld) const {
+void BGDisplayFaceBigTextDark::showReadings(const GlucoseReadings& readings, bool dataIsOld) const {
     showDarkReading(readings.back(), dataIsOld, 0, 7, TEXT_ALIGNMENT::LEFT, FONT_TYPE::LARGE);
     if (SettingsManager.settings.face_big_text_dark.age_dots) {
         drawAgeDotsUnderArrow(readings.back());

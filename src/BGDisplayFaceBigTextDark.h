@@ -8,7 +8,7 @@
 // under the trend arrow.
 class BGDisplayFaceBigTextDark : public BGDisplayFaceSimpleDark, public BGDisplayFaceWithAge {
 public:
-    void showReadings(const std::list<GlucoseReading>& readings, bool dataIsOld = false) const override;
+    void showReadings(const GlucoseReadings& readings, bool dataIsOld = false) const override;
     RenderDecision getRenderDecision(const RenderContext& ctx) const override;
 };
 

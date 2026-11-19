@@ -7,8 +7,7 @@ constexpr unsigned long RAINBOW_STEP_MS = 80;
 }
 
 // Old data shows still in the old-data color; fresh data is drawn by the animation frame.
-void BGDisplayFaceBigTextRainbow::showReadings(
-    const std::list<GlucoseReading>& readings, bool dataIsOld) const {
+void BGDisplayFaceBigTextRainbow::showReadings(const GlucoseReadings& readings, bool dataIsOld) const {
     if (!dataIsOld) {
         return;
     }
@@ -19,7 +18,7 @@ void BGDisplayFaceBigTextRainbow::showReadings(
 unsigned long BGDisplayFaceBigTextRainbow::getAnimationStepMillis() const { return RAINBOW_STEP_MS; }
 
 void BGDisplayFaceBigTextRainbow::showAnimationFrame(
-    const std::list<GlucoseReading>& readings, unsigned long frame) const {
+    const GlucoseReadings& readings, unsigned long frame) const {
     const GlucoseReading& lastReading = readings.back();
     DisplayManager.clearMatrix();
     showAnimatedReading(lastReading);

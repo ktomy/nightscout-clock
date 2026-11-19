@@ -4,8 +4,6 @@
 
 #include <Arduino.h>
 
-#include <list>
-
 #include "BGSource.h"
 #include "enums.h"
 
@@ -13,9 +11,9 @@ class BGSourceManager_ {
 public:
     static BGSourceManager_& getInstance();
     bool hasNewData(unsigned long long epochToCompare);
-    const std::list<GlucoseReading>& getGlucoseData();
+    const GlucoseReadings& getGlucoseData();
 
-    std::list<GlucoseReading> readings;
+    GlucoseReadings readings;
 };
 
 extern BGSourceManager_& bgSourceManager;

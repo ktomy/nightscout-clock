@@ -8,12 +8,11 @@
 class BGSourceNightscout : public BGSource {
 public:
 private:
-    std::list<GlucoseReading> updateReadings(
-        String baseUrl, String apiKey, bool simplifiedApi, std::list<GlucoseReading> existingReadings);
+    void updateReadings(String baseUrl, String apiKey, bool simplifiedApi, GlucoseReadings& readings);
     std::list<GlucoseReading> retrieveReadings(
         String baseUrl, String apiKey, bool simplifiedApi, unsigned long long lastReadingEpoch,
         unsigned long long readingToEpoch, int numberOfvalues);
-    std::list<GlucoseReading> updateReadings(std::list<GlucoseReading> existingReadings) override;
+    void updateReadings(GlucoseReadings& readings) override;
     LCBUrl prepareUrl(
         String baseUrl, unsigned long long readingSinceEpoch, unsigned long long readingToEpoch,
         int numberOfvalues, bool simplifiedApi);

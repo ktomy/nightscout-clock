@@ -21,7 +21,7 @@ uint16_t BGDisplayFaceBatteryUptime::getBatteryColor() const {
 }
 
 void BGDisplayFaceBatteryUptime::showReadings(
-    const std::list<GlucoseReading>& /*readings*/, bool /*dataIsOld*/) const {
+    const GlucoseReadings& /*readings*/, bool /*dataIsOld*/) const {
     showSystemInfo();
 }
 

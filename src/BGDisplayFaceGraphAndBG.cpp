@@ -5,8 +5,7 @@
 #include "enums.h"
 #include "globals.h"
 
-void BGDisplayFaceGraphAndBG::showReadings(
-    const std::list<GlucoseReading>& readings, bool dataIsOld) const {
+void BGDisplayFaceGraphAndBG::showReadings(const GlucoseReadings& readings, bool dataIsOld) const {
     GlucoseReading reading = readings.back();
     String printableReading = getPrintableReading(reading.sgv);
     uint8_t textWidth = DisplayManager.getTextWidth(printableReading.c_str(), 2);

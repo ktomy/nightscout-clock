@@ -82,12 +82,11 @@ void BGDisplayFaceRaceCar::drawRace(int sgv, bool dataIsOld, unsigned long frame
 }
 
 void BGDisplayFaceRaceCar::showAnimationFrame(
-    const std::list<GlucoseReading>& readings, unsigned long frame) const {
+    const GlucoseReadings& readings, unsigned long frame) const {
     drawRace(readings.back().sgv, false, frame);
 }
 
-void BGDisplayFaceRaceCar::showReadings(
-    const std::list<GlucoseReading>& readings, bool dataIsOld) const {
+void BGDisplayFaceRaceCar::showReadings(const GlucoseReadings& readings, bool dataIsOld) const {
     const GlucoseReading& lastReading = readings.back();
 
     // A fresh race is drawn at its current step by the display manager right after this.

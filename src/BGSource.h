@@ -6,9 +6,9 @@
 #include <WiFiClientSecure.h>
 
 #include <list>
-#include <utility>
 
 #include "DisplayManager.h"
+#include "GlucoseReadingBuffer.h"
 #include "ServerManager.h"
 #include "enums.h"
 #include "globals.h"
@@ -32,14 +32,16 @@ public:
     }
 };
 
+// Three hours of one-minute readings are 181, plus room for readings that arrive a little early.
+// The data source and the display each keep one, 3 KB each.
+using GlucoseReadings = GlucoseReadingBuffer<GlucoseReading, 192>;
+
 class BGSource {
 public:
     virtual void setup();
     virtual void tick();
     virtual bool hasNewData(unsigned long long epochToCompare);
-    // A reference: with LibreLinkUp's one-minute readings the list holds about 180 entries, and
-    // each copy allocated and freed one small block per entry, which fragmented the heap.
-    virtual const std::list<GlucoseReading>& getGlucoseData() const;
+    virtual const GlucoseReadings& getGlucoseData() const;
     virtual String getStatus() const { return status; }
 
 protected:
@@ -47,11 +49,9 @@ protected:
     WiFiClientSecure* wifiSecureClient;
     unsigned long long lastCallAttemptEpoch = 0;
     bool firstConnectionSuccess = false;
-    std::list<GlucoseReading> glucoseReadings;
-    void deleteOldReadings(std::list<GlucoseReading>& readings, unsigned long long epochToCompare);
-    // Gets the readings moved in and returns them with the new ones added, so the list is never
-    // copied.
-    virtual std::list<GlucoseReading> updateReadings(std::list<GlucoseReading> existingReadings) = 0;
+    GlucoseReadings glucoseReadings;
+    // Requests the readings newer than the newest in `readings` and adds them.
+    virtual void updateReadings(GlucoseReadings& readings) = 0;
     BG_TREND parseDirection(String directionInput);
     void handleFailedAttempt();
     // With DEBUG_MEMORY, logs the WiFi signal and free memory around each request, so a log tells

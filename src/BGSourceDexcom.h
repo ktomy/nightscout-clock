@@ -16,10 +16,10 @@
 class BGSourceDexcom : public BGSource {
 public:
 private:
-    std::list<GlucoseReading> updateReadings(std::list<GlucoseReading> existingReadings) override;
-    std::list<GlucoseReading> updateReadings(
+    void updateReadings(GlucoseReadings& readings) override;
+    void updateReadings(
         DEXCOM_SERVER dexcomServer, String dexcomUsername, String dexcomPassword,
-        std::list<GlucoseReading> existingReadings);
+        GlucoseReadings& readings);
     std::list<GlucoseReading> retrieveReadings(
         DEXCOM_SERVER dexcomServer, String dexcomUsername, String dexcomPassword, int forMinutes,
         int readingsCount);

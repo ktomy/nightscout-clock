@@ -69,7 +69,7 @@ void BGDisplayFaceNyanUnicorn::drawNyanRainbow(int16_t startX, int16_t endX, uin
     }
 }
 
-void BGDisplayFaceNyanUnicorn::showReadings(const std::list<GlucoseReading>& readings, bool dataIsOld) const {
+void BGDisplayFaceNyanUnicorn::showReadings(const GlucoseReadings& readings, bool dataIsOld) const {
     unsigned long now = millis();
     uint8_t leg = (now / 110) % 2, wave = (now / 110) % 4;
     auto lastReading = readings.back();

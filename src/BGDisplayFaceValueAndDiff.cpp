@@ -3,8 +3,7 @@
 #include "BGDisplayValueText.h"
 #include "globals.h"
 
-void BGDisplayFaceValueAndDiff::showReadings(
-    const std::list<GlucoseReading>& readings, bool dataIsOld) const {
+void BGDisplayFaceValueAndDiff::showReadings(const GlucoseReadings& readings, bool dataIsOld) const {
     auto lastReading = readings.back();
 
     // treating special casse where the value representation is too wide, so we move it one pixel to the
@@ -36,7 +35,7 @@ void BGDisplayFaceValueAndDiff::showReadings(
     drawTimerBlocks(lastReading, MATRIX_WIDTH, 0, 7);
 }
 
-String BGDisplayFaceValueAndDiff::getDiff(const std::list<GlucoseReading>& readings) const {
+String BGDisplayFaceValueAndDiff::getDiff(const GlucoseReadings& readings) const {
     const std::string diff = formatDiff(
         readings, SettingsManager.settings.bg_units != BG_UNIT::MGDL, ServerManager.getUtcEpoch());
 

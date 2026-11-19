@@ -6,8 +6,7 @@
 
 class BGDisplayFaceTextBase : virtual public BGDisplayFace {
 public:
-    virtual void showReadings(
-        const std::list<GlucoseReading>& readings, bool dataIsOld = false) const = 0;
+    virtual void showReadings(const GlucoseReadings& readings, bool dataIsOld = false) const = 0;
 
 protected:
     // Draws the arrow in freshColor, or in the old-data color once the data is old.

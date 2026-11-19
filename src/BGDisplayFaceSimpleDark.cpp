@@ -3,8 +3,7 @@
 #include "BGDisplayManager.h"
 #include "globals.h"
 
-void BGDisplayFaceSimpleDark::showReadings(
-    const std::list<GlucoseReading>& readings, bool dataIsOld) const {
+void BGDisplayFaceSimpleDark::showReadings(const GlucoseReadings& readings, bool dataIsOld) const {
     showDarkReading(readings.back(), dataIsOld, 0, 6, TEXT_ALIGNMENT::CENTER, FONT_TYPE::MEDIUM);
 }
 

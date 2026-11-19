@@ -90,10 +90,7 @@ void BGSourceApi::HandleEntriesPost(AsyncWebServerRequest* request, JsonVariant&
 }
 
 void BGSourceApi::addReadings(const std::list<GlucoseReading>& readings) {
-    glucoseReadings.insert(glucoseReadings.end(), readings.begin(), readings.end());
-    // Sort readings by epoch
-    glucoseReadings.sort(
-        [](const GlucoseReading& a, const GlucoseReading& b) { return a.epoch < b.epoch; });
+    glucoseReadings.addAll(readings);
     hasNewDataFlag = true;
 }
 
@@ -102,12 +99,11 @@ void BGSourceApi::clearReadings() {
     hasNewDataFlag = true;
 }
 
-std::list<GlucoseReading> BGSourceApi::updateReadings(std::list<GlucoseReading> existingReadings) {
+void BGSourceApi::updateReadings(GlucoseReadings& /*readings*/) {
 #ifdef DEBUG_BG_SOURCE
     DEBUG_PRINTLN("BGSourceApi::updateReadings");
 #endif
     firstConnectionSuccess = true;
-    return existingReadings;
 }
 
 bool BGSourceApi::hasNewData(unsigned long long epoch) {

@@ -1,10 +1,9 @@
 #include "BGDisplayManager.h"
 
 #include <algorithm>
-#include <list>
 
-#include "BGSource.h"
 #include "BGDisplayValueText.h"
+#include "BGSource.h"
 #include "BGSourceManager.h"
 #include "DisplayManager.h"
 #include "ServerManager.h"
@@ -401,7 +400,7 @@ void BGDisplayManager_::maybeRrefreshScreen(bool force) {
     }
 }
 
-void BGDisplayManager_::showData(const std::list<GlucoseReading>& glucoseReadings) {
+void BGDisplayManager_::showData(const GlucoseReadings& glucoseReadings) {
     if (glucoseReadings.size() == 0) {
         displayedReadings.clear();
         if (surpriseModeActive) {
@@ -412,7 +411,6 @@ void BGDisplayManager_::showData(const std::list<GlucoseReading>& glucoseReading
         return;
     }
 
-    // Copy assignment reuses the list's nodes, so a new reading allocates one at most.
     displayedReadings = glucoseReadings;
 
     // Surprise mode: a new reading shown as exactly 100 or 5.6 makes the Nyan run across once, then the
@@ -430,7 +428,7 @@ void BGDisplayManager_::showData(const std::list<GlucoseReading>& glucoseReading
     runRenderCycle(RenderReason::NEW_DATA, ServerManager.getTimezonedTime());
 }
 
-GlucoseReading* BGDisplayManager_::getLastDisplayedGlucoseReading() {
+const GlucoseReading* BGDisplayManager_::getLastDisplayedGlucoseReading() {
     if (displayedReadings.size() > 0) {
         return &displayedReadings.back();
     } else {

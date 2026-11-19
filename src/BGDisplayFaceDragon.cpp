@@ -114,13 +114,13 @@ void BGDisplayFaceDragon::drawFlame(int sgv, unsigned long frame) const {
 }
 
 void BGDisplayFaceDragon::showAnimationFrame(
-    const std::list<GlucoseReading>& readings, unsigned long frame) const {
+    const GlucoseReadings& readings, unsigned long frame) const {
     DisplayManager.clearMatrixPart(0, 0, SPRITE_WIDTH, SPRITE_HEIGHT);
     drawFlame(readings.back().sgv, frame);
     drawDragon(false);
 }
 
-void BGDisplayFaceDragon::showReadings(const std::list<GlucoseReading>& readings, bool dataIsOld) const {
+void BGDisplayFaceDragon::showReadings(const GlucoseReadings& readings, bool dataIsOld) const {
     const GlucoseReading& lastReading = readings.back();
 
     drawDragon(dataIsOld);

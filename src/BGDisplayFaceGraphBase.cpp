@@ -6,7 +6,7 @@
 #include "globals.h"
 
 int getAverageValueForPeriod(
-    uint16_t fromSecondsAgo, uint16_t toSecondsAgo, std::list<GlucoseReading> readings) {
+    uint16_t fromSecondsAgo, uint16_t toSecondsAgo, const GlucoseReadings& readings) {
     unsigned long long fromEpoch = time(NULL) - fromSecondsAgo;
     unsigned long long toEpoch = time(NULL) - toSecondsAgo;
     // note, toEpoch is older than fromEpoch
@@ -48,8 +48,7 @@ int getNormalIntervalYPosition(int value, GlucoseInterval interval) {
 }
 
 void BGDisplayFaceGraphBase::showGraph(
-    uint8_t x_position, uint8_t length, uint16_t forMinutes,
-    const std::list<GlucoseReading>& readings) const {
+    uint8_t x_position, uint8_t length, uint16_t forMinutes, const GlucoseReadings& readings) const {
     auto pixelSizeSeconds = (forMinutes * 60) / length;
 
     auto intervals = bgDisplayManager.getGlucoseIntervals();

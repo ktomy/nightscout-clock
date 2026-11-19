@@ -7,10 +7,9 @@
 // level and trend.
 class BGDisplayFaceRainbowMood : public BGDisplayFaceTextBase {
 public:
-    void showReadings(const std::list<GlucoseReading>& readings, bool dataIsOld = false) const override;
+    void showReadings(const GlucoseReadings& readings, bool dataIsOld = false) const override;
     unsigned long getAnimationStepMillis() const override;
-    void showAnimationFrame(
-        const std::list<GlucoseReading>& readings, unsigned long frame) const override;
+    void showAnimationFrame(const GlucoseReadings& readings, unsigned long frame) const override;
 
 private:
     void showAnimatedReading(const GlucoseReading& reading, bool dataIsOld) const;
