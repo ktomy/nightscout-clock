@@ -9,6 +9,7 @@
 #include "PeripheryManager.h"
 #include "ServerManager.h"
 #include "SettingsManager.h"
+#include "TlsMemory.h"
 #include "globals.h"
 #include "improv_consume.h"
 
@@ -29,6 +30,7 @@ void setup() {
     Serial.begin(115200);
     // Serial.setDebugOutput(true);
     DEBUG_PRINTF("Nightscout clock %s", VERSION);
+    TlsMemory::setup();
 
     DisplayManager.setup();
     SettingsManager.setup();
@@ -100,9 +102,10 @@ void loop() {
         heap_caps_get_info(&heap, MALLOC_CAP_8BIT);
         DEBUG_PRINTF(
             "[mem] free heap %u, largest block %u, lowest free heap %u, free blocks %u, loop stack "
-            "never used %u, RSSI %d dBm",
+            "never used %u, RSSI %d dBm; %s",
             heap.total_free_bytes, heap.largest_free_block, heap.minimum_free_bytes, heap.free_blocks,
-            uxTaskGetStackHighWaterMark(NULL), WiFi.isConnected() ? WiFi.RSSI() : 0);
+            uxTaskGetStackHighWaterMark(NULL), WiFi.isConnected() ? WiFi.RSSI() : 0,
+            TlsMemory::stats().c_str());
     }
 #endif
 
@@ -110,6 +113,7 @@ void loop() {
 
     if (ServerManager.isConnected) {
         bgSourceManager.tick();
+        TlsMemory::restartIfOutOfMemory();
         bgDisplayManager.tick();
         bgAlarmManager.tick();
 

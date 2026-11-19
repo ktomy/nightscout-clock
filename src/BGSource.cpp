@@ -3,6 +3,7 @@
 #include <esp_heap_caps.h>
 
 #include "ServerManager.h"
+#include "TlsMemory.h"
 
 unsigned long lastCallAttemptMills = 0;
 
@@ -30,9 +31,9 @@ void BGSource::logNetworkAndMemoryStats(const char* stage, const char* request) 
     heap_caps_get_info(&heap, MALLOC_CAP_8BIT);
     DEBUG_PRINTF(
         "[net] %s %s: RSSI %d dBm, free heap %u, largest block %u, lowest free heap %u, free blocks "
-        "%u",
+        "%u; %s",
         stage, request, WiFi.RSSI(), heap.total_free_bytes, heap.largest_free_block,
-        heap.minimum_free_bytes, heap.free_blocks);
+        heap.minimum_free_bytes, heap.free_blocks, TlsMemory::stats().c_str());
 #endif
 }
 
