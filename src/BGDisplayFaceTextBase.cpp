@@ -34,6 +34,9 @@ String BGDisplayFaceTextBase::getPrintableReading(const int sgv) const {
 #pragma region Show arrow
 
 // Glucose trends
+// clang-format off: These 5×5 pixel symbol bitmaps are written one row per line so the
+// pixel pattern stays human-readable. clang-format would otherwise collapse each
+// initializer onto a single line because it fits within the column limit.
 const uint8_t symbol_doubleUp[] PROGMEM = {
     0b01010000,
     0b11111000,
@@ -100,6 +103,7 @@ const uint8_t symbol_dataOld[] PROGMEM = {
     0b01010000,
     0b10001000,
 };
+// clang-format on
 
 const std::map<BG_TREND, const uint8_t*> glucoseTrendSymbols = {
     {BG_TREND::NONE, symbol_empty},

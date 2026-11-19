@@ -363,8 +363,8 @@ GlucoseReading BGSourceLibreLinkUp::getLibreLinkUpConnection() {
 
 #ifdef DEBUG_BG_SOURCE
     DEBUG_PRINTF(
-        "Got LibreLinkUp connection, patientId: %s, last reading: %s\n",
-        authTicket.patientId.c_str(), reading.toString().c_str());
+        "Got LibreLinkUp connection, patientId: %s, last reading: %s\n", authTicket.patientId.c_str(),
+        reading.toString().c_str());
 #endif
 
     return reading;

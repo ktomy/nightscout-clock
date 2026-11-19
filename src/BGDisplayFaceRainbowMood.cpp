@@ -8,31 +8,25 @@ namespace {
 constexpr int16_t SMILEY_WIDTH = 8;
 constexpr int16_t ARROW_X = MATRIX_WIDTH - 5;
 
-const uint8_t PROGMEM MOOD_HAPPY_A[] = {
-    0b00111100, 0b01000010, 0b10100101, 0b10000001,
-    0b10100101, 0b10011001, 0b01000010, 0b00111100};
+const uint8_t PROGMEM MOOD_HAPPY_A[] = {0b00111100, 0b01000010, 0b10100101, 0b10000001,
+                                        0b10100101, 0b10011001, 0b01000010, 0b00111100};
 
-const uint8_t PROGMEM MOOD_HAPPY_B[] = {
-    0b00111100, 0b01000010, 0b10100101, 0b10000001,
-    0b10000001, 0b10111101, 0b01000010, 0b00111100};
+const uint8_t PROGMEM MOOD_HAPPY_B[] = {0b00111100, 0b01000010, 0b10100101, 0b10000001,
+                                        0b10000001, 0b10111101, 0b01000010, 0b00111100};
 
 // The shocked mouth pulses between big and small.
-const uint8_t PROGMEM MOOD_SHOCKED_A[] = {
-    0b00111100, 0b01000010, 0b10100101, 0b10100101,
-    0b10000001, 0b10011001, 0b01011010, 0b00111100};
+const uint8_t PROGMEM MOOD_SHOCKED_A[] = {0b00111100, 0b01000010, 0b10100101, 0b10100101,
+                                          0b10000001, 0b10011001, 0b01011010, 0b00111100};
 
-const uint8_t PROGMEM MOOD_SHOCKED_B[] = {
-    0b00111100, 0b01000010, 0b10100101, 0b10100101,
-    0b10000001, 0b10011001, 0b01000010, 0b00111100};
+const uint8_t PROGMEM MOOD_SHOCKED_B[] = {0b00111100, 0b01000010, 0b10100101, 0b10100101,
+                                          0b10000001, 0b10011001, 0b01000010, 0b00111100};
 
 // The dizzy eyes swap rows, so they seem to spin.
-const uint8_t PROGMEM MOOD_DIZZY_A[] = {
-    0b00111100, 0b01000010, 0b10011001, 0b10100101,
-    0b10000001, 0b01011010, 0b01000010, 0b00111100};
+const uint8_t PROGMEM MOOD_DIZZY_A[] = {0b00111100, 0b01000010, 0b10011001, 0b10100101,
+                                        0b10000001, 0b01011010, 0b01000010, 0b00111100};
 
-const uint8_t PROGMEM MOOD_DIZZY_B[] = {
-    0b00111100, 0b01000010, 0b10100101, 0b10011001,
-    0b10000001, 0b01011010, 0b01000010, 0b00111100};
+const uint8_t PROGMEM MOOD_DIZZY_B[] = {0b00111100, 0b01000010, 0b10100101, 0b10011001,
+                                        0b10000001, 0b01011010, 0b01000010, 0b00111100};
 }  // namespace
 
 void BGDisplayFaceRainbowMood::showReadings(
@@ -52,8 +46,7 @@ void BGDisplayFaceRainbowMood::showAnimationFrame(
     showTrendArrow(lastReading, ARROW_X, 1, false);
 }
 
-void BGDisplayFaceRainbowMood::showAnimatedReading(
-    const GlucoseReading& reading, bool dataIsOld) const {
+void BGDisplayFaceRainbowMood::showAnimatedReading(const GlucoseReading& reading, bool dataIsOld) const {
     auto bgLevel = bgDisplayManager.getGlucoseIntervals().getBGLevel(reading.sgv);
     bool isFallingFast =
         (reading.trend == BG_TREND::DOUBLE_DOWN || reading.trend == BG_TREND::SINGLE_DOWN);

@@ -39,7 +39,8 @@ void BGDisplayFaceRaceCar::drawRace(int sgv, bool dataIsOld, unsigned long frame
     const int quarter = dataIsOld ? 0 : getWarningQuarter(sgv, level);
 
     DisplayManager.clearMatrixPart(0, 0, AREA_WIDTH, AREA_HEIGHT);
-    // Old data draws every other pixel of the race in the old-data color, so it looks faded in any of them.
+    // Old data draws every other pixel of the race in the old-data color, so it looks faded in any of
+    // them.
     auto put = [&](int x, int y, uint16_t color) {
         if (!dataIsOld) {
             DisplayManager.drawPixel(x, y, color);

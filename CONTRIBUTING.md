@@ -59,6 +59,45 @@ My computer is running linux, but you can use Windows or MacOS as well, there ar
 - You should be able to see the debug output in the VS Code terminal
 - If something goes wrong and you are stuck, feel free to start a [discussion](https://github.com/ktomy/nightscout-clock/discussions)
 
+### Code formatting
+
+C++ source files under `src/` are formatted with `clang-format` using the project's
+`.clang-format` config (Google style, 4-space indent, attached braces, left-aligned
+pointers, sorted includes, 105-column limit).
+
+#### Check formatting
+
+```sh
+./scripts/check_format.sh
+```
+
+Exits non-zero if any file needs formatting. Pass file or directory arguments to check
+a subset, for example `./scripts/check_format.sh src/main.cpp`.
+
+#### Apply formatting
+
+```sh
+./scripts/check_format.sh --fix
+```
+
+Reformats all `src/*.{cpp,h}` files in place. You can also target specific paths.
+
+#### Pre-push hook
+
+The repository includes a `pre-push` git hook under `.githooks/` that runs
+`check_format.sh --fix` and the host-side test suite (`test/run_tests.sh`) before every
+push. If the hook reformats any files, or if any test fails, the push is aborted so you
+can review and commit the changes first.
+
+To enable it:
+
+```sh
+git config core.hooksPath .githooks
+```
+
+The hook is tracked in git under `.githooks/`, so it is shared with everyone who clones
+the repository. You only need to run `core.hooksPath` once per clone.
+
 ### Adding a clock face
 
 Register the face instance, label, and a unique, stable snake_case ID (for example,

@@ -63,7 +63,8 @@ protected:
     static bool isUrgent(BG_LEVEL level);
     // Which quarter of the low or high range a reading is in: 0 next to in range, 3 next to urgent.
     static int getWarningQuarter(int sgv, BG_LEVEL level);
-    // Seven eighths of the way to white: the lighter stripe of a moving part, lit at the lowest brightness.
+    // Seven eighths of the way to white: the lighter stripe of a moving part, lit at the lowest
+    // brightness.
     static uint16_t lighten(uint16_t color);
     // The Unicorn's in-range colors: magenta, orchid, purple, violet, indigo and blue. No glucose
     // color, no data-old cyan, no white, and after the LED gamma none leans red at any brightness;

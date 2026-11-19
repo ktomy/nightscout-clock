@@ -165,8 +165,8 @@ void BGDisplayFaceUnicorn::showAnimationFrame(
     drawMane(readings.back().sgv, false, true, frame);
 }
 
-// In the outer quarter of the in-range, low or high band the color of the band beyond it mixes in; `color` is that
-// color. The middle half of a band, and the urgent bands, show one color.
+// In the outer quarter of the in-range, low or high band the color of the band beyond it mixes in;
+// `color` is that color. The middle half of a band, and the urgent bands, show one color.
 bool BGDisplayFaceUnicorn::maneNeighbour(int sgv, BG_LEVEL level, uint16_t& color) const {
     const auto& s = SettingsManager.settings;
     int low, high;
@@ -215,14 +215,16 @@ void BGDisplayFaceUnicorn::drawMane(int sgv, bool dataIsOld, bool moving, unsign
     const bool lowest = moving && !dataIsOld && inRange && flow == MANE_FLOW::RUN &&
                         DisplayManager.getBrightness() <= MIN_BRIGHTNESS;
 
-    // Moving tips drift a row up or down into empty cells, so those cells are cleared before the mane is drawn.
+    // Moving tips drift a row up or down into empty cells, so those cells are cleared before the mane is
+    // drawn.
     if (wisps) {
         for (int row = 0; row < SPRITE_HEIGHT; row++) {
             for (int col = 0; col < SPRITE_WIDTH; col++) {
                 if (UNICORN_ART[row][col] < 'a') {
                     continue;
                 }
-                for (int near = std::max(0, row - 1); near <= std::min(SPRITE_HEIGHT - 1, row + 1); near++) {
+                for (int near = std::max(0, row - 1); near <= std::min(SPRITE_HEIGHT - 1, row + 1);
+                     near++) {
                     if (UNICORN_ART[near][col] == '.') {
                         DisplayManager.drawPixel(col, near, 0);
                     }
@@ -273,8 +275,8 @@ void BGDisplayFaceUnicorn::drawMane(int sgv, bool dataIsOld, bool moving, unsign
                     const int dash = runDash(band, col, frame);
                     // Every third band holds the neighbouring band's color when the reading is near it.
                     const uint16_t held = mixes && index % 3 == 0 ? neighbour
-                                          : inRange              ? IN_RANGE_COLORS[std::min(4, band)]
-                                                                 : getMotionColor(level, 1, index, 0);
+                                          : inRange               ? IN_RANGE_COLORS[std::min(4, band)]
+                                                                  : getMotionColor(level, 1, index, 0);
                     // A shadow trails the light, so it reads as a comet rather than a blink.
                     // The light is the next band's color in range, so the mane never shows white.
                     const uint16_t light = inRange && !(mixes && index % 3 == 0)
@@ -288,8 +290,8 @@ void BGDisplayFaceUnicorn::drawMane(int sgv, bool dataIsOld, bool moving, unsign
                 const unsigned long step =
                     flow == MANE_FLOW::BACK ? (SPRITE_WIDTH - 1 - col + frame % 30) / 5 : frame;
                 color = mixes && (index + step) % 3 == 0 ? neighbour
-                        : inRange                         ? IN_RANGE_COLORS[(index + step) % MANE_BANDS]
-                                                          : getMotionColor(level, 1, index, step);
+                        : inRange                        ? IN_RANGE_COLORS[(index + step) % MANE_BANDS]
+                                                         : getMotionColor(level, 1, index, step);
             } else if (inRange) {
                 color = IN_RANGE_COLORS[std::min(4, band)];
             } else {
