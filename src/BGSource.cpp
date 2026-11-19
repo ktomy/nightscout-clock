@@ -1,5 +1,7 @@
 #include "BGSource.h"
 
+#include <esp_heap_caps.h>
+
 #include "ServerManager.h"
 
 unsigned long lastCallAttemptMills = 0;
@@ -23,9 +25,14 @@ void BGSource::handleFailedAttempt() {
 
 void BGSource::logNetworkAndMemoryStats(const char* stage, const char* request) const {
 #ifdef DEBUG_MEMORY
+    // The memory malloc() can use; see the [mem] line in main.cpp.
+    multi_heap_info_t heap;
+    heap_caps_get_info(&heap, MALLOC_CAP_8BIT);
     DEBUG_PRINTF(
-        "[net] %s %s: RSSI %d dBm, free heap %u, largest block %u, lowest free heap %u", stage, request,
-        WiFi.RSSI(), ESP.getFreeHeap(), ESP.getMaxAllocHeap(), ESP.getMinFreeHeap());
+        "[net] %s %s: RSSI %d dBm, free heap %u, largest block %u, lowest free heap %u, free blocks "
+        "%u",
+        stage, request, WiFi.RSSI(), heap.total_free_bytes, heap.largest_free_block,
+        heap.minimum_free_bytes, heap.free_blocks);
 #endif
 }
 

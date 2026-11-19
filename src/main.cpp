@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include <esp32-hal.h>
+#include <esp_heap_caps.h>
 
 #include "BGAlarmManager.h"
 #include "BGDisplayManager.h"
@@ -92,10 +93,15 @@ void loop() {
     static unsigned long lastMemoryCheck = 0;
     if (millis() - lastMemoryCheck >= 60000) {
         lastMemoryCheck = millis();
+        // Only the memory malloc() can use: ESP.getFreeHeap() and MALLOC_CAP_INTERNAL also count about
+        // 38 KB of IRAM that takes only 32-bit allocations, so the heap ran out while they showed 40 KB
+        // free. More free blocks for the same free memory means a more fragmented heap.
+        multi_heap_info_t heap;
+        heap_caps_get_info(&heap, MALLOC_CAP_8BIT);
         DEBUG_PRINTF(
-            "[mem] free heap %u, largest block %u, lowest free heap %u, loop stack never used %u, "
-            "RSSI %d dBm",
-            ESP.getFreeHeap(), ESP.getMaxAllocHeap(), ESP.getMinFreeHeap(),
+            "[mem] free heap %u, largest block %u, lowest free heap %u, free blocks %u, loop stack "
+            "never used %u, RSSI %d dBm",
+            heap.total_free_bytes, heap.largest_free_block, heap.minimum_free_bytes, heap.free_blocks,
             uxTaskGetStackHighWaterMark(NULL), WiFi.isConnected() ? WiFi.RSSI() : 0);
     }
 #endif
