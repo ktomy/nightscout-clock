@@ -33,10 +33,17 @@ void BGSourceLibreLinkUp::deleteAuthTicket() {
 
 void BGSourceLibreLinkUp::setup() {
     BGSource::setup();
-    // Open a new connection for every request: each request ends with client->end(), which then
-    // closes its connection. Reusing the login's connection for the connections request made
-    // every start fail with a -11 read timeout on some networks.
-    client->setReuse(false);
+    // The connections request keeps its connection open for the next poll, and the server keeps an
+    // idle one for several minutes. A new connection needs a TLS handshake, which takes a second or
+    // two of the main loop and about 45 KB of memory at its peak, and was done every minute. A kept
+    // connection holds about 41 KB the whole time instead, and a request on it takes a tenth of a
+    // second and about 5 KB.
+    //
+    // The login has a connection of its own, closed after its answer: in 1.1.0 the connections
+    // request went out on the login's connection and, for one account, never got an answer (#253).
+    // If requests on a kept connection fail MAX_KEPT_CONNECTION_FAILURES times in a row, every
+    // request gets a new connection, as before.
+    client->setReuse(keepConnection);
     ServerManager.removeStaticFileHandler();
 
     // add handler to retrieve patients list
@@ -74,6 +81,8 @@ AuthTicket BGSourceLibreLinkUp::login() {
     String url =
         "https://" + libreEndpoints[SettingsManager.settings.librelinkup_region] + "/llu/auth/login";
 
+    // A connection of its own (see setup()).
+    closeConnection();
     client->begin(*wifiSecureClient, url);
     client->setTimeout(15000);  // Set timeout to 15 seconds (15000 milliseconds)
     for (auto& header : standardHeaders) {
@@ -100,9 +109,7 @@ AuthTicket BGSourceLibreLinkUp::login() {
     }
 
     String response = client->getString();
-    // Close the login's connection. HTTPClient reuses a connection that still looks open even with
-    // reuse off, and the server may already be closing it, so the next request got no answer.
-    client->end();
+    closeConnection();
 
     // #ifdef DEBUG_BG_SOURCE
     //     DEBUG_PRINTLN("Response: " + response);
@@ -142,7 +149,7 @@ AuthTicket BGSourceLibreLinkUp::login() {
         auto stepResponseCode = client->POST("{}");
         logNetworkAndMemoryStats("after", "LibreLinkUp login step");
         DEBUG_PRINTF("Step accept response: %d\n", stepResponseCode);
-        client->end();
+        closeConnection();
 
         if (stepResponseCode == HTTP_CODE_OK) {
             DisplayManager.clearMatrix();
@@ -209,10 +216,13 @@ BG_TREND trendFromLibreTrend(int trend) {
     }
 }
 
-GlucoseReading BGSourceLibreLinkUp::getLibreLinkUpConnection() {
-    String url =
-        "https://" + libreEndpoints[SettingsManager.settings.librelinkup_region] + "/llu/connections";
+void BGSourceLibreLinkUp::closeConnection() {
+    client->end();
+    // end() keeps the connection open when reuse is on.
+    wifiSecureClient->stop();
+}
 
+int BGSourceLibreLinkUp::requestConnections(const String& url) {
     // Use the shared secure client like the login and graph requests do. begin(url) built a new
     // TLS client on every poll and dropped the shared one each time.
     client->begin(*wifiSecureClient, url);
@@ -227,6 +237,36 @@ GlucoseReading BGSourceLibreLinkUp::getLibreLinkUpConnection() {
     logNetworkAndMemoryStats("before", "LibreLinkUp connection");
     auto responseCode = client->GET();
     logNetworkAndMemoryStats("after", "LibreLinkUp connection");
+    return responseCode;
+}
+
+GlucoseReading BGSourceLibreLinkUp::getLibreLinkUpConnection() {
+    String url =
+        "https://" + libreEndpoints[SettingsManager.settings.librelinkup_region] + "/llu/connections";
+
+    // connected() also finds out whether the server has closed the kept connection.
+    bool kept = wifiSecureClient->connected();
+    auto responseCode = requestConnections(url);
+    if (kept) {
+        if (responseCode > 0) {
+            keptConnectionFailures = 0;
+        } else {
+            // No answer on the kept connection, for example because it broke without the server
+            // closing it. Try once more on a new one.
+            keptConnectionFailures++;
+            DEBUG_PRINTF(
+                "LibreLinkUp request on the kept connection failed with %d (failure %d), trying a "
+                "new connection\n",
+                responseCode, keptConnectionFailures);
+            if (keptConnectionFailures >= MAX_KEPT_CONNECTION_FAILURES) {
+                DEBUG_PRINTLN("LibreLinkUp: a new connection for every request from now on");
+                keepConnection = false;
+                client->setReuse(false);
+            }
+            closeConnection();
+            responseCode = requestConnections(url);
+        }
+    }
 
     // A failed request or an unreadable answer is usually a passing network or server problem.
     // Keep the readings the clock has and try again on the next poll; show an error only after
@@ -241,7 +281,8 @@ GlucoseReading BGSourceLibreLinkUp::getLibreLinkUpConnection() {
             "Error getting connections from LibreLinkUp %d (failure %d): %.200s\n", responseCode,
             retryCount, errorBody.c_str());
 #endif
-        client->end();
+        // Not kept: the error's body may still be unread.
+        closeConnection();
         if (!firstConnectionSuccess || retryCount > MAX_RETRY_COUNT) {
             status = "get_connections_failed";
             DisplayManager.showFatalError(
@@ -455,11 +496,11 @@ std::list<GlucoseReading> BGSourceLibreLinkUp::getReadings(unsigned long long la
     if (responseCode == HTTP_CODE_OK) {
         error = deserializeJson(doc, client->getStream(), filterOption);
     }
+    // HTTP/1.0 closes the connection after the answer.
     client->end();
-    // Back to HTTP/1.1 for the other requests. useHTTP10(false) also turns connection reuse on,
-    // which must stay off (see setup()).
+    // Back to HTTP/1.1 for the other requests. useHTTP10(false) also turns connection reuse on.
     client->useHTTP10(false);
-    client->setReuse(false);
+    client->setReuse(keepConnection);
 
     // The graph only fills in the history. If it fails, keep the current reading from the
     // connections request; the next gap of more than five minutes requests the graph again.

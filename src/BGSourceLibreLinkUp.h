@@ -17,6 +17,8 @@
     "Safari/8536.25"
 
 #define MAX_RETRY_COUNT 10
+// Failures in a row on a kept connection before every request gets a new connection.
+#define MAX_KEPT_CONNECTION_FAILURES 3
 
 class AuthTicket {
 public:
@@ -44,6 +46,11 @@ public:
 
 private:
     int retryCount = 0;
+    // See setup().
+    bool keepConnection = true;
+    int keptConnectionFailures = 0;
+    void closeConnection();
+    int requestConnections(const String& url);
     bool hasValidAuthentication();
     void deleteAuthTicket();
     AuthTicket login();
