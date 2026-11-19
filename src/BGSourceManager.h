@@ -22,7 +22,10 @@ public:
     void setup(BG_SOURCE bgSource);
     void tick();
     bool hasNewData(unsigned long long epochToCompare);
-    std::list<GlucoseReading> getGlucoseData();
+    const std::list<GlucoseReading>& getGlucoseData();
+    // A copy of the newest reading, for the web server task: the readings list changes in the main
+    // loop, and is moved out while a data source requests new readings.
+    GlucoseReading getLatestReading() const { return latestReading; }
     BG_SOURCE getCurrentSourceType() const { return currentSourceType; }
     BGSource* getSource() const { return bgSource; }
     String getSourceStatus() const { return (bgSource) ? bgSource->getStatus() : "unknown"; }
@@ -36,6 +39,7 @@ private:
     BGSource* bgSource = nullptr;
     BG_SOURCE currentSourceType;
     unsigned long long lastPollEpoch = 0;
+    GlucoseReading latestReading{0, BG_TREND::NONE, 0};
 };
 
 extern BGSourceManager_& bgSourceManager;  // Declare extern variable

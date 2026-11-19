@@ -401,7 +401,7 @@ void BGDisplayManager_::maybeRrefreshScreen(bool force) {
     }
 }
 
-void BGDisplayManager_::showData(std::list<GlucoseReading> glucoseReadings) {
+void BGDisplayManager_::showData(const std::list<GlucoseReading>& glucoseReadings) {
     if (glucoseReadings.size() == 0) {
         displayedReadings.clear();
         if (surpriseModeActive) {
@@ -412,6 +412,7 @@ void BGDisplayManager_::showData(std::list<GlucoseReading> glucoseReadings) {
         return;
     }
 
+    // Copy assignment reuses the list's nodes, so a new reading allocates one at most.
     displayedReadings = glucoseReadings;
 
     // Surprise mode: a new reading shown as exactly 100 or 5.6 makes the Nyan run across once, then the

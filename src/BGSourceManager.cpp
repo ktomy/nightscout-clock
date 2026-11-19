@@ -49,10 +49,16 @@ void BGSourceManager_::setup(BG_SOURCE bgSourceType) {
     currentSourceType = bgSourceType;
 }
 
-void BGSourceManager_::tick() { bgSource->tick(); }
+void BGSourceManager_::tick() {
+    bgSource->tick();
+    const auto& readings = bgSource->getGlucoseData();
+    latestReading = readings.empty() ? GlucoseReading{0, BG_TREND::NONE, 0} : readings.back();
+}
 
 bool BGSourceManager_::hasNewData(unsigned long long epochToCompare) {
     return bgSource->hasNewData(epochToCompare);
 }
 
-std::list<GlucoseReading> BGSourceManager_::getGlucoseData() { return bgSource->getGlucoseData(); }
+const std::list<GlucoseReading>& BGSourceManager_::getGlucoseData() {
+    return bgSource->getGlucoseData();
+}

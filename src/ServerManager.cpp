@@ -508,16 +508,13 @@ void ServerManager_::setupWebServer(IPAddress ip) {
         jsonResponse += "\", \"bgSourceStatus\": \"";
         jsonResponse += bgSourceManager.getSourceStatus();
         jsonResponse += "\", \"sgv\": ";
-        auto glucoseData = bgSourceManager.getGlucoseData();
-        if (!glucoseData.empty()) {
-            jsonResponse += String(glucoseData.back().sgv);
-        } else {
-            jsonResponse += "0";
-        }
+        // This runs in the web server task, so it reads the main loop's snapshot, not the list.
+        auto latest = bgSourceManager.getLatestReading();
+        jsonResponse += String(latest.sgv);
         jsonResponse += ", \"hasRecentData\": ";
         jsonResponse +=
-            !glucoseData.empty() && glucoseData.back().getSecondsAgo() <=
-                                        60 * SettingsManager.settings.bg_data_too_old_threshold_minutes
+            !latest.isEmpty() && latest.getSecondsAgo() <=
+                                     60 * SettingsManager.settings.bg_data_too_old_threshold_minutes
                 ? "true"
                 : "false";
         jsonResponse += ", \"faceId\": \"";

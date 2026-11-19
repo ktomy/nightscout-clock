@@ -13,7 +13,7 @@ std::list<GlucoseReading> BGSourceNightscout::updateReadings(
     auto apiKey = SettingsManager.settings.nightscout_api_key;
     bool simplifiedApi = SettingsManager.settings.nightscout_simplified_api;
 
-    return updateReadings(baseUrl, apiKey, simplifiedApi, existingReadings);
+    return updateReadings(baseUrl, apiKey, simplifiedApi, std::move(existingReadings));
 }
 
 std::list<GlucoseReading> BGSourceNightscout::updateReadings(
@@ -80,9 +80,8 @@ std::list<GlucoseReading> BGSourceNightscout::updateReadings(
             DEBUG_PRINTLN("No new readings");
             break;
         }
-        // add retrieved reading to existing readings
-        existingReadings.insert(
-            existingReadings.end(), retrievedReadings.begin(), retrievedReadings.end());
+        // add retrieved reading to existing readings; splice moves them without allocating
+        existingReadings.splice(existingReadings.end(), retrievedReadings);
         lastReadingEpoch = existingReadings.back().epoch;
 
 #ifdef DEBUG_BG_SOURCE

@@ -130,7 +130,7 @@ public:
     void setup();
     void tick();
     void maybeRrefreshScreen(bool force = false);
-    void showData(std::list<GlucoseReading> glucoseReadings);
+    void showData(const std::list<GlucoseReading>& glucoseReadings);
     GlucoseReading* getLastDisplayedGlucoseReading();
     const GlucoseIntervals& getGlucoseIntervals() const;
 

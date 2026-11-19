@@ -290,8 +290,8 @@ std::list<GlucoseReading> BGSourceMedtrum::updateReadings(std::list<GlucoseReadi
         return existingReadings;
     }
 
-    // Add new readings to existing
-    existingReadings.insert(existingReadings.end(), newReadings.begin(), newReadings.end());
+    // Add new readings to existing; splice moves them without allocating
+    existingReadings.splice(existingReadings.end(), newReadings);
     existingReadings.sort(
         [](const GlucoseReading& a, const GlucoseReading& b) { return a.epoch < b.epoch; });
     status = "connected";

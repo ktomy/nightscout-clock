@@ -6,6 +6,7 @@
 #include <WiFiClientSecure.h>
 
 #include <list>
+#include <utility>
 
 #include "DisplayManager.h"
 #include "ServerManager.h"
@@ -36,7 +37,9 @@ public:
     virtual void setup();
     virtual void tick();
     virtual bool hasNewData(unsigned long long epochToCompare);
-    virtual std::list<GlucoseReading> getGlucoseData() const;
+    // A reference: with LibreLinkUp's one-minute readings the list holds about 180 entries, and
+    // each copy allocated and freed one small block per entry, which fragmented the heap.
+    virtual const std::list<GlucoseReading>& getGlucoseData() const;
     virtual String getStatus() const { return status; }
 
 protected:
@@ -45,8 +48,9 @@ protected:
     unsigned long long lastCallAttemptEpoch = 0;
     bool firstConnectionSuccess = false;
     std::list<GlucoseReading> glucoseReadings;
-    std::list<GlucoseReading> deleteOldReadings(
-        std::list<GlucoseReading> readings, unsigned long long epochToCompare);
+    void deleteOldReadings(std::list<GlucoseReading>& readings, unsigned long long epochToCompare);
+    // Gets the readings moved in and returns them with the new ones added, so the list is never
+    // copied.
     virtual std::list<GlucoseReading> updateReadings(std::list<GlucoseReading> existingReadings) = 0;
     BG_TREND parseDirection(String directionInput);
     void handleFailedAttempt();

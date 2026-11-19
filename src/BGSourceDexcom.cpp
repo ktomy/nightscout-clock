@@ -11,7 +11,7 @@ std::list<GlucoseReading> BGSourceDexcom::updateReadings(std::list<GlucoseReadin
     auto dexcomUsername = SettingsManager.settings.dexcom_username;
     auto dexcomPassword = SettingsManager.settings.dexcom_password;
 
-    return updateReadings(dexcomServer, dexcomUsername, dexcomPassword, existingReadings);
+    return updateReadings(dexcomServer, dexcomUsername, dexcomPassword, std::move(existingReadings));
 }
 
 std::list<GlucoseReading> BGSourceDexcom::updateReadings(
@@ -57,11 +57,11 @@ std::list<GlucoseReading> BGSourceDexcom::updateReadings(
         return existingReadings;
     }
 
-    // add readings to existing readings
-    existingReadings.insert(existingReadings.end(), retrievedReadings.begin(), retrievedReadings.end());
+    // add readings to existing readings; splice moves them without allocating
+    existingReadings.splice(existingReadings.end(), retrievedReadings);
 
     // set lastReadingEpoch to the last reading epoch
-    lastReadingEpoch = retrievedReadings.back().epoch;
+    lastReadingEpoch = existingReadings.back().epoch;
 
 #ifdef DEBUG_BG_SOURCE
     DEBUG_PRINTLN(

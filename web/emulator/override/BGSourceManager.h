@@ -13,7 +13,7 @@ class BGSourceManager_ {
 public:
     static BGSourceManager_& getInstance();
     bool hasNewData(unsigned long long epochToCompare);
-    std::list<GlucoseReading> getGlucoseData();
+    const std::list<GlucoseReading>& getGlucoseData();
 
     std::list<GlucoseReading> readings;
 };

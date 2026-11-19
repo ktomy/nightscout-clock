@@ -391,8 +391,8 @@ std::list<GlucoseReading> BGSourceLibreLinkUp::updateReadings(
         return existingReadings;
     }
 
-    // add retrieved reading to existing readings
-    existingReadings.insert(existingReadings.end(), glucoseReadings.begin(), glucoseReadings.end());
+    // add retrieved reading to existing readings; splice moves them without allocating
+    existingReadings.splice(existingReadings.end(), glucoseReadings);
 
 #ifdef DEBUG_BG_SOURCE
     DEBUG_PRINTLN(

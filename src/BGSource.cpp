@@ -41,7 +41,7 @@ void BGSource::tick() {
 #endif
 
         // delete readings older than now - 3 hours
-        glucoseReadings = deleteOldReadings(glucoseReadings, currentTime - BG_BACKFILL_SECONDS);
+        deleteOldReadings(glucoseReadings, currentTime - BG_BACKFILL_SECONDS);
 
         if (!firstConnectionSuccess) {
             DisplayManager.clearMatrix();
@@ -53,7 +53,7 @@ void BGSource::tick() {
             DisplayManager.update();
         }
 
-        glucoseReadings = updateReadings(glucoseReadings);
+        glucoseReadings = updateReadings(std::move(glucoseReadings));
 
         auto lastReading =
             glucoseReadings.size() > 0 ? glucoseReadings.back() : GlucoseReading{0, BG_TREND::NONE, 0};
@@ -88,8 +88,8 @@ void BGSource::tick() {
     }
 }
 
-std::list<GlucoseReading> BGSource::deleteOldReadings(
-    std::list<GlucoseReading> readings, unsigned long long epochToCompare) {
+void BGSource::deleteOldReadings(
+    std::list<GlucoseReading>& readings, unsigned long long epochToCompare) {
     auto it = readings.begin();
     auto deletedCount = 0;
     while (it != readings.end()) {
@@ -104,8 +104,6 @@ std::list<GlucoseReading> BGSource::deleteOldReadings(
 #ifdef DEBUG_BG_SOURCE
     DEBUG_PRINTF("Deleted %d old readings", deletedCount);
 #endif
-
-    return readings;
 }
 
 bool BGSource::hasNewData(unsigned long long epochToCompare) {
@@ -113,7 +111,7 @@ bool BGSource::hasNewData(unsigned long long epochToCompare) {
     return lastReadingEpoch > epochToCompare;
 }
 
-std::list<GlucoseReading> BGSource::getGlucoseData() const { return glucoseReadings; }
+const std::list<GlucoseReading>& BGSource::getGlucoseData() const { return glucoseReadings; }
 
 BG_TREND BGSource::parseDirection(String directionInput) {
     auto direction = directionInput;
