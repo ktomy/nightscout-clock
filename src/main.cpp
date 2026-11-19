@@ -107,6 +107,15 @@ void loop() {
             uxTaskGetStackHighWaterMark(NULL), WiFi.isConnected() ? WiFi.RSSI() : 0,
             TlsMemory::stats().c_str());
     }
+    // A new low shows when something takes a lot of memory for a moment, next to the lines around it.
+    static size_t lowestSeen = SIZE_MAX;
+    size_t lowest = heap_caps_get_minimum_free_size(MALLOC_CAP_8BIT);
+    if (lowest + 2048 < lowestSeen) {
+        DEBUG_PRINTF(
+            "[mem] new low: lowest free heap %u, free heap %u", lowest,
+            heap_caps_get_free_size(MALLOC_CAP_8BIT));
+        lowestSeen = lowest;
+    }
 #endif
 
     ServerManager.tick();

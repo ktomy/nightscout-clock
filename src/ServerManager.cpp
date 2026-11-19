@@ -311,6 +311,11 @@ static void internetProbeLoop(void*) {
         // Stamped before the probe, so status requests during it do not ask for another one.
         lastInternetCheckMs = millis();
         cachedInternetReachable = canReachInternet();
+#ifdef DEBUG_MEMORY
+        DEBUG_PRINTF(
+            "[mem] internet probe: %s, stack never used %u",
+            cachedInternetReachable ? "reachable" : "unreachable", uxTaskGetStackHighWaterMark(NULL));
+#endif
     }
 }
 
