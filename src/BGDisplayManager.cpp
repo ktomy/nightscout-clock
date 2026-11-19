@@ -82,7 +82,8 @@ void BGDisplayManager_::configureActiveFaces() {
 
     const std::vector<String>& inactiveFaces = SettingsManager.settings.inactive_faces;
     for (int index = 0; static_cast<size_t>(index) < faces.size(); index++) {
-        if (std::find(inactiveFaces.begin(), inactiveFaces.end(), faces[index].id) == inactiveFaces.end()) {
+        if (std::find(inactiveFaces.begin(), inactiveFaces.end(), faces[index].id) ==
+            inactiveFaces.end()) {
             activeFaces.push_back(index);
         }
     }
@@ -103,6 +104,15 @@ void BGDisplayManager_::configureActiveFaces() {
 
 const std::vector<RegisteredClockFace>& BGDisplayManager_::getFaces() const { return faces; }
 
+std::vector<RegisteredClockFace> BGDisplayManager_::getActiveFaces() const {
+    std::vector<RegisteredClockFace> result;
+    result.reserve(activeFaces.size());
+    for (int index : activeFaces) {
+        result.push_back(faces[index]);
+    }
+    return result;
+}
+
 String BGDisplayManager_::getCurrentFaceId() const { return faces[currentFaceIndex].id; }
 
 int BGDisplayManager_::findFaceIndex(const String& id) const {
@@ -114,9 +124,7 @@ int BGDisplayManager_::findFaceIndex(const String& id) const {
     return -1;
 }
 
-bool BGDisplayManager_::suppressesNewAlarms() const {
-    return currentFace->suppressesNewAlarms();
-}
+bool BGDisplayManager_::suppressesNewAlarms() const { return currentFace->suppressesNewAlarms(); }
 
 const GlucoseIntervals& BGDisplayManager_::getGlucoseIntervals() const { return glucoseIntervals; }
 
@@ -131,6 +139,10 @@ bool BGDisplayManager_::requestFace(const String& id) {
     pendingFaceIndex = index;
     return true;
 }
+
+void BGDisplayManager_::requestNextFace() { pendingFaceSteps.fetch_add(1); }
+
+void BGDisplayManager_::requestPreviousFace() { pendingFaceSteps.fetch_sub(1); }
 
 void BGDisplayManager_::setFaceByIndex(int index) {
     if (index < 0 || static_cast<size_t>(index) >= faces.size()) {
@@ -209,7 +221,8 @@ void BGDisplayManager_::updateFaceCycle() {
 
 void BGDisplayManager_::updateSurpriseMode() {
     // Let the Nyan run across once plus its pause, then restore the previous face.
-    if (!surpriseModeActive || millis() - surpriseStartMs < 8000) return;
+    if (!surpriseModeActive || millis() - surpriseStartMs < 8000)
+        return;
     surpriseModeActive = false;
     setFaceByIndex(currentFaceIndex);
 }
@@ -234,6 +247,15 @@ void BGDisplayManager_::tick() {
     const int requestedFace = pendingFaceIndex.exchange(-1);
     if (requestedFace >= 0) {
         setFaceByIndex(requestedFace);
+    }
+    int requestedFaceSteps = pendingFaceSteps.exchange(0);
+    while (requestedFaceSteps > 0) {
+        showNextFace();
+        requestedFaceSteps--;
+    }
+    while (requestedFaceSteps < 0) {
+        showPreviousFace();
+        requestedFaceSteps++;
     }
     if (!MATRIX_OFF && currentFace->needsFrequentRefresh()) {
         unsigned long now = millis();
@@ -319,8 +341,8 @@ void BGDisplayManager_::updateFaceSchedule() {
         }
     }
 
-    const bool reachedRowTime = minuteOfDay == faceSchedule[current].startMinutes &&
-                                minuteOfDay != lastScheduleMinuteOfDay;
+    const bool reachedRowTime =
+        minuteOfDay == faceSchedule[current].startMinutes && minuteOfDay != lastScheduleMinuteOfDay;
     lastScheduleMinuteOfDay = minuteOfDay;
 
     if (current == appliedScheduleEntry && !reachedRowTime) {

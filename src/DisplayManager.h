@@ -3,6 +3,8 @@
 
 #include <Arduino.h>
 
+#include <atomic>
+
 #include "enums.h"
 
 // Global Matrix variables
@@ -12,6 +14,8 @@
 class DisplayManager_ {
 private:
     uint8_t currentBrightness = 128;
+    std::atomic<int> pendingBrightnessSteps{0};
+    std::atomic<int> pendingBrightnessValue{-1};
 
 public:
     static DisplayManager_& getInstance();
@@ -42,6 +46,9 @@ public:
     void rightButtonLong();
     void selectButton();
     void selectButtonLong();
+    void requestBrightnessStep();
+    void requestPreviousBrightnessStep();
+    bool requestBrightnessValue(int value);
     void setPower(bool power);
     void setBrightness(int bri);
     uint8_t getBrightness() const { return currentBrightness; }
@@ -55,6 +62,8 @@ private:
     void startBrightnessOverlay();
     void showBrightnessOverlay();
     String brightnessOverlayText() const;
+    void applyBrightnessValue(int value);
+    void selectButtonPrevious();
 
     FONT_TYPE currentFontType = FONT_TYPE::MEDIUM;
     bool brightnessOverlayActive = false;

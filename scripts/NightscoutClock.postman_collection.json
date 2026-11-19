@@ -1,0 +1,729 @@
+{
+  "info": {
+    "name": "Nightscout Clock Device API",
+    "description": "Requests for the HTTP API exposed by the Nightscout Clock firmware. Set baseUrl to the device origin (for example http://192.168.1.50). When web authentication is enabled, run Login first; Postman stores and sends the auth_token cookie. Some requests are build- or glucose-source-dependent. Restart, factory reset, configuration save, and reading deletion change device state.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Get auth status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/auth/status",
+            "description": "No authentication required."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected HTTP status', () => pm.expect([200]).to.include(pm.response.code))"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"password\": \"{{webAuthPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Stores the auth_token cookie in Postman when authentication is enabled."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected HTTP status', () => pm.expect([200, 400, 401]).to.include(pm.response.code))"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/logout",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Requires a valid auth_token cookie when authentication is enabled."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected HTTP status', () => pm.expect([200, 401]).to.include(pm.response.code))"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Status and configuration",
+      "item": [
+        {
+          "name": "Get clock status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/status"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected HTTP status', () => pm.expect([200]).to.include(pm.response.code))"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get debug logs",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/logs",
+            "description": "DEBUG builds only; requires authentication when enabled."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected HTTP status', () => pm.expect([200, 401, 404]).to.include(pm.response.code))"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Scan WiFi networks",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/wifi/scan",
+            "description": "Repeat while response is 202; a completed scan returns an array."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected HTTP status', () => pm.expect([200, 202, 401, 503]).to.include(pm.response.code))"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get persisted configuration",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/config.json"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected HTTP status', () => pm.expect([200]).to.include(pm.response.code))"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get firmware version",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/version.txt"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected HTTP status', () => pm.expect([200]).to.include(pm.response.code))"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get firmware revision",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/revision.txt"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected HTTP status', () => pm.expect([200]).to.include(pm.response.code))"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get timezone list",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/tzdata.json"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected HTTP status', () => pm.expect([200]).to.include(pm.response.code))"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Save configuration",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/api/save",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"data_source\": \"no_source\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Persists settings. Use a complete configuration payload for real testing; this example changes the data source."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected HTTP status', () => pm.expect([200, 400, 401]).to.include(pm.response.code))"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Device control",
+      "item": [
+        {
+          "name": "Play test melody",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/api/alarm",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rtttl\": \"test:d=4,o=5,b=125:4e7,p,4e7\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected HTTP status', () => pm.expect([200, 400, 401]).to.include(pm.response.code))"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Set display power",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/api/displaypower",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"power\": \"on\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected HTTP status', () => pm.expect([200, 400, 401]).to.include(pm.response.code))"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List active faces",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/faces"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected HTTP status', () => pm.expect([200]).to.include(pm.response.code))"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Switch face",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/api/face",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"face\": \"{{faceId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Set faceId to an active face id from List active faces."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected HTTP status', () => pm.expect([200, 400, 401, 503]).to.include(pm.response.code))"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Next face",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/api/face/next"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected HTTP status', () => pm.expect([200, 401, 503]).to.include(pm.response.code))"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Previous face",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/api/face/prev"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected HTTP status', () => pm.expect([200, 401, 503]).to.include(pm.response.code))"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get brightness",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/brightness"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected HTTP status', () => pm.expect([200]).to.include(pm.response.code))"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Set brightness",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/api/brightness",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"value\": 5\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Allowed values: 1\u201310, 100 (auto balanced), 101 (auto dimmed)."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected HTTP status', () => pm.expect([200, 400, 401, 503]).to.include(pm.response.code))"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Next brightness",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/api/brightness/next"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected HTTP status', () => pm.expect([200, 401, 503]).to.include(pm.response.code))"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Previous brightness",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/api/brightness/prev"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected HTTP status', () => pm.expect([200, 401, 503]).to.include(pm.response.code))"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Restart clock",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/api/reset",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Restarts the device after returning a response."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected HTTP status', () => pm.expect([200, 401]).to.include(pm.response.code))"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Factory reset",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/api/factory-reset",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Destructive: restores factory settings and restarts configuration."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected HTTP status', () => pm.expect([200, 401]).to.include(pm.response.code))"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Source-specific endpoints",
+      "item": [
+        {
+          "name": "List LibreLinkUp patients",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/llu/patients",
+            "description": "Available only when LibreLinkUp is the active source."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected HTTP status', () => pm.expect([200, 401, 404]).to.include(pm.response.code))"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Append glucose readings",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "{{baseUrl}}/api/v1/entries",
+            "body": {
+              "mode": "raw",
+              "raw": "[\n  {\n    \"dateString\": \"2026-11-13T12:00:00.000Z\",\n    \"sgv\": 110,\n    \"direction\": \"Flat\",\n    \"date\": 1794571200000\n  }\n]",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Available only when the API glucose source is active. date is Unix milliseconds."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected HTTP status', () => pm.expect([200, 400, 401, 404]).to.include(pm.response.code))"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Delete API glucose readings",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/entries",
+            "description": "Available only when the API glucose source is active. Deletes all readings."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected HTTP status', () => pm.expect([200, 401, 404]).to.include(pm.response.code))"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://192.168.1.50",
+      "type": "string"
+    },
+    {
+      "key": "webAuthPassword",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "faceId",
+      "value": "big_text",
+      "type": "string"
+    }
+  ]
+}
