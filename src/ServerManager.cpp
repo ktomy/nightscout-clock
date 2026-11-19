@@ -16,6 +16,30 @@
 #include "globals.h"
 #include "time.h"
 
+// The WiFi driver copies every frame it receives into a buffer of about 2.3 KB, whatever the
+// frame's size, and holds it until the network stack has taken the frame. Frames often come in
+// bursts, such as the broadcast and multicast frames the access point sends together after a
+// beacon: 10 to 17 frames within a few milliseconds. The Arduino core lets the driver hold 32, up to
+// 74 KB, and a burst during a TLS handshake, which needs about 45 KB, used up the memory. With 12,
+// a burst takes at most 28 KB; the driver drops the frames beyond that, and TCP sends lost data
+// again.
+static constexpr int WIFI_DYNAMIC_RX_BUFFERS = 12;
+// Each frame sent takes a buffer of about 1.6 KB until it is out. Serving the web UI fills them
+// quickly, and the Arduino core allows 32, up to 52 KB. When they are all in use, TCP sends again
+// a little later.
+static constexpr int WIFI_DYNAMIC_TX_BUFFERS = 12;
+
+extern "C" esp_err_t __real_esp_wifi_init(const wifi_init_config_t* config);
+
+// WiFi.mode() initializes the driver with fixed buffer numbers, so -Wl,--wrap=esp_wifi_init in
+// platformio.ini sends its call here.
+extern "C" esp_err_t __wrap_esp_wifi_init(const wifi_init_config_t* config) {
+    wifi_init_config_t limited = *config;
+    limited.dynamic_rx_buf_num = WIFI_DYNAMIC_RX_BUFFERS;
+    limited.dynamic_tx_buf_num = WIFI_DYNAMIC_TX_BUFFERS;
+    return __real_esp_wifi_init(&limited);
+}
+
 // The getter for the instantiated singleton instance
 ServerManager_& ServerManager_::getInstance() {
     static ServerManager_ instance;
