@@ -32,12 +32,12 @@ My computer is running linux, but you can use Windows or MacOS as well, there ar
 - Install PlatformIO
   - install python as a PlatformIO dependency
 - clone the project using Visual Studio Code
-- Install Node.js using the version in `.node-version` for filesystem builds and screenshots. No npm packages are required.
-- Filesystem builds also find that version under NVM (`NVM_DIR` or `~/.nvm`) when VS Code does not inherit your shell's Node.js path. For other installations, start VS Code from a terminal where `node --version` works.
-- Install [Emscripten](https://emscripten.org/docs/getting_started/downloads.html) for filesystem builds, which compile the web UI's clock preview from the display code. Use the version that `node web/emulator/build.mjs --emsdk-version` prints:
+- Install Node.js using the version in `.node-version`: every firmware build builds the settings page, which is part of the firmware. No npm packages are required.
+- Firmware builds also find that version under NVM (`NVM_DIR` or `~/.nvm`) when VS Code does not inherit your shell's Node.js path. For other installations, start VS Code from a terminal where `node --version` works.
+- Install [Emscripten](https://emscripten.org/docs/getting_started/downloads.html): every firmware build compiles the web UI's clock preview from the display code, and stops without it. Use the version that `node web/emulator/build.mjs --emsdk-version` prints:
   - `git clone https://github.com/emscripten-core/emsdk.git ~/emsdk`
   - `cd ~/emsdk && ./emsdk install <version> && ./emsdk activate <version>` (on Windows, `emsdk.bat`)
-  - Filesystem builds find it in `~/emsdk`, in the folder set in `EMSDK`, or as `emcc` on `PATH`
+  - Firmware builds find it in `~/emsdk`, in the folder set in `EMSDK`, or as `emcc` on `PATH`
 - PlatformIO should detect the project
 - Configure the serial port for your machine:
   - Copy `platformio.local.ini.example` to `platformio.local.ini`
@@ -51,10 +51,10 @@ My computer is running linux, but you can use Windows or MacOS as well, there ar
   - `.local_clock_ip` is ignored by Git. Without it, these scripts stop with an error unless you pass `--url`
 - You should be able to see PlatformIO tab in the sidebar
   - Select `ulanzi_debug` -> `General` -> `Build`
-  - `ulanzi_debug` -> `Platform` -> `Build Filesystem image`
   - Connect the clock to the USB port of your computer
-  - `ulanzi_debug` -> `Platform` -> `Upload Filesystem Image`
   - `ulanzi_debug` -> `General` -> `Upload and monitor`
+  - A clock with version 1.3.5 or earlier has an older flash layout: install it once with `scripts/build.sh --all --upload`, which also writes the bootloader and partition table
+  - Later, `scripts/ota.sh` installs your build over WiFi, without the cable
 - If you are lucky enough, the clock should restart and run your local version of NSClock
 - You should be able to see the debug output in the VS Code terminal
 - If something goes wrong and you are stuck, feel free to start a [discussion](https://github.com/ktomy/nightscout-clock/discussions)
@@ -69,21 +69,20 @@ order; no numeric ID allocation or face-count update is needed. Configuration
 stores these IDs in `default_face`, `inactive_faces`, and schedule rows.
 
 The browser face simulator and the settings page's preview both come from `data/clockemu.js.gz`,
-which every filesystem build compiles from the faces; see below.
+which every firmware build compiles from the faces; see below.
 
 ### Updating the web UI screenshots
 
 The web UI source is in `web/src/`, including the original icon and timezone JSON in
-`web/src/assets/`. PlatformIO generates the compressed files in `data/` before building
-LittleFS, including IDE filesystem actions, `scripts/build.sh --fs` / `--all`, and both
-GitHub Actions build workflows. Firmware-only builds do not require Node.js.
+`web/src/assets/`. PlatformIO generates the compressed files in `data/` before every firmware
+build, and the firmware embeds them.
 
 The generated `.gz` files are ignored by Git. Commit changes to their sources, not the
-compressed outputs. Run `node web/build.mjs` to generate assets without building LittleFS.
+compressed outputs. Run `node web/build.mjs` to generate assets without building the firmware.
 
 The web UI's clock preview runs the display code as `data/clockemu.js.gz`, which is also ignored
-by Git. Filesystem builds compile it with Emscripten from `src/` and `lib/` before the web assets,
-and skip the compile when nothing it uses has changed. To build it without building LittleFS, run
+by Git. Firmware builds compile it with Emscripten from `src/` and `lib/` before the web assets,
+and skip the compile when nothing it uses has changed. To build it without building the firmware, run
 `node web/emulator/build.mjs`; it uses the libraries PlatformIO installed for `ulanzi_debug` or `ulanzi`.
 
 The README's clock face pictures are rendered by that preview, not photographed. After adding or

@@ -49,7 +49,9 @@ Thanks [@CallumMcK](https://github.com/CallumMcK)
 
 ## How to update
 
-Updates use a full reflash and reset the clock's settings. Make a note of your settings before updating. If your installed version has **Backup and restore**, download a settings file first; after updating, load it on the **WiFi & system** tab, review the settings, and select **Save and restart**. Include network settings when restoring your WiFi connection; the web login must be configured separately.
+Versions after 1.3.5 update from the clock's own settings page, over WiFi: on the **WiFi & system** tab, the **Firmware** card shows when a new version is available and installs it in about a minute. The settings are kept. The card can also install a firmware file, switch between the regular and the debug firmware, and go back to the version the clock ran before.
+
+A clock with version 1.3.5 or earlier needs one last update from the [installation page](https://nsclock.app/#install), with the USB cable. That update resets the clock's settings, so make a note of them first. If your installed version has **Backup and restore**, download a settings file; after updating, load it on the **WiFi & system** tab, review the settings, and select **Save and restart**. Include network settings when restoring your WiFi connection; the web login must be configured separately.
 
 [![How to update Nightscout Clock](https://img.youtube.com/vi/7mFZJ7_EFN4/0.jpg)](https://www.youtube.com/watch?v=7mFZJ7_EFN4)
 

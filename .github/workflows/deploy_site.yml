@@ -64,6 +64,20 @@ jobs:
           unzip -q release/nightscout-clock-firmware.zip -d www/artifacts
           unzip -q release/nightscout-clock-debug-firmware.zip -d www/debug/artifacts
           unzip -q release/nightscout-clock-simulator.zip -d www/simulator
+          # Releases from before firmware updates (1.3.5 and earlier) also install a LittleFS image; later
+          # ones have none, so their installer leaves that part out.
+          python3 - <<'PY'
+          import json, os
+          for manifest in ("www/manifest.json", "www/debug/manifest-debug.json"):
+              with open(manifest) as f:
+                  data = json.load(f)
+              folder = os.path.dirname(manifest)
+              for build in data["builds"]:
+                  build["parts"] = [part for part in build["parts"] if not part["path"].endswith("littlefs.bin")
+                                    or os.path.exists(os.path.join(folder, part["path"]))]
+              with open(manifest, "w") as f:
+                  json.dump(data, f, indent=4)
+          PY
           cp www/debug/manifest-debug.json www/debug/manifest.json
       - name: Upload artifact
         if: steps.release.outputs.ready == 'true'

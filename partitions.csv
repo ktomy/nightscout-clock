@@ -1,5 +1,9 @@
-nvs,      data, nvs,     36K,     20K,
-otadata,  data, ota,     56K,     8K,
-app0,     app,  ota_0,   64K,     2M,
-# app1,     app,  ota_1,   ,        1M, # disabling OTA while we are not using it for now
-spiffs,   data, spiffs,  ,        1M,
+# Name,   Type, SubType, Offset,   Size
+# Two equal firmware slots, so the settings page can install an update into the one not running
+# (src/FirmwareUpdateManager.cpp). Firmware slots start on 64 KB boundaries, which leaves the last
+# 64 KB for the settings: one NVS entry holding the config JSON (src/SettingsManager.cpp).
+nvs,      data, nvs,     0x9000,   0x5000,
+otadata,  data, ota,     0xE000,   0x2000,
+app0,     app,  ota_0,   0x10000,  0x1F0000,
+app1,     app,  ota_1,   0x200000, 0x1F0000,
+config,   data, nvs,     0x3F0000, 0x10000,

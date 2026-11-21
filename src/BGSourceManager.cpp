@@ -49,7 +49,16 @@ void BGSourceManager_::setup(BG_SOURCE bgSourceType) {
     currentSourceType = bgSourceType;
 }
 
+void BGSourceManager_::end() {
+    if (bgSource != nullptr) {
+        bgSource->end();
+    }
+}
+
 void BGSourceManager_::tick() {
+    if (bgSource->isStopped()) {
+        return;
+    }
     bgSource->tick();
     const auto& readings = bgSource->getGlucoseData();
     latestReading = readings.empty() ? GlucoseReading{0, BG_TREND::NONE, 0} : readings.back();

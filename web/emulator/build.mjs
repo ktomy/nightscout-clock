@@ -1,6 +1,6 @@
 // Builds data/clockemu.js.gz, the settings page's clock preview and the face simulator: the firmware's
 // display code from src/ and lib/ compiled to WebAssembly with Emscripten, plus the stand-ins in this folder
-// for the hardware. PlatformIO runs it before every filesystem build (scripts/build_web.py); it skips the
+// for the hardware. PlatformIO runs it before every firmware build (scripts/build_web.py); it skips the
 // compile when none of its inputs changed since the last build.
 //
 //   node web/emulator/build.mjs [--libs <libdeps dir>] [--core <Arduino core dir>]

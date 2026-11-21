@@ -44,13 +44,12 @@ void BGSourceLibreLinkUp::setup() {
     // If requests on a kept connection fail MAX_KEPT_CONNECTION_FAILURES times in a row, every
     // request gets a new connection, as before.
     client->setReuse(keepConnection);
-    ServerManager.removeStaticFileHandler();
 
     // add handler to retrieve patients list
 
     ServerManager.addHandler(new AsyncCallbackJsonWebHandler(
         "/api/llu/patients", [this](AsyncWebServerRequest* request, JsonVariant& json) {
-            if (!ServerManager.enforceAuthentication(request)) {
+            if (!ServerManager.enforceAuthentication(request) || rejectIfStopped(request)) {
                 return;
             }
             String response = "[";
@@ -68,8 +67,6 @@ void BGSourceLibreLinkUp::setup() {
             response += "]";
             request->send(200, "application/json", response);
         }));
-
-    ServerManager.addStaticFileHandler();
 }
 
 AuthTicket BGSourceLibreLinkUp::login() {

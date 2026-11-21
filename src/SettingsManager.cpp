@@ -2,9 +2,10 @@
 
 #include <Arduino.h>
 #include <ArduinoJson.h>
-#include <LittleFS.h>
 
+#include "ConfigStore.h"
 #include "SettingsAlarm.h"
+#include "SettingsOverlay.h"
 #include "globals.h"
 
 namespace {
@@ -24,64 +25,65 @@ SettingsManager_& SettingsManager_::getInstance() {
 // Initialize the global shared instance
 SettingsManager_& SettingsManager = SettingsManager.getInstance();
 
-void SettingsManager_::setup() { LittleFS.begin(); }
-
-bool copyFile(const char* srcPath, const char* destPath) {
-    File srcFile = LittleFS.open(srcPath, "r");
-    if (!srcFile) {
-        DEBUG_PRINTLN("Failed to open source file");
-        return false;
-    }
-
-    File destFile = LittleFS.open(destPath, "w");
-    if (!destFile) {
-        DEBUG_PRINTLN("Failed to open destination file");
-        srcFile.close();
-        return false;
-    }
-
-    while (srcFile.available()) {
-        char data = srcFile.read();
-        destFile.write(data);
-    }
-
-    srcFile.close();
-    destFile.close();
-
-    DEBUG_PRINTLN("File copied successfully");
-    return true;
-}
+void SettingsManager_::setup() { ConfigStore::setup(); }
 
 void SettingsManager_::factoryReset() {
-    copyFile(CONFIG_JSON_FACTORY, CONFIG_JSON);
-    LittleFS.end();
+    JsonDocument doc;
+    ConfigStore::loadFactorySettings(doc);
+    trySaveJsonAsSettings(doc);
     ESP.restart();
 }
 
 JsonDocument* SettingsManager_::readConfigJsonFile() {
-    JsonDocument* doc;
-    if (LittleFS.exists(CONFIG_JSON)) {
-        File file = LittleFS.open(CONFIG_JSON);
-        if (!file || file.isDirectory()) {
-            DEBUG_PRINTLN("Failed to open config file for reading");
-            return NULL;
-        }
+    auto doc = new JsonDocument();
+    ConfigStore::loadFactorySettings(*doc);
 
-        doc = new JsonDocument();
-        DeserializationError error = deserializeJson(*doc, file);
-        if (error) {
-            DEBUG_PRINTF(
-                "Deserialization error. File size: %d, requested memory: %d. Error: %s\n", file.size(),
-                (int)(file.size() * 2), error.c_str());
-            file.close();
+    String saved;
+    ConfigStore::ReadResult result = ConfigStore::read(saved);
+    if (result == ConfigStore::ReadResult::FAILED) {
+        // Not a reason to replace them with the factory settings.
+        DEBUG_PRINTLN("The saved settings could not be read");
+        delete doc;
+        return NULL;
+    }
+    if (result == ConfigStore::ReadResult::NOTHING_SAVED) {
+        // The first start, or the first after an install that erased the flash.
+        DEBUG_PRINTLN("No saved settings, starting from the factory settings");
+        if (doc->isNull() || !trySaveJsonAsSettings(*doc)) {
+            DEBUG_PRINTLN("The factory settings could not be saved");
+            delete doc;
             return NULL;
         }
         return doc;
-    } else {
-        DEBUG_PRINTLN("Cannot read configuration file");
-        factoryReset();
+    }
+
+    JsonDocument savedDoc;
+    DeserializationError error = deserializeJson(savedDoc, saved);
+    if (error) {
+        DEBUG_PRINTF("Saved settings could not be read (%u bytes): %s", saved.length(), error.c_str());
+        delete doc;
         return NULL;
     }
+    // Settings saved by an earlier firmware lack the ones added since; those keep their factory value.
+    overlaySettings(doc->as<JsonVariant>(), savedDoc.as<JsonVariantConst>());
+    if (doc->overflowed()) {
+        // Out of memory partway: some saved values are missing, and saving this would lose them.
+        DEBUG_PRINTLN("No memory to combine the saved settings with the factory settings");
+        delete doc;
+        return NULL;
+    }
+    return doc;
+}
+
+bool SettingsManager_::readConfigJson(String& json) {
+    JsonDocument* doc = readConfigJsonFile();
+    if (doc == NULL) {
+        return false;
+    }
+    json = "";
+    serializeJson(*doc, json);
+    delete doc;
+    return true;
 }
 
 bool SettingsManager_::isValidAlarmRepeatInterval(int intervalSeconds) {
@@ -509,19 +511,12 @@ bool SettingsManager_::saveSettingsToFile() {
 }
 
 bool SettingsManager_::trySaveJsonAsSettings(JsonDocument doc) {
-    DEBUG_PRINTLN(doc.as<String>());
-    auto file = LittleFS.open(CONFIG_JSON, FILE_WRITE);
-    if (!file) {
-        DEBUG_PRINTLN("Failed to open config file for writing");
+    String json;
+    serializeJson(doc, json);
+    DEBUG_PRINTLN(json);
+    if (!ConfigStore::write(json)) {
+        DEBUG_PRINTF("Failed to save the settings (%u bytes)", json.length());
         return false;
     }
-
-    auto result = file.print(doc.as<String>());
-
-    file.close();
-    if (!result) {
-        return false;
-    }
-
     return true;
 }

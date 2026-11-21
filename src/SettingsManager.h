@@ -21,6 +21,8 @@ public:
     // without disturbing anything else in memory.
     bool loadBrightnessFromFile();
     bool trySaveJsonAsSettings(JsonDocument doc);
+    // The saved settings laid over the factory settings, as the settings page loads them.
+    bool readConfigJson(String& json);
     void factoryReset();
     // The repeat intervals the WebUI offers; shared with the save endpoint.
     static bool isValidAlarmRepeatInterval(int intervalSeconds);

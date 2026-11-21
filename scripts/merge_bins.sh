@@ -15,7 +15,6 @@ BUILD_DIR="$PROJECTDIR/.pio/build/$ENVIRONMENT"
 BOOTLOADER="$BUILD_DIR/bootloader.bin"
 PARTITIONS="$BUILD_DIR/partitions.bin"
 FIRMWARE="$BUILD_DIR/firmware.bin"
-LITTLEFS="$BUILD_DIR/littlefs.bin"
 BOOT_APP0="$HOME/.platformio/packages/framework-arduinoespressif32/tools/partitions/boot_app0.bin"
 MERGED_BIN="$BUILD_DIR/merged_firmware.bin"
 
@@ -35,11 +34,6 @@ if [ ! -f "$FIRMWARE" ]; then
     exit 1
 fi
 
-if [ ! -f "$LITTLEFS" ]; then
-    echo "LittleFS binary not found. Please build it first."
-    exit 1
-fi
-
 # Merge binaries using esptool.py
 echo "Merging binaries into a single file..."
 
@@ -49,8 +43,7 @@ echo "Merging binaries into a single file..."
     0x1000 "$BOOTLOADER" \
     0x8000 "$PARTITIONS" \
     0xe000 "$BOOT_APP0" \
-    0x10000 "$FIRMWARE" \
-    0x210000 "$LITTLEFS"
+    0x10000 "$FIRMWARE"
 
 if [ $? -ne 0 ]; then
     echo "Failed to merge binaries."

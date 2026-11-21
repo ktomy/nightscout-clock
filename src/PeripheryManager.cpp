@@ -1,7 +1,6 @@
 #include <ArduinoJson.h>
 #include <BGAlarmManager.h>
 #include <LightDependentResistor.h>
-#include <LittleFS.h>
 #include <melody_factory.h>
 #include <melody_player.h>
 #include <PeripheryManager.h>

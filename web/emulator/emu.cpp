@@ -3,7 +3,6 @@
 #include <ArduinoJson.h>
 #include <Button2.h>
 #include <FastLED_NeoMatrix.h>
-#include <LittleFS.h>
 #include <Ticker.h>
 #include <emscripten.h>
 
@@ -13,6 +12,7 @@
 #include "BGAlarmManager.h"
 #include "BGDisplayManager.h"
 #include "BGSourceManager.h"
+#include "ConfigStore.h"
 #include "DisplayManager.h"
 #include "PeripheryManager.h"
 #include "SettingsManager.h"
@@ -48,7 +48,7 @@ EMSCRIPTEN_KEEPALIVE void emu_set_clock(double epoch, int tzOffsetSeconds) {
 
 // setup() without the splash, WiFi and data source. Returns 0 when the config can't be loaded.
 EMSCRIPTEN_KEEPALIVE int emu_boot(const char* configJson, double lux) {
-    emuFiles()[CONFIG_JSON] = configJson;
+    ConfigStore::write(configJson);
     DisplayManager.setup();
     SettingsManager.setup();
     if (!SettingsManager.loadSettingsFromFile()) {

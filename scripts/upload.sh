@@ -9,22 +9,16 @@ MONITOR=false
 MAX_UPLOAD_ATTEMPTS=10
 
 usage() {
-    echo "Usage: $0 [--fs | --all] [--monitor]"
-    echo "  default    Upload firmware only"
-    echo "  --fs       Upload LittleFS only"
-    echo "  --all      Upload bootloader, partitions, firmware, and LittleFS"
+    echo "Usage: $0 [--all] [--monitor]"
+    echo "  default    Upload the firmware into the first slot and boot it"
+    echo "  --all      Also upload the bootloader and partition table, for a clock with an older layout"
     echo "  --monitor  Start the serial monitor after a successful upload"
 }
 
 while (($#)); do
     case $1 in
-        --fs | --all)
-            requested_mode=${1#--}
-            if [[ $UPLOAD_MODE != firmware && $UPLOAD_MODE != "$requested_mode" ]]; then
-                echo "ERROR: --fs and --all cannot be used together." >&2
-                exit 2
-            fi
-            UPLOAD_MODE=$requested_mode
+        --all)
+            UPLOAD_MODE=all
             ;;
         --monitor)
             MONITOR=true
@@ -64,25 +58,19 @@ require_artifact() {
     fi
 }
 
-if [[ $UPLOAD_MODE == firmware || $UPLOAD_MODE == all ]]; then
-    require_artifact "$BUILD_DIR/firmware.bin"
-    flash_arguments+=(0x10000 "$BUILD_DIR/firmware.bin")
-fi
-
-if [[ $UPLOAD_MODE == fs || $UPLOAD_MODE == all ]]; then
-    require_artifact "$BUILD_DIR/littlefs.bin"
-    flash_arguments+=(0x210000 "$BUILD_DIR/littlefs.bin")
-fi
+# The firmware goes into the first slot, and boot_app0 resets the OTA data so the clock boots it: after an
+# update from the settings page, the clock may be running the second slot.
+BOOT_APP0_PATH=~/.platformio/packages/framework-arduinoespressif32/tools/partitions/boot_app0.bin
+require_artifact "$BUILD_DIR/firmware.bin"
+require_artifact "$BOOT_APP0_PATH"
+flash_arguments=(0xe000 "$BOOT_APP0_PATH" 0x10000 "$BUILD_DIR/firmware.bin")
 
 if [[ $UPLOAD_MODE == all ]]; then
-    BOOT_APP0_PATH=~/.platformio/packages/framework-arduinoespressif32/tools/partitions/boot_app0.bin
     require_artifact "$BUILD_DIR/bootloader.bin"
     require_artifact "$BUILD_DIR/partitions.bin"
-    require_artifact "$BOOT_APP0_PATH"
     flash_arguments=(
         0x1000 "$BUILD_DIR/bootloader.bin"
         0x8000 "$BUILD_DIR/partitions.bin"
-        0xe000 "$BOOT_APP0_PATH"
         "${flash_arguments[@]}"
     )
 fi

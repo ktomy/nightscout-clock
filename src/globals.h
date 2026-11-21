@@ -32,8 +32,6 @@
 #define DEBUG_PRINTF(format, ...)
 #endif
 
-#define CONFIG_JSON "/config.json"
-#define CONFIG_JSON_FACTORY "/config_initial.json"
 #define WIFI_CONNECT_TIMEOUT 15000
 #define AP_MODE_PASSWORD ""
 #define HOSTNAME_PREFIX "nsclock"

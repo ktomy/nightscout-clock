@@ -1,10 +1,9 @@
 #!/usr/bin/env bash
-# Build the firmware and a LittleFS image for the Wokwi simulator, then run the simulation.
+# Build the firmware for the Wokwi simulator, then run the simulation.
 #
-# The filesystem image is built from data/ without your data/config.json (see
-# scripts/wokwi_data.py). Its config.json is data/config_initial.json with the values in
-# scripts/wokwi_config.json applied: the simulator's open "Wokwi-GUEST" Wi-Fi network and the
-# "API" data source. wokwi-cli cannot reach the clock over HTTP, so tests inject readings and read
+# The wokwi build's factory settings are data/config_initial.json with the values in
+# scripts/wokwi_config.json applied (src/ConfigStore.cpp): the simulator's open "Wokwi-GUEST" Wi-Fi
+# network and the "API" data source. The simulated flash starts empty, so the clock starts from them. wokwi-cli cannot reach the clock over HTTP, so tests inject readings and read
 # the LED matrix through serial commands (see src/WokwiConsole.h), usually from a scenario in
 # scripts/wokwi_scenarios/.
 #
@@ -58,8 +57,6 @@ fi
 if [[ $BUILD == true ]]; then
     echo "Building firmware..."
     platformio run --environment "$ENVIRONMENT" --project-dir "$PROJECT_DIR"
-    echo "Building LittleFS..."
-    platformio run --target buildfs --environment "$ENVIRONMENT" --project-dir "$PROJECT_DIR"
     bash "$SCRIPT_DIR/merge_bins.sh" "$ENVIRONMENT"
 fi
 
