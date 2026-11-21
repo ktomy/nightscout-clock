@@ -24,6 +24,9 @@ public:
     // True from the start request until the restart. The main loop then runs only the server and
     // this, so the display shows the update and nothing else uses the network.
     bool isActive() const { return state != State::IDLE; }
+    // For code that never returns to the main loop, such as the fatal-error screen: once an update
+    // has started, runs it here, and does not return, because it ends with a restart.
+    void takeOverIfStarted();
     // Tells the bootloader the running firmware works, so a restart does not return to the previous
     // one. tick() does this after a minute, and setup() makes every restart after boot do it, so only
     // a crash in the first minute, or a restart during setup(), goes back.

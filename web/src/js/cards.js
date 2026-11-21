@@ -1458,8 +1458,15 @@ async function installFile(input) {
     const file = input.files[0]
     input.value = ""
     if (!file) return
+    if (file.size > FIRMWARE_SLOT_BYTES) return firmwareDone({ ok: false, error: `${file.name} is too big for the clock. Nothing was changed.` })
     setFirmwareBusy(`Reading ${file.name}…`)
-    await installFirmware(new Uint8Array(await file.arrayBuffer()), file.name)
+    let bytes
+    try {
+        bytes = new Uint8Array(await file.arrayBuffer())
+    } catch (e) {
+        return firmwareDone({ ok: false, error: `${file.name} could not be read. Nothing was changed.` })
+    }
+    await installFirmware(bytes, file.name)
 }
 
 /**

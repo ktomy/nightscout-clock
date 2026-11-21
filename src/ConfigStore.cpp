@@ -1,6 +1,7 @@
 #include "ConfigStore.h"
 
 #include <Preferences.h>
+#include <nvs.h>
 #include <nvs_flash.h>
 
 #include <memory>
@@ -45,27 +46,34 @@ void ConfigStore::setup() {
 }
 
 ConfigStore::ReadResult ConfigStore::read(String& json) {
-    Preferences prefs;
-    // Opening for reading fails until something has been saved.
-    if (!prefs.begin(NAMESPACE, true, PARTITION)) {
+    // The NVS calls themselves, not Preferences, which reports any error as "not there": only a
+    // namespace or key that does not exist means nothing is saved yet.
+    nvs_handle_t handle;
+    esp_err_t err = nvs_open_from_partition(PARTITION, NAMESPACE, NVS_READONLY, &handle);
+    if (err == ESP_ERR_NVS_NOT_FOUND) {
         return ReadResult::NOTHING_SAVED;
     }
-    size_t size = prefs.isKey(KEY) ? prefs.getBytesLength(KEY) : 0;
-    if (size == 0) {
-        prefs.end();
+    if (err != ESP_OK) {
+        DEBUG_PRINTF("Settings storage could not be opened: %s", esp_err_to_name(err));
+        return ReadResult::FAILED;
+    }
+    size_t size = 0;
+    err = nvs_get_blob(handle, KEY, nullptr, &size);
+    if (err == ESP_ERR_NVS_NOT_FOUND || (err == ESP_OK && size == 0)) {
+        nvs_close(handle);
         return ReadResult::NOTHING_SAVED;
     }
-    std::unique_ptr<char[]> buffer(new (std::nothrow) char[size]);
-    if (!buffer) {
-        DEBUG_PRINTF("No memory to read the %u-byte settings", size);
-        prefs.end();
+    // One more byte for the terminator, which String(buffer, length) copies.
+    std::unique_ptr<char[]> buffer(err == ESP_OK ? new (std::nothrow) char[size + 1] : nullptr);
+    if (buffer) {
+        err = nvs_get_blob(handle, KEY, buffer.get(), &size);
+    }
+    nvs_close(handle);
+    if (!buffer || err != ESP_OK) {
+        DEBUG_PRINTF("The %u-byte settings could not be read: %s", size, esp_err_to_name(err));
         return ReadResult::FAILED;
     }
-    size_t got = prefs.getBytes(KEY, buffer.get(), size);
-    prefs.end();
-    if (got != size) {
-        return ReadResult::FAILED;
-    }
+    buffer[size] = '\0';
     json = String(buffer.get(), size);
     return json.length() == size ? ReadResult::OK : ReadResult::FAILED;
 }

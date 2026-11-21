@@ -7,6 +7,7 @@
 #include "AwtrixFont.h"
 #include "BGDisplayManager.h"
 #include "ClockFont.h"
+#include "FirmwareUpdateManager.h"
 #include "MuFont.h"
 #include "globals.h"
 #include "improv_consume.h"
@@ -352,6 +353,8 @@ void DisplayManager_::showFatalError(String errorMessage) {
             update();
             position -= 0.18;
             checckForImprovWifiConnection();
+            // A clock with a failing data source can still be updated, for example to the debug build.
+            FirmwareUpdateManager.takeOverIfStarted();
         }
 
         clearMatrix();

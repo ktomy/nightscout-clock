@@ -97,6 +97,7 @@
  * @typedef {Object} FirmwareResult
  * @property {boolean} ok Whether the clock came back running the expected version and kind.
  * @property {boolean} [locked] True when the clock asked for a login.
+ * @property {boolean} [lost] True when the clock did not come back.
  * @property {string} [error] Explanation suitable for display when it failed.
  */
 
@@ -344,6 +345,16 @@ const api = (() => {
     const waitAfterUpdate = onPhase => waitForClock({ firstWaitMs: 5000, giveUpMs: 120000, onTick: s => onPhase("restarting", s) })
 
     /**
+     * The version and kind the clock runs; empty and null when it does not answer.
+     * @returns {Promise<{running: string, debug: ?boolean}>}
+     */
+    async function runningBuild() {
+        const running = (await version().catch(() => "")).trim()
+        const s = await status().catch(() => null)
+        return { running, debug: s && s.ok && s.data ? !!s.data.debug : null }
+    }
+
+    /**
      * After an update, wait for the clock and check that it runs the expected version and kind. A
      * different one means the new firmware did not start and the clock went back to the previous one.
      * @param {{version: string, debug: boolean}} expected - What was installed.
@@ -352,11 +363,9 @@ const api = (() => {
      */
     async function checkInstalled(expected, onPhase) {
         if (!(await waitAfterUpdate(onPhase))) {
-            return { ok: false, error: "The clock has not come back after two minutes." }
+            return { ok: false, lost: true, error: "The clock has not come back after two minutes." }
         }
-        const running = (await version().catch(() => "")).trim()
-        const s = await status().catch(() => null)
-        const debug = s && s.ok && s.data ? !!s.data.debug : null
+        const { running, debug } = await runningBuild()
         if (running === expected.version && debug === expected.debug) return { ok: true }
         const kind = debug === null ? "" : debug ? " (debug)" : " (release)"
         return { ok: false, error: `The clock is back, but runs ${running || "an unknown version"}${kind}. The new firmware may not have started, and the clock returned to the previous one.` }
@@ -401,6 +410,7 @@ const api = (() => {
     function updateFirmware(file, expected, onPhase = () => {}) {
         return exclusive(async () => {
             onPhase("stopping")
+            const before = await runningBuild()
             try {
                 const r = await request("POST", "/api/update/start", { body: {} })
                 if (r.status === 401) return { ok: false, locked: true, error: "Your login has expired. Unlock settings and try again." }
@@ -426,7 +436,10 @@ const api = (() => {
             try {
                 reply = await uploadFirmware(file, f => onPhase("uploading", f))
             } catch (e) {
-                await waitAfterUpdate(onPhase)
+                // The clock may have installed the file and restarted before its answer arrived.
+                const result = await checkInstalled(expected, onPhase)
+                const changed = before.running !== expected.version || before.debug !== expected.debug
+                if ((result.ok && changed) || result.lost) return result
                 return { ok: false, error: `${e.message} The clock kept its old firmware.` }
             }
             if (!reply.ok) {

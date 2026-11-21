@@ -66,6 +66,12 @@ JsonDocument* SettingsManager_::readConfigJsonFile() {
     }
     // Settings saved by an earlier firmware lack the ones added since; those keep their factory value.
     overlaySettings(doc->as<JsonVariant>(), savedDoc.as<JsonVariantConst>());
+    if (doc->overflowed()) {
+        // Out of memory partway: some saved values are missing, and saving this would lose them.
+        DEBUG_PRINTLN("No memory to combine the saved settings with the factory settings");
+        delete doc;
+        return NULL;
+    }
     return doc;
 }
 

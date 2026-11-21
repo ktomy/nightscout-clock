@@ -380,6 +380,19 @@ void FirmwareUpdateManager_::confirmRunningFirmware() {
     }
 }
 
+void FirmwareUpdateManager_::takeOverIfStarted() {
+    if (!isActive()) {
+        return;
+    }
+    // The caller may be the data source that tick() stops, which is safe only because control never
+    // returns to it.
+    while (true) {
+        ServerManager.tick();
+        tick();
+        delay(1);
+    }
+}
+
 void FirmwareUpdateManager_::tick() {
     switch (state.load()) {
         case State::IDLE: {
