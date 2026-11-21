@@ -10,8 +10,9 @@
 // in-memory version (web/emulator/platform.cpp).
 namespace ConfigStore {
 void setup();
-// The saved config JSON; false when nothing is saved yet.
-bool read(String& json);
+enum class ReadResult { OK, NOTHING_SAVED, FAILED };
+// The saved config JSON. FAILED, such as for lack of memory, does not mean nothing is saved.
+ReadResult read(String& json);
 bool write(const String& json);
 // data/config_initial.json, and in the Wokwi build scripts/wokwi_config.json laid over it.
 void loadFactorySettings(JsonDocument& doc);

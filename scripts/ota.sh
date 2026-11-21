@@ -105,10 +105,9 @@ except Exception:
 }
 
 if [[ -n $PASSWORD ]]; then
-    # From the environment, so the password does not show in the process list.
-    BODY=$(NSCLOCK_PASSWORD=$PASSWORD python3 -c 'import json, os; print(json.dumps({"password": os.environ["NSCLOCK_PASSWORD"]}))')
-    status=$(clock_request --max-time 10 -H 'Content-Type: application/json' --data-binary "$BODY" \
-        "${CLOCK}api/auth/login")
+    # Through the environment and stdin, so the password does not show in the process list.
+    status=$(NSCLOCK_PASSWORD=$PASSWORD python3 -c 'import json, os; print(json.dumps({"password": os.environ["NSCLOCK_PASSWORD"]}))' |
+        clock_request --max-time 10 -H 'Content-Type: application/json' --data-binary @- "${CLOCK}api/auth/login")
     [[ $status == 200 ]] || fail "Login failed (HTTP $status). Check the password."
 fi
 

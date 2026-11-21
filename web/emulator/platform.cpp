@@ -177,9 +177,9 @@ static String& emuConfig() {
     return config;
 }
 void ConfigStore::setup() {}
-bool ConfigStore::read(String& json) {
+ConfigStore::ReadResult ConfigStore::read(String& json) {
     json = emuConfig();
-    return json.length() > 0;
+    return json.length() > 0 ? ReadResult::OK : ReadResult::NOTHING_SAVED;
 }
 bool ConfigStore::write(const String& json) {
     emuConfig() = json;

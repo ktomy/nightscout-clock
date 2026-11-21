@@ -39,7 +39,14 @@ JsonDocument* SettingsManager_::readConfigJsonFile() {
     ConfigStore::loadFactorySettings(*doc);
 
     String saved;
-    if (!ConfigStore::read(saved)) {
+    ConfigStore::ReadResult result = ConfigStore::read(saved);
+    if (result == ConfigStore::ReadResult::FAILED) {
+        // Not a reason to replace them with the factory settings.
+        DEBUG_PRINTLN("The saved settings could not be read");
+        delete doc;
+        return NULL;
+    }
+    if (result == ConfigStore::ReadResult::NOTHING_SAVED) {
         // The first start, or the first after an install that erased the flash.
         DEBUG_PRINTLN("No saved settings, starting from the factory settings");
         if (doc->isNull() || !trySaveJsonAsSettings(*doc)) {

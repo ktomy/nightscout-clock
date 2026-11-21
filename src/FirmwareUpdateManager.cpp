@@ -247,13 +247,17 @@ void FirmwareUpdateManager_::handleUpload(
     AsyncWebServerRequest* request, size_t index, uint8_t* data, size_t len, bool final) {
     if (index == 0) {
         // Only one upload, from a page that may change settings, once the source has stopped.
+        if (!ServerManager.isAuthorized(request)) {
+            return;
+        }
+        // Before RECEIVING is visible, or the main loop could compare it with an old time and declare
+        // the upload stalled. A refused second upload sets it too, which only postpones a stall once.
+        lastDataMs = millis();
         State expected = State::READY;
-        if (!ServerManager.isAuthorized(request) ||
-            !state.compare_exchange_strong(expected, State::RECEIVING)) {
+        if (!state.compare_exchange_strong(expected, State::RECEIVING)) {
             return;
         }
         uploadRequest = request;
-        lastDataMs = millis();
         markerMatched = 0;
         markerFound = false;
         // The file's size, without the multipart framing around it. begin() refuses a file bigger than

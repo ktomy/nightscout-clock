@@ -20,6 +20,10 @@
         {
           "path": "artifacts/firmware.bin",
           "offset": 65536
+        },
+        {
+          "path": "artifacts/littlefs.bin",
+          "offset": 2162688
         }
       ]
     }

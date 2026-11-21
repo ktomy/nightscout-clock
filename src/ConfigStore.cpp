@@ -44,30 +44,30 @@ void ConfigStore::setup() {
     }
 }
 
-bool ConfigStore::read(String& json) {
+ConfigStore::ReadResult ConfigStore::read(String& json) {
     Preferences prefs;
     // Opening for reading fails until something has been saved.
     if (!prefs.begin(NAMESPACE, true, PARTITION)) {
-        return false;
+        return ReadResult::NOTHING_SAVED;
     }
     size_t size = prefs.isKey(KEY) ? prefs.getBytesLength(KEY) : 0;
     if (size == 0) {
         prefs.end();
-        return false;
+        return ReadResult::NOTHING_SAVED;
     }
     std::unique_ptr<char[]> buffer(new (std::nothrow) char[size]);
     if (!buffer) {
         DEBUG_PRINTF("No memory to read the %u-byte settings", size);
         prefs.end();
-        return false;
+        return ReadResult::FAILED;
     }
     size_t got = prefs.getBytes(KEY, buffer.get(), size);
     prefs.end();
     if (got != size) {
-        return false;
+        return ReadResult::FAILED;
     }
     json = String(buffer.get(), size);
-    return json.length() == size;
+    return json.length() == size ? ReadResult::OK : ReadResult::FAILED;
 }
 
 bool ConfigStore::write(const String& json) {

@@ -1321,7 +1321,8 @@ const firmwareKind = debug => (debug ? "debug" : "release")
  */
 function firmwareNodes() {
     const v = ui.versions
-    const busy = !!v.busy
+    // After an installation the card describes the firmware that ran before; it acts again after a reload.
+    const busy = !!v.busy || !!v.installed
     const current = v.current ? `${v.current}${v.debug == null ? "" : ` (${firmwareKind(v.debug)})`}` : "…"
     const published = v.published && (v.published.release || v.published.debug)
     const nodes = [el("dl.kv", el("dt", "Current version"), el("dd", current),
@@ -1404,6 +1405,7 @@ function setFirmwareBusy(text, fraction = null) {
 function firmwareDone(result) {
     const v = ui.versions
     v.busy = null
+    v.installed = result.ok
     v.report = result.ok
         ? el("div.notice.ok", el("div.stack.grow", el("span", `${result.message} Reload this page to use its settings page.`),
             el("div.row", el("button.btn.sm", { type: "button", onclick: () => location.reload() }, "Reload"))))
