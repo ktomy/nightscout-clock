@@ -1,5 +1,5 @@
 // Functions for interacting with the clock: reading status and settings, authentication,
-// alarm previews, and saving settings and waiting for the clock to restart.
+// alarm previews, saving settings, installing firmware, and waiting for the clock to restart.
 
 /**
  * Parsed clock response; non-JSON bodies are returned as text and empty bodies as null.
@@ -28,6 +28,7 @@
  * @property {number} sgv Latest glucose in mg/dl, or zero when no reading is available.
  * @property {boolean} hasRecentData Whether the latest reading is within the too-old threshold.
  * @property {string} faceId Currently displayed clock-face id.
+ * @property {boolean} debug Whether the clock runs the debug firmware.
  */
 /**
  * A WiFi network found by the clock's scan. The same name can appear once per access point.
@@ -76,6 +77,27 @@
  * @property {boolean} [setupMode] True when the browser must join the newly configured WiFi network.
  * @property {boolean} [locked] True when saving was rejected because authentication is required.
  * @property {string} [error] Explanation suitable for display when the operation fails.
+ */
+/**
+ * The firmware an update replaced, which the clock can go back to.
+ * @typedef {Object} PreviousFirmware
+ * @property {boolean} available Whether the clock's other firmware slot holds a working NSClock version.
+ * @property {string} [version] Its version.
+ * @property {boolean} [debug] Whether it is the debug build.
+ */
+/**
+ * Progress of a firmware installation, for the page to show.
+ * @callback FirmwarePhase
+ * @param {'stopping' | 'uploading' | 'restarting'} phase - What the clock is doing.
+ * @param {number} [value] - Uploaded fraction (0 to 1) while uploading, elapsed seconds while restarting.
+ * @returns {void}
+ */
+/**
+ * Outcome of installing firmware or going back to the previous one.
+ * @typedef {Object} FirmwareResult
+ * @property {boolean} ok Whether the clock came back running the expected version and kind.
+ * @property {boolean} [locked] True when the clock asked for a login.
+ * @property {string} [error] Explanation suitable for display when it failed.
  */
 
 const STATUS_EVERY_MS = 15000
@@ -303,6 +325,137 @@ const api = (() => {
      * @returns {Promise<ApiReply<ActionStatus>>}
      */
     const reset = () => request("POST", "/api/reset", { body: {}, timeout: 4000 })
+    /**
+     * Read the clock's status once, outside the regular poll.
+     * @returns {Promise<ApiReply<ClockStatus>>}
+     */
+    const status = () => request("GET", "/api/status", { timeout: 7000 })
+    /**
+     * Ask which firmware the clock can go back to.
+     * @returns {Promise<ApiReply<PreviousFirmware>>}
+     */
+    const previousFirmware = () => request("GET", "/api/update/previous")
+
+    /**
+     * Wait for the clock to restart after an update that failed, reporting the elapsed seconds.
+     * @param {FirmwarePhase} onPhase - Progress callback.
+     * @returns {Promise<boolean>}
+     */
+    const waitAfterUpdate = onPhase => waitForClock({ firstWaitMs: 5000, giveUpMs: 120000, onTick: s => onPhase("restarting", s) })
+
+    /**
+     * After an update, wait for the clock and check that it runs the expected version and kind. A
+     * different one means the new firmware did not start and the clock went back to the previous one.
+     * @param {{version: string, debug: boolean}} expected - What was installed.
+     * @param {FirmwarePhase} onPhase - Progress callback.
+     * @returns {Promise<FirmwareResult>}
+     */
+    async function checkInstalled(expected, onPhase) {
+        if (!(await waitAfterUpdate(onPhase))) {
+            return { ok: false, error: "The clock has not come back after two minutes." }
+        }
+        const running = (await version().catch(() => "")).trim()
+        const s = await status().catch(() => null)
+        const debug = s && s.ok && s.data ? !!s.data.debug : null
+        if (running === expected.version && debug === expected.debug) return { ok: true }
+        const kind = debug === null ? "" : debug ? " (debug)" : " (release)"
+        return { ok: false, error: `The clock is back, but runs ${running || "an unknown version"}${kind}. The new firmware may not have started, and the clock returned to the previous one.` }
+    }
+
+    /**
+     * Send the firmware file as a multipart upload, reporting progress; fetch cannot report upload progress.
+     * @param {Blob} file - The firmware.
+     * @param {(fraction: number) => void} onProgress - Uploaded fraction, 0 to 1.
+     * @returns {Promise<ApiReply<ActionStatus>>}
+     */
+    function uploadFirmware(file, onProgress) {
+        return enqueue(() => new Promise((resolve, reject) => {
+            const xhr = new XMLHttpRequest()
+            xhr.open("POST", "/api/update")
+            xhr.withCredentials = true
+            xhr.timeout = 10 * 60 * 1000
+            xhr.setRequestHeader("X-Update-Size", String(file.size))
+            xhr.upload.onprogress = e => { if (e.lengthComputable) onProgress(e.loaded / e.total) }
+            xhr.onload = () => {
+                let data = null
+                try { data = xhr.responseText ? JSON.parse(xhr.responseText) : null } catch (e) { data = { text: xhr.responseText } }
+                if (xhr.status === 401) events.emit("locked")
+                resolve({ ok: xhr.status >= 200 && xhr.status < 300, status: xhr.status, data })
+            }
+            xhr.onerror = () => reject(new Error("The upload was interrupted."))
+            xhr.ontimeout = () => reject(new Error("The upload took too long."))
+            const body = new FormData()
+            body.append("firmware", file, "firmware.bin")
+            xhr.send(body)
+        }))
+    }
+
+    /**
+     * Install firmware on the clock: stop its data source, upload the file, and wait for the restart.
+     * The clock shows UPDATE meanwhile, and FAILED then restarts on its old firmware if the upload fails.
+     * @param {Blob} file - The firmware, already checked with firmwareFileInfo().
+     * @param {{version: string, debug: boolean}} expected - The version and kind the file names.
+     * @param {FirmwarePhase} [onPhase] - Progress callback.
+     * @returns {Promise<FirmwareResult>}
+     */
+    function updateFirmware(file, expected, onPhase = () => {}) {
+        return exclusive(async () => {
+            onPhase("stopping")
+            try {
+                const r = await request("POST", "/api/update/start", { body: {} })
+                if (r.status === 401) return { ok: false, locked: true, error: "Your login has expired. Unlock settings and try again." }
+                if (r.status === 409) return { ok: false, error: "The clock is already installing an update." }
+                if (!r.ok) return { ok: false, error: `The clock answered ${r.status}.` }
+                // The clock stops its data source between two requests, which can take a few seconds.
+                const start = Date.now()
+                for (;;) {
+                    const st = await request("GET", "/api/update/status")
+                    const state = st.ok && st.data ? st.data.state : ""
+                    if (state === "ready") break
+                    if (state === "failed" || Date.now() - start > 55000) {
+                        await waitAfterUpdate(onPhase)
+                        return { ok: false, error: "The clock did not get ready for the update and restarted. Try again." }
+                    }
+                    await sleep(1000)
+                }
+            } catch (e) {
+                return { ok: false, error: `${e.message} If the clock shows UPDATE, it restarts by itself within a minute.` }
+            }
+            onPhase("uploading", 0)
+            let reply
+            try {
+                reply = await uploadFirmware(file, f => onPhase("uploading", f))
+            } catch (e) {
+                await waitAfterUpdate(onPhase)
+                return { ok: false, error: `${e.message} The clock kept its old firmware.` }
+            }
+            if (!reply.ok) {
+                const reason = (reply.data && (reply.data.error || reply.data.status)) || `HTTP ${reply.status}`
+                await waitAfterUpdate(onPhase)
+                return { ok: false, error: `The clock refused the firmware: ${reason}. It kept its old firmware.` }
+            }
+            return checkInstalled(expected, onPhase)
+        })
+    }
+
+    /**
+     * Restart the clock on the firmware the last update replaced.
+     * @param {{version: string, debug: boolean}} expected - That firmware, from previousFirmware().
+     * @param {FirmwarePhase} [onPhase] - Progress callback.
+     * @returns {Promise<FirmwareResult>}
+     */
+    function goBackFirmware(expected, onPhase = () => {}) {
+        return exclusive(async () => {
+            try {
+                const r = await request("POST", "/api/update/previous", { body: {} })
+                if (r.status === 401) return { ok: false, locked: true, error: "Your login has expired. Unlock settings and try again." }
+                if (!r.ok) return { ok: false, error: `The clock cannot go back: ${(r.data && r.data.error) || "HTTP " + r.status}.` }
+            } catch (e) {
+                return { ok: false, error: e.message }
+            }
+            return checkInstalled(expected, onPhase)
+        })
+    }
 
     /**
      * Pause polling, save the configuration, restart the clock, and report progress or failure.
@@ -335,7 +488,7 @@ const api = (() => {
     }
 
     return {
-        on: events.on, startStatus, saveSettings,
-        authStatus, login, logout, loadConfig, version, downloadLogs, timezones, tryAlarm, switchFace, patients, scanWifi,
+        on: events.on, startStatus, saveSettings, updateFirmware, goBackFirmware,
+        authStatus, login, logout, loadConfig, version, status, previousFirmware, downloadLogs, timezones, tryAlarm, switchFace, patients, scanWifi,
     }
 })()

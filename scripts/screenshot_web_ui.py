@@ -13,9 +13,11 @@ from urllib.parse import unquote, urlsplit
 
 ROOT = Path(__file__).resolve().parents[1]
 ORIGIN = "http://nsclock.test"
-LATEST_VERSION_URL = (
-    "https://raw.githubusercontent.com/ktomy/nightscout-clock/refs/heads/main/data/version.txt"
-)
+# The builds the firmware card reads from nsclock.app, answered here with the clock's own version.
+MANIFEST_URLS = {
+    "https://nsclock.app/manifest.json": "",
+    "https://nsclock.app/debug/manifest-debug.json": "-debug",
+}
 
 
 def positive_int(value):
@@ -75,8 +77,12 @@ def main():
         if route.request.method != "GET":
             errors.append(f"Unexpected request: {route.request.method} {path}")
             route.abort()
-        elif route.request.url.split("?", 1)[0] == LATEST_VERSION_URL:
-            route.fulfill(content_type="text/plain", body=version)
+        elif route.request.url.split("?", 1)[0] in MANIFEST_URLS:
+            suffix = MANIFEST_URLS[route.request.url.split("?", 1)[0]]
+            route.fulfill(json={
+                "version": version + suffix,
+                "builds": [{"parts": [{"path": "artifacts/firmware.bin", "offset": 65536}]}],
+            })
         elif f"{url.scheme}://{url.netloc}" != ORIGIN:
             errors.append(f"Unexpected external request: {route.request.url}")
             route.abort()
@@ -88,8 +94,12 @@ def main():
             route.fulfill(json={
                 "isInAPMode": False, "isConnected": True, "hasInternet": True, "rssi": -65,
                 "bgSourceStatus": "connected", "sgv": 110,
-                "hasRecentData": True, "faceId": "big_text",
+                "hasRecentData": True, "faceId": "big_text", "debug": False,
             })
+        elif path == "/api/update/previous":
+            route.fulfill(json={"available": False})
+        elif path == "/version.txt":
+            route.fulfill(content_type="text/plain", body=version)
         else:
             asset = (ROOT / "data" / (path.lstrip("/") or "index.html")).resolve()
             if not asset.is_relative_to(ROOT / "data"):
@@ -126,7 +136,7 @@ def main():
             page.locator("body[data-state=ready]").wait_for(state="attached")
             page.wait_for_function("document.querySelector('#pill_wifi b').textContent === 'Good'")
             page.wait_for_function(
-                "document.querySelector('#fw_status').textContent === 'You are using the latest version.'"
+                "document.querySelector('#fw_body').textContent.includes('Switch to the debug build')"
             )
             page.evaluate("document.fonts.ready")
             # The face pictures are drawn one per frame after load; wait until every visible one has pixels.

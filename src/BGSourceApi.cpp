@@ -9,10 +9,6 @@ void BGSourceApi::setup() {
     DEBUG_PRINTLN("BGSourceApi::setup");
 #endif
 
-    // To be able to add handlers we need to remove the default handler, this is kinda dirty hack, but
-    // there is no other way (known to me)
-    ServerManager.removeStaticFileHandler();
-
     ArJsonRequestHandlerFunction entriesPostHandler =
         [this](AsyncWebServerRequest* request, JsonVariant& json) {
             this->HandleEntriesPost(request, json);
@@ -22,9 +18,6 @@ void BGSourceApi::setup() {
 
     ServerManager.addHandler(createDeleteEntriesHandler());
 
-    // After adding our handlers we need to add the default handler back
-    ServerManager.addStaticFileHandler();
-
     status = "initialized";
 }
 
@@ -33,7 +26,7 @@ AsyncCallbackWebHandler* BGSourceApi::createDeleteEntriesHandler() {
     handler->setUri("/api/v1/entries");
     handler->setMethod(HTTP_DELETE);
     handler->onRequest([this](AsyncWebServerRequest* request) {
-        if (!ServerManager.enforceAuthentication(request)) {
+        if (!ServerManager.enforceAuthentication(request) || rejectIfStopped(request)) {
             return;
         }
 #ifdef DEBUG_BG_SOURCE
@@ -49,7 +42,7 @@ void BGSourceApi::HandleEntriesPost(AsyncWebServerRequest* request, JsonVariant&
 #ifdef DEBUG_BG_SOURCE
     DEBUG_PRINTLN("BGSourceApi::HandleEntriesPost");
 #endif
-    if (!ServerManager.enforceAuthentication(request)) {
+    if (!ServerManager.enforceAuthentication(request) || rejectIfStopped(request)) {
         return;
     }
 

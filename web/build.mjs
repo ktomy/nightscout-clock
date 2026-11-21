@@ -1,4 +1,4 @@
-// Builds the settings page and compresses source assets for the clock's LittleFS.
+// Builds the settings page and compresses source assets, which the firmware build embeds (platformio.ini).
 //
 // The clock serves "<file>.gz" with Content-Encoding: gzip, so the page ships as ONE gzipped file with its
 // CSS and JS inlined: one request, no libraries, nothing loaded from the internet.
@@ -25,7 +25,8 @@ const JS = ["util.js", "api.js", "schema.js", "form.js", "preview.js", "preview-
 // The simulator page: the preview and the schema's constants, without the clock's API or the settings form.
 const SIM_JS = ["util.js", "schema.js", "preview.js", "preview-panel.js", path.join(SIM, "simulator.js")];
 
-// Gzipped page budget. The whole LittleFS partition is 1 MB.
+// Gzipped page budget. The page is part of the firmware, and the debug firmware has about 260 KB left in
+// its slot.
 const BUDGET_BYTES = 200000;
 // The clock preview emulator, built by web/emulator/build.mjs.
 const EMULATOR_BUDGET_BYTES = 70000;
@@ -81,7 +82,7 @@ function buildSimulator(outDir) {
 }
 
 if (!fs.existsSync(path.join(DATA, "clockemu.js.gz"))) {
-    throw new Error("data/clockemu.js.gz is missing: run node web/emulator/build.mjs, or a filesystem build");
+    throw new Error("data/clockemu.js.gz is missing: run node web/emulator/build.mjs, or a firmware build");
 }
 
 const simulatorAt = process.argv.indexOf("--simulator");

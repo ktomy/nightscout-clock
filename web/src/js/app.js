@@ -330,49 +330,56 @@ async function loadTimezones() {
     form.setCtx("tzNames", ui.timezoneNames)
 }
 
+// The builds nsclock.app publishes. Each manifest names its version and, relative to itself, its files.
+const RELEASE_MANIFEST = "https://nsclock.app/manifest.json"
+const DEBUG_MANIFEST = "https://nsclock.app/debug/manifest-debug.json"
+// Where the firmware goes in flash, which identifies it among a manifest's files.
+const FIRMWARE_OFFSET = 0x10000
+
 /**
- * Compare dotted numeric versions component by component, treating missing parts as zero.
- * @param {string} a - First dotted numeric version.
- * @param {string} b - Version to compare against.
- * @returns {number} Negative if a is older, zero if equal, positive if newer.
+ * Read a published build's version and firmware address, with a five-second timeout.
+ * @param {string} url - The build's manifest.
+ * @returns {Promise<{version: string, url: string} | null>} Null when it could not be read.
  */
-function compareVersions(a, b) {
-    const pa = String(a).split(".").map(Number), pb = String(b).split(".").map(Number)
-    for (let i = 0; i < Math.max(pa.length, pb.length); i++) if ((pa[i] || 0) !== (pb[i] || 0)) return (pa[i] || 0) - (pb[i] || 0)
-    return 0
+async function readManifest(url) {
+    const ctrl = new AbortController()
+    const timer = setTimeout(() => ctrl.abort(), 5000)
+    try {
+        const res = await fetch(url, { cache: "no-store", signal: ctrl.signal })
+        if (!res.ok) return null
+        const manifest = await res.json()
+        const part = ((manifest.builds || [])[0]?.parts || []).find(p => p.offset === FIRMWARE_OFFSET)
+        if (!part || !manifest.version) return null
+        return { version: String(manifest.version).replace(/-debug$/, ""), url: new URL(part.path, url).href }
+    } catch (e) {
+        return null
+    } finally {
+        clearTimeout(timer)
+    }
 }
 
 /**
- * Read the clock's version and fetch the latest version from GitHub with a five-second timeout.
- * Compare them and update the version labels and update link or status message.
+ * Read the clock's version and kind, the builds nsclock.app publishes, and the firmware the clock can
+ * go back to, then show what the firmware card offers.
  * @returns {Promise<void>}
  */
 async function loadVersions() {
     const v = ui.versions
     v.current = (await api.version().catch(() => "")).trim()
-    const ctrl = new AbortController()
-    const timer = setTimeout(() => ctrl.abort(), 5000)
-    try {
-        const res = await fetch("https://raw.githubusercontent.com/ktomy/nightscout-clock/refs/heads/main/data/version.txt?" + Date.now(), { cache: "no-store", signal: ctrl.signal })
-        v.latest = res.ok ? (await res.text()).trim() : ""
-    } catch (e) {
-        v.latest = ""
-    } finally {
-        clearTimeout(timer)
+    const status = ui.status || await api.status().then(r => (r.ok ? r.data : null)).catch(() => null)
+    v.debug = status && typeof status.debug === "boolean" ? status.debug : null
+    const [release, debug] = await Promise.all([readManifest(RELEASE_MANIFEST), readManifest(DEBUG_MANIFEST)])
+    v.published = {}
+    v.urls = {}
+    for (const [kind, build] of [["release", release], ["debug", debug]]) {
+        if (!build) continue
+        v.published[kind] = build.version
+        v.urls[kind] = build.url
     }
-    v.update = !!(v.latest && v.current && compareVersions(v.current, v.latest) < 0)
-    v.status = !v.current ? "Could not read the current version." : !v.latest ? "Could not check for updates." : v.update ? "" : "You are using the latest version."
-    /**
-     * Update a version label if its element currently exists in the page.
-     * @param {string} id - Selector of the version label.
-     * @param {string} text - Replacement label text.
-     * @returns {void}
-     */
-    const set = (id, text) => { const n = $(id); if (n) n.textContent = text }
-    set("#fw_current", v.current || "unknown")
-    set("#fw_latest", v.latest || "unknown")
-    const status = $("#fw_status")
-    if (status) status.replaceChildren(...versionStatusNodes())
+    const prev = await api.previousFirmware().catch(() => null)
+    v.previous = prev && prev.ok && prev.data && prev.data.available ? prev.data : null
+    v.offer = v.debug == null ? { type: "unknown" } : firmwareOffer(v.current, v.debug, v.published)
+    renderFirmware()
 }
 
 /**

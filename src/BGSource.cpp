@@ -17,6 +17,28 @@ void BGSource::setup() {
     status = "initialized";
 }
 
+void BGSource::end() {
+    stopped = true;
+    // HTTPClient's destructor stops the connection it kept for reuse, so it goes first, while that
+    // connection still exists.
+    delete client;
+    client = nullptr;
+    if (wifiSecureClient != nullptr) {
+        wifiSecureClient->stop();
+        delete wifiSecureClient;
+        wifiSecureClient = nullptr;
+    }
+    status = "stopped";
+}
+
+bool BGSource::rejectIfStopped(AsyncWebServerRequest* request) const {
+    if (!stopped) {
+        return false;
+    }
+    request->send(503, "application/json", "{\"status\": \"stopped\"}");
+    return true;
+}
+
 void BGSource::handleFailedAttempt() {
     ServerManager.failedAttempts++;
     if (ServerManager.failedAttempts >= 10) {

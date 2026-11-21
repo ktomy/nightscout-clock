@@ -5,6 +5,7 @@
 #include <HTTPClient.h>
 #include <WiFiClientSecure.h>
 
+#include <atomic>
 #include <list>
 
 #include "DisplayManager.h"
@@ -36,17 +37,28 @@ public:
 // The data source and the display each keep one, 3 KB each.
 using GlucoseReadings = GlucoseReadingBuffer<GlucoseReading, 192>;
 
+class AsyncWebServerRequest;
+
 class BGSource {
 public:
     virtual void setup();
     virtual void tick();
+    // Stops the source for good before a firmware update: closes its connection and frees the HTTP
+    // and TLS clients. A source that holds more memory frees it in an override. The object itself
+    // stays, so the web handlers a source added keep a valid `this`; they answer 503 from then on.
+    virtual void end();
+    bool isStopped() const { return stopped; }
     virtual bool hasNewData(unsigned long long epochToCompare);
     virtual const GlucoseReadings& getGlucoseData() const;
     virtual String getStatus() const { return status; }
 
 protected:
-    HTTPClient* client;
-    WiFiClientSecure* wifiSecureClient;
+    HTTPClient* client = nullptr;
+    WiFiClientSecure* wifiSecureClient = nullptr;
+    // Read by the web server task, set by the main loop.
+    std::atomic<bool> stopped{false};
+    // For the web handlers a source adds: true, after answering 503, once the source is stopped.
+    bool rejectIfStopped(AsyncWebServerRequest* request) const;
     unsigned long long lastCallAttemptEpoch = 0;
     bool firstConnectionSuccess = false;
     GlucoseReadings glucoseReadings;

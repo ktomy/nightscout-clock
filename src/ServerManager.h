@@ -11,12 +11,12 @@ class ServerManager_ {
 private:
     bool apMode;
     AsyncWebServer* ws;
-    AsyncStaticWebHandler* staticFilesHandler = nullptr;
     ServerManager_() = default;
     unsigned long lastTimeSync = 0;
 
     IPAddress startWifi();
     void setupWebServer(IPAddress ip);
+    void addEmbeddedFileRoutes();
     IPAddress setAPmode(String ssid, String psk);
     void saveConfigHandler();
     bool initTimeIfNeeded();
@@ -42,9 +42,10 @@ public:
     tm getTimezonedTime();
     bool tryGetTimezonedTime(tm& timeinfo);
     AsyncWebHandler addHandler(AsyncWebHandler* handler);
-    void removeStaticFileHandler();
-    void addStaticFileHandler();
     bool enforceAuthentication(AsyncWebServerRequest* request);
+    // Whether the request may change settings: no web password, or a valid login. Unlike
+    // enforceAuthentication() it sends no answer, for handlers that answer later.
+    bool isAuthorized(AsyncWebServerRequest* request) const;
     int failedAttempts = 0;
     void reconnectWifi();
 };

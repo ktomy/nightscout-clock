@@ -1,5 +1,5 @@
-// What the stand-in headers declare: time, pins, LittleFS in memory, the LED output, and the parts of
-// ServerManager and BGSourceManager the display code calls.
+// What the stand-in headers declare: time, pins, LittleFS and the settings in memory, the LED output,
+// and the parts of ServerManager and BGSourceManager the display code calls.
 #include <Arduino.h>
 #include <FastLED.h>
 #include <LittleFS.h>
@@ -14,6 +14,7 @@
 #include <vector>
 
 #include "BGSourceManager.h"
+#include "ConfigStore.h"
 #include "ServerManager.h"
 
 namespace {
@@ -168,6 +169,23 @@ std::map<std::string, std::string>& emuFiles() {
 }
 
 LittleFSFS LittleFS;
+
+// The settings in memory: the page hands emu_boot() a complete config, so there are no factory
+// settings to lay it over.
+static String& emuConfig() {
+    static String config;
+    return config;
+}
+void ConfigStore::setup() {}
+bool ConfigStore::read(String& json) {
+    json = emuConfig();
+    return json.length() > 0;
+}
+bool ConfigStore::write(const String& json) {
+    emuConfig() = json;
+    return true;
+}
+void ConfigStore::loadFactorySettings(JsonDocument&) {}
 
 // hsv2rgb.cpp (FastLED 3.6.0), non-AVR path.
 static void hsv2rgb_raw_C(const CHSV& hsv, CRGB& rgb) {

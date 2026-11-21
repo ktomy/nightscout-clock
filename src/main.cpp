@@ -6,6 +6,7 @@
 #include "BGDisplayManager.h"
 #include "BGSourceManager.h"
 #include "DisplayManager.h"
+#include "FirmwareUpdateManager.h"
 #include "PeripheryManager.h"
 #include "ServerManager.h"
 #include "SettingsManager.h"
@@ -49,6 +50,9 @@ void setup() {
         DEBUG_PRINTLN("Center button pressed, resetting to factory defaults...");
         DisplayManager.scrollColorfulText("Factory reset initiated...");
         DEBUG_PRINTLN("Performing factory reset...");
+        // The reset restarts the clock before setup() ends, which would otherwise send a newly
+        // installed firmware back to the previous one.
+        FirmwareUpdateManager.confirmRunningFirmware();
         SettingsManager.factoryReset();
         DEBUG_PRINTLN("Factory reset done");
     }
@@ -57,6 +61,7 @@ void setup() {
     bgSourceManager.setup(SettingsManager.settings.bg_source);
     bgDisplayManager.setup();
     bgAlarmManager.setup();
+    FirmwareUpdateManager.setup();
     // PeripheryManager.playRTTTLString(sound_boot);
 
     DEBUG_PRINTLN("Setup done");
@@ -119,6 +124,11 @@ void loop() {
 #endif
 
     ServerManager.tick();
+    FirmwareUpdateManager.tick();
+    // During a firmware update the display shows only the update, and nothing else uses the network.
+    if (FirmwareUpdateManager.isActive()) {
+        return;
+    }
 
     if (ServerManager.isConnected) {
         bgSourceManager.tick();
