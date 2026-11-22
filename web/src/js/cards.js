@@ -1296,17 +1296,212 @@ async function loadSettingsFile(input) {
 }
 
 /**
- * Build current/latest firmware labels and update information from the shared version state.
+ * Build the firmware card: the clock's version, what nsclock.app offers, and installing from a file or
+ * going back. app.js fills ui.versions; renderFirmware() redraws the card's body.
  * @returns {HTMLElement}
  */
 function versionCard() {
-    return card("Version", null, el("div.stack",
-        el("dl.kv", el("dt", "Current version"), el("dd", { id: "fw_current" }, ui.versions.current || "…"),
-            el("dt", "Latest version"), el("dd", { id: "fw_latest" }, ui.versions.latest || "…")),
-        el("p.help", { id: "fw_status" }, ...versionStatusNodes())), { id: "card_version" })
+    return card("Firmware", null, el("div.stack", { id: "fw_body" }, ...firmwareNodes()), { id: "card_version" })
 }
 
-const DEBUG_FIRMWARE_URL = "https://nsclock.app/debug/"
+const CHANGES_URL = "https://github.com/ktomy/nightscout-clock/tree/main?tab=readme-ov-file#changes"
+// The largest firmware a slot holds (partitions.csv).
+const FIRMWARE_SLOT_BYTES = 0x1F0000
+
+/**
+ * Name a firmware kind as the card shows it.
+ * @param {boolean} debug - Whether it is the debug build.
+ * @returns {string}
+ */
+const firmwareKind = debug => (debug ? "debug" : "release")
+
+/**
+ * The firmware card's contents from ui.versions.
+ * @returns {Array<Node>}
+ */
+function firmwareNodes() {
+    const v = ui.versions
+    // After an installation the card describes the firmware that ran before; it acts again after a reload.
+    const busy = !!v.busy || !!v.installed
+    const current = v.current ? `${v.current}${v.debug == null ? "" : ` (${firmwareKind(v.debug)})`}` : "…"
+    const published = v.published && (v.published.release || v.published.debug)
+    const nodes = [el("dl.kv", el("dt", "Current version"), el("dd", current),
+        el("dt", "Latest version"), el("dd", published || (v.offer ? "unknown" : "…")))]
+    const o = v.offer
+    // Installing it again stays possible: the failure may have been a power cut, or a fixed re-release.
+    const failed = (version, debug) => v.failed && v.failed.version === version && (debug == null || v.failed.debug === debug)
+    const failedNotice = () => el("div.notice.warn", `${v.failed.version} (${firmwareKind(v.failed.debug)}) failed to start on this clock, `
+        + "which then went back to the version before it. Installing it again may fail the same way.")
+    if (!o) {
+        nodes.push(el("p.help", "Checking for updates…"))
+    } else if (o.type === "update") {
+        const kind = o.kinds.includes(v.kind) ? v.kind : o.defaultKind
+        const select = el("select", { "aria-label": "Build to install", disabled: busy, onchange: e => { v.kind = e.target.value } },
+            ...o.kinds.map(k => el("option", { value: k, selected: k === kind }, k === "release" ? "Release" : "Debug (with diagnostic logging)")))
+        nodes.push(el("p.help", `Version ${o.version} is available. `,
+            el("a", { href: CHANGES_URL, target: "_blank", rel: "noopener noreferrer" }, "Changes")),
+        el("div.row", select,
+            el("button.btn.primary", { type: "button", disabled: busy, onclick: () => installPublished(select.value) }, icon("download"), `Install ${o.version}`)))
+        if (failed(o.version)) nodes.push(failedNotice())
+    } else if (o.type === "switch") {
+        // The same version as the other kind: worded and placed so it is never read as an update.
+        nodes.push(el("p.help", "You are using the latest version."),
+            el("div.row", el("button.btn", { type: "button", disabled: busy, onclick: () => installPublished(o.kind) }, `Switch to the ${o.kind} build`)),
+            el("p.help", `Same version, ${o.version}, ${o.kind === "debug" ? "with" : "without"} diagnostic logging.`))
+        if (failed(o.version, o.kind === "debug")) nodes.push(failedNotice())
+    } else if (o.type === "latest") {
+        nodes.push(el("p.help", "You are using the latest version."))
+    } else if (o.type === "ahead") {
+        nodes.push(el("p.help", `You are using version ${v.current}. nsclock.app has ${o.version}.`))
+    } else {
+        nodes.push(el("p.help", !v.current || v.debug == null ? "Could not read the clock's version." : "Could not check for updates."))
+    }
+
+    const input = el("input", { type: "file", accept: ".bin,application/octet-stream", hidden: true })
+    input.addEventListener("change", () => installFile(input))
+    const prev = v.previous
+    nodes.push(el("div.row",
+        el("button.btn", { type: "button", disabled: busy, onclick: () => input.click() }, icon("upload"), "Install from file…"), input,
+        prev ? el("button.btn", { type: "button", disabled: busy, onclick: goBackFirmware }, `Go back to ${prev.version} (${firmwareKind(prev.debug)})`) : null))
+    if (v.busy) {
+        nodes.push(el("div.notice.info", el("div.stack.grow", el("span", { id: "fw_busy_text" }, v.busy.text),
+            v.busy.fraction != null ? el("progress", { id: "fw_progress", max: 1, value: v.busy.fraction }) : null)))
+    } else if (v.report) {
+        nodes.push(v.report)
+    }
+    nodes.push(el("p.help", "While it installs, the clock shows UPDATE and does not read glucose or sound alarms, for about a minute. Settings are kept. A file must be NSClock firmware."))
+    return nodes
+}
+
+/**
+ * Redraw the firmware card if it is on the page.
+ * @returns {void}
+ */
+function renderFirmware() {
+    const body = $("#fw_body")
+    if (body) body.replaceChildren(...firmwareNodes())
+}
+
+/**
+ * Show what an installation is doing. Progress alone updates the bar in place, so the card is not
+ * rebuilt for every uploaded chunk.
+ * @param {string} text - What the clock or page is doing.
+ * @param {?number} [fraction] - Uploaded fraction, 0 to 1, or null without a bar.
+ * @returns {void}
+ */
+function setFirmwareBusy(text, fraction = null) {
+    const v = ui.versions
+    const bar = $("#fw_progress")
+    const sameStep = v.busy && (v.busy.fraction == null) === (fraction == null)
+    v.busy = { text, fraction }
+    v.report = null
+    if (sameStep && $("#fw_busy_text")) {
+        $("#fw_busy_text").textContent = text
+        if (bar && fraction != null) bar.value = fraction
+        return
+    }
+    renderFirmware()
+}
+
+/**
+ * End an installation and show its outcome.
+ * @param {{ok: boolean, message?: string, error?: string}} result - Outcome.
+ * @returns {void}
+ */
+function firmwareDone(result) {
+    const v = ui.versions
+    v.busy = null
+    v.installed = result.ok
+    v.report = result.ok
+        ? el("div.notice.ok", el("div.stack.grow", el("span", `${result.message} Reload this page to use its settings page.`),
+            el("div.row", el("button.btn.sm", { type: "button", onclick: () => location.reload() }, "Reload"))))
+        : el("div.notice.bad", result.error)
+    renderFirmware()
+}
+
+/**
+ * Text for an installation step.
+ * @param {'stopping' | 'uploading' | 'restarting'} phase - The step api.updateFirmware() reports.
+ * @param {number} [value] - Uploaded fraction or elapsed seconds.
+ * @param {string} label - The firmware being installed, such as "1.4.0 (release)".
+ * @returns {string}
+ */
+function firmwarePhaseText(phase, value, label) {
+    if (phase === "stopping") return "Preparing the clock for the update…"
+    if (phase === "uploading") return `Sending ${label} to the clock… ${Math.round((value || 0) * 100)}%`
+    return `The clock is restarting… ${value || 0} s`
+}
+
+/**
+ * Download a build from nsclock.app, then install it.
+ * @param {string} kind - "release" or "debug".
+ * @returns {Promise<void>}
+ */
+async function installPublished(kind) {
+    const v = ui.versions
+    setFirmwareBusy(`Downloading ${v.published[kind]} (${kind}) from nsclock.app…`)
+    const ctrl = new AbortController()
+    const timer = setTimeout(() => ctrl.abort(), 120000)
+    let bytes
+    try {
+        const res = await fetch(v.urls[kind], { cache: "no-store", signal: ctrl.signal })
+        if (!res.ok) throw new Error(`nsclock.app answered ${res.status}.`)
+        bytes = new Uint8Array(await res.arrayBuffer())
+    } catch (e) {
+        return firmwareDone({ ok: false, error: `Could not download the firmware. ${e.name === "AbortError" ? "The download took too long." : e.message} Nothing was changed.` })
+    } finally {
+        clearTimeout(timer)
+    }
+    await installFirmware(bytes, `the ${kind} build from nsclock.app`)
+}
+
+/**
+ * Install a firmware file chosen on this device.
+ * @param {HTMLInputElement} input - The file input.
+ * @returns {Promise<void>}
+ */
+async function installFile(input) {
+    const file = input.files[0]
+    input.value = ""
+    if (!file) return
+    if (file.size > FIRMWARE_SLOT_BYTES) return firmwareDone({ ok: false, error: `${file.name} is too big for the clock. Nothing was changed.` })
+    setFirmwareBusy(`Reading ${file.name}…`)
+    let bytes
+    try {
+        bytes = new Uint8Array(await file.arrayBuffer())
+    } catch (e) {
+        return firmwareDone({ ok: false, error: `${file.name} could not be read. Nothing was changed.` })
+    }
+    await installFirmware(bytes, file.name)
+}
+
+/**
+ * Check a firmware file here, so a wrong one never stops the clock, then install it.
+ * @param {Uint8Array} bytes - The firmware.
+ * @param {string} name - Where it came from, for messages.
+ * @returns {Promise<void>}
+ */
+async function installFirmware(bytes, name) {
+    const info = firmwareFileInfo(bytes)
+    if (!info) return firmwareDone({ ok: false, error: `${name} is not NSClock firmware that this page can install. Nothing was changed.` })
+    if (bytes.length > FIRMWARE_SLOT_BYTES) return firmwareDone({ ok: false, error: `${name} is too big for the clock. Nothing was changed.` })
+    const label = `${info.version} (${firmwareKind(info.debug)})`
+    const r = await api.updateFirmware(new Blob([bytes]), info,
+        (phase, value) => setFirmwareBusy(firmwarePhaseText(phase, value, label), phase === "uploading" ? value : null))
+    firmwareDone(r.ok ? { ok: true, message: `The clock now runs ${label}.` } : r)
+}
+
+/**
+ * Restart the clock on the firmware the last update replaced.
+ * @returns {Promise<void>}
+ */
+async function goBackFirmware() {
+    const prev = ui.versions.previous
+    const label = `${prev.version} (${firmwareKind(prev.debug)})`
+    setFirmwareBusy(`Going back to ${label}…`)
+    const r = await api.goBackFirmware(prev, (phase, seconds) => setFirmwareBusy(`The clock is restarting on ${label}… ${seconds || 0} s`))
+    firmwareDone(r.ok ? { ok: true, message: `The clock now runs ${label}.` } : r)
+}
 
 /**
  * Download the clock's in-memory debug log for troubleshooting.
@@ -1316,34 +1511,20 @@ function logsCard() {
     return card("Debug logs", "Download the clock's recent debug log for troubleshooting. The log can contain your data source passwords, API secrets, session tokens and glucose readings, so review it before sharing.", el("div.stack",
         el("div.row",
             el("button.btn", { type: "button", onclick: downloadDebugLogs }, icon("download"), "Download logs")),
-        el("p.help", "Only the debug firmware records logs. Install it from the ",
-            el("a", { href: DEBUG_FIRMWARE_URL, target: "_blank", rel: "noopener noreferrer" }, "debug firmware installer"), ".")), { id: "card_logs" })
+        el("p.help", "Only the debug build records logs. The Firmware card above can install it.")), { id: "card_logs" })
 }
 
 async function downloadDebugLogs() {
     let text
     try { text = await api.downloadLogs() }
     catch (e) { return toast(e.message || "Could not download the logs.", "bad") }
-    if (!text) return toast(`This firmware keeps no log. Install the debug firmware from ${DEBUG_FIRMWARE_URL} to record one.`, "warn", 8000)
+    if (!text) return toast("This firmware keeps no log. Install the debug build from the Firmware card to record one.", "warn", 8000)
     const url = URL.createObjectURL(new Blob([text], { type: "text/plain" }))
     const link = el("a", { href: url, download: "nightscout-clock-logs.txt", hidden: true })
     document.body.append(link)
     link.click()
     link.remove()
     setTimeout(() => URL.revokeObjectURL(url), 10000)
-}
-
-/**
- * Return installer/changelog links when an update exists, otherwise the current version-check message.
- * @returns {Array<Node | string>}
- */
-function versionStatusNodes() {
-    const v = ui.versions
-    if (v.update) {
-        return [el("a", { href: "https://nsclock.app/#install", target: "_blank", rel: "noopener noreferrer" }, `Update to ${v.latest}`), " · ",
-            el("a", { href: "https://github.com/ktomy/nightscout-clock/tree/main?tab=readme-ov-file#changes", target: "_blank", rel: "noopener noreferrer" }, "Changes")]
-    }
-    return [v.status || "Checking for updates…"]
 }
 
 // ---------- tabs ----------

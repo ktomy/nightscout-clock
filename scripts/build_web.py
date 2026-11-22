@@ -1,4 +1,9 @@
-"""Generate web assets and the clock preview before PlatformIO collects files for a filesystem image."""
+"""Generate the web assets and the clock preview before PlatformIO builds the firmware.
+
+The firmware serves the settings page from files built into it (board_build.embed_files in
+platformio.ini), so every firmware build needs them current: the clock preview, which is the display
+code compiled to WebAssembly with Emscripten, and the page itself.
+"""
 
 import os
 from pathlib import Path
@@ -7,8 +12,12 @@ import subprocess
 
 Import("env")
 
-# Firmware-only builds and uploads of an existing image do not need Node.
-if set(COMMAND_LINE_TARGETS) & {"buildfs", "uploadfs", "uploadfsota"} and "nobuild" not in COMMAND_LINE_TARGETS:
+# Targets that compile the firmware. Others, such as monitor, clean or the IDE's idedata, and uploads
+# of an existing build (nobuild), need no web assets.
+BUILD_TARGETS = {"buildprog", "upload", "program", "checkprogsize", "size", "debug", "__debug"}
+targets = set(COMMAND_LINE_TARGETS)
+
+if "nobuild" not in targets and (not targets or targets & BUILD_TARGETS):
     project = Path(env.subst("$PROJECT_DIR"))
     node = shutil.which("node")
     if not node:
@@ -29,7 +38,7 @@ if set(COMMAND_LINE_TARGETS) & {"buildfs", "uploadfs", "uploadfsota"} and "nobui
         subprocess.run([node, str(project / "web/emulator/build.mjs"), "--libs", str(libs), "--core", str(core)],
                        cwd=project, check=True)
     except subprocess.CalledProcessError:
-        print("ERROR: The clock preview could not be built; filesystem build stopped.")
+        print("ERROR: The clock preview could not be built; firmware build stopped.")
         env.Exit(1)
     print("Generating web assets...")
     try:
@@ -38,5 +47,5 @@ if set(COMMAND_LINE_TARGETS) & {"buildfs", "uploadfs", "uploadfsota"} and "nobui
         print("ERROR: Node.js is required to build the web assets. Install the version in .node-version.")
         env.Exit(1)
     except subprocess.CalledProcessError:
-        print("ERROR: Web asset generation failed; filesystem build stopped.")
+        print("ERROR: Web asset generation failed; firmware build stopped.")
         env.Exit(1)

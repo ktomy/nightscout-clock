@@ -129,11 +129,15 @@ The regular firmware writes very little diagnostic output. The debug firmware wo
 
 ### 1. Back up your settings
 
-Installing a different firmware resets the clock's settings. On the **WiFi & system** tab, use **Backup and restore** > **Download settings** first, so you can load the file again afterwards.
+If the **WiFi & system** tab has a **Firmware** card, skip this step: installing from there keeps the settings.
+
+Otherwise, installing a different firmware resets the clock's settings. On the **WiFi & system** tab, use **Backup and restore** > **Download settings** first, so you can load the file again afterwards.
 
 ### 2. Install the debug firmware
 
-Open the [debug installation page](https://nsclock.app/debug/) and install it the same way as the regular firmware. Then set up the clock again, or load your backup on the **WiFi & system** tab (check **Also load the WiFi settings**) and select **Save and restart**. Keep using the clock as usual until the problem happens again.
+If the **WiFi & system** tab has a **Firmware** card, select **Switch to the debug build** there, or choose **Debug** when it offers a new version. Wait about a minute until the clock is back.
+
+Otherwise, open the [debug installation page](https://nsclock.app/debug/) and install it the same way as the regular firmware. Then set up the clock again, or load your backup on the **WiFi & system** tab (check **Also load the WiFi settings**) and select **Save and restart**. Keep using the clock as usual until the problem happens again.
 
 ### 3. Get the logs
 
@@ -155,7 +159,7 @@ Logs can contain your WiFi and data source passwords, API secrets, session token
 
 ### 5. Go back to the regular firmware
 
-When you're done, install the regular firmware again from the [installation page](https://nsclock.app/#install) and restore your settings backup.
+When you're done, select **Switch to the release build** on the **Firmware** card. Without that card, install the regular firmware again from the [installation page](https://nsclock.app/#install) and restore your settings backup.
 
 ## Reporting an issue
 

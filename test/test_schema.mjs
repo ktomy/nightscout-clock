@@ -10,11 +10,11 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")
 const read = file => fs.readFileSync(path.join(ROOT, file), "utf8")
 
 // The page's scripts are classic scripts sharing one scope, so load them the same way.
-const { isValidRtttl, mergeSettingsFile, mgdlToText, normalizeLoaded, parseNightscoutUrl, tabOfKey, textToMgdl, validateConfig } =
+const { compareVersions, firmwareFileInfo, firmwareOffer, isValidRtttl, mergeSettingsFile, mgdlToText, normalizeLoaded, parseNightscoutUrl, tabOfKey, textToMgdl, validateConfig } =
     vm.runInThisContext(`(function () {
         ${read("web/src/js/util.js")}
         ${read("web/src/js/schema.js")}
-        return { isValidRtttl, mergeSettingsFile, mgdlToText, normalizeLoaded, parseNightscoutUrl, tabOfKey, textToMgdl, validateConfig }
+        return { compareVersions, firmwareFileInfo, firmwareOffer, isValidRtttl, mergeSettingsFile, mgdlToText, normalizeLoaded, parseNightscoutUrl, tabOfKey, textToMgdl, validateConfig }
     })()`)
 
 const TZ_NAMES = new Set(["Europe/Berlin"])
@@ -123,4 +123,67 @@ test("a settings file value that fails validation keeps the clock's value", () =
     const merged = mergeSettingsFile({ custom_nodatatimer: 5 }, validConfig({ custom_nodatatimer: 20 }), { network: false, tzNames: TZ_NAMES })
     assert.equal(merged.config.custom_nodatatimer, 20)
     assert.deepEqual(merged.kept, ["custom_nodatatimer"])
+})
+
+test("versions compare by number, with missing parts as zero", () => {
+    assert.ok(compareVersions("1.3.10", "1.3.9") > 0)
+    assert.ok(compareVersions("1.3.5", "1.4.0") < 0)
+    assert.equal(compareVersions("1.4", "1.4.0"), 0)
+})
+
+const BOTH = version => ({ release: version, debug: version })
+// Plain objects, because the offer comes from the vm context and deepEqual compares prototypes.
+const offerOf = (...args) => JSON.parse(JSON.stringify(firmwareOffer(...args)))
+
+test("a newer version is offered as both builds, release first, whichever build the clock runs", () => {
+    const update = { type: "update", version: "1.4.0", kinds: ["release", "debug"], defaultKind: "release" }
+    assert.deepEqual(offerOf("1.3.5", false, BOTH("1.4.0")), update)
+    assert.deepEqual(offerOf("1.3.5", true, BOTH("1.4.0")), update)
+})
+
+test("the same version is offered only as the other build, never as an update", () => {
+    assert.deepEqual(offerOf("1.3.5", false, BOTH("1.3.5")), { type: "switch", version: "1.3.5", kind: "debug" })
+    assert.deepEqual(offerOf("1.3.5", true, BOTH("1.3.5")), { type: "switch", version: "1.3.5", kind: "release" })
+})
+
+test("nothing is offered when the clock is ahead of nsclock.app", () => {
+    assert.deepEqual(offerOf("1.4.0", false, BOTH("1.3.5")), { type: "ahead", version: "1.3.5" })
+    assert.deepEqual(offerOf("1.4.0", true, BOTH("1.3.5")), { type: "ahead", version: "1.3.5" })
+})
+
+test("a build missing from nsclock.app is not offered", () => {
+    assert.deepEqual(offerOf("1.3.5", false, { release: "1.4.0" }),
+        { type: "update", version: "1.4.0", kinds: ["release"], defaultKind: "release" })
+    assert.deepEqual(offerOf("1.3.5", false, { release: "1.3.5" }), { type: "latest", version: "1.3.5" })
+    assert.deepEqual(offerOf("1.3.5", true, { debug: "1.3.5" }), { type: "latest", version: "1.3.5" })
+})
+
+test("only the newest version is offered while the two builds differ", () => {
+    assert.deepEqual(offerOf("1.3.5", false, { release: "1.4.0", debug: "1.3.6" }),
+        { type: "update", version: "1.4.0", kinds: ["release"], defaultKind: "release" })
+    assert.deepEqual(offerOf("1.3.5", false, { release: "1.3.6", debug: "1.4.0" }),
+        { type: "update", version: "1.4.0", kinds: ["debug"], defaultKind: "debug" })
+})
+
+test("unreadable versions offer nothing", () => {
+    assert.deepEqual(offerOf("1.3.5", false, {}), { type: "unknown" })
+    assert.deepEqual(offerOf("", false, BOTH("1.4.0")), { type: "unknown" })
+})
+
+test("a firmware file names its version and build; other files are refused", () => {
+    const file = text => new TextEncoder().encode(text)
+    const info = bytes => JSON.parse(JSON.stringify(firmwareFileInfo(bytes)))
+    assert.deepEqual(info(file("\x00\xe9junkNSCLOCK-OTA-1:1.4.0:release\x00more")), { version: "1.4.0", debug: false })
+    assert.deepEqual(info(file("NNSCLOCK-OTA-1:1.4.0:debug\x00")), { version: "1.4.0", debug: true })
+    assert.equal(firmwareFileInfo(file("\x00\xe9 a firmware from before updates")), null)
+    assert.equal(firmwareFileInfo(file("NSCLOCK-OTA-1:1.4.0:other\x00")), null)
+    assert.deepEqual(info(file("NSCLOCK-OTA-1:1.4.0:release")), { version: "1.4.0", debug: false })
+    // A local build may have any version name; ota.sh reads it the same way (scripts/ota.sh).
+    assert.deepEqual(info(file("NSCLOCK-OTA-1:dev-2:debug\x00")), { version: "dev-2", debug: true })
+})
+
+test("the firmware's marker matches the one the page looks for", () => {
+    const source = read("src/FirmwareUpdateManager.cpp")
+    assert.match(source, /#define MARKER_PREFIX "NSCLOCK-OTA-1:"/)
+    assert.match(read("web/src/js/schema.js"), /const FIRMWARE_MARKER = "NSCLOCK-OTA-1:"/)
 })

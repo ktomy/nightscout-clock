@@ -1,4 +1,4 @@
-// Emulator stand-in: an in-memory LittleFS, so SettingsManager's real load/save code runs unchanged.
+// Emulator stand-in: an in-memory LittleFS for the melody player's file functions (lib/MelodyPlayer).
 #ifndef EMU_LITTLEFS_H
 #define EMU_LITTLEFS_H
 

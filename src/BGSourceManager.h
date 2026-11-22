@@ -19,6 +19,10 @@ public:
 
     void setup(BG_SOURCE bgSource);
     void tick();
+    // Stops the data source for good before a firmware update, whichever source it is (BGSource::end).
+    // The clock restarts after the update, so nothing starts it again.
+    void end();
+    bool isStopped() const { return bgSource != nullptr && bgSource->isStopped(); }
     bool hasNewData(unsigned long long epochToCompare);
     const GlucoseReadings& getGlucoseData();
     // A copy of the newest reading, for the web server task: the readings change in the main loop.

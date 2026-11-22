@@ -60,7 +60,7 @@ jobs:
           python-version: "3.12"
       - name: Install PlatformIO Core
         run: pip install --upgrade platformio
-      # Filesystem builds compile the clock preview (web/emulator/build.mjs) with Emscripten.
+      # Firmware builds compile the clock preview (web/emulator/build.mjs) with Emscripten.
       - name: Read the Emscripten version
         id: emsdk
         run: echo "version=$(node web/emulator/build.mjs --emsdk-version)" >> "$GITHUB_OUTPUT"
@@ -77,8 +77,6 @@ jobs:
       # Build Release
       - name: Build Release Project
         run: pio run --environment ulanzi
-      - name: Build Release Filesystem Image
-        run: pio run --target buildfs --environment ulanzi
       - name: Collect Release artifacts
         run: |
           mkdir artifacts
@@ -86,7 +84,6 @@ jobs:
           cp .pio/build/ulanzi/partitions.bin artifacts/
           cp ~/.platformio/packages/framework-arduinoespressif32/tools/partitions/boot_app0.bin artifacts/
           cp .pio/build/ulanzi/firmware.bin artifacts/
-          cp .pio/build/ulanzi/littlefs.bin artifacts/
       # The site's face simulator, and the factory settings the home page's live clock starts from.
       - name: Build the face simulator
         run: |
@@ -103,8 +100,6 @@ jobs:
           sed -i 's/#    -DDEBUG_MEMORY/    -DDEBUG_MEMORY/' platformio.ini
       - name: Build Debug Project
         run: pio run --environment ulanzi_debug
-      - name: Build Debug Filesystem Image
-        run: pio run --target buildfs --environment ulanzi_debug
       - name: Collect Debug artifacts
         run: |
           mkdir artifacts-debug
@@ -112,7 +107,6 @@ jobs:
           cp .pio/build/ulanzi_debug/partitions.bin artifacts-debug/
           cp ~/.platformio/packages/framework-arduinoespressif32/tools/partitions/boot_app0.bin artifacts-debug/
           cp .pio/build/ulanzi_debug/firmware.bin artifacts-debug/
-          cp .pio/build/ulanzi_debug/littlefs.bin artifacts-debug/
 
       # The release assets that deploy_site.yml unpacks into the site.
       - name: Package the release files
@@ -153,7 +147,7 @@ jobs:
           version=${TAG#v-}
           # The README's changelog for this version: the lines under its heading, up to the next heading.
           awk -v heading="### $version" '$0 == heading { on = 1; next } on && /^##/ { exit } on' README.md > notes.md
-          printf '\nInstall it from https://nsclock.app/ with Chrome or Edge on a computer.\n' >> notes.md
+          printf '\nUpdate from the Firmware card in the clock'"'"'s settings page, or install it from https://nsclock.app/ with Chrome or Edge on a computer.\n' >> notes.md
           if gh release view "$TAG" > /dev/null 2>&1; then
             gh release upload "$TAG" dist/*.zip --clobber
           else

@@ -3,18 +3,27 @@
 #include <AsyncJson.h>
 #include <AsyncTCP.h>
 #include <ESPAsyncWebServer.h>
-#include <LittleFS.h>
 #include <WiFi.h>
+#include <esp32/rom/crc.h>
 #include <esp_system.h>
 #include <esp_wifi.h>
 
 #include "BGDisplayManager.h"
 #include "BGSourceManager.h"
 #include "DisplayManager.h"
+#include "EmbeddedFiles.h"
+#include "FirmwareUpdateManager.h"
 #include "PeripheryManager.h"
 #include "SettingsManager.h"
 #include "globals.h"
 #include "time.h"
+
+// The settings page, built into the firmware (platformio.ini).
+DECLARE_EMBEDDED_FILE(indexHtml, data_index_html_gz)
+DECLARE_EMBEDDED_FILE(clockEmuJs, data_clockemu_js_gz)
+DECLARE_EMBEDDED_FILE(faviconIco, data_favicon_ico_gz)
+DECLARE_EMBEDDED_FILE(tzdataJson, data_tzdata_json_gz)
+DECLARE_EMBEDDED_FILE(hotspotDetectHtml, data_hotspot_detect_html)
 
 // The WiFi driver copies every frame it receives into a buffer of about 2.3 KB, whatever the
 // frame's size, and holds it until the network stack has taken the frame. Frames often come in
@@ -106,6 +115,10 @@ String ServerManager_::getHostname() {
     return hostname;
 }
 
+bool ServerManager_::isAuthorized(AsyncWebServerRequest* request) const {
+    return !isWebAuthEnabled() || isRequestAuthenticated(request);
+}
+
 bool ServerManager_::isWebAuthEnabled() const {
     return SettingsManager.settings.web_auth_enable &&
            SettingsManager.settings.web_auth_password.length() > 0;
@@ -192,8 +205,7 @@ bool tryConnectToWiFi(String wifi_type, String ssid, String username, String pas
 
     WiFi.mode(WIFI_STA);
 
-    // Apply a custom MAC address if one is configured (stored in config.json
-    // like any other setting).
+    // Apply a custom MAC address if one is configured (stored like any other setting).
     String customMac = SettingsManager.settings.custom_mac;
     if (customMac.length() > 0) {
         uint8_t macBuf[6];
@@ -480,7 +492,6 @@ void ServerManager_::setupWebServer(IPAddress ip) {
         }
         request->send(200, "application/json", "{\"status\": \"ok\"}");
         delay(1000);
-        LittleFS.end();
         ESP.restart();
     });
 
@@ -548,7 +559,12 @@ void ServerManager_::setupWebServer(IPAddress ip) {
                 : "false";
         jsonResponse += ", \"faceId\": \"";
         jsonResponse += bgDisplayManager.getCurrentFaceId();
-        jsonResponse += "\"}";
+        // Which kind of firmware runs, so the settings page offers the matching update.
+#ifdef DEBUG
+        jsonResponse += "\", \"debug\": true}";
+#else
+        jsonResponse += "\", \"debug\": false}";
+#endif
         request->send(200, "application/json", jsonResponse);
     });
 
@@ -640,10 +656,17 @@ void ServerManager_::setupWebServer(IPAddress ip) {
         if (!enforceAuthentication(request)) {
             return;
         }
-        request->send(LittleFS, CONFIG_JSON, "application/json");
+        String json;
+        if (!SettingsManager.readConfigJson(json)) {
+            request->send(
+                500, "application/json", "{\"status\": \"error\", \"error\": \"settings unreadable\"}");
+            return;
+        }
+        request->send(200, "application/json", json);
     });
 
-    addStaticFileHandler();
+    FirmwareUpdateManager.addRoutes(ws);
+    addEmbeddedFileRoutes();
 
     // Captive portal detection endpoints
     // Android: responds with HTTP 204 so the device opens the portal
@@ -666,22 +689,50 @@ void ServerManager_::setupWebServer(IPAddress ip) {
     ws->begin();
 }
 
-void ServerManager_::removeStaticFileHandler() {
-    if (staticFilesHandler != nullptr) {
-        ws->removeHandler(staticFilesHandler);
-        staticFilesHandler = nullptr;
-    } else {
-        DEBUG_PRINTLN("removeStaticFileHandler: staticFilesHandler is null");
-    }
+// Answers with a file built into the firmware. The ETag is the file's CRC, so a browser checks each
+// time (no-cache) but downloads the file again only after a firmware update changed it.
+static void addEmbeddedFileRoute(
+    AsyncWebServer* ws, const char* path, EmbeddedFile file, const char* contentType, bool gzipped) {
+    String etag = "\"" + String(crc32_le(0, file.data, file.size), HEX) + "\"";
+    ws->on(
+        AsyncURIMatcher::exact(path), HTTP_GET,
+        [file, contentType, gzipped, etag](AsyncWebServerRequest* request) {
+            AsyncWebServerResponse* response;
+            if (request->hasHeader("If-None-Match") &&
+                request->getHeader("If-None-Match")->value() == etag) {
+                response = request->beginResponse(304);
+            } else {
+                response = request->beginResponse(200, contentType, file.data, file.size);
+                if (gzipped) {
+                    response->addHeader("Content-Encoding", "gzip");
+                }
+            }
+            response->addHeader("Cache-Control", "no-cache");
+            response->addHeader("ETag", etag);
+            request->send(response);
+        });
 }
 
-void ServerManager_::addStaticFileHandler() {
-    if (staticFilesHandler != nullptr) {
-        removeStaticFileHandler();
-    }
-    staticFilesHandler = new AsyncStaticWebHandler("/", LittleFS, "/", NULL);
-    staticFilesHandler->setDefaultFile("index.html");
-    ws->addHandler(staticFilesHandler);
+void ServerManager_::addEmbeddedFileRoutes() {
+    EmbeddedFile index = embeddedFile(indexHtml_start, indexHtml_end);
+    addEmbeddedFileRoute(ws, "/", index, "text/html", true);
+    addEmbeddedFileRoute(ws, "/index.html", index, "text/html", true);
+    addEmbeddedFileRoute(
+        ws, "/clockemu.js", embeddedFile(clockEmuJs_start, clockEmuJs_end), "application/javascript",
+        true);
+    addEmbeddedFileRoute(
+        ws, "/favicon.ico", embeddedFile(faviconIco_start, faviconIco_end), "image/x-icon", true);
+    addEmbeddedFileRoute(
+        ws, "/tzdata.json", embeddedFile(tzdataJson_start, tzdataJson_end), "application/json", true);
+    // iOS opens the setup page from this captive portal check.
+    addEmbeddedFileRoute(
+        ws, "/hotspot-detect.html", embeddedFile(hotspotDetectHtml_start, hotspotDetectHtml_end),
+        "text/html", false);
+    ws->on(AsyncURIMatcher::exact("/version.txt"), HTTP_GET, [](AsyncWebServerRequest* request) {
+        AsyncWebServerResponse* response = request->beginResponse(200, "text/plain", VERSION);
+        response->addHeader("Cache-Control", "no-store");
+        request->send(response);
+    });
 }
 
 bool ServerManager_::initTimeIfNeeded() {

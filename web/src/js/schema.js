@@ -629,3 +629,64 @@ function sha1Hex(text) {
     }
     return [a, b, c, d, e].map(n => (n >>> 0).toString(16).padStart(8, "0")).join("")
 }
+
+/**
+ * Compare dotted numeric versions component by component, treating missing parts as zero.
+ * @param {string} a - First dotted numeric version.
+ * @param {string} b - Version to compare against.
+ * @returns {number} Negative if a is older, zero if equal, positive if newer.
+ */
+function compareVersions(a, b) {
+    const pa = String(a).split(".").map(Number), pb = String(b).split(".").map(Number)
+    for (let i = 0; i < Math.max(pa.length, pb.length); i++) if ((pa[i] || 0) !== (pb[i] || 0)) return (pa[i] || 0) - (pb[i] || 0)
+    return 0
+}
+
+/**
+ * What the firmware card offers, from the clock's version and kind and the builds nsclock.app publishes.
+ * - update: a newer version, as either kind; release is the default.
+ * - switch: the clock's own version, as the other kind. Never shown as an update.
+ * - latest: the clock runs the published version, and the other kind is not published.
+ * - ahead: the clock runs a newer version than nsclock.app has, so nothing is offered.
+ * - unknown: the clock's version or the published builds could not be read.
+ * @param {string} current - The clock's version, from /version.txt.
+ * @param {boolean} currentIsDebug - Whether the clock runs the debug build.
+ * @param {{release?: string, debug?: string}} published - Version of each published build, if read.
+ * @returns {{type: 'update', version: string, kinds: string[], defaultKind: string} | {type: 'switch', version: string, kind: string} | {type: 'latest' | 'ahead', version: string} | {type: 'unknown'}}
+ */
+function firmwareOffer(current, currentIsDebug, published) {
+    const kinds = ["release", "debug"].filter(k => published && published[k])
+    if (!current || !kinds.length) return { type: "unknown" }
+    const newer = kinds.filter(k => compareVersions(published[k], current) > 0)
+    if (newer.length) {
+        const version = newer.map(k => published[k]).reduce((a, b) => (compareVersions(b, a) > 0 ? b : a))
+        const offered = newer.filter(k => compareVersions(published[k], version) === 0)
+        return { type: "update", version, kinds: offered, defaultKind: offered.includes("release") ? "release" : offered[0] }
+    }
+    const other = currentIsDebug ? "release" : "debug"
+    if (published[other] && compareVersions(published[other], current) === 0) return { type: "switch", version: current, kind: other }
+    const same = kinds.find(k => compareVersions(published[k], current) === 0)
+    if (same) return { type: "latest", version: current }
+    return { type: "ahead", version: published[kinds[0]] }
+}
+
+// Every firmware that can be installed from this page carries this text, followed by
+// "<version>:<release|debug>" (src/FirmwareUpdateManager.cpp). The clock checks it too.
+const FIRMWARE_MARKER = "NSCLOCK-OTA-1:"
+
+/**
+ * Find the version and kind a firmware file names, so a wrong file is refused before the clock stops.
+ * @param {Uint8Array} bytes - The firmware file.
+ * @returns {{version: string, debug: boolean} | null} Null when the file is not installable NSClock firmware.
+ */
+function firmwareFileInfo(bytes) {
+    const marker = Array.from(FIRMWARE_MARKER, ch => ch.charCodeAt(0))
+    for (let i = bytes.indexOf(marker[0]); i >= 0; i = bytes.indexOf(marker[0], i + 1)) {
+        if (!marker.every((b, j) => bytes[i + j] === b)) continue
+        let text = ""
+        for (let j = i + marker.length; j < bytes.length && bytes[j] && text.length < 48; j++) text += String.fromCharCode(bytes[j])
+        const match = /^([0-9A-Za-z.\-]+):(release|debug)$/.exec(text)
+        if (match) return { version: match[1], debug: match[2] === "debug" }
+    }
+    return null
+}
