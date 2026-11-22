@@ -65,8 +65,10 @@ private:
     // Set after going back, until the restart a timer makes once the answer is out.
     std::atomic<bool> goingBack{false};
 
-    // The firmware in the other slot, found by setup().
+    // The firmware in the other slot, found by setup(). One that failed to start is named but not
+    // available.
     bool previousAvailable = false;
+    bool previousFailed = false;
     String previousVersion;
     bool previousDebug = false;
 };

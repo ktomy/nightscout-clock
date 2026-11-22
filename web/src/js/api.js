@@ -82,6 +82,8 @@
  * The firmware an update replaced, which the clock can go back to.
  * @typedef {Object} PreviousFirmware
  * @property {boolean} available Whether the clock's other firmware slot holds a working NSClock version.
+ * @property {boolean} [failed] Whether that version failed to start and the clock returned from it, so it
+ *     is not available.
  * @property {string} [version] Its version.
  * @property {boolean} [debug] Whether it is the debug build.
  */
@@ -438,9 +440,11 @@ const api = (() => {
             } catch (e) {
                 // The clock may have installed the file and restarted before its answer arrived.
                 const result = await checkInstalled(expected, onPhase)
-                const changed = before.running !== expected.version || before.debug !== expected.debug
-                if ((result.ok && changed) || result.lost) return result
-                return { ok: false, error: `${e.message} The clock kept its old firmware.` }
+                if (result.lost) return result
+                if (!result.ok) return { ok: false, error: `${e.message} The clock kept its old firmware.` }
+                if (before.running !== expected.version || before.debug !== expected.debug) return result
+                // It ran this build before too, so its version cannot tell whether the file was installed.
+                return { ok: false, error: `${e.message} The clock runs ${expected.version} (${expected.debug ? "debug" : "release"}) as before; whether it installed the file again cannot be told.` }
             }
             if (!reply.ok) {
                 const reason = (reply.data && (reply.data.error || reply.data.status)) || `HTTP ${reply.status}`

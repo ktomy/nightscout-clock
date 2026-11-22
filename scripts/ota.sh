@@ -70,7 +70,7 @@ fi
 FIRMWARE="$PROJECT_DIR/.pio/build/$ENVIRONMENT/firmware.bin"
 [[ -f $FIRMWARE ]] || fail "Missing $FIRMWARE; build it first."
 # "<version>:<release|debug>", from the marker the clock checks (src/FirmwareUpdateManager.cpp).
-EXPECTED=$(grep -ao 'NSCLOCK-OTA-1:[0-9A-Za-z.-]*:[a-z]*' "$FIRMWARE" | head -n 1 | cut -d: -f2-) || true
+EXPECTED=$(grep -aoE 'NSCLOCK-OTA-1:[0-9A-Za-z.-]+:(release|debug)' "$FIRMWARE" | head -n 1 | cut -d: -f2-) || true
 [[ -n $EXPECTED ]] || fail "$FIRMWARE has no update marker; it cannot be installed over WiFi."
 SIZE=$(wc -c < "$FIRMWARE" | tr -d '[:space:]')
 

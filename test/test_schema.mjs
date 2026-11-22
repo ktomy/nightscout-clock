@@ -178,6 +178,8 @@ test("a firmware file names its version and build; other files are refused", () 
     assert.equal(firmwareFileInfo(file("\x00\xe9 a firmware from before updates")), null)
     assert.equal(firmwareFileInfo(file("NSCLOCK-OTA-1:1.4.0:other\x00")), null)
     assert.deepEqual(info(file("NSCLOCK-OTA-1:1.4.0:release")), { version: "1.4.0", debug: false })
+    // A local build may have any version name; ota.sh reads it the same way (scripts/ota.sh).
+    assert.deepEqual(info(file("NSCLOCK-OTA-1:dev-2:debug\x00")), { version: "dev-2", debug: true })
 })
 
 test("the firmware's marker matches the one the page looks for", () => {

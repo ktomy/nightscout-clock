@@ -89,12 +89,10 @@ void FirmwareUpdateManager_::findPreviousFirmware() {
         DEBUG_PRINTLN("The other firmware slot holds no complete firmware");
         return;
     }
+    // A version that failed to start is not offered again, but the page warns before installing it.
     esp_ota_img_states_t otaState;
-    if (esp_ota_get_state_partition(other, &otaState) == ESP_OK &&
-        (otaState == ESP_OTA_IMG_INVALID || otaState == ESP_OTA_IMG_ABORTED)) {
-        DEBUG_PRINTLN("The other firmware slot holds a version that failed to start");
-        return;
-    }
+    const bool failed = esp_ota_get_state_partition(other, &otaState) == ESP_OK &&
+                        (otaState == ESP_OTA_IMG_INVALID || otaState == ESP_OTA_IMG_ABORTED);
 
     std::unique_ptr<uint8_t[]> buffer(new (std::nothrow) uint8_t[SCAN_CHUNK]);
     if (!buffer) {
@@ -122,8 +120,11 @@ void FirmwareUpdateManager_::findPreviousFirmware() {
             }
             previousVersion = text.substring(0, colon);
             previousDebug = kind == "debug";
-            previousAvailable = true;
-            DEBUG_PRINTF("The other firmware slot holds %s (%s)", previousVersion.c_str(), kind.c_str());
+            previousAvailable = !failed;
+            previousFailed = failed;
+            DEBUG_PRINTF(
+                "The other firmware slot holds %s (%s)%s", previousVersion.c_str(), kind.c_str(),
+                failed ? ", which failed to start" : "");
             return;
         }
     }
@@ -197,7 +198,8 @@ void FirmwareUpdateManager_::addRoutes(AsyncWebServer* ws) {
                 return;
             }
             String body = String("{\"available\": ") + (previousAvailable ? "true" : "false");
-            if (previousAvailable) {
+            if (previousAvailable || previousFailed) {
+                body += String(", \"failed\": ") + (previousFailed ? "true" : "false");
                 body += ", \"version\": \"" + previousVersion + "\", \"debug\": ";
                 body += previousDebug ? "true" : "false";
             }

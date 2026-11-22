@@ -378,6 +378,7 @@ async function loadVersions() {
     }
     const prev = await api.previousFirmware().catch(() => null)
     v.previous = prev && prev.ok && prev.data && prev.data.available ? prev.data : null
+    v.failed = prev && prev.ok && prev.data && prev.data.failed ? prev.data : null
     v.offer = v.debug == null ? { type: "unknown" } : firmwareOffer(v.current, v.debug, v.published)
     renderFirmware()
 }

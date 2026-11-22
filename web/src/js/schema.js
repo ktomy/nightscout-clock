@@ -685,7 +685,7 @@ function firmwareFileInfo(bytes) {
         if (!marker.every((b, j) => bytes[i + j] === b)) continue
         let text = ""
         for (let j = i + marker.length; j < bytes.length && bytes[j] && text.length < 48; j++) text += String.fromCharCode(bytes[j])
-        const match = /^([0-9][0-9A-Za-z.\-]*):(release|debug)$/.exec(text)
+        const match = /^([0-9A-Za-z.\-]+):(release|debug)$/.exec(text)
         if (match) return { version: match[1], debug: match[2] === "debug" }
     }
     return null

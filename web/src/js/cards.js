@@ -1328,6 +1328,10 @@ function firmwareNodes() {
     const nodes = [el("dl.kv", el("dt", "Current version"), el("dd", current),
         el("dt", "Latest version"), el("dd", published || (v.offer ? "unknown" : "…")))]
     const o = v.offer
+    // Installing it again stays possible: the failure may have been a power cut, or a fixed re-release.
+    const failed = (version, debug) => v.failed && v.failed.version === version && (debug == null || v.failed.debug === debug)
+    const failedNotice = () => el("div.notice.warn", `${v.failed.version} (${firmwareKind(v.failed.debug)}) failed to start on this clock, `
+        + "which then went back to the version before it. Installing it again may fail the same way.")
     if (!o) {
         nodes.push(el("p.help", "Checking for updates…"))
     } else if (o.type === "update") {
@@ -1338,11 +1342,13 @@ function firmwareNodes() {
             el("a", { href: CHANGES_URL, target: "_blank", rel: "noopener noreferrer" }, "Changes")),
         el("div.row", select,
             el("button.btn.primary", { type: "button", disabled: busy, onclick: () => installPublished(select.value) }, icon("download"), `Install ${o.version}`)))
+        if (failed(o.version)) nodes.push(failedNotice())
     } else if (o.type === "switch") {
         // The same version as the other kind: worded and placed so it is never read as an update.
         nodes.push(el("p.help", "You are using the latest version."),
             el("div.row", el("button.btn", { type: "button", disabled: busy, onclick: () => installPublished(o.kind) }, `Switch to the ${o.kind} build`)),
             el("p.help", `Same version, ${o.version}, ${o.kind === "debug" ? "with" : "without"} diagnostic logging.`))
+        if (failed(o.version, o.kind === "debug")) nodes.push(failedNotice())
     } else if (o.type === "latest") {
         nodes.push(el("p.help", "You are using the latest version."))
     } else if (o.type === "ahead") {
